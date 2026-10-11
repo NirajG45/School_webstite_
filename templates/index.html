@@ -45,8 +45,30 @@
                 <a class="nav-link" href="#notices"><i class="fa-solid fa-bell"></i> Notices</a>
                 <a class="nav-link" href="#contact"><i class="fa-regular fa-envelope"></i> Contact</a>
             </nav>
-            <div class="header-actions">
-                <a class="login-btn" href="#admission"><i class="fa-regular fa-user"></i><span>Enquire</span></a>
+                        <div class="header-actions">
+                {% if session.get('user_id') %}
+                    <!-- ✅ यूज़र लॉगिन है: Initials वाला अवतार दिखाएं -->
+                    <div class="user-profile">
+                        <div class="user-avatar" title="{{ session['user_name'] }}">
+                            {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                        </div>
+                        <div class="user-dropdown">
+                            <span>Hello, {{ session['user_name'].split()[0] }}</span>
+                            <a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- ✅ यूज़र लॉगआउट है: Login बटन दिखाएं (Enquire की जगह) -->
+                    <a class="login-btn" href="{{ url_for('login_page') }}">
+                        <i class="fa-regular fa-user"></i><span>Login</span>
+                    </a>
+                    
+                    <!-- पुराना Enquire बटन (अब Secondary बटन के रूप में) -->
+                    <a class="enquire-btn-secondary" href="#admission">
+                        <i class="fa-regular fa-paper-plane"></i><span>Enquire</span>
+                    </a>
+                {% endif %}
+                
                 <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open navigation menu"
                     aria-controls="mobileMenu" aria-expanded="false"><span></span><span></span><span></span></button>
             </div>

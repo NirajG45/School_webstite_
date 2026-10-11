@@ -1630,3 +1630,132 @@ img { display: block; max-width: 100%; }
 @media (max-width: 480px) {
     .subject-grid { grid-template-columns: 1fr; }
 }
+
+/* =========================================
+   NAVBAR LOGIN & USER PROFILE (UPGRADED)
+   ========================================= */
+
+/* Secondary Enquire Button (ताकि पुराना फीचर भी बना रहे) */
+.enquire-btn-secondary {
+    height: 44px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 11px;
+    border: 1.5px solid var(--navy);
+    background: transparent;
+    color: var(--navy);
+    font-size: 12.5px;
+    font-weight: 800;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+.enquire-btn-secondary:hover {
+    background: var(--navy);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(9, 47, 88, 0.2);
+}
+
+/* User Profile & Avatar Container */
+.user-profile {
+    position: relative;
+    display: inline-block;
+    z-index: 1200;
+}
+
+/* The Circular Avatar with Initials */
+.user-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--red), #b9102c);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(215, 25, 56, 0.2);
+    border: 2px solid var(--yellow);
+    transition: var(--transition);
+    user-select: none;
+}
+.user-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(215, 25, 56, 0.4);
+}
+
+/* Dropdown Menu (Hello, Name & Logout) */
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    padding: 15px;
+    min-width: 180px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: var(--transition);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 1px solid var(--line);
+}
+
+/* Hover effect for dropdown */
+.user-profile:hover .user-dropdown,
+.user-profile:focus-within .user-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.user-dropdown span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 8px;
+    white-space: nowrap;
+}
+
+.user-dropdown a {
+    font-size: 13px;
+    color: var(--red);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
+    padding: 4px 0;
+}
+.user-dropdown a:hover {
+    color: #b9102c;
+    transform: translateX(5px);
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 900px) {
+    .enquire-btn-secondary {
+        display: none; /* मोबाइल पर स्पेस बचाने के लिए इसे छिपा दें */
+    }
+}
+@media (max-width: 680px) {
+    .user-avatar {
+        width: 39px;
+        height: 39px;
+        font-size: 14px;
+    }
+    .user-dropdown {
+        min-width: 160px;
+        right: -10px;
+    }
+}

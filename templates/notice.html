@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0b3562">
+    <meta name="description" content="Notice Board - Residential Shanti Niketan, Navinagar Jamui">
+    <title>Notice Board | Residential Shanti Niketan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <!-- =========================================
+         HEADER SECTION
+         ========================================= -->
+    <header class="site-header" id="top">
+        <div class="header-inner">
+            <a class="brand" href="{{ url_for('home') }}" aria-label="Residential Shanti Niketan home">
+                <a href="{{ url_for('home') }}" class="brand-mark" aria-label="Residential Shanti Niketan Home">
+                    <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="School Logo"
+                        class="school-logo" width="64" height="64">
+                </a>
+                <span class="brand-copy">
+                    <strong>RESIDENTIAL SHANTI NIKETAN</strong>
+                    <b>NAVINAGAR JAMUI</b>
+                    <small>Pre-Nursery to Class 8 <i>•</i> शिक्षा • संस्कार • उज्ज्वल भविष्य</small>
+                </span>
+            </a>
+            <nav class="desktop-nav" aria-label="Main navigation">
+                <a class="nav-link" href="{{ url_for('home') }}#top"><i class="fa-solid fa-house"></i> Home</a>
+                <a class="nav-link" href="{{ url_for('home') }}#about"><i class="fa-solid fa-users"></i> About Us</a>
+                <a class="nav-link" href="{{ url_for('home') }}#academics"><i class="fa-solid fa-book-open"></i>
+                    Academics</a>
+                <a class="nav-link" href="{{ url_for('home') }}#facilities"><i class="fa-solid fa-building-columns"></i>
+                    Facilities</a>
+                <a class="nav-link" href="{{ url_for('home') }}#gallery"><i class="fa-regular fa-images"></i>
+                    Gallery</a>
+                <a class="nav-link active" href="{{ url_for('notices_page') }}"><i class="fa-solid fa-bell"></i>
+                    Notices</a>
+                <a class="nav-link" href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i>
+                    Contact</a>
+            </nav>
+            <div class="header-actions">
+                <a class="login-btn" href="{{ url_for('home') }}#admission"><i
+                        class="fa-regular fa-user"></i><span>Enquire</span></a>
+                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open navigation menu"
+                    aria-controls="mobileMenu" aria-expanded="false"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="menu-backdrop" id="menuBackdrop" hidden></div>
+
+    <!-- =========================================
+         MOBILE MENU
+         ========================================= -->
+    <aside class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation" aria-hidden="true" inert>
+        <div class="mobile-menu-head">
+            <span>Explore School</span>
+            <button type="button" id="menuClose" aria-label="Close navigation menu"><i
+                    class="fa-solid fa-xmark"></i></button>
+        </div>
+        <nav class="mobile-nav">
+            <a href="{{ url_for('home') }}#top"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="{{ url_for('home') }}#about"><i class="fa-solid fa-users"></i> About Us</a>
+            <a href="{{ url_for('home') }}#academics"><i class="fa-solid fa-book-open"></i> Academics</a>
+            <a href="{{ url_for('home') }}#facilities"><i class="fa-solid fa-building-columns"></i> Facilities</a>
+            <a href="{{ url_for('home') }}#gallery"><i class="fa-regular fa-images"></i> Gallery</a>
+            <a href="{{ url_for('notices_page') }}"><i class="fa-solid fa-bell"></i> Notice Board</a>
+            <a href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i> Contact Us</a>
+        </nav>
+        <div class="mobile-menu-foot">Learn <span>•</span> Grow <span>•</span> Succeed</div>
+    </aside>
+
+    <!-- =========================================
+         MAIN CONTENT - NOTICES PAGE
+         ========================================= -->
+    <main id="main">
+
+        <!-- Page Hero Banner -->
+        <section class="page-hero">
+            <div class="wrap page-hero-inner">
+                <div class="page-hero-icon"><i class="fa-solid fa-bullhorn"></i></div>
+                <div>
+                    <h1>Notice Board</h1>
+                    <p>Stay updated with the latest announcements, exam schedules, and school events.</p>
+                </div>
+                <a href="{{ url_for('home') }}" class="btn-back-home"><i class="fa-solid fa-arrow-left"></i> Back to
+                    Home</a>
+            </div>
+        </section>
+
+        <!-- Notice Board Content -->
+        <section class="wrap notices-page-content">
+
+            <!-- Controls: Search & Filter -->
+            <div class="notice-controls">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="noticeSearch" placeholder="Search notices by title or keyword...">
+                </div>
+                <div class="filter-tabs">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="admissions">Admissions</button>
+                    <button class="filter-btn" data-filter="academics">Academics</button>
+                    <button class="filter-btn" data-filter="activities">Activities</button>
+                    <button class="filter-btn" data-filter="notice">General</button>
+                </div>
+            </div>
+
+            <!-- Notices Grid -->
+            <div class="notices-grid" id="noticesGrid">
+
+                <!-- 🚀 DYNAMIC NOTICES LOOP (Yahan aapke app.py se data aayega) -->
+                {% for notice in notices %}
+                <article class="notice-card" data-category="{{ notice.tag|lower }}">
+                    <div class="notice-card-header">
+                        <span class="notice-date"><i class="fa-regular fa-calendar-days"></i> {{ notice.date }}</span>
+                        <span class="notice-tag tag-{{ notice.tag|lower }}">{{ notice.tag }}</span>
+                    </div>
+                    <div class="notice-card-body">
+                        <h3>{{ notice.title }}</h3>
+                        <p>{{ notice.description if notice.description else 'Click to read the full notice details.' }}
+                        </p>
+                    </div>
+                    <div class="notice-card-footer">
+                        <a href="#" class="read-more">Read Full Notice <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                </article>
+                {% endfor %}
+
+            </div>
+
+            <!-- Empty State (Hidden by default) -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <i class="fa-regular fa-face-frown"></i>
+                <h3>No Notices Found</h3>
+                <p>Try adjusting your search or filter to find what you're looking for.</p>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <a href="#" class="page-btn disabled"><i class="fa-solid fa-chevron-left"></i></a>
+                <a href="#" class="page-btn active">1</a>
+                <a href="#" class="page-btn">2</a>
+                <a href="#" class="page-btn">3</a>
+                <a href="#" class="page-btn"><i class="fa-solid fa-chevron-right"></i></a>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- =========================================
+         UPGRADED FOOTER SECTION
+         ========================================= -->
+    <footer class="site-footer">
+        <div class="wrap footer-inner">
+            <div class="footer-brand-col">
+                <a class="footer-brand" href="{{ url_for('home') }}#top" aria-label="Residential Shanti Niketan home">
+                    <span class="brand-mark small-mark">
+                        <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="School Logo"
+                            class="school-logo" loading="lazy">
+                    </span>
+                    <span class="footer-brand-copy">
+                        <strong>Residential Shanti Niketan</strong>
+                        <small>Navinagar, Jamui</small>
+                        <span class="footer-tagline">Education • Values • Excellence</span>
+                    </span>
+                </a>
+            </div>
+            <div class="footer-links-col">
+                <h4>About School</h4>
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <span>
+                        <strong style="color: #fff; font-size: 13px; display: block;">Residential Shanti
+                            Niketan</strong>
+                        <small style="font-size: 11px; color: #aebfd0;">Navinagar Jamui</small>
+                    </span>
+                </div>
+                <p style="font-size: 12.5px; color: #aebfd0; margin: 0;">Education • Values • A brighter future</p>
+            </div>
+            <div class="footer-contact-col">
+                <h4>Navigate</h4>
+                <a class="back-top" href="#top">Back to top <i class="fa-solid fa-arrow-up"></i></a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p class="copyright-text">© <span id="year"></span> Residential Shanti Niketan. Website concept.</p>
+            <div class="developer-credit">
+                <span class="dev-badge">
+                    <i class="fa-solid fa-code"></i>
+                    <span>Developed by <strong>Niraj Kumar</strong></span>
+                    <a href="tel:9155658081" class="dev-contact">
+                        <i class="fa-solid fa-phone"></i> 9155658081
+                    </a>
+                </span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+
+    <!-- Notices Page Specific JS (Search & Filter) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('noticeSearch');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const noticeCards = document.querySelectorAll('.notice-card');
+            const emptyState = document.getElementById('emptyState');
+            const grid = document.getElementById('noticesGrid');
+
+            let currentFilter = 'all';
+            let currentSearch = '';
+
+            function filterNotices() {
+                let visibleCount = 0;
+
+                noticeCards.forEach(card => {
+                    const category = card.getAttribute('data-category') || '';
+                    const title = card.querySelector('h3').textContent.toLowerCase();
+                    const desc = card.querySelector('p').textContent.toLowerCase();
+
+                    const matchesFilter = currentFilter === 'all' || category.includes(currentFilter);
+                    const matchesSearch = title.includes(currentSearch) || desc.includes(currentSearch);
+
+                    if (matchesFilter && matchesSearch) {
+                        card.style.display = 'flex';
+                        card.style.animation = 'fadeIn 0.4s ease forwards';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                if (visibleCount === 0) {
+                    grid.style.display = 'none';
+                    emptyState.style.display = 'block';
+                } else {
+                    grid.style.display = 'grid';
+                    emptyState.style.display = 'none';
+                }
+            }
+
+            // Search Listener
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    currentSearch = e.target.value.toLowerCase();
+                    filterNotices();
+                });
+            }
+
+            // Filter Listener
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilter = btn.getAttribute('data-filter');
+                    filterNotices();
+                });
+            });
+        });
+    </script>
+
+    <!-- Add FadeIn Animation to CSS inline for quick fix -->
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</body>
+
+</html>

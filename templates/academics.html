@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0b3562">
+    <meta name="description" content="Academics - Residential Shanti Niketan, Navinagar Jamui">
+    <title>Academics | Residential Shanti Niketan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    
+    <!-- HEADER SECTION -->
+    <header class="site-header" id="top">
+        <div class="header-inner">
+            <a class="brand" href="{{ url_for('home') }}" aria-label="Residential Shanti Niketan home">
+                <a href="{{ url_for('home') }}" class="brand-mark" aria-label="Residential Shanti Niketan Home">
+                    <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="School Logo" class="school-logo" width="64" height="64">
+                </a>
+                <span class="brand-copy">
+                    <strong>RESIDENTIAL SHANTI NIKETAN</strong>
+                    <b>NAVINAGAR JAMUI</b>
+                    <small>Pre-Nursery to Class 8 <i>•</i> शिक्षा • संस्कार • उज्ज्वल भविष्य</small>
+                </span>
+            </a>
+            <nav class="desktop-nav" aria-label="Main navigation">
+                <a class="nav-link" href="{{ url_for('home') }}#top"><i class="fa-solid fa-house"></i> Home</a>
+                <a class="nav-link" href="{{ url_for('home') }}#about"><i class="fa-solid fa-users"></i> About Us</a>
+                <a class="nav-link active" href="{{ url_for('academics_page') }}"><i class="fa-solid fa-book-open"></i> Academics</a>
+                <a class="nav-link" href="{{ url_for('home') }}#facilities"><i class="fa-solid fa-building-columns"></i> Facilities</a>
+                <a class="nav-link" href="{{ url_for('home') }}#gallery"><i class="fa-regular fa-images"></i> Gallery</a>
+                <a class="nav-link" href="{{ url_for('notices_page') }}"><i class="fa-solid fa-bell"></i> Notices</a>
+                <a class="nav-link" href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i> Contact</a>
+            </nav>
+            <div class="header-actions">
+                <a class="login-btn" href="{{ url_for('home') }}#admission"><i class="fa-regular fa-user"></i><span>Enquire</span></a>
+                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open navigation menu" aria-controls="mobileMenu" aria-expanded="false"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+    
+    <div class="menu-backdrop" id="menuBackdrop" hidden></div>
+    
+    <!-- MOBILE MENU -->
+    <aside class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation" aria-hidden="true" inert>
+        <div class="mobile-menu-head">
+            <span>Explore School</span>
+            <button type="button" id="menuClose" aria-label="Close navigation menu"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <nav class="mobile-nav">
+            <a href="{{ url_for('home') }}#top"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="{{ url_for('home') }}#about"><i class="fa-solid fa-users"></i> About Us</a>
+            <a href="{{ url_for('academics_page') }}"><i class="fa-solid fa-book-open"></i> Academics</a>
+            <a href="{{ url_for('home') }}#facilities"><i class="fa-solid fa-building-columns"></i> Facilities</a>
+            <a href="{{ url_for('home') }}#gallery"><i class="fa-regular fa-images"></i> Gallery</a>
+            <a href="{{ url_for('notices_page') }}"><i class="fa-solid fa-bell"></i> Notice Board</a>
+            <a href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i> Contact Us</a>
+        </nav>
+        <div class="mobile-menu-foot">Learn <span>•</span> Grow <span>•</span> Succeed</div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main id="main">
+        
+        <!-- Page Hero Banner -->
+        <section class="page-hero">
+            <div class="wrap page-hero-inner">
+                <div class="page-hero-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                <div>
+                    <h1>Academics</h1>
+                    <p>Nurturing young minds from Pre-Nursery to Class 8 with a strong foundation for lifelong learning.</p>
+                </div>
+                <a href="{{ url_for('home') }}" class="btn-back-home"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+            </div>
+        </section>
+
+        <!-- Academics Content -->
+        <section class="wrap academics-content">
+            
+            <!-- Learning Stages Section -->
+            <div class="section-heading-center">
+                <p class="section-kicker">OUR LEARNING APPROACH</p>
+                <h2>Every Stage Matters</h2>
+                <p>We provide a supportive and stimulating environment tailored to the developmental needs of each age group.</p>
+            </div>
+
+            <div class="stages-grid">
+                <!-- Stage 1 -->
+                <div class="stage-card">
+                    <div class="stage-icon stage-pre"><i class="fa-solid fa-child-reaching"></i></div>
+                    <h3>Pre-Primary</h3>
+                    <span class="stage-range">Pre-Nursery to UKG</span>
+                    <p>Focuses on play-based learning, developing social skills, motor skills, and a love for exploration in a safe and caring environment.</p>
+                </div>
+                <!-- Stage 2 -->
+                <div class="stage-card">
+                    <div class="stage-icon stage-primary"><i class="fa-solid fa-pencil"></i></div>
+                    <h3>Primary Level</h3>
+                    <span class="stage-range">Class 1 to Class 5</span>
+                    <p>Builds a strong foundation in core subjects like English, Mathematics, and Environmental Studies through interactive and engaging methods.</p>
+                </div>
+                <!-- Stage 3 -->
+                <div class="stage-card">
+                    <div class="stage-icon stage-middle"><i class="fa-solid fa-book-bookmark"></i></div>
+                    <h3>Middle School</h3>
+                    <span class="stage-range">Class 6 to Class 8</span>
+                    <p>Prepares students for higher education by deepening their knowledge in Science, Social Studies, and Mathematics with a focus on critical thinking.</p>
+                </div>
+            </div>
+
+            <!-- Subjects & Activities Section -->
+            <div class="section-heading-center" style="margin-top: 60px;">
+                <p class="section-kicker">CURRICULUM</p>
+                <h2>Subjects & Activities</h2>
+                <p>A balanced curriculum that combines academic excellence with creative and physical development.</p>
+            </div>
+
+            <div class="subject-grid">
+                <div class="subject-card">
+                    <i class="fa-solid fa-language"></i>
+                    <h4>Languages</h4>
+                    <p>English, Hindi & Sanskrit</p>
+                </div>
+                <div class="subject-card">
+                    <i class="fa-solid fa-calculator"></i>
+                    <h4>Mathematics</h4>
+                    <p>Foundational to Advanced Concepts</p>
+                </div>
+                <div class="subject-card">
+                    <i class="fa-solid fa-flask"></i>
+                    <h4>Science</h4>
+                    <p>Physics, Chemistry & Biology Basics</p>
+                </div>
+                <div class="subject-card">
+                    <i class="fa-solid fa-earth-asia"></i>
+                    <h4>Social Studies</h4>
+                    <p>History, Geography & Civics</p>
+                </div>
+                <div class="subject-card">
+                    <i class="fa-solid fa-laptop-code"></i>
+                    <h4>Computer Science</h4>
+                    <p>Basic Coding & Digital Literacy</p>
+                </div>
+                <div class="subject-card">
+                    <i class="fa-solid fa-palette"></i>
+                    <h4>Arts & Crafts</h4>
+                    <p>Drawing, Painting & Creativity</p>
+                </div>
+                <div class="subject-card">
+                    <i class="fa-solid fa-futbol"></i>
+                    <h4>Physical Education</h4>
+                    <p>Sports, Yoga & Outdoor Games</p>
+                </div>
+                <div class="subject-card">
+                    <i class="fa-solid fa-music"></i>
+                    <h4>Music & Dance</h4>
+                    <p>Cultural & Performing Arts</p>
+                </div>
+            </div>
+
+            <!-- Class Routine Download Section -->
+            <div class="routine-banner">
+                <div class="routine-content">
+                    <i class="fa-regular fa-calendar-days"></i>
+                    <div>
+                        <h3>Class Routine & Timetable</h3>
+                        <p>Stay updated with the latest class schedules and daily routines for all sections.</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('notices_page') }}" class="btn btn-yellow">View Latest Updates <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- FOOTER SECTION -->
+    <footer class="site-footer">
+        <div class="wrap footer-inner">
+            <div class="footer-brand-col">
+                <a class="footer-brand" href="{{ url_for('home') }}#top" aria-label="Residential Shanti Niketan home">
+                    <span class="brand-mark small-mark">
+                        <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="School Logo" class="school-logo" loading="lazy">
+                    </span>
+                    <span class="footer-brand-copy">
+                        <strong>Residential Shanti Niketan</strong>
+                        <small>Navinagar, Jamui</small>
+                        <span class="footer-tagline">Education • Values • Excellence</span>
+                    </span>
+                </a>
+            </div>
+            <div class="footer-links-col">
+                <h4>About School</h4>
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <span>
+                        <strong style="color: #fff; font-size: 13px; display: block;">Residential Shanti Niketan</strong>
+                        <small style="font-size: 11px; color: #aebfd0;">Navinagar Jamui</small>
+                    </span>
+                </div>
+                <p style="font-size: 12.5px; color: #aebfd0; margin: 0;">Education • Values • A brighter future</p>
+            </div>
+            <div class="footer-contact-col">
+                <h4>Navigate</h4>
+                <a class="back-top" href="#top">Back to top <i class="fa-solid fa-arrow-up"></i></a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p class="copyright-text">© <span id="year"></span> Residential Shanti Niketan. Website concept.</p>
+            <div class="developer-credit">
+                <span class="dev-badge">
+                    <i class="fa-solid fa-code"></i>
+                    <span>Developed by <strong>Niraj Kumar</strong></span>
+                    <a href="tel:9155658081" class="dev-contact">
+                        <i class="fa-solid fa-phone"></i> 9155658081
+                    </a>
+                </span>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+</body>
+</html>

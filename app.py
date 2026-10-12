@@ -2,7 +2,10 @@ from pathlib import Path
 import os
 import sqlite3
 import re
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, g, session
+from functools import wraps
+from datetime import timedelta
+from flask import (Flask, render_template, request, redirect, url_for, 
+                   flash, jsonify, g, session)
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # =========================================
@@ -19,6 +22,7 @@ app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB for Resume uploads
 app.config['SESSION_COOKIE_SECURE'] = True if os.environ.get('FLASK_ENV') == 'production' else False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)  # 🚀 Session 7 दिन तक valid रहेगा
 
 # Initial Seed Data for Notices
 INITIAL_NOTICES = [
@@ -103,8 +107,25 @@ def get_all_notices():
     db = get_db()
     return db.execute('SELECT * FROM notices ORDER BY id DESC').fetchall()
 
+def get_user_by_id(user_id):
+    db = get_db()
+    return db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+
 # =========================================
-# 3. ROUTES (PAGES & API)
+# 3. LOGIN DECORATOR (Protects Routes)
+# =========================================
+def login_required(f):
+    """🚀 UPGRADE: कोई भी प्रोटेक्टेड राउट सिर्फ लॉगिन यूज़र ही खोल सके।"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('user_id'):
+            flash('Please login to access this page.', 'error')
+            return redirect(url_for('login_page'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# =========================================
+# 4. ROUTES (PAGES & API)
 # =========================================
 @app.route('/')
 def home():
@@ -120,8 +141,14 @@ def notices_page():
 def academics_page():
     return render_template('academics.html')
 
+# =========================================
+# 5. AUTHENTICATION ROUTES
+# =========================================
 @app.route('/login', methods=['GET'])
 def login_page():
+    # 🚀 UPGRADE: अगर यूज़र पहले से लॉगिन है, तो डैशबोर्ड पर भेजें
+    if session.get('user_id'):
+        return redirect(url_for('user_dashboard'))
     return render_template('login.html')
 
 @app.route('/register', methods=['POST'])
@@ -140,6 +167,15 @@ def register():
         
     if password != confirm_password:
         flash('Passwords do not match.', 'error')
+        return redirect(url_for('login_page'))
+
+    if len(password) < 6:
+        flash('Password must be at least 6 characters long.', 'error')
+        return redirect(url_for('login_page'))
+
+    # 🚀 UPGRADE: Email format check
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        flash('Please enter a valid email address.', 'error')
         return redirect(url_for('login_page'))
 
     # Check if email already exists
@@ -172,7 +208,7 @@ def register():
         child_name = request.form.get('child_name', '')
         child_class = request.form.get('child_class', '')
     elif role == 'student':
-        child_class = request.form.get('class_applying', '') # Reusing child_class for student's class
+        child_class = request.form.get('class_applying', '')
 
     # Insert into DB
     db.execute('''INSERT INTO users 
@@ -193,11 +229,14 @@ def login():
     user = db.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
     
     if user and check_password_hash(user['password_hash'], password):
+        # 🚀 UPGRADE: Session को Permanent बनाएं (7 दिन तक valid)
+        session.permanent = True
         session['user_id'] = user['id']
         session['user_name'] = user['name']
         session['user_role'] = user['role']
         flash(f'Welcome back, {user["name"]}!', 'success')
-        return redirect(url_for('home'))
+        # 🚀 UPGRADE: होम की जगह डैशबोर्ड पर भेजें
+        return redirect(url_for('user_dashboard'))
     else:
         flash('Invalid email or password.', 'error')
         return redirect(url_for('login_page'))
@@ -208,6 +247,48 @@ def logout():
     flash('You have been logged out successfully.', 'success')
     return redirect(url_for('home'))
 
+# =========================================
+# 6. USER DASHBOARD & PROFILE
+# =========================================
+@app.route('/dashboard')
+@login_required
+def user_dashboard():
+    """🚀 UPGRADE: यूज़र का निजी डैशबोर्ड।"""
+    user = get_user_by_id(session['user_id'])
+    if not user:
+        # अगर किसी कारणवश DB में यूज़र न मिले
+        session.clear()
+        flash('Session expired. Please login again.', 'error')
+        return redirect(url_for('login_page'))
+    
+    notices = get_all_notices()
+    return render_template('user.html', user=user, notices=notices)
+
+@app.route('/profile/update', methods=['POST'])
+@login_required
+def update_profile():
+    """🚀 UPGRADE: यूज़र अपनी प्रोफाइल अपडेट कर सके।"""
+    name = request.form.get('name', '').strip()
+    phone = request.form.get('phone', '').strip()
+    address = request.form.get('address', '').strip()
+    
+    if not name or not phone:
+        flash('Name and phone are required.', 'error')
+        return redirect(url_for('user_dashboard'))
+    
+    db = get_db()
+    db.execute('UPDATE users SET name = ?, phone = ?, address = ? WHERE id = ?',
+               (name, phone, address, session['user_id']))
+    db.commit()
+    
+    # Session में नाम भी अपडेट करें
+    session['user_name'] = name
+    flash('Profile updated successfully!', 'success')
+    return redirect(url_for('user_dashboard'))
+
+# =========================================
+# 7. API & FORM ROUTES
+# =========================================
 @app.route('/api/notices')
 def api_notices():
     notices = get_all_notices()
@@ -262,7 +343,7 @@ def health():
     return jsonify({'status': 'ok', 'application': 'Residential Shanti Niketan'})
 
 # =========================================
-# 4. ERROR HANDLERS & SECURITY
+# 8. ERROR HANDLERS & SECURITY
 # =========================================
 @app.errorhandler(404)
 def page_not_found(e):
@@ -273,6 +354,10 @@ def too_large(_error):
     flash('The submitted form is too large. Please shorten your message.', 'error')
     return redirect(url_for('home') + '#contact')
 
+@app.errorhandler(500)
+def internal_error(e):
+    return "Internal Server Error. Please try again later.", 500
+
 @app.after_request
 def add_security_headers(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
@@ -281,7 +366,7 @@ def add_security_headers(response):
     return response
 
 # =========================================
-# 5. APP INITIALIZATION
+# 9. APP INITIALIZATION
 # =========================================
 init_db()
 

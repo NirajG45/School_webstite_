@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0b3562">
+    <meta name="description" content="User Dashboard - Residential Shanti Niketan">
+    <title>My Dashboard | Residential Shanti Niketan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    
+    <!-- =========================================
+         HEADER SECTION
+         ========================================= -->
+    <header class="site-header" id="top">
+        <div class="header-inner">
+            <a class="brand" href="{{ url_for('home') }}" aria-label="Residential Shanti Niketan home">
+                <a href="{{ url_for('home') }}" class="brand-mark" aria-label="Residential Shanti Niketan Home">
+                    <img src="{{ url_for('static', filename='images/school-logo.png') }}"
+                        alt="Residential Shanti Niketan School Logo" class="school-logo" width="64" height="64">
+                </a>
+                <span class="brand-copy">
+                    <strong>RESIDENTIAL SHANTI NIKETAN</strong>
+                    <b>NAVINAGAR JAMUI</b>
+                    <small>Pre-Nursery to Class 8 <i>•</i> शिक्षा • संस्कार • उज्ज्वल भविष्य</small>
+                </span>
+            </a>
+            <nav class="desktop-nav" aria-label="Main navigation">
+                <a class="nav-link" href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
+                <a class="nav-link" href="{{ url_for('home') }}#about"><i class="fa-solid fa-users"></i> About Us</a>
+                <a class="nav-link" href="{{ url_for('home') }}#academics"><i class="fa-solid fa-book-open"></i> Academics</a>
+                <a class="nav-link" href="{{ url_for('home') }}#facilities"><i class="fa-solid fa-building-columns"></i> Facilities</a>
+                <a class="nav-link" href="{{ url_for('home') }}#gallery"><i class="fa-regular fa-images"></i> Gallery</a>
+                <a class="nav-link" href="{{ url_for('home') }}#notices"><i class="fa-solid fa-bell"></i> Notices</a>
+                <a class="nav-link" href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i> Contact</a>
+            </nav>
+            <div class="header-actions">
+                {% if session.get('user_id') %}
+                    <div class="user-profile">
+                        <div class="user-avatar" title="{{ session['user_name'] }}">
+                            {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                        </div>
+                        <div class="user-dropdown">
+                            <span>Hello, {{ session['user_name'].split()[0] }}</span>
+                            <a href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                            <a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a class="login-btn" href="{{ url_for('login_page') }}">
+                        <i class="fa-regular fa-user"></i><span>Login</span>
+                    </a>
+                {% endif %}
+                
+                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open navigation menu"
+                    aria-controls="mobileMenu" aria-expanded="false"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+    
+    <div class="menu-backdrop" id="menuBackdrop" hidden></div>
+    
+    <!-- =========================================
+         MOBILE MENU
+         ========================================= -->
+    <aside class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation" aria-hidden="true" inert>
+        <div class="mobile-menu-head">
+            <span>Explore School</span>
+            <button type="button" id="menuClose" aria-label="Close navigation menu"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <nav class="mobile-nav">
+            <a href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+            <a href="{{ url_for('home') }}#about"><i class="fa-solid fa-users"></i> About Us</a>
+            <a href="{{ url_for('home') }}#academics"><i class="fa-solid fa-book-open"></i> Academics</a>
+            <a href="{{ url_for('home') }}#facilities"><i class="fa-solid fa-building-columns"></i> Facilities</a>
+            <a href="{{ url_for('home') }}#gallery"><i class="fa-regular fa-images"></i> Gallery</a>
+            <a href="{{ url_for('home') }}#notices"><i class="fa-solid fa-bell"></i> Notice Board</a>
+            <a href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i> Contact Us</a>
+        </nav>
+        <div class="mobile-menu-foot">Learn <span>•</span> Grow <span>•</span> Succeed</div>
+    </aside>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="flash-stack"
+        role="status" aria-live="polite">{% for category, message in messages %}<div class="flash {{ category }}">
+            <span>{{ message }}</span><button type="button" aria-label="Dismiss message" class="flash-close">×</button>
+        </div>{% endfor %}</div>{% endif %}{% endwith %}
+    
+    <!-- =========================================
+         MAIN CONTENT
+         ========================================= -->
+    <main id="main">
+        
+        <!-- WELCOME BANNER -->
+        <section class="user-welcome-banner">
+            <div class="wrap welcome-inner">
+                <div class="welcome-text">
+                    <p class="section-kicker light">WELCOME TO YOUR PORTAL</p>
+                    <h1>Hello, {{ user.name.split()[0] }}! 👋</h1>
+                    <p>You are logged in as a <strong>{{ user.role | capitalize }}</strong>. Here you can view your profile, check notices, and manage your account.</p>
+                </div>
+                <div class="welcome-avatar">
+                    <div class="big-avatar">
+                        {{ user.name.split()[0][0] | upper }}{{ user.name.split()[-1][0] | upper if user.name.split()|length > 1 else '' }}
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- DASHBOARD GRID -->
+        <section class="wrap dashboard-grid">
+            
+            <!-- PROFILE CARD -->
+            <div class="panel profile-panel">
+                <div class="panel-title">
+                    <span class="panel-title-icon"><i class="fa-solid fa-id-card"></i></span>
+                    <h2>My Profile</h2>
+                </div>
+                <div class="profile-body">
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-regular fa-user"></i> Full Name</span>
+                        <span class="profile-value">{{ user.name }}</span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-regular fa-envelope"></i> Email</span>
+                        <span class="profile-value">{{ user.email }}</span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-solid fa-phone"></i> Mobile</span>
+                        <span class="profile-value">{{ user.phone }}</span>
+                    </div>
+                    {% if user.dob %}
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-regular fa-calendar"></i> Date of Birth</span>
+                        <span class="profile-value">{{ user.dob }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.gender %}
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-solid fa-venus-mars"></i> Gender</span>
+                        <span class="profile-value">{{ user.gender }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.qualification %}
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-solid fa-graduation-cap"></i> Qualification</span>
+                        <span class="profile-value">{{ user.qualification }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.experience %}
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-solid fa-briefcase"></i> Experience</span>
+                        <span class="profile-value">{{ user.experience }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.designation %}
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-solid fa-user-tie"></i> Designation</span>
+                        <span class="profile-value">{{ user.designation }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.child_name %}
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-regular fa-child"></i> Child's Name</span>
+                        <span class="profile-value">{{ user.child_name }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.child_class %}
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-solid fa-book"></i> Class</span>
+                        <span class="profile-value">{{ user.child_class }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.address %}
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-solid fa-location-dot"></i> Address</span>
+                        <span class="profile-value">{{ user.address }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- NOTICES CARD -->
+            <div class="panel notices-dash-panel">
+                <div class="panel-title notice-title">
+                    <span class="panel-title-icon"><i class="fa-solid fa-bell"></i></span>
+                    <h2>Latest Notices</h2>
+                    <span class="live-dot" title="Latest updates"></span>
+                </div>
+                <div class="notice-list">
+                    {% for notice in notices[:5] %}
+                    <article class="notice">
+                        <span class="notice-file"><i class="fa-regular fa-file-lines"></i></span>
+                        <div>
+                            <small>{{ notice.date }} <b>{{ notice.tag }}</b></small>
+                            <p>{{ notice.title }}</p>
+                        </div>
+                        <i class="fa-solid fa-chevron-right notice-chevron"></i>
+                    </article>
+                    {% endfor %}
+                </div>
+                <a class="all-notices" href="{{ url_for('notices_page') }}">View All Notices <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            
+            <!-- QUICK ACTIONS CARD -->
+            <div class="panel quick-actions-panel">
+                <div class="panel-title">
+                    <span class="panel-title-icon"><i class="fa-solid fa-bolt"></i></span>
+                    <h2>Quick Actions</h2>
+                </div>
+                <div class="quick-actions-grid">
+                    <a href="{{ url_for('home') }}#admission" class="action-tile">
+                        <span class="shortcut-icon green"><i class="fa-solid fa-user-plus"></i></span>
+                        <span>New Admission</span>
+                    </a>
+                    <a href="{{ url_for('notices_page') }}" class="action-tile">
+                        <span class="shortcut-icon violet"><i class="fa-solid fa-clipboard-list"></i></span>
+                        <span>All Notices</span>
+                    </a>
+                    <a href="{{ url_for('academics_page') }}" class="action-tile">
+                        <span class="shortcut-icon blue"><i class="fa-solid fa-book-open"></i></span>
+                        <span>Academics</span>
+                    </a>
+                    <a href="{{ url_for('home') }}#contact" class="action-tile">
+                        <span class="shortcut-icon amber"><i class="fa-solid fa-headset"></i></span>
+                        <span>Contact School</span>
+                    </a>
+                    <a href="tel:9155658081" class="action-tile">
+                        <span class="shortcut-icon mint"><i class="fa-solid fa-phone"></i></span>
+                        <span>Call Office</span>
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="action-tile logout-tile">
+                        <span class="shortcut-icon" style="background:#ffeaee; color:var(--red);"><i class="fa-solid fa-right-from-bracket"></i></span>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+            
+        </section>
+        
+    </main>
+
+    <!-- =========================================
+         FOOTER SECTION
+         ========================================= -->
+    <footer class="site-footer">
+        <div class="wrap footer-inner">
+            <div class="footer-brand-col">
+                <a class="footer-brand" href="{{ url_for('home') }}" aria-label="Residential Shanti Niketan home">
+                    <span class="brand-mark small-mark">
+                        <img src="{{ url_for('static', filename='images/school-logo.png') }}"
+                            alt="Residential Shanti Niketan School Logo" class="school-logo" loading="lazy">
+                    </span>
+                    <span class="footer-brand-copy">
+                        <strong>Residential Shanti Niketan</strong>
+                        <small>Navinagar, Jamui</small>
+                        <span class="footer-tagline">Education • Values • Excellence</span>
+                    </span>
+                </a>
+            </div>
+
+            <div class="footer-links-col">
+                <h4>About School</h4>
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <span>
+                        <strong style="color: #fff; font-size: 13px; display: block;">Residential Shanti Niketan</strong>
+                        <small style="font-size: 11px; color: #aebfd0;">Navinagar Jamui</small>
+                    </span>
+                </div>
+                <p style="font-size: 12.5px; color: #aebfd0; margin: 0;">Education • Values • A brighter future</p>
+            </div>
+
+            <div class="footer-contact-col">
+                <h4>Navigate</h4>
+                <a class="back-top" href="#top">Back to top <i class="fa-solid fa-arrow-up"></i></a>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p class="copyright-text">© <span id="year"></span> Residential Shanti Niketan. Website concept.</p>
+            <div class="developer-credit">
+                <span class="dev-badge">
+                    <i class="fa-solid fa-code"></i>
+                    <span>Developed by <strong>Niraj Kumar</strong></span>
+                    <a href="tel:9155658081" class="dev-contact">
+                        <i class="fa-solid fa-phone"></i> 9155658081
+                    </a>
+                </span>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+</body>
+
+</html>

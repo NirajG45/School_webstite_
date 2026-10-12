@@ -1759,3 +1759,177 @@ img { display: block; max-width: 100%; }
         right: -10px;
     }
 }
+
+/* =========================================
+   USER DASHBOARD PAGE STYLES
+   ========================================= */
+
+/* Welcome Banner */
+.user-welcome-banner {
+    background: linear-gradient(135deg, var(--navy) 0%, #14578b 100%);
+    color: white;
+    padding: 50px 0;
+    position: relative;
+    overflow: hidden;
+}
+.user-welcome-banner::before {
+    content: '✦';
+    position: absolute;
+    right: 5%;
+    top: 20%;
+    font-size: 200px;
+    color: rgba(255, 255, 255, 0.05);
+    line-height: 1;
+}
+.welcome-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    position: relative;
+    z-index: 2;
+}
+.welcome-text h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(28px, 4vw, 44px);
+    margin: 0 0 10px;
+    letter-spacing: -1px;
+}
+.welcome-text p {
+    color: #d6e6f4;
+    font-size: 15px;
+    max-width: 600px;
+    margin: 0;
+}
+.welcome-text p strong {
+    color: var(--yellow);
+}
+.welcome-avatar {
+    flex: 0 0 auto;
+}
+.big-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--red), #b9102c);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    font-weight: 800;
+    border: 4px solid var(--yellow);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    letter-spacing: 2px;
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 22px;
+    margin-top: -40px;
+    margin-bottom: 40px;
+    position: relative;
+    z-index: 5;
+}
+.dashboard-grid .panel {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+.quick-actions-panel {
+    grid-column: 1 / -1;
+}
+
+/* Profile Body */
+.profile-body {
+    padding: 15px 25px 25px;
+}
+.profile-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    gap: 15px;
+    flex-wrap: wrap;
+}
+.profile-row:last-child {
+    border-bottom: 0;
+}
+.profile-label {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.profile-label i {
+    color: var(--red);
+    width: 16px;
+    text-align: center;
+}
+.profile-value {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: right;
+    word-break: break-word;
+}
+
+/* Quick Actions Grid */
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 20px 22px 25px;
+}
+.action-tile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 18px;
+    background: #f8fafc;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    transition: var(--transition);
+}
+.action-tile:hover {
+    background: white;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 22px rgba(12, 45, 79, .08);
+    border-color: #d0dbe8;
+}
+.action-tile.logout-tile:hover {
+    background: #fff5f6;
+    border-color: #ffccd2;
+}
+.action-tile .shortcut-icon {
+    flex: 0 0 auto;
+}
+
+/* Notices dash panel */
+.notices-dash-panel .notice-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .quick-actions-grid { grid-template-columns: repeat(2, 1fr); }
+    .welcome-inner { flex-direction: column; text-align: center; }
+    .welcome-text p { margin: 0 auto; }
+}
+@media (max-width: 500px) {
+    .quick-actions-grid { grid-template-columns: 1fr; }
+    .big-avatar { width: 90px; height: 90px; font-size: 32px; }
+    .profile-row { flex-direction: column; align-items: flex-start; }
+    .profile-value { text-align: left; }
+}

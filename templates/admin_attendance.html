@@ -1,0 +1,68 @@
+{% extends "admin_base.html" %}
+{% block title %}Attendance{% endblock %}
+{% block page_title %}Attendance Management{% endblock %}
+
+{% block content %}
+<div class="admin-panel">
+    <div class="admin-panel-head">
+        <h3><i class="fa-solid fa-clipboard-check"></i> Mark / View Attendance</h3>
+    </div>
+    <form method="GET" class="admin-form filter-form">
+        <div class="form-row-2col">
+            <label>Role
+                <select name="role" onchange="this.form.submit()">
+                    <option value="student" {% if role=='student' %}selected{% endif %}>Students</option>
+                    <option value="teacher" {% if role=='teacher' %}selected{% endif %}>Teachers</option>
+                    <option value="parent" {% if role=='parent' %}selected{% endif %}>Parents</option>
+                </select>
+            </label>
+            <label>Date
+                <input type="date" name="date" value="{{ date }}" onchange="this.form.submit()">
+            </label>
+        </div>
+    </form>
+</div>
+
+<div class="admin-panel">
+    <div class="admin-panel-head">
+        <h3><i class="fa-solid fa-users"></i> {{ users|length }} {{ role|capitalize }}s — {{ date }}</h3>
+    </div>
+    <form method="POST" action="{{ url_for('admin_mark_attendance') }}">
+        <input type="hidden" name="date" value="{{ date }}">
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr><th>Unique ID</th><th>Name</th><th>Current Status</th><th>Mark As</th></tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td><strong>{{ u.unique_id }}</strong></td>
+                        <td>{{ u.name }}</td>
+                        <td>
+                            {% set st = attendance_map.get(u.id, 'not-marked') %}
+                            <span class="att-badge att-{{ st }}">{{ st|capitalize }}</span>
+                        </td>
+                        <td>
+                            <select name="status_{{ u.id }}" class="role-select">
+                                <option value="present" {% if attendance_map.get(u.id)=='present' %}selected{% endif %}>Present</option>
+                                <option value="absent" {% if attendance_map.get(u.id)=='absent' %}selected{% endif %}>Absent</option>
+                                <option value="leave" {% if attendance_map.get(u.id)=='leave' %}selected{% endif %}>On Leave</option>
+                                <option value="half-day" {% if attendance_map.get(u.id)=='half-day' %}selected{% endif %}>Half Day</option>
+                            </select>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="empty-row">No users found for this role.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if users %}
+        <div style="padding:20px;">
+            <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-save"></i> Save Attendance</button>
+        </div>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}

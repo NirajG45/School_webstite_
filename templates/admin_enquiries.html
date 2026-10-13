@@ -1,0 +1,41 @@
+{% extends "admin_base.html" %}
+{% block title %}Enquiries{% endblock %}
+{% block page_title %}Enquiries & Messages{% endblock %}
+
+{% block content %}
+<div class="admin-panel">
+    <div class="admin-panel-head">
+        <h3><i class="fa-solid fa-envelope-open-text"></i> All Enquiries ({{ enquiries|length }})</h3>
+        <div class="filter-tabs">
+            <a href="{{ url_for('admin_enquiries', kind='all') }}" class="filter-tab {% if kind_filter=='all' %}active{% endif %}">All</a>
+            <a href="{{ url_for('admin_enquiries', kind='admission') }}" class="filter-tab {% if kind_filter=='admission' %}active{% endif %}">Admissions</a>
+            <a href="{{ url_for('admin_enquiries', kind='contact') }}" class="filter-tab {% if kind_filter=='contact' %}active{% endif %}">Contact</a>
+        </div>
+    </div>
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>Type</th><th>Name</th><th>Phone</th><th>Email</th><th>Class</th><th>Message</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody>
+                {% for e in enquiries %}
+                <tr>
+                    <td><span class="kind-badge kind-{{ e.kind }}">{{ e.kind|capitalize }}</span></td>
+                    <td><strong>{{ e.name }}</strong></td>
+                    <td class="muted">{{ e.phone }}</td>
+                    <td class="muted">{{ e.email or '—' }}</td>
+                    <td class="muted">{{ e.class_name or '—' }}</td>
+                    <td class="muted message-cell">{{ e.message or '—' }}</td>
+                    <td class="muted small-text">{{ e.created_at[:10] if e.created_at else '' }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin_delete_enquiry', eid=e.id) }}" data-confirm="Delete this enquiry?">
+                            <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" class="empty-row">No enquiries found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

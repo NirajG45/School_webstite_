@@ -4,2022 +4,301 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal - Residential Shanti Niketan</title>
-
-    <!-- Google Fonts -->
+    <title>Login - Residential Shanti Niketan</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap"
         rel="stylesheet">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@700&display=swap"
-        rel="stylesheet">
-
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        /* =========================================
-           MAIN SITE VARIABLES (From index.html)
-           ========================================= */
-        :root {
-            --navy: #092f58;
-            --blue: #124d82;
-            --red: #d71938;
-            --yellow: #ffd447;
-            --ink: #182b40;
-            --muted: #65758a;
-            --line: #e4eaf1;
-            --paper: #f4f7fb;
-            --white: #fff;
-            --shadow: 0 12px 34px rgba(12, 45, 79, .09);
-            --radius: 18px;
-            --header-h: 88px;
-            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* =========================================
-           LOGIN PAGE SPECIFIC VARIABLES & THEMES
-           ========================================= */
-        :root {
-            --primary-blue: #103a71;
-            --primary-green: #0A4D3C;
-            --primary-maroon: #800000;
-            --primary-orange: #E65100;
-            --primary-red: #D32F2F;
-            --primary-yellow: #FBC02D;
-            --text-dark: #2c3e50;
-            --text-light: #6c757d;
-            --border-color: #e0e0e0;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
-
-            /* Default Theme (Teacher) */
-            --theme-color: var(--primary-blue);
-            --theme-light: #e3f2fd;
-        }
-
-        /* Theme Classes for Forms */
-        body.theme-teacher {
-            --theme-color: var(--primary-blue);
-            --theme-light: #e3f2fd;
-        }
-
-        body.theme-admin {
-            --theme-color: var(--primary-green);
-            --theme-light: #e8f5e9;
-        }
-
-        body.theme-parent {
-            --theme-color: var(--primary-maroon);
-            --theme-light: #fce4ec;
-        }
-
-        body.theme-student {
-            --theme-color: var(--primary-orange);
-            --theme-light: #fff3e0;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
-            background-color: var(--paper);
-            color: var(--ink);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            transition: var(--transition);
-            overflow-x: clip;
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-            transition: var(--transition);
-        }
-
-        ul {
-            list-style: none;
-        }
-
-        img {
-            display: block;
-            max-width: 100%;
-        }
-
-        /* =========================================
-           MAIN SITE HEADER (Exact Copy from index.html)
-           ========================================= */
-        .site-header {
-            position: sticky;
-            top: 0;
-            z-index: 1100;
-            width: 100%;
-            height: var(--header-h);
-            background: rgba(255, 255, 255, 0.98);
-            border-bottom: 1px solid rgba(9, 47, 88, 0.08);
-            box-shadow: 0 4px 20px rgba(9, 47, 88, 0.06);
-            backdrop-filter: blur(14px);
-            transition: var(--transition);
-            isolation: isolate;
-        }
-
-        .header-inner {
-            width: min(1400px, calc(100% - 44px));
-            height: 100%;
-            margin-inline: auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            min-width: 0;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex: 0 0 auto;
-            min-width: 0;
-        }
-
-        .brand-mark {
-            width: 60px;
-            height: 60px;
-            flex: 0 0 60px;
+        .login-page-wrapper {
+            min-height: calc(100vh - var(--header-h));
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0;
-            margin: 0;
-            overflow: hidden;
-            border-radius: 50%;
-            border: 2px solid #f4cc3f;
-            background: #ffffff;
-            box-shadow: 0 3px 10px rgba(9, 47, 88, 0.12);
-            text-decoration: none;
-            line-height: 1;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #092f58 0%, #14578b 100%);
             position: relative;
-            isolation: isolate;
-            transition: var(--transition);
+            overflow: hidden;
         }
 
-        .brand-mark:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 15px rgba(9, 47, 88, 0.2);
+        .login-page-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920') center/cover;
+            opacity: 0.15;
         }
 
-        .brand-mark .school-logo {
-            display: block;
+        .login-box {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 440px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+        }
+
+        .login-box-header {
+            background: linear-gradient(135deg, var(--navy), #14578b);
+            padding: 35px 30px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .login-box-header .logo-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #fff;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid var(--yellow);
+            overflow: hidden;
+        }
+
+        .login-box-header .logo-circle img {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            border-radius: 50%;
         }
 
-        .brand-copy {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-start;
-            flex: 1 1 auto;
-            min-width: 0;
-            line-height: 1.22;
-        }
-
-        .brand-copy strong {
-            font-family: 'Playfair Display', Georgia, serif;
-            color: var(--navy);
-            font-size: clamp(15px, 1.45vw, 21px);
-            white-space: nowrap;
-            letter-spacing: -0.45px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
-        }
-
-        .brand-copy b {
-            font-size: 13px;
-            color: var(--red);
-            letter-spacing: 1.4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .brand-copy small {
-            margin-top: 5px;
-            font-size: 10.5px;
-            color: #586c83;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .brand-copy small i {
-            font-style: normal;
-            color: var(--red);
-            padding-inline: 4px;
-        }
-
-        .desktop-nav {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            flex: 1 1 auto;
-            min-width: 0;
-            white-space: nowrap;
-        }
-
-        .nav-link {
-            height: 44px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 7px;
-            padding: 0 14px;
-            border-radius: 10px;
-            color: #193c60;
-            font-size: 12.5px;
-            font-weight: 700;
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .nav-link i {
-            font-size: 14px;
-            transition: var(--transition);
-        }
-
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: 6px;
-            left: 50%;
-            width: 0;
-            height: 2px;
-            background: var(--red);
-            transition: var(--transition);
-            transform: translateX(-50%);
-            border-radius: 2px;
-        }
-
-        .nav-link:hover,
-        .nav-link:focus-visible {
-            background: #edf4fb;
-            color: var(--red);
-            transform: translateY(-1px);
-        }
-
-        .nav-link:hover i {
-            transform: scale(1.1);
-        }
-
-        .nav-link:hover::after,
-        .nav-link:focus-visible::after {
-            width: 50%;
-        }
-
-        .nav-link.active {
-            background: var(--red);
-            color: white;
-            box-shadow: 0 6px 15px rgba(215, 25, 56, 0.2);
-        }
-
-        .nav-link.active::after {
-            display: none;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex: 0 0 auto;
-        }
-
-        .login-btn {
-            height: 44px;
-            padding: 0 20px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            border-radius: 11px;
-            background: var(--red);
-            color: white;
-            font-size: 12.5px;
-            font-weight: 800;
-            box-shadow: 0 6px 16px rgba(215, 25, 56, 0.2);
-            white-space: nowrap;
-            transition: var(--transition);
-        }
-
-        .login-btn:hover {
-            background: #b9102c;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(215, 25, 56, 0.35);
-        }
-
-        .menu-toggle {
-            display: none;
-            width: 44px;
-            height: 44px;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            border: 1px solid #dce5ef;
-            border-radius: 12px;
-            background: white;
-            color: var(--navy);
-            flex: 0 0 auto;
-            transition: var(--transition);
-            z-index: 1300;
-        }
-
-        .menu-toggle:hover {
-            background: #f4f8fc;
-            border-color: #b0c4d8;
-            transform: scale(1.05);
-        }
-
-        .menu-toggle span {
-            width: 20px;
-            height: 2px;
-            border-radius: 3px;
-            background: currentColor;
-            transition: transform 0.3s ease, opacity 0.2s ease;
-        }
-
-        .menu-toggle[aria-expanded=true] span:first-child {
-            transform: translateY(7px) rotate(45deg);
-        }
-
-        .menu-toggle[aria-expanded=true] span:nth-child(2) {
-            opacity: 0;
-        }
-
-        .menu-toggle[aria-expanded=true] span:last-child {
-            transform: translateY(-7px) rotate(-45deg);
-        }
-
-        .menu-backdrop {
-            position: fixed;
-            inset: var(--header-h) 0 0;
-            background: rgba(5, 24, 44, 0.52);
-            z-index: 1190;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-            backdrop-filter: blur(4px);
-        }
-
-        .menu-backdrop.is-open {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .mobile-menu {
-            display: none;
-            position: fixed;
-            z-index: 1200;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: min(370px, 88vw);
-            padding: 0;
-            background: #fff;
-            box-shadow: -15px 0 45px rgba(0, 0, 0, 0.15);
-            flex-direction: column;
-            transform: translateX(105%);
-            visibility: hidden;
-            pointer-events: none;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s;
-        }
-
-        .mobile-menu.is-open {
-            transform: translateX(0);
-            visibility: visible;
-            pointer-events: auto;
-        }
-
-        .mobile-menu-head {
-            height: 78px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 22px;
-            background: var(--navy);
-            color: #fff;
-            font-weight: 800;
-            font-size: 16px;
-        }
-
-        .mobile-menu-head button {
-            width: 40px;
-            height: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-            font-size: 20px;
-            transition: var(--transition);
-        }
-
-        .mobile-menu-head button:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: rotate(90deg);
-        }
-
-        .mobile-nav {
-            display: grid;
-            gap: 6px;
-            padding: 20px;
-            overflow-y: auto;
-            overscroll-behavior: contain;
-        }
-
-        .mobile-nav a {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            min-height: 50px;
-            padding: 10px 15px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 700;
-            color: #26445f;
-            transition: var(--transition);
-        }
-
-        .mobile-nav a i {
-            width: 22px;
-            color: var(--blue);
-            text-align: center;
-            font-size: 16px;
-        }
-
-        .mobile-nav a:hover,
-        .mobile-nav a:focus-visible {
-            background: #edf4fb;
-            color: var(--red);
-            transform: translateX(5px);
-        }
-
-        .mobile-menu-foot {
-            margin-top: auto;
-            padding: 20px 22px;
-            color: var(--blue);
-            background: #f1f6fb;
-            font-size: 12px;
-            font-weight: 800;
-            text-align: center;
-        }
-
-        .mobile-menu-foot span {
-            color: var(--red);
-            padding: 0 5px;
-        }
-
-        /* =========================================
-           LOGIN PAGE ROLE TABS & BANNER
-           ========================================= */
-        .role-tabs-container {
-            background: var(--white);
-            padding: 0 40px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            position: relative;
-            z-index: 99;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
-        }
-
-        .role-tab {
-            padding: 15px 25px;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-light);
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: var(--transition);
-        }
-
-        .role-tab:hover {
-            color: var(--theme-color);
-        }
-
-        .role-tab.active {
-            color: var(--theme-color);
-            border-bottom-color: var(--theme-color);
-        }
-
-        .role-tab i {
-            font-size: 16px;
-        }
-
-        .banner {
-            position: relative;
-            height: 220px;
-            background: linear-gradient(135deg, var(--theme-color) 0%, rgba(0, 0, 0, 0.8) 100%);
-            display: flex;
-            align-items: center;
-            padding: 0 60px;
-            color: white;
-            transition: var(--transition);
-            overflow: hidden;
-        }
-
-        .banner::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
-            background-size: cover;
-            background-position: center;
-            opacity: 0.2;
-            mix-blend-mode: overlay;
-            z-index: 1;
-        }
-
-        .banner-content {
-            position: relative;
-            z-index: 2;
-            max-width: 600px;
-        }
-
-        .banner-content h2 {
-            font-family: 'Playfair Display', Georgia, serif;
-            font-size: 48px;
-            line-height: 1.1;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-
-        .banner-content p {
-            font-size: 18px;
-            font-weight: 400;
-            opacity: 0.9;
-        }
-
-        .banner-illustration {
-            position: absolute;
-            right: 10%;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 120px;
-            opacity: 0.15;
-            z-index: 1;
-        }
-
-        /* =========================================
-           FORM CONTAINER
-           ========================================= */
-        .form-wrapper {
-            max-width: 1000px;
-            margin: -50px auto 40px;
-            padding: 0 20px;
-            position: relative;
-            z-index: 10;
-        }
-
-        .form-card {
-            background: var(--white);
-            border-radius: 20px;
-            box-shadow: var(--shadow-md);
-            overflow: hidden;
-            border-top: 5px solid var(--theme-color);
-            transition: var(--transition);
-            display: none;
-        }
-
-        .form-card.active {
-            display: block;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .form-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 25px 40px;
-            background: var(--theme-light);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .form-header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .header-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            background: var(--theme-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .login-box-header h1 {
+            font-family: 'Playfair Display', serif;
             font-size: 24px;
+            margin: 0 0 5px;
+            letter-spacing: -0.5px;
         }
 
-        .header-text h3 {
+        .login-box-header p {
+            font-size: 12px;
+            opacity: 0.85;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .login-box-body {
+            padding: 35px 30px;
+        }
+
+        .login-box-body h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--navy);
             font-size: 22px;
-            color: var(--theme-color);
+            margin: 0 0 8px;
+        }
+
+        .login-box-body>p {
+            color: var(--muted);
+            font-size: 13px;
+            margin: 0 0 25px;
+        }
+
+        .login-field {
+            margin-bottom: 18px;
+        }
+
+        .login-field label {
+            display: block;
+            font-size: 12px;
             font-weight: 700;
-            margin-bottom: 2px;
+            color: #38516a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 7px;
         }
 
-        .header-text p {
-            font-size: 13px;
-            color: var(--text-dark);
-            font-weight: 500;
-        }
-
-        .form-header-right {
-            text-align: right;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--theme-color);
-            border-left: 2px solid var(--theme-color);
-            padding-left: 20px;
-        }
-
-        .form-body {
-            padding: 30px 40px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px 30px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .form-group.full-width {
-            grid-column: span 2;
-        }
-
-        .form-group label {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-
-        .form-group label span {
-            color: var(--primary-red);
-        }
-
-        .input-wrapper {
+        .login-field .input-wrap {
             position: relative;
-            display: flex;
-            align-items: center;
         }
 
-        .input-wrapper i {
+        .login-field .input-wrap i {
             position: absolute;
             left: 15px;
-            color: var(--text-light);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
             font-size: 15px;
         }
 
-        .input-wrapper input,
-        .input-wrapper select {
+        .login-field input {
             width: 100%;
-            padding: 12px 15px 12px 42px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 13px;
-            color: var(--text-dark);
-            outline: none;
-            transition: var(--transition);
-            background: #fdfdfd;
-            appearance: none;
-        }
-
-        .input-wrapper select {
-            cursor: pointer;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236c757d' d='M6 8.825L1.175 4 2.238 2.938 6 6.7l3.763-3.763L10.825 4z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 15px center;
-        }
-
-        .input-wrapper input:focus,
-        .input-wrapper select:focus {
-            border-color: var(--theme-color);
-            box-shadow: 0 0 0 3px var(--theme-light);
-            background: var(--white);
-        }
-
-        .login-options {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-            margin-top: 8px;
-        }
-
-        .login-options label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 500;
-            cursor: pointer;
-            color: var(--text-dark);
-        }
-
-        .login-options input[type="checkbox"] {
-            width: 14px;
-            height: 14px;
-            accent-color: var(--theme-color);
-            cursor: pointer;
-        }
-
-        .login-options a {
-            color: var(--theme-color);
-            font-weight: 600;
-        }
-
-        .login-options a:hover {
-            text-decoration: underline;
-        }
-
-        .file-upload-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px dashed var(--theme-color);
-            border-radius: 8px;
-            padding: 10px 15px;
-            background: var(--theme-light);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .file-upload-wrapper:hover {
-            background: #e0e0e0;
-        }
-
-        .file-upload-wrapper i {
-            color: var(--theme-color);
-            font-size: 18px;
-        }
-
-        .file-upload-wrapper span {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-dark);
-        }
-
-        .file-upload-wrapper input[type="file"] {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .file-note {
-            font-size: 10px;
-            color: var(--text-light);
-            margin-top: 2px;
-        }
-
-        .form-footer {
-            padding: 0 40px 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .btn-register {
-            width: 100%;
-            background: var(--theme-color);
-            color: white;
-            padding: 15px;
-            border: none;
+            padding: 14px 15px 14px 44px;
+            border: 1.5px solid #dbe4ed;
             border-radius: 10px;
+            font-size: 14px;
             font-family: 'DM Sans', sans-serif;
-            font-size: 16px;
-            font-weight: 600;
+            outline: none;
+            transition: all 0.25s ease;
+            background: #fbfcfe;
+        }
+
+        .login-field input:focus {
+            border-color: var(--navy);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(9, 47, 88, 0.08);
+        }
+
+        .login-field input::placeholder {
+            color: #96a3b1;
+        }
+
+        .login-btn-submit {
+            width: 100%;
+            padding: 15px;
+            border: 0;
+            border-radius: 11px;
+            background: linear-gradient(135deg, var(--red), #b9102c);
+            color: white;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            transition: var(--transition);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn-register:hover {
-            filter: brightness(1.1);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .login-link {
-            font-size: 13px;
-            color: var(--text-dark);
-        }
-
-        .login-link a {
-            color: var(--theme-color);
-            font-weight: 600;
-            text-decoration: underline;
-        }
-
-        /* =========================================
-           MAIN SITE FOOTER (Exact Copy from index.html)
-           ========================================= */
-        .site-footer {
-            background: #061f39;
-            color: #d6e2ee;
-            border-top: 3px solid var(--red);
-            padding-top: 40px;
-            margin-top: auto;
-        }
-
-        .footer-inner {
-            min-height: 86px;
-            display: grid;
-            grid-template-columns: 1.5fr 1fr 1fr;
-            align-items: start;
-            gap: 30px;
-            padding-bottom: 30px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            width: min(1240px, calc(100% - 48px));
-            margin-inline: auto;
-        }
-
-        .footer-brand {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .small-mark {
-            width: 50px;
-            height: 50px;
-            border-width: 2px;
-            font-size: 12px;
-            border-radius: 50%;
-            border: 2px solid var(--yellow);
-            background: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--navy);
-            font-weight: 800;
-            flex: 0 0 50px;
-        }
-
-        .footer-brand strong,
-        .footer-brand small {
-            display: block;
-        }
-
-        .footer-brand strong {
-            font-size: 16px;
-            color: #fff;
-            font-family: 'Playfair Display', serif;
-            line-height: 1.2;
-        }
-
-        .footer-brand small {
-            font-size: 11px;
-            color: #aebfd0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 3px;
-        }
-
-        .footer-tagline {
-            font-size: 12px;
-            color: #aebfd0;
-            margin: 0;
-            font-style: italic;
-        }
-
-        .footer-links-col h4,
-        .footer-contact-col h4 {
-            color: #fff;
-            font-size: 14px;
-            margin: 0 0 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            position: relative;
-            padding-bottom: 8px;
-        }
-
-        .footer-links-col h4::after,
-        .footer-contact-col h4::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 30px;
-            height: 2px;
-            background: var(--yellow);
-        }
-
-        .footer-contact-col p {
-            font-size: 12.5px;
-            color: #aebfd0;
-            margin: 0 0 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .footer-contact-col p i {
-            color: var(--yellow);
-            width: 16px;
-            text-align: center;
-        }
-
-        .back-top {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: var(--transition);
-            font-size: 11px;
-            color: var(--yellow);
-            font-weight: 700;
-            padding: 8px 14px;
-            border: 1px solid rgba(255, 212, 71, 0.3);
-            border-radius: 8px;
+            transition: all 0.25s ease;
+            box-shadow: 0 8px 20px rgba(215, 25, 56, 0.25);
             margin-top: 10px;
         }
 
-        .back-top:hover {
-            background: rgba(255, 212, 71, 0.1);
-            transform: translateY(-3px);
-            color: #fff;
-            border-color: var(--yellow);
+        .login-btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(215, 25, 56, 0.35);
         }
 
-        /* Footer Bottom & Developer Credit */
-        .footer-bottom {
+        .login-help {
             text-align: center;
-            padding: 20px 15px;
-            font-size: 11px;
-            color: #8da4ba;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
+            margin-top: 22px;
+            font-size: 12px;
+            color: var(--muted);
+            padding-top: 20px;
+            border-top: 1px solid var(--line);
         }
 
-        .copyright-text {
-            margin: 0;
-        }
-
-        .developer-credit {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .dev-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 6px 14px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 11px;
-            color: #aebfd0;
-            transition: var(--transition);
-        }
-
-        .dev-badge:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .dev-badge i {
+        .login-help i {
             color: var(--yellow);
         }
 
-        .dev-badge strong {
-            color: #fff;
-            font-weight: 600;
+        .login-help strong {
+            color: var(--navy);
         }
 
-        .dev-contact {
-            color: var(--yellow);
+        .back-home-link {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            margin-left: 5px;
-            font-weight: 600;
+            gap: 6px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: var(--navy);
+            font-weight: 700;
+            text-decoration: none;
         }
 
-        .dev-contact:hover {
-            color: #fff;
-            text-decoration: underline;
-        }
-
-        /* =========================================
-           RESPONSIVE DESIGN
-           ========================================= */
-        @media (max-width: 1280px) {
-            .header-inner {
-                width: calc(100% - 32px);
-                gap: 12px;
-            }
-
-            .brand {
-                flex: 1 1 auto;
-                width: auto;
-            }
-
-            .desktop-nav {
-                display: none !important;
-            }
-
-            .menu-toggle {
-                display: flex;
-            }
-
-            .mobile-menu {
-                display: flex;
-            }
-
-            .footer-inner {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        @media (max-width: 900px) {
-            .form-body {
-                grid-template-columns: 1fr;
-                padding: 20px;
-            }
-
-            .form-group.full-width {
-                grid-column: span 1;
-            }
-
-            .form-header {
-                flex-direction: column;
-                text-align: center;
-                gap: 15px;
-                padding: 20px;
-            }
-
-            .form-header-right {
-                border-left: none;
-                border-top: 2px solid var(--theme-color);
-                padding-left: 0;
-                padding-top: 10px;
-                text-align: center;
-                width: 100%;
-            }
-
-            .banner {
-                padding: 0 20px;
-                height: 180px;
-            }
-
-            .banner-content h2 {
-                font-size: 32px;
-            }
-
-            .banner-content p {
-                font-size: 14px;
-            }
-
-            .role-tabs-container {
-                padding: 0 10px;
-                overflow-x: auto;
-                justify-content: flex-start;
-            }
-
-            .role-tab {
-                padding: 12px 15px;
-                font-size: 12px;
-                white-space: nowrap;
-            }
-
-            .footer-inner {
-                grid-template-columns: 1fr;
-                gap: 25px;
-                padding-bottom: 20px;
-            }
-        }
-
-        @media (max-width: 680px) {
-            :root {
-                --header-h: 72px;
-            }
-
-            .header-inner {
-                width: calc(100% - 24px);
-                gap: 8px;
-            }
-
-            .brand {
-                gap: 8px;
-                flex: 1 1 auto;
-                min-width: 0;
-            }
-
-            .brand-mark {
-                width: 44px;
-                height: 44px;
-                flex: 0 0 44px;
-            }
-
-            .brand-copy strong {
-                font-size: clamp(11px, 3.3vw, 15px);
-                white-space: normal;
-                line-height: 1.1;
-            }
-
-            .brand-copy b {
-                font-size: 10px;
-            }
-
-            .brand-copy small {
-                display: none;
-            }
-
-            .login-btn {
-                height: 39px;
-                padding: 0 11px;
-                font-size: 11px;
-            }
-
-            .login-btn i {
-                display: none;
-            }
-
-            .menu-toggle {
-                width: 40px;
-                height: 40px;
-                flex-basis: 40px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .footer-inner {
-                grid-template-columns: 1fr;
-            }
-
-            .footer-bottom {
-                padding: 15px;
-            }
+        .back-home-link:hover {
+            color: var(--red);
         }
     </style>
 </head>
 
-<body class="theme-teacher">
+<body>
 
-    <!-- =========================================
-         MAIN SITE HEADER (Exact Copy from index.html)
-         ========================================= -->
     <header class="site-header" id="top">
         <div class="header-inner">
-            <a class="brand" href="index.html" aria-label="Residential Shanti Niketan home">
-                <!-- Replace src with your actual logo URL or Flask url_for -->
-                <a href="index.html" class="brand-mark" aria-label="Residential Shanti Niketan Home">
-                    <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="School Logo"
-                        class="school-logo" width="64" height="64">
-                </a>
+            <a class="brand" href="{{ url_for('home') }}">
+                <span class="brand-mark">
+                    <img src="{{ url_for('static', filename='images/school-logo.png') }}" class="school-logo"
+                        alt="Logo">
+                </span>
                 <span class="brand-copy">
                     <strong>RESIDENTIAL SHANTI NIKETAN</strong>
                     <b>NAVINAGAR JAMUI</b>
                     <small>Pre-Nursery to Class 8 <i>•</i> शिक्षा • संस्कार • उज्ज्वल भविष्य</small>
                 </span>
             </a>
-
-            <nav class="desktop-nav" aria-label="Main navigation">
-                <a class="nav-link" href="index.html"><i class="fa-solid fa-house"></i> Home</a>
-                <a class="nav-link" href="index.html#about"><i class="fa-solid fa-users"></i> About Us</a>
-                <a class="nav-link" href="index.html#academics"><i class="fa-solid fa-book-open"></i> Academics</a>
-                <a class="nav-link" href="index.html#facilities"><i class="fa-solid fa-building-columns"></i>
-                    Facilities</a>
-                <a class="nav-link" href="index.html#gallery"><i class="fa-regular fa-images"></i> Gallery</a>
-                <a class="nav-link" href="index.html#notices"><i class="fa-solid fa-bell"></i> Notices</a>
-                <a class="nav-link" href="index.html#contact"><i class="fa-regular fa-envelope"></i> Contact</a>
+            <nav class="desktop-nav">
+                <a class="nav-link" href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
+                <a class="nav-link" href="{{ url_for('home') }}#about"><i class="fa-solid fa-users"></i> About</a>
+                <a class="nav-link" href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i>
+                    Contact</a>
             </nav>
-
             <div class="header-actions">
-                <a class="login-btn" href="index.html#admission"><i
-                        class="fa-regular fa-user"></i><span>Enquire</span></a>
-                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open navigation menu"
-                    aria-controls="mobileMenu" aria-expanded="false"><span></span><span></span><span></span></button>
+                <a class="login-btn" href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i><span>Home</span></a>
             </div>
         </div>
     </header>
 
-    <!-- Backdrop for Mobile Menu -->
-    <div class="menu-backdrop" id="menuBackdrop" hidden></div>
+    {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}
+    <div class="flash-stack">{% for cat, msg in messages %}
+        <div class="flash {{ cat }}"><span>{{ msg }}</span><button class="flash-close"
+                onclick="this.parentElement.remove()">×</button></div>
+        {% endfor %}
+    </div>
+    {% endif %}{% endwith %}
 
-    <!-- =========================================
-         MOBILE MENU (Exact Copy from index.html)
-         ========================================= -->
-    <aside class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation" aria-hidden="true" inert>
-        <div class="mobile-menu-head">
-            <span>Explore School</span>
-            <button type="button" id="menuClose" aria-label="Close navigation menu"><i
-                    class="fa-solid fa-xmark"></i></button>
-        </div>
-        <nav class="mobile-nav">
-            <a href="index.html"><i class="fa-solid fa-house"></i> Home</a>
-            <a href="index.html#about"><i class="fa-solid fa-users"></i> About Us</a>
-            <a href="index.html#academics"><i class="fa-solid fa-book-open"></i> Academics</a>
-            <a href="index.html#facilities"><i class="fa-solid fa-building-columns"></i> Facilities</a>
-            <a href="index.html#gallery"><i class="fa-regular fa-images"></i> Gallery</a>
-            <a href="index.html#notices"><i class="fa-solid fa-bell"></i> Notice Board</a>
-            <a href="index.html#contact"><i class="fa-regular fa-envelope"></i> Contact Us</a>
-        </nav>
-        <div class="mobile-menu-foot">Learn <span>•</span> Grow <span>•</span> Succeed</div>
-    </aside>
+    <div class="login-page-wrapper">
+        <div class="login-box">
+            <div class="login-box-header">
+                <div class="logo-circle">
+                    <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="Logo">
+                </div>
+                <h1>Portal Login</h1>
+                <p>Secure Access</p>
+            </div>
+            <div class="login-box-body">
+                <h2>Welcome Back</h2>
+                <p>Login using your Unique ID and password.</p>
 
-    <!-- =========================================
-         ROLE SWITCHER TABS
-         ========================================= -->
-    <div class="role-tabs-container">
-        <div class="role-tab active" data-target="teacher" onclick="switchRole('teacher', this)">
-            <i class="fa-solid fa-chalkboard-user"></i> Teacher
-        </div>
-        <div class="role-tab" data-target="admin" onclick="switchRole('admin', this)">
-            <i class="fa-solid fa-user-gear"></i> Admin
-        </div>
-        <div class="role-tab" data-target="parent" onclick="switchRole('parent', this)">
-            <i class="fa-solid fa-users"></i> Parent
-        </div>
-        <div class="role-tab" data-target="student" onclick="switchRole('student', this)">
-            <i class="fa-solid fa-graduation-cap"></i> Student
+                <form method="POST" action="{{ url_for('login') }}">
+                    <div class="login-field">
+                        <label>Unique ID</label>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-id-badge"></i>
+                            <input type="text" name="unique_id" placeholder="e.g. TSNV00001, STSNV00001" required
+                                autocomplete="username" style="text-transform: uppercase;">
+                        </div>
+                    </div>
+                    <div class="login-field">
+                        <label>Password</label>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" name="password" placeholder="Enter your password" required
+                                autocomplete="current-password">
+                        </div>
+                    </div>
+                    <button type="submit" class="login-btn-submit">
+                        <i class="fa-solid fa-right-to-bracket"></i> Login
+                    </button>
+                </form>
+
+                <div class="login-help">
+                    <p><i class="fa-solid fa-circle-info"></i> Contact school admin for account creation or password
+                        issues.</p>
+                    <a href="{{ url_for('home') }}" class="back-home-link">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Home
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- =========================================
-         BANNER SECTION
-         ========================================= -->
-    <section class="banner" id="banner">
-        <div class="banner-content">
-            <h2 id="banner-title">Join Our Team</h2>
-            <p id="banner-subtitle">Make a Difference in Young Minds</p>
-        </div>
-        <div class="banner-illustration" id="banner-icon">
-            <i class="fa-solid fa-chalkboard-user"></i>
-        </div>
-    </section>
-
-    <!-- =========================================
-         FORM WRAPPER (ALL FORMS REMAIN EXACTLY AS BEFORE)
-         ========================================= -->
-        <main class="form-wrapper">
-
-        <!-- ================= TEACHER FORM ================= -->
-        <div class="form-card active" id="form-teacher">
-            <div class="form-header">
-                <div class="form-header-left">
-                    <div class="header-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
-                    <div class="header-text">
-                        <h3>Teacher Registration</h3>
-                        <p>Build Better Futures</p>
-                    </div>
-                </div>
-                <div class="form-header-right">Join Our<br>Teaching Team</div>
-            </div>
-            
-            <!-- ✅ ACTION aur HIDDEN ROLE ADDED -->
-            <form class="form-body" action="{{ url_for('register') }}" method="POST">
-                <input type="hidden" name="role" value="teacher">
-                <div class="form-group">
-                    <label>Full Name <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-user"></i>
-                        <input type="text" name="name" placeholder="Enter your full name" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Email Address <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-envelope"></i>
-                        <input type="email" name="email" placeholder="Enter your email" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Mobile Number <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-phone"></i>
-                        <input type="tel" name="phone" placeholder="Enter 10 digit mobile number" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Date of Birth <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-calendar"></i>
-                        <input type="date" name="dob" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Gender <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-venus-mars"></i>
-                        <select name="gender" required>
-                            <option value="">Select Gender</option>
-                            <option>Male</option>
-                            <option>Female</option>
-                            <option>Other</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Qualification <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-graduation-cap"></i>
-                        <select name="qualification" required>
-                            <option value="">Select Qualification</option>
-                            <option>B.Ed</option>
-                            <option>M.Ed</option>
-                            <option>Graduate</option>
-                            <option>Post Graduate</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group full-width">
-                    <label>Subject(s) You Teach <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-book"></i>
-                        <select name="subject" required>
-                            <option value="">Select Subject(s)</option>
-                            <option>Mathematics</option>
-                            <option>Science</option>
-                            <option>English</option>
-                            <option>Hindi</option>
-                            <option>Social Science</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Experience (In years) <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-briefcase"></i>
-                        <select name="experience" required>
-                            <option value="">Select Experience</option>
-                            <option>Fresher</option>
-                            <option>1-3 Years</option>
-                            <option>3-5 Years</option>
-                            <option>5+ Years</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Upload Resume (PDF/DOC) <span>*</span></label>
-                    <div class="file-upload-wrapper">
-                        <i class="fa-solid fa-cloud-arrow-up"></i>
-                        <span>Choose File</span>
-                        <input type="file" name="resume" accept=".pdf,.doc,.docx">
-                    </div>
-                    <div class="file-note">Max 2MB</div>
-                </div>
-                <div class="form-group full-width">
-                    <label>Address <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-location-dot"></i>
-                        <input type="text" name="address" placeholder="Enter your address" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Password <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" name="password" placeholder="Create a strong password" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Confirm Password <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" name="confirm_password" placeholder="Re-enter password" required>
-                    </div>
-                </div>
-                <div class="form-group full-width">
-                    <button class="btn-register" type="submit">
-                        <i class="fa-solid fa-user-plus"></i> Register
-                    </button>
-                </div>
-            </form>
-            
-            <div class="form-footer">
-                <div class="login-link">Already have an account? <a href="#" onclick="switchMode('login'); return false;">Login</a></div>
-            </div>
-        </div>
-
-        <!-- ================= ADMIN FORM ================= -->
-        <div class="form-card" id="form-admin">
-            <div class="form-header">
-                <div class="form-header-left">
-                    <div class="header-icon"><i class="fa-solid fa-user-gear"></i></div>
-                    <div class="header-text">
-                        <h3>Admin Registration</h3>
-                        <p>Manage • Support • Grow</p>
-                    </div>
-                </div>
-                <div class="form-header-right">Join Our<br>Administrative Team</div>
-            </div>
-            
-            <form class="form-body" action="{{ url_for('register') }}" method="POST">
-                <input type="hidden" name="role" value="admin">
-                <div class="form-group">
-                    <label>Full Name <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-user"></i>
-                        <input type="text" name="name" placeholder="Enter your full name" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Email Address <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-envelope"></i>
-                        <input type="email" name="email" placeholder="Enter your email" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Mobile Number <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-phone"></i>
-                        <input type="tel" name="phone" placeholder="Enter 10 digit mobile number" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Date of Birth <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-calendar"></i>
-                        <input type="date" name="dob" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Designation <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-briefcase"></i>
-                        <select name="designation" required>
-                            <option value="">Select Designation</option>
-                            <option>Principal</option>
-                            <option>Vice Principal</option>
-                            <option>Accountant</option>
-                            <option>Office Assistant</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Department <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-building"></i>
-                        <select name="department" required>
-                            <option value="">Select Department</option>
-                            <option>Administration</option>
-                            <option>Accounts</option>
-                            <option>HR</option>
-                            <option>Maintenance</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group full-width">
-                    <label>Address <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-location-dot"></i>
-                        <input type="text" name="address" placeholder="Enter your address" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Password <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" name="password" placeholder="Create a strong password" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Confirm Password <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" name="confirm_password" placeholder="Re-enter password" required>
-                    </div>
-                </div>
-                <div class="form-group full-width">
-                    <button class="btn-register" type="submit">
-                        <i class="fa-solid fa-user-plus"></i> Register
-                    </button>
-                </div>
-            </form>
-            
-            <div class="form-footer">
-                <div class="login-link">Already have an account? <a href="#" onclick="switchMode('login'); return false;">Login</a></div>
-            </div>
-        </div>
-
-        <!-- ================= PARENT FORM ================= -->
-        <div class="form-card" id="form-parent">
-            <div class="form-header">
-                <div class="form-header-left">
-                    <div class="header-icon"><i class="fa-solid fa-users"></i></div>
-                    <div class="header-text">
-                        <h3>Parent Registration</h3>
-                        <p>Stay Connected • Support • Empower</p>
-                    </div>
-                </div>
-                <div class="form-header-right">Join Our<br>Parent Community</div>
-            </div>
-            
-            <form class="form-body" action="{{ url_for('register') }}" method="POST">
-                <input type="hidden" name="role" value="parent">
-                <div class="form-group full-width">
-                    <label>Parent/Guardian Name <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-user"></i>
-                        <input type="text" name="name" placeholder="Enter your full name" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Email Address <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-envelope"></i>
-                        <input type="email" name="email" placeholder="Enter your email" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Mobile Number <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-phone"></i>
-                        <input type="tel" name="phone" placeholder="Enter 10 digit mobile number" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Relation with Child <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-people-roof"></i>
-                        <select name="relation" required>
-                            <option value="">Select Relation</option>
-                            <option>Father</option>
-                            <option>Mother</option>
-                            <option>Guardian</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Child's Name <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-user"></i>
-                        <input type="text" name="child_name" placeholder="Enter child's name" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Class <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-graduation-cap"></i>
-                        <select name="child_class" required>
-                            <option value="">Select Class</option>
-                            <option>Pre-Nursery</option>
-                            <option>Nursery</option>
-                            <option>LKG</option>
-                            <option>UKG</option>
-                            <option>Class 1</option>
-                            <option>Class 2</option>
-                            <option>Class 3</option>
-                            <option>Class 4</option>
-                            <option>Class 5</option>
-                            <option>Class 6</option>
-                            <option>Class 7</option>
-                            <option>Class 8</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Gender of Child <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-venus-mars"></i>
-                        <select name="gender" required>
-                            <option value="">Select Gender</option>
-                            <option>Male</option>
-                            <option>Female</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Date of Birth (Child) <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-calendar"></i>
-                        <input type="date" name="dob" required>
-                    </div>
-                </div>
-                <div class="form-group full-width">
-                    <label>Address <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-location-dot"></i>
-                        <input type="text" name="address" placeholder="Enter your address" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Password <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" name="password" placeholder="Create a strong password" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Confirm Password <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" name="confirm_password" placeholder="Re-enter password" required>
-                    </div>
-                </div>
-                <div class="form-group full-width">
-                    <button class="btn-register" type="submit">
-                        <i class="fa-solid fa-user-plus"></i> Register
-                    </button>
-                </div>
-            </form>
-            
-            <div class="form-footer">
-                <div class="login-link">Already have an account? <a href="#" onclick="switchMode('login'); return false;">Login</a></div>
-            </div>
-        </div>
-
-        <!-- ================= STUDENT FORM ================= -->
-        <div class="form-card" id="form-student">
-            <div class="form-header">
-                <div class="form-header-left">
-                    <div class="header-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-                    <div class="header-text">
-                        <h3>Student Registration</h3>
-                        <p>Learn • Grow • Succeed</p>
-                    </div>
-                </div>
-                <div class="form-header-right">Join Our<br>Student Body</div>
-            </div>
-            
-            <form class="form-body" action="{{ url_for('register') }}" method="POST">
-                <input type="hidden" name="role" value="student">
-                <div class="form-group">
-                    <label>Full Name <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-user"></i>
-                        <input type="text" name="name" placeholder="Enter your full name" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Email Address <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-envelope"></i>
-                        <input type="email" name="email" placeholder="Enter your email" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Mobile Number <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-phone"></i>
-                        <input type="tel" name="phone" placeholder="Enter 10 digit mobile number" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Date of Birth <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-calendar"></i>
-                        <input type="date" name="dob" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Gender <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-venus-mars"></i>
-                        <select name="gender" required>
-                            <option value="">Select Gender</option>
-                            <option>Male</option>
-                            <option>Female</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Class Applying For <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-graduation-cap"></i>
-                        <select name="class_applying" required>
-                            <option value="">Select Class</option>
-                            <option>Pre-Nursery</option>
-                            <option>Nursery</option>
-                            <option>LKG</option>
-                            <option>UKG</option>
-                            <option>Class 1</option>
-                            <option>Class 2</option>
-                            <option>Class 3</option>
-                            <option>Class 4</option>
-                            <option>Class 5</option>
-                            <option>Class 6</option>
-                            <option>Class 7</option>
-                            <option>Class 8</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group full-width">
-                    <label>Previous School (If any)</label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-school"></i>
-                        <input type="text" name="previous_school" placeholder="Enter previous school name">
-                    </div>
-                </div>
-                <div class="form-group full-width">
-                    <label>Address <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-location-dot"></i>
-                        <input type="text" name="address" placeholder="Enter your address" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Password <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" name="password" placeholder="Create a strong password" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Confirm Password <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" name="confirm_password" placeholder="Re-enter password" required>
-                    </div>
-                </div>
-                <div class="form-group full-width">
-                    <button class="btn-register" type="submit">
-                        <i class="fa-solid fa-user-plus"></i> Register
-                    </button>
-                </div>
-            </form>
-            
-            <div class="form-footer">
-                <div class="login-link">Already have an account? <a href="#" onclick="switchMode('login'); return false;">Login</a></div>
-            </div>
-        </div>
-
-        <!-- ================= LOGIN FORM ================= -->
-        <div class="form-card" id="form-login">
-            <div class="form-header">
-                <div class="form-header-left">
-                    <div class="header-icon"><i class="fa-solid fa-right-to-bracket"></i></div>
-                    <div class="header-text">
-                        <h3>Welcome Back</h3>
-                        <p>Login to your account</p>
-                    </div>
-                </div>
-                <div class="form-header-right">Secure<br>Login</div>
-            </div>
-            
-            <!-- ✅ LOGIN ACTION ADDED -->
-            <form class="form-body" action="{{ url_for('login') }}" method="POST">
-                <div class="form-group full-width">
-                    <label>Email Address <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-regular fa-envelope"></i>
-                        <input type="email" name="email" placeholder="Enter your registered email" required>
-                    </div>
-                </div>
-                <div class="form-group full-width">
-                    <label>Password <span>*</span></label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" name="password" placeholder="Enter your password" required>
-                    </div>
-                    <div class="login-options">
-                        <label><input type="checkbox"> Remember me</label>
-                        <a href="#">Forgot Password?</a>
-                    </div>
-                </div>
-                <div class="form-group full-width">
-                    <button class="btn-register" type="submit">
-                        <i class="fa-solid fa-right-to-bracket"></i> Login
-                    </button>
-                </div>
-            </form>
-            
-            <div class="form-footer">
-                <div class="login-link">Don't have an account? <a href="#" onclick="switchMode('register'); return false;">Register</a></div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- =========================================
-         MAIN SITE FOOTER (Exact Copy from index.html)
-         ========================================= -->
-    <footer class="site-footer">
-        <div class="wrap footer-inner">
-
-            <!-- Column 1: Main Brand -->
-            <div class="footer-brand-col">
-                <a class="footer-brand" href="index.html" aria-label="Residential Shanti Niketan home">
-                    <span class="brand-mark small-mark">
-                        <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="School Logo"
-                            class="school-logo" loading="lazy">
-                    </span>
-                    <span class="footer-brand-copy">
-                        <strong>Residential Shanti Niketan</strong>
-                        <small>Navinagar, Jamui</small>
-                        <span class="footer-tagline">Education • Values • Excellence</span>
-                    </span>
-                </a>
-            </div>
-
-            <!-- Column 2: Extra Identity Elements -->
-            <div class="footer-links-col">
-                <h4>About School</h4>
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                    <span>
-                        <strong style="color: #fff; font-size: 13px; display: block;">Residential Shanti
-                            Niketan</strong>
-                        <small style="font-size: 11px; color: #aebfd0;">Navinagar Jamui</small>
-                    </span>
-                </div>
-                <p style="font-size: 12.5px; color: #aebfd0; margin: 0;">Education • Values • A brighter future</p>
-            </div>
-
-            <!-- Column 3: Back to Top -->
-            <div class="footer-contact-col">
-                <h4>Navigate</h4>
-                <a class="back-top" href="#top">Back to top <i class="fa-solid fa-arrow-up"></i></a>
-            </div>
-
-        </div>
-
-        <!-- Updated Footer Bottom with Developer Credit -->
-        <div class="footer-bottom">
-            <p class="copyright-text">© <span id="year"></span> Residential Shanti Niketan. Website concept.</p>
-
-            <div class="developer-credit">
-                <span class="dev-badge">
-                    <i class="fa-solid fa-code"></i>
-                    <span>Developed by <strong>Niraj Kumar</strong></span>
-                    <a href="tel:9155658081" class="dev-contact">
-                        <i class="fa-solid fa-phone"></i> 9155658081
-                    </a>
-                </span>
-            </div>
-        </div>
-    </footer>
-
-    <!-- =========================================
-         JAVASCRIPT (Role Switching + Mobile Menu with Backdrop Click)
-         ========================================= -->
     <script>
-        // =========================================
-        // 1. MOBILE MENU LOGIC (With Backdrop Click Close)
-        // =========================================
-        document.addEventListener('DOMContentLoaded', () => {
-            const menuToggle = document.getElementById('menuToggle');
-            const mobileMenu = document.getElementById('mobileMenu');
-            const backdrop = document.getElementById('menuBackdrop');
-            const closeBtn = document.getElementById('menuClose');
-
-            function toggleMenu() {
-                const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
-                menuToggle.setAttribute('aria-expanded', !isExpanded);
-                mobileMenu.classList.toggle('is-open');
-
-                // Toggle backdrop visibility
-                if (isExpanded) {
-                    backdrop.setAttribute('hidden', ''); // Close
-                } else {
-                    backdrop.removeAttribute('hidden'); // Open
-                    // Small delay to ensure display:block applies before opacity transition
-                    setTimeout(() => backdrop.classList.add('is-open'), 10);
-                }
-                document.body.classList.toggle('menu-open');
-            }
-
-            if (menuToggle && mobileMenu) {
-                menuToggle.addEventListener('click', toggleMenu);
-                if (closeBtn) closeBtn.addEventListener('click', toggleMenu);
-
-                // ✅ Backdrop Click Close Feature
-                if (backdrop) {
-                    backdrop.addEventListener('click', toggleMenu);
-                }
-
-                // Close menu when a link is clicked (optional, but good UX)
-                mobileMenu.querySelectorAll('a').forEach(link => {
-                    link.addEventListener('click', () => {
-                        if (mobileMenu.classList.contains('is-open')) toggleMenu();
-                    });
-                });
-            }
-
-            // Set current year in footer
-            const yearSpan = document.getElementById('year');
-            if (yearSpan) yearSpan.innerText = new Date().getFullYear();
+        document.querySelectorAll('.flash-close').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const f = btn.closest('.flash');
+                f.style.opacity = '0';
+                setTimeout(() => f.remove(), 250);
+            });
         });
-
-        // =========================================
-        // 2. ROLE & MODE SWITCHING LOGIC
-        // =========================================
-        let currentRole = 'teacher';
-        let currentMode = 'register'; // 'register' or 'login'
-
-        function switchRole(role, element) {
-            currentRole = role;
-
-            // Update Tab Styling
-            document.querySelectorAll('.role-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            element.classList.add('active');
-
-            // Update Body Theme Class
-            document.body.className = 'theme-' + role;
-
-            // Update UI (Banner & Form)
-            updateUI();
-        }
-
-        function switchMode(mode) {
-            currentMode = mode;
-            updateUI();
-        }
-
-        function updateUI() {
-            const bannerTitle = document.getElementById('banner-title');
-            const bannerSubtitle = document.getElementById('banner-subtitle');
-            const bannerIcon = document.getElementById('banner-icon');
-
-            // Hide all forms first
-            document.querySelectorAll('.form-card').forEach(form => {
-                form.classList.remove('active');
-            });
-
-            if (currentMode === 'login') {
-                document.getElementById('form-login').classList.add('active');
-                bannerTitle.innerText = 'Welcome Back';
-                bannerSubtitle.innerText = 'Login to continue your journey';
-
-                if (currentRole === 'teacher') bannerIcon.innerHTML = '<i class="fa-solid fa-chalkboard-user"></i>';
-                else if (currentRole === 'admin') bannerIcon.innerHTML = '<i class="fa-solid fa-user-gear"></i>';
-                else if (currentRole === 'parent') bannerIcon.innerHTML = '<i class="fa-solid fa-users"></i>';
-                else if (currentRole === 'student') bannerIcon.innerHTML = '<i class="fa-solid fa-graduation-cap"></i>';
-
-            } else {
-                document.getElementById('form-' + currentRole).classList.add('active');
-
-                if (currentRole === 'teacher') {
-                    bannerTitle.innerText = 'Join Our Team';
-                    bannerSubtitle.innerText = 'Make a Difference in Young Minds';
-                    bannerIcon.innerHTML = '<i class="fa-solid fa-chalkboard-user"></i>';
-                } else if (currentRole === 'admin') {
-                    bannerTitle.innerText = 'Be a Part';
-                    bannerSubtitle.innerText = 'of Our Support System';
-                    bannerIcon.innerHTML = '<i class="fa-solid fa-user-gear"></i>';
-                } else if (currentRole === 'parent') {
-                    bannerTitle.innerText = 'Together for';
-                    bannerSubtitle.innerText = 'a Brighter Tomorrow';
-                    bannerIcon.innerHTML = '<i class="fa-solid fa-users"></i>';
-                } else if (currentRole === 'student') {
-                    bannerTitle.innerText = 'Start Your Journey';
-                    bannerSubtitle.innerText = 'Learn • Grow • Succeed';
-                    bannerIcon.innerHTML = '<i class="fa-solid fa-graduation-cap"></i>';
-                }
-            }
-        }
     </script>
-
 </body>
 
 </html>

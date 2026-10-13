@@ -1,0 +1,48 @@
+{% extends "admin_base.html" %}
+{% block title %}Notices{% endblock %}
+{% block page_title %}Notice Management{% endblock %}
+
+{% block content %}
+<div class="admin-grid-2-uneven">
+    <div class="admin-panel">
+        <div class="admin-panel-head">
+            <h3><i class="fa-solid fa-plus"></i> Add New Notice</h3>
+        </div>
+        <form method="POST" action="{{ url_for('admin_add_notice') }}" class="admin-form">
+            <label>Date <input type="text" name="date" placeholder="e.g. 13 Oct 2026" required></label>
+            <label>Title <input type="text" name="title" placeholder="Notice title" required maxlength="200"></label>
+            <label>Tag <input type="text" name="tag" placeholder="e.g. Admissions, Academics" required maxlength="50"></label>
+            <label>Target Audience
+                <select name="target_role">
+                    <option value="all">All (Home + Everyone)</option>
+                    <option value="teacher">Teachers Only</option>
+                    <option value="parent">Parents Only</option>
+                    <option value="student">Students Only</option>
+                </select>
+            </label>
+            <label>Description <textarea name="description" rows="4" placeholder="Notice details..." maxlength="1000"></textarea></label>
+            <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-check"></i> Publish Notice</button>
+        </form>
+    </div>
+    
+    <div class="admin-panel">
+        <div class="admin-panel-head"><h3><i class="fa-solid fa-bell"></i> All Notices ({{ notices|length }})</h3></div>
+        <div class="admin-notice-list">
+            {% for n in notices %}
+            <div class="admin-notice-item">
+                <div class="notice-item-body">
+                    <small class="muted">{{ n.date }} • <strong>{{ n.tag }}</strong> • Target: {{ n.target_role or 'all' }}</small>
+                    <p>{{ n.title }}</p>
+                    {% if n.description %}<span class="notice-desc muted">{{ n.description[:120] }}{% if n.description|length > 120 %}...{% endif %}</span>{% endif %}
+                </div>
+                <form method="POST" action="{{ url_for('admin_delete_notice', nid=n.id) }}" data-confirm="Delete this notice?">
+                    <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
+                </form>
+            </div>
+            {% else %}
+            <p class="empty-row">No notices yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

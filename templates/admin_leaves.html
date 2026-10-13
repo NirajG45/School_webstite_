@@ -1,0 +1,50 @@
+{% extends "admin_base.html" %}
+{% block title %}Leave Requests{% endblock %}
+{% block page_title %}Leave Requests{% endblock %}
+
+{% block content %}
+<div class="admin-panel">
+    <div class="admin-panel-head">
+        <h3><i class="fa-solid fa-calendar-minus"></i> All Leave Requests ({{ leaves|length }})</h3>
+    </div>
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr><th>User</th><th>Type</th><th>From</th><th>To</th><th>Reason</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                {% for l in leaves %}
+                <tr>
+                    <td>
+                        <strong>{{ l.user_name }}</strong><br>
+                        <small class="muted">{{ l.user_uid }} • {{ l.user_role|capitalize }}</small>
+                    </td>
+                    <td>{{ l.leave_type }}</td>
+                    <td class="muted">{{ l.from_date }}</td>
+                    <td class="muted">{{ l.to_date }}</td>
+                    <td class="muted message-cell" title="{{ l.reason }}">{{ l.reason[:80] }}{% if l.reason|length > 80 %}...{% endif %}</td>
+                    <td>
+                        <span class="kind-badge kind-{{ 'admission' if l.status=='approved' else 'contact' if l.status=='rejected' else 'notice' }}">
+                            {{ l.status|capitalize }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if l.status == 'pending' %}
+                        <form method="POST" action="{{ url_for('admin_update_leave', lid=l.id) }}" style="display:flex;gap:5px;">
+                            <input type="text" name="remarks" placeholder="Remarks" style="padding:5px;font-size:11px;border:1px solid #dbe4ed;border-radius:6px;width:90px;">
+                            <button name="status" value="approved" class="btn-icon-approve" title="Approve"><i class="fa-solid fa-check"></i></button>
+                            <button name="status" value="rejected" class="btn-icon-danger" title="Reject"><i class="fa-solid fa-xmark"></i></button>
+                        </form>
+                        {% else %}
+                        <small class="muted">{{ l.admin_remarks or '—' }}</small>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="empty-row">No leave requests yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

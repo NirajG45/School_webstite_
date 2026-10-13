@@ -1,0 +1,83 @@
+{% extends "admin_base.html" %}
+{% block title %}Users{% endblock %}
+{% block page_title %}User Management{% endblock %}
+
+{% block content %}
+<div class="admin-panel">
+    <div class="admin-panel-head">
+        <h3><i class="fa-solid fa-users"></i> All Users ({{ users|length }})</h3>
+        <div class="filter-tabs">
+            <a href="{{ url_for('admin_users', role='all') }}" class="filter-tab {% if role_filter=='all' %}active{% endif %}">All</a>
+            <a href="{{ url_for('admin_users', role='admin') }}" class="filter-tab {% if role_filter=='admin' %}active{% endif %}">Admin</a>
+            <a href="{{ url_for('admin_users', role='teacher') }}" class="filter-tab {% if role_filter=='teacher' %}active{% endif %}">Teacher</a>
+            <a href="{{ url_for('admin_users', role='parent') }}" class="filter-tab {% if role_filter=='parent' %}active{% endif %}">Parent</a>
+            <a href="{{ url_for('admin_users', role='student') }}" class="filter-tab {% if role_filter=='student' %}active{% endif %}">Student</a>
+        </div>
+    </div>
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Unique ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td><strong style="color:var(--red);">{{ u.unique_id or '—' }}</strong></td>
+                    <td><strong>{{ u.name }}</strong></td>
+                    <td class="muted">{{ u.email }}</td>
+                    <td class="muted">{{ u.phone }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin_change_role', user_id=u.id) }}" class="inline-form">
+                            <select name="role" class="role-select" onchange="this.form.submit()">
+                                <option value="teacher" {% if u.role=='teacher' %}selected{% endif %}>Teacher</option>
+                                <option value="admin" {% if u.role=='admin' %}selected{% endif %}>Admin</option>
+                                <option value="parent" {% if u.role=='parent' %}selected{% endif %}>Parent</option>
+                                <option value="student" {% if u.role=='student' %}selected{% endif %}>Student</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td>
+                        {% if u.is_active %}
+                        <span class="role-badge" style="background:#e3f5eb; color:#168254;">Active</span>
+                        {% else %}
+                        <span class="role-badge" style="background:#ffeaee; color:var(--red);">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <form method="POST" action="{{ url_for('admin_toggle_user', user_id=u.id) }}" style="display:inline;">
+                            <button type="submit" class="btn-icon-approve" title="Toggle Active">
+                                <i class="fa-solid fa-power-off"></i>
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin_reset_password', user_id=u.id) }}" style="display:inline;" data-confirm="Reset password to default 'snv@450'?">
+                            <button type="submit" class="btn-icon-approve" title="Reset Password">
+                                <i class="fa-solid fa-key"></i>
+                            </button>
+                        </form>
+                        {% if u.id != session['user_id'] %}
+                        <form method="POST" action="{{ url_for('admin_delete_user', user_id=u.id) }}" style="display:inline;" data-confirm="Delete this user permanently?">
+                            <button type="submit" class="btn-icon-danger" title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
+                        {% else %}
+                        <span class="muted small-text" style="font-size:10px;">(You)</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="empty-row">No users found for this filter.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

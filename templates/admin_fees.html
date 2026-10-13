@@ -1,0 +1,83 @@
+{% extends "admin_base.html" %}
+{% block title %}Fees{% endblock %}
+{% block page_title %}Fees & QR Management{% endblock %}
+
+{% block content %}
+<div class="admin-grid-2">
+    <!-- QR CODE MANAGEMENT -->
+    <div class="admin-panel">
+        <div class="admin-panel-head">
+            <h3><i class="fa-solid fa-qrcode"></i> Fee Payment QR Code</h3>
+        </div>
+        <form method="POST" action="{{ url_for('admin_update_qr') }}" class="admin-form">
+            <label>QR Code Image URL
+                <input type="url" name="fee_qr_url" value="{{ fee_qr }}" placeholder="https://example.com/qr.png" required>
+            </label>
+            <p class="muted" style="font-size:12px;">
+                <i class="fa-solid fa-info-circle"></i> Upload your school's payment QR image to a hosting service and paste the URL here.
+            </p>
+            <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-save"></i> Update QR</button>
+        </form>
+        {% if fee_qr %}
+        <div style="padding:20px; text-align:center; border-top:1px solid #eaeff5;">
+            <p style="font-size:12px;color:#65758a;margin-bottom:10px;">Current QR Code Preview:</p>
+            <img src="{{ fee_qr }}" alt="Fee QR" style="max-width:220px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- STATS -->
+    <div class="admin-panel">
+        <div class="admin-panel-head"><h3><i class="fa-solid fa-chart-line"></i> Payment Summary</h3></div>
+        <div style="padding:20px; display:grid; gap:15px;">
+            <div class="mini-stat">
+                <span>Total Payments</span>
+                <strong>{{ payments|length }}</strong>
+            </div>
+            <div class="mini-stat">
+                <span>Pending Verification</span>
+                <strong style="color:var(--red);">{{ payments|selectattr('status', 'equalto', 'pending')|list|length }}</strong>
+            </div>
+            <div class="mini-stat">
+                <span>Verified</span>
+                <strong style="color:#168254;">{{ payments|selectattr('status', 'equalto', 'verified')|list|length }}</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PAYMENTS LIST -->
+<div class="admin-panel">
+    <div class="admin-panel-head"><h3><i class="fa-solid fa-receipt"></i> All Payments ({{ payments|length }})</h3></div>
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>Student</th><th>Amount</th><th>Date</th><th>Txn ID</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+                {% for p in payments %}
+                <tr>
+                    <td><strong>{{ p.student_name }}</strong><br><small class="muted">{{ p.student_uid }}</small></td>
+                    <td><strong>₹{{ p.amount }}</strong></td>
+                    <td class="muted">{{ p.payment_date }}</td>
+                    <td class="muted">{{ p.transaction_id or '—' }}</td>
+                    <td>
+                        <span class="kind-badge kind-{{ 'admission' if p.status=='verified' else 'contact' if p.status=='rejected' else 'notice' }}">
+                            {{ p.status|capitalize }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if p.status == 'pending' %}
+                        <form method="POST" action="{{ url_for('admin_verify_fee', pid=p.id) }}" style="display:inline-flex;gap:5px;">
+                            <button name="status" value="verified" class="btn-icon-approve"><i class="fa-solid fa-check"></i></button>
+                            <button name="status" value="rejected" class="btn-icon-danger"><i class="fa-solid fa-xmark"></i></button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="empty-row">No payments yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

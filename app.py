@@ -2,33 +2,34 @@ from pathlib import Path
 import os
 import sqlite3
 import re
+import secrets
 from functools import wraps
-from datetime import timedelta
-from flask import (Flask, render_template, request, redirect, url_for, flash, jsonify, g, session)
+from datetime import timedelta, datetime
+from flask import (Flask, render_template, request, redirect, url_for, 
+                   flash, jsonify, g, session)
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # =========================================
-# 1. APP CONFIGURATION & SETUP
+# 1. APP CONFIGURATION
 # =========================================
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = Path(os.environ.get('SCHOOL_DB_PATH', BASE_DIR / 'school.db'))
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'change-this-before-deployment')
-app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB for Resume uploads
-
-# Security Headers for Production
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 app.config['SESSION_COOKIE_SECURE'] = True if os.environ.get('FLASK_ENV') == 'production' else False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)  # Session 7 दिन तक valid रहेगा
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
-# Initial Seed Data for Notices
+DEFAULT_PASSWORD = 'snv@450'  # 🚀 Default password for new users
+
 INITIAL_NOTICES = [
-    {'date': '05 Oct 2026', 'title': 'Admissions enquiry open for Session 2026–27', 'tag': 'Admissions', 'desc': 'Admissions are now open for the upcoming academic session. Please contact the school office for details.'},
-    {'date': '28 Sep 2026', 'title': 'Class-wise timetable and school routine', 'tag': 'Academics', 'desc': 'The new class-wise timetable has been published. Students can collect it from their respective class teachers.'},
-    {'date': '22 Sep 2026', 'title': 'Annual sports and activities update', 'tag': 'Activities', 'desc': 'Annual sports day is approaching. All students are encouraged to participate in various events.'},
-    {'date': '15 Sep 2026', 'title': 'Parent–teacher meeting information', 'tag': 'Notice', 'desc': 'A PTM is scheduled for all classes. Parents are requested to attend without fail.'},
+    {'date': '05 Oct 2026', 'title': 'Admissions enquiry open for Session 2026–27', 'tag': 'Admissions', 'desc': 'Admissions are now open for the upcoming academic session.', 'target_role': 'all'},
+    {'date': '28 Sep 2026', 'title': 'Class-wise timetable published', 'tag': 'Academics', 'desc': 'The new timetable is available.', 'target_role': 'all'},
+    {'date': '22 Sep 2026', 'title': 'Annual sports day update', 'tag': 'Activities', 'desc': 'Annual sports day is approaching.', 'target_role': 'all'},
+    {'date': '15 Sep 2026', 'title': 'Parent–teacher meeting', 'tag': 'Notice', 'desc': 'A PTM is scheduled for all classes.', 'target_role': 'all'},
 ]
 
 # =========================================
@@ -47,84 +48,161 @@ def close_db(_error=None):
         db.close()
 
 def init_db():
-    """Creates tables and seeds initial data if empty."""
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(DB_PATH) as db:
-        # Enquiries Table
+        # Enquiries
         db.execute('''CREATE TABLE IF NOT EXISTS enquiries (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            kind TEXT NOT NULL,
-            name TEXT NOT NULL,
-            phone TEXT NOT NULL,
-            email TEXT,
-            class_name TEXT,
-            message TEXT,
-            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-        )''')
+            id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL, name TEXT NOT NULL,
+            phone TEXT NOT NULL, email TEXT, class_name TEXT, message TEXT,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # Notices Table
+        # Notices (with target_role)
         db.execute('''CREATE TABLE IF NOT EXISTS notices (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT NOT NULL,
-            title TEXT NOT NULL,
-            tag TEXT NOT NULL,
-            description TEXT,
-            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-        )''')
+            id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, title TEXT NOT NULL,
+            tag TEXT NOT NULL, description TEXT, target_role TEXT DEFAULT 'all',
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # Users Table (For Login & Registration)
+        # Users (with unique_id, force_password_change)
         db.execute('''CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            role TEXT NOT NULL,
-            name TEXT NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            phone TEXT NOT NULL,
-            password_hash TEXT NOT NULL,
-            dob TEXT,
-            gender TEXT,
-            qualification TEXT,
-            experience TEXT,
-            subject TEXT,
-            designation TEXT,
-            department TEXT,
-            relation TEXT,
-            child_name TEXT,
-            child_class TEXT,
-            address TEXT,
-            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-        )''')
+            id INTEGER PRIMARY KEY AUTOINCREMENT, unique_id TEXT UNIQUE, role TEXT NOT NULL,
+            name TEXT NOT NULL, email TEXT UNIQUE NOT NULL, phone TEXT NOT NULL,
+            password_hash TEXT NOT NULL, force_password_change INTEGER DEFAULT 1,
+            dob TEXT, gender TEXT, qualification TEXT, experience TEXT, subject TEXT,
+            designation TEXT, department TEXT, relation TEXT, child_name TEXT,
+            child_class TEXT, address TEXT, is_active INTEGER DEFAULT 1,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # Seed initial notices
+        # Leave Requests
+        db.execute('''CREATE TABLE IF NOT EXISTS leave_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL,
+            leave_type TEXT NOT NULL, from_date TEXT NOT NULL, to_date TEXT NOT NULL,
+            reason TEXT NOT NULL, status TEXT DEFAULT 'pending',
+            admin_remarks TEXT, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        
+        # Attendance
+        db.execute('''CREATE TABLE IF NOT EXISTS attendance (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL,
+            date TEXT NOT NULL, status TEXT NOT NULL, remarks TEXT,
+            marked_by INTEGER, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        
+        # Fee Payments
+        db.execute('''CREATE TABLE IF NOT EXISTS fee_payments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, student_id INTEGER NOT NULL,
+            amount REAL NOT NULL, payment_date TEXT NOT NULL,
+            transaction_id TEXT, status TEXT DEFAULT 'pending',
+            remarks TEXT, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        
+        # School Settings (for QR code, etc.)
+        db.execute('''CREATE TABLE IF NOT EXISTS school_settings (
+            key TEXT PRIMARY KEY, value TEXT)''')
+        
+        # Messages (admin to users)
+        db.execute('''CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, from_user_id INTEGER NOT NULL,
+            to_user_id INTEGER, to_role TEXT, subject TEXT NOT NULL, body TEXT NOT NULL,
+            is_read INTEGER DEFAULT 0, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        
+        # Seed notices
         count = db.execute('SELECT COUNT(*) FROM notices').fetchone()[0]
         if count == 0:
-            for notice in INITIAL_NOTICES:
-                db.execute('INSERT INTO notices (date, title, tag, description) VALUES (?, ?, ?, ?)',
-                           (notice['date'], notice['title'], notice['tag'], notice['desc']))
+            for n in INITIAL_NOTICES:
+                db.execute('INSERT INTO notices (date, title, tag, description, target_role) VALUES (?,?,?,?,?)',
+                           (n['date'], n['title'], n['tag'], n['desc'], n['target_role']))
+        
+        # Default school settings
+        db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('fee_qr_url', '')")
+        db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('school_name', 'Residential Shanti Niketan')")
+        
         db.commit()
 
-def get_all_notices():
+# =========================================
+# 3. UTILITY HELPERS
+# =========================================
+def get_all_notices(target_role=None):
     db = get_db()
+    if target_role and target_role != 'all':
+        return db.execute("SELECT * FROM notices WHERE target_role IN ('all', ?) ORDER BY id DESC", (target_role,)).fetchall()
     return db.execute('SELECT * FROM notices ORDER BY id DESC').fetchall()
 
-def get_user_by_id(user_id):
+def get_user_by_id(uid):
     db = get_db()
-    return db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    return db.execute('SELECT * FROM users WHERE id = ?', (uid,)).fetchone()
+
+def get_user_by_unique_id(uid):
+    db = get_db()
+    return db.execute('SELECT * FROM users WHERE unique_id = ?', (uid,)).fetchone()
+
+def generate_unique_id(role):
+    """🚀 Generate unique ID like TSNV00001, PSNV00001, STSNV00001"""
+    db = get_db()
+    prefixes = {'admin': 'SNV', 'teacher': 'TSNV', 'parent': 'PSNV', 'student': 'STSNV'}
+    prefix = prefixes.get(role, 'SNV')
+    
+    last = db.execute(
+        "SELECT unique_id FROM users WHERE unique_id LIKE ? ORDER BY id DESC LIMIT 1",
+        (prefix + '%',)
+    ).fetchone()
+    
+    if last and last['unique_id']:
+        try:
+            num = int(last['unique_id'].replace(prefix, '')) + 1
+        except:
+            num = 1
+    else:
+        num = 1
+    
+    # Ensure uniqueness
+    while True:
+        new_id = f"{prefix}{str(num).zfill(5)}"
+        exists = db.execute('SELECT 1 FROM users WHERE unique_id = ?', (new_id,)).fetchone()
+        if not exists:
+            return new_id
+        num += 1
+
+def get_setting(key, default=''):
+    db = get_db()
+    row = db.execute('SELECT value FROM school_settings WHERE key = ?', (key,)).fetchone()
+    return row['value'] if row else default
+
+def set_setting(key, value):
+    db = get_db()
+    db.execute('INSERT OR REPLACE INTO school_settings (key, value) VALUES (?, ?)', (key, value))
+    db.commit()
 
 # =========================================
-# 3. LOGIN DECORATOR (Protects Routes)
+# 4. DECORATORS
 # =========================================
 def login_required(f):
-    """UPGRADE: कोई भी प्रोटेक्टेड राउट सिर्फ लॉगिन यूज़र ही खोल सके।"""
     @wraps(f)
-    def decorated_function(*args, **kwargs):
+    def decorated(*args, **kwargs):
         if not session.get('user_id'):
             flash('Please login to access this page.', 'error')
             return redirect(url_for('login_page'))
+        # Force password change
+        user = get_user_by_id(session['user_id'])
+        if user and user['force_password_change'] and request.endpoint not in ('change_password', 'logout', 'static'):
+            flash('Please change your default password to continue.', 'error')
+            return redirect(url_for('change_password'))
         return f(*args, **kwargs)
-    return decorated_function
+    return decorated
+
+def admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get('user_id'):
+            flash('Please login to access admin panel.', 'error')
+            return redirect(url_for('login_page'))
+        if session.get('user_role') != 'admin':
+            flash('Access denied. Admin privileges required.', 'error')
+            return redirect(url_for('user_dashboard'))
+        return f(*args, **kwargs)
+    return decorated
+
+def get_dashboard_url(role):
+    return url_for('admin_dashboard') if role == 'admin' else url_for('user_dashboard')
 
 # =========================================
-# 4. ROUTES (PAGES & API)
+# 5. PUBLIC ROUTES
 # =========================================
 @app.route('/')
 def home():
@@ -141,315 +219,468 @@ def academics_page():
     return render_template('academics.html')
 
 # =========================================
-# 5. AUTHENTICATION ROUTES
+# 6. AUTH ROUTES (LOGIN ONLY - NO REGISTRATION)
 # =========================================
 @app.route('/login', methods=['GET'])
 def login_page():
-    # UPGRADE: अगर यूज़र पहले से लॉगिन है, तो डैशबोर्ड पर भेजें
     if session.get('user_id'):
-        return redirect(url_for('user_dashboard'))
+        return redirect(get_dashboard_url(session.get('user_role', 'student')))
     return render_template('login.html')
-
-@app.route('/register', methods=['POST'])
-def register():
-    role = request.form.get('role', 'student')
-    name = request.form.get('name', '').strip()
-    email = request.form.get('email', '').strip()
-    phone = request.form.get('phone', '').strip()
-    password = request.form.get('password')
-    confirm_password = request.form.get('confirm_password')
-    
-    # Basic Validation
-    if not name or not email or not phone or not password:
-        flash('Please fill all required fields.', 'error')
-        return redirect(url_for('login_page'))
-        
-    if password != confirm_password:
-        flash('Passwords do not match.', 'error')
-        return redirect(url_for('login_page'))
-
-    if len(password) < 6:
-        flash('Password must be at least 6 characters long.', 'error')
-        return redirect(url_for('login_page'))
-
-    # UPGRADE: Email format check
-    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-        flash('Please enter a valid email address.', 'error')
-        return redirect(url_for('login_page'))
-
-    # Check if email already exists
-    db = get_db()
-    user = db.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
-    if user:
-        flash('Email already registered. Please login.', 'error')
-        return redirect(url_for('login_page'))
-
-    # Hash password
-    hashed_password = generate_password_hash(password)
-    
-    # Collect common fields
-    address = request.form.get('address', '')
-    dob = request.form.get('dob', '')
-    gender = request.form.get('gender', '')
-    
-    # Role-specific fields
-    qualification = experience = subject = designation = department = relation = child_name = child_class = None
-
-    if role == 'teacher':
-        qualification = request.form.get('qualification', '')
-        experience = request.form.get('experience', '')
-        subject = request.form.get('subject', '')
-    elif role == 'admin':
-        designation = request.form.get('designation', '')
-        department = request.form.get('department', '')
-    elif role == 'parent':
-        relation = request.form.get('relation', '')
-        child_name = request.form.get('child_name', '')
-        child_class = request.form.get('child_class', '')
-    elif role == 'student':
-        child_class = request.form.get('class_applying', '')
-
-    # Insert into DB
-    db.execute('''INSERT INTO users 
-                  (role, name, email, phone, password_hash, dob, gender, qualification, experience, subject, designation, department, relation, child_name, child_class, address) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
-               (role, name, email, phone, hashed_password, dob, gender, qualification, experience, subject, designation, department, relation, child_name, child_class, address))
-    db.commit()
-    
-    flash('Registration successful! Please login to continue.', 'success')
-    return redirect(url_for('login_page'))
 
 @app.route('/login', methods=['POST'])
 def login():
-    email = request.form.get('email', '').strip()
-    password = request.form.get('password')
+    unique_id = request.form.get('unique_id', '').strip().upper()
+    password = request.form.get('password', '')
     
     db = get_db()
-    user = db.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
+    user = db.execute('SELECT * FROM users WHERE unique_id = ?', (unique_id,)).fetchone()
     
     if user and check_password_hash(user['password_hash'], password):
-        # UPGRADE: Session को Permanent बनाएं (7 दिन तक valid)
+        if not user['is_active']:
+            flash('Your account has been deactivated. Contact admin.', 'error')
+            return redirect(url_for('login_page'))
         session.permanent = True
         session['user_id'] = user['id']
         session['user_name'] = user['name']
         session['user_role'] = user['role']
+        session['unique_id'] = user['unique_id']
+        
+        if user['force_password_change']:
+            flash('Welcome! Please set a new password.', 'success')
+            return redirect(url_for('change_password'))
+        
         flash(f'Welcome back, {user["name"]}!', 'success')
-        # UPGRADE: होम की जगह डैशबोर्ड पर भेजें
-        return redirect(url_for('user_dashboard'))
+        return redirect(get_dashboard_url(user['role']))
     else:
-        flash('Invalid email or password.', 'error')
+        flash('Invalid ID or password.', 'error')
         return redirect(url_for('login_page'))
+
+@app.route('/change-password', methods=['GET', 'POST'])
+def change_password():
+    if not session.get('user_id'):
+        return redirect(url_for('login_page'))
+    
+    if request.method == 'POST':
+        new_pw = request.form.get('new_password', '')
+        confirm = request.form.get('confirm_password', '')
+        
+        if len(new_pw) < 6:
+            flash('Password must be at least 6 characters.', 'error')
+            return redirect(url_for('change_password'))
+        if new_pw != confirm:
+            flash('Passwords do not match.', 'error')
+            return redirect(url_for('change_password'))
+        
+        db = get_db()
+        db.execute('UPDATE users SET password_hash = ?, force_password_change = 0 WHERE id = ?',
+                   (generate_password_hash(new_pw), session['user_id']))
+        db.commit()
+        flash('Password updated successfully!', 'success')
+        return redirect(get_dashboard_url(session['user_role']))
+    
+    return render_template('change_password.html')
 
 @app.route('/logout')
 def logout():
     session.clear()
-    flash('You have been logged out successfully.', 'success')
+    flash('Logged out successfully.', 'success')
     return redirect(url_for('home'))
 
 # =========================================
-# 6. USER DASHBOARD & PROFILE
+# 7. USER DASHBOARD
 # =========================================
 @app.route('/dashboard')
 @login_required
 def user_dashboard():
-    """UPGRADE: यूज़र का निजी डैशबोर्ड।"""
     user = get_user_by_id(session['user_id'])
     if not user:
-        # अगर किसी कारणवश DB में यूज़र न मिले
         session.clear()
-        flash('Session expired. Please login again.', 'error')
         return redirect(url_for('login_page'))
     
-    notices = get_all_notices()
-    return render_template('user.html', user=user, notices=notices)
-
-# =========================================
-# 3.5 ADMIN DECORATOR
-# =========================================
-def admin_required(f):
-    """🚀 सिर्फ Admin role वाले यूज़र ही एक्सेस कर सकें।"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not session.get('user_id'):
-            flash('Please login to access admin panel.', 'error')
-            return redirect(url_for('login_page'))
-        if session.get('user_role') != 'admin':
-            flash('Access denied. Admin privileges required.', 'error')
-            return redirect(url_for('user_dashboard'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-@app.route('/profile/update', methods=['POST'])
-@login_required
-def update_profile():
-    """UPGRADE: यूज़र अपनी प्रोफाइल अपडेट कर सके।"""
-    name = request.form.get('name', '').strip()
-    phone = request.form.get('phone', '').strip()
-    address = request.form.get('address', '').strip()
+    notices = get_all_notices(user['role'])
+    db = get_db()
     
-    if not name or not phone:
-        flash('Name and phone are required.', 'error')
+    # Fetch attendance
+    attendance = db.execute(
+        'SELECT * FROM attendance WHERE user_id = ? ORDER BY date DESC LIMIT 30',
+        (user['id'],)
+    ).fetchall()
+    
+    # Fetch leave requests (for teacher)
+    leaves = []
+    if user['role'] == 'teacher':
+        leaves = db.execute(
+            'SELECT * FROM leave_requests WHERE user_id = ? ORDER BY id DESC',
+            (user['id'],)
+        ).fetchall()
+    
+    # Fetch fee payments (for student/parent)
+    fees = []
+    if user['role'] in ('student', 'parent'):
+        fees = db.execute(
+            'SELECT * FROM fee_payments WHERE student_id = ? ORDER BY id DESC',
+            (user['id'],)
+        ).fetchall()
+    
+    # Fetch messages
+    messages = db.execute(
+        'SELECT * FROM messages WHERE to_user_id = ? OR to_role = ? ORDER BY id DESC LIMIT 20',
+        (user['id'], user['role'])
+    ).fetchall()
+    
+    return render_template('user.html', user=user, notices=notices, 
+                          attendance=attendance, leaves=leaves, fees=fees, 
+                          messages=messages,
+                          fee_qr=get_setting('fee_qr_url'))
+
+# =========================================
+# 8. TEACHER LEAVE REQUEST
+# =========================================
+@app.route('/leave/request', methods=['POST'])
+@login_required
+def leave_request():
+    leave_type = request.form.get('leave_type', '')
+    from_date = request.form.get('from_date', '')
+    to_date = request.form.get('to_date', '')
+    reason = request.form.get('reason', '').strip()
+    
+    if not leave_type or not from_date or not to_date or not reason:
+        flash('Please fill all leave fields.', 'error')
         return redirect(url_for('user_dashboard'))
     
     db = get_db()
-    db.execute('UPDATE users SET name = ?, phone = ?, address = ? WHERE id = ?',
-               (name, phone, address, session['user_id']))
+    db.execute('INSERT INTO leave_requests (user_id, leave_type, from_date, to_date, reason) VALUES (?,?,?,?,?)',
+               (session['user_id'], leave_type, from_date, to_date, reason))
     db.commit()
-    
-    # Session में नाम भी अपडेट करें
-    session['user_name'] = name
-    flash('Profile updated successfully!', 'success')
+    flash('Leave request submitted. Awaiting admin approval.', 'success')
     return redirect(url_for('user_dashboard'))
 
 # =========================================
-# 6.5 ADMIN PANEL ROUTES
+# 9. FEE PAYMENT (Student/Parent)
+# =========================================
+@app.route('/fee/pay', methods=['POST'])
+@login_required
+def fee_pay():
+    amount = request.form.get('amount', '0')
+    txn_id = request.form.get('transaction_id', '').strip()
+    remarks = request.form.get('remarks', '').strip()
+    
+    try:
+        amount = float(amount)
+    except:
+        flash('Invalid amount.', 'error')
+        return redirect(url_for('user_dashboard'))
+    
+    db = get_db()
+    db.execute('INSERT INTO fee_payments (student_id, amount, payment_date, transaction_id, status, remarks) VALUES (?,?,?,?,?,?)',
+               (session['user_id'], amount, datetime.now().strftime('%Y-%m-%d'), txn_id, 'pending', remarks))
+    db.commit()
+    flash('Payment submitted. Admin will verify shortly.', 'success')
+    return redirect(url_for('user_dashboard'))
+
+# =========================================
+# 10. ADMIN PANEL ROUTES
 # =========================================
 @app.route('/admin')
 @admin_required
 def admin_dashboard():
-    """🚀 Admin Dashboard with Stats"""
     db = get_db()
-    
-    # Stats calculate करें
-    total_users = db.execute('SELECT COUNT(*) FROM users').fetchone()[0]
-    total_teachers = db.execute("SELECT COUNT(*) FROM users WHERE role='teacher'").fetchone()[0]
-    total_parents = db.execute("SELECT COUNT(*) FROM users WHERE role='parent'").fetchone()[0]
-    total_students = db.execute("SELECT COUNT(*) FROM users WHERE role='student'").fetchone()[0]
-    total_admins = db.execute("SELECT COUNT(*) FROM users WHERE role='admin'").fetchone()[0]
-    total_notices = db.execute('SELECT COUNT(*) FROM notices').fetchone()[0]
-    total_enquiries = db.execute('SELECT COUNT(*) FROM enquiries').fetchone()[0]
-    total_admissions = db.execute("SELECT COUNT(*) FROM enquiries WHERE kind='admission'").fetchone()[0]
-    total_contacts = db.execute("SELECT COUNT(*) FROM enquiries WHERE kind='contact'").fetchone()[0]
-    
     stats = {
-        'total_users': total_users,
-        'total_teachers': total_teachers,
-        'total_parents': total_parents,
-        'total_students': total_students,
-        'total_admins': total_admins,
-        'total_notices': total_notices,
-        'total_enquiries': total_enquiries,
-        'total_admissions': total_admissions,
-        'total_contacts': total_contacts,
+        'total_users': db.execute('SELECT COUNT(*) FROM users').fetchone()[0],
+        'total_teachers': db.execute("SELECT COUNT(*) FROM users WHERE role='teacher'").fetchone()[0],
+        'total_parents': db.execute("SELECT COUNT(*) FROM users WHERE role='parent'").fetchone()[0],
+        'total_students': db.execute("SELECT COUNT(*) FROM users WHERE role='student'").fetchone()[0],
+        'total_notices': db.execute('SELECT COUNT(*) FROM notices').fetchone()[0],
+        'total_enquiries': db.execute('SELECT COUNT(*) FROM enquiries').fetchone()[0],
+        'pending_leaves': db.execute("SELECT COUNT(*) FROM leave_requests WHERE status='pending'").fetchone()[0],
+        'pending_fees': db.execute("SELECT COUNT(*) FROM fee_payments WHERE status='pending'").fetchone()[0],
     }
-    
-    # Recent activity (5 latest users, 5 latest enquiries)
-    recent_users = db.execute('SELECT * FROM users ORDER BY id DESC LIMIT 5').fetchall()
-    recent_enquiries = db.execute('SELECT * FROM enquiries ORDER BY id DESC LIMIT 5').fetchall()
-    
-    return render_template('admin.html', stats=stats, recent_users=recent_users, recent_enquiries=recent_enquiries, active_page='dashboard')
+    recent_users = db.execute('SELECT * FROM users ORDER BY id DESC LIMIT 6').fetchall()
+    recent_leaves = db.execute('''SELECT lr.*, u.name as user_name, u.unique_id as user_uid, u.role as user_role 
+                                   FROM leave_requests lr JOIN users u ON lr.user_id = u.id 
+                                   ORDER BY lr.id DESC LIMIT 5''').fetchall()
+    return render_template('admin.html', stats=stats, recent_users=recent_users, 
+                          recent_leaves=recent_leaves, active_page='dashboard')
 
 @app.route('/admin/users')
 @admin_required
 def admin_users():
-    """🚀 All Users Management"""
     db = get_db()
     role_filter = request.args.get('role', 'all')
-    
     if role_filter != 'all':
         users = db.execute('SELECT * FROM users WHERE role = ? ORDER BY id DESC', (role_filter,)).fetchall()
     else:
         users = db.execute('SELECT * FROM users ORDER BY id DESC').fetchall()
-    
     return render_template('admin_users.html', users=users, role_filter=role_filter, active_page='users')
+
+@app.route('/admin/create-user', methods=['GET', 'POST'])
+@admin_required
+def admin_create_user():
+    if request.method == 'POST':
+        role = request.form.get('role', '')
+        name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip()
+        phone = request.form.get('phone', '').strip()
+        
+        if not role or not name or not email or not phone:
+            flash('Please fill required fields.', 'error')
+            return redirect(url_for('admin_create_user'))
+        
+        db = get_db()
+        if db.execute('SELECT 1 FROM users WHERE email = ?', (email,)).fetchone():
+            flash('Email already exists.', 'error')
+            return redirect(url_for('admin_create_user'))
+        
+        unique_id = generate_unique_id(role)
+        hashed = generate_password_hash(DEFAULT_PASSWORD)
+        
+        # Collect role-specific fields
+        dob = request.form.get('dob', '')
+        gender = request.form.get('gender', '')
+        address = request.form.get('address', '')
+        qualification = experience = subject = designation = department = relation = child_name = child_class = None
+        
+        if role == 'teacher':
+            qualification = request.form.get('qualification', '')
+            experience = request.form.get('experience', '')
+            subject = request.form.get('subject', '')
+        elif role == 'admin':
+            designation = request.form.get('designation', '')
+            department = request.form.get('department', '')
+        elif role == 'parent':
+            relation = request.form.get('relation', '')
+            child_name = request.form.get('child_name', '')
+            child_class = request.form.get('child_class', '')
+        elif role == 'student':
+            child_class = request.form.get('child_class', '')
+        
+        db.execute('''INSERT INTO users 
+            (unique_id, role, name, email, phone, password_hash, dob, gender, qualification, 
+             experience, subject, designation, department, relation, child_name, child_class, address)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
+            (unique_id, role, name, email, phone, hashed, dob, gender, qualification,
+             experience, subject, designation, department, relation, child_name, child_class, address))
+        db.commit()
+        
+        flash(f'✅ {role.capitalize()} created! ID: {unique_id} | Default Password: {DEFAULT_PASSWORD}', 'success')
+        return redirect(url_for('admin_users'))
+    
+    return render_template('admin_create_user.html', active_page='create_user')
 
 @app.route('/admin/users/delete/<int:user_id>', methods=['POST'])
 @admin_required
 def admin_delete_user(user_id):
-    """🚀 Delete a user"""
     if user_id == session['user_id']:
         flash('You cannot delete your own account!', 'error')
         return redirect(url_for('admin_users'))
-    
     db = get_db()
     db.execute('DELETE FROM users WHERE id = ?', (user_id,))
     db.commit()
-    flash('User deleted successfully.', 'success')
+    flash('User deleted.', 'success')
     return redirect(url_for('admin_users'))
 
-@app.route('/admin/users/change-role/<int:user_id>', methods=['POST'])
+@app.route('/admin/users/reset-password/<int:user_id>', methods=['POST'])
 @admin_required
-def admin_change_role(user_id):
-    """🚀 Change user role"""
-    new_role = request.form.get('role', 'student')
-    if new_role not in ['teacher', 'admin', 'parent', 'student']:
-        flash('Invalid role.', 'error')
-        return redirect(url_for('admin_users'))
-    
+def admin_reset_password(user_id):
     db = get_db()
-    db.execute('UPDATE users SET role = ? WHERE id = ?', (new_role, user_id))
+    db.execute('UPDATE users SET password_hash = ?, force_password_change = 1 WHERE id = ?',
+               (generate_password_hash(DEFAULT_PASSWORD), user_id))
     db.commit()
-    flash('User role updated successfully.', 'success')
+    flash(f'Password reset to default: {DEFAULT_PASSWORD}', 'success')
     return redirect(url_for('admin_users'))
 
+@app.route('/admin/users/toggle/<int:user_id>', methods=['POST'])
+@admin_required
+def admin_toggle_user(user_id):
+    db = get_db()
+    db.execute('UPDATE users SET is_active = CASE WHEN is_active=1 THEN 0 ELSE 1 END WHERE id = ?', (user_id,))
+    db.commit()
+    flash('User status toggled.', 'success')
+    return redirect(url_for('admin_users'))
+
+# === NOTICES ===
 @app.route('/admin/notices')
 @admin_required
 def admin_notices():
-    """🚀 Notice Management"""
     notices = get_all_notices()
     return render_template('admin_notices.html', notices=notices, active_page='notices')
 
 @app.route('/admin/notices/add', methods=['POST'])
 @admin_required
 def admin_add_notice():
-    """🚀 Add new notice"""
     date = request.form.get('date', '').strip()
     title = request.form.get('title', '').strip()
     tag = request.form.get('tag', '').strip()
     description = request.form.get('description', '').strip()
+    target_role = request.form.get('target_role', 'all')
     
     if not date or not title or not tag:
-        flash('Please fill Date, Title, and Tag fields.', 'error')
+        flash('Please fill Date, Title, and Tag.', 'error')
         return redirect(url_for('admin_notices'))
     
     db = get_db()
-    db.execute('INSERT INTO notices (date, title, tag, description) VALUES (?, ?, ?, ?)',
-               (date, title, tag, description))
+    db.execute('INSERT INTO notices (date, title, tag, description, target_role) VALUES (?,?,?,?,?)',
+               (date, title, tag, description, target_role))
     db.commit()
-    flash('Notice added successfully!', 'success')
+    flash('Notice published! It will appear on home page and relevant user profiles.', 'success')
     return redirect(url_for('admin_notices'))
 
-@app.route('/admin/notices/delete/<int:notice_id>', methods=['POST'])
+@app.route('/admin/notices/delete/<int:nid>', methods=['POST'])
 @admin_required
-def admin_delete_notice(notice_id):
-    """🚀 Delete notice"""
+def admin_delete_notice(nid):
     db = get_db()
-    db.execute('DELETE FROM notices WHERE id = ?', (notice_id,))
+    db.execute('DELETE FROM notices WHERE id = ?', (nid,))
     db.commit()
-    flash('Notice deleted successfully.', 'success')
+    flash('Notice deleted.', 'success')
     return redirect(url_for('admin_notices'))
 
+# === ATTENDANCE ===
+@app.route('/admin/attendance')
+@admin_required
+def admin_attendance():
+    db = get_db()
+    role = request.args.get('role', 'student')
+    date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
+    
+    users = db.execute('SELECT * FROM users WHERE role = ? ORDER BY name', (role,)).fetchall()
+    
+    # Get today's attendance map
+    records = db.execute('SELECT * FROM attendance WHERE date = ?', (date,)).fetchall()
+    attendance_map = {r['user_id']: r['status'] for r in records}
+    
+    return render_template('admin_attendance.html', users=users, role=role, 
+                          date=date, attendance_map=attendance_map, active_page='attendance')
+
+@app.route('/admin/attendance/mark', methods=['POST'])
+@admin_required
+def admin_mark_attendance():
+    date = request.form.get('date', datetime.now().strftime('%Y-%m-%d'))
+    db = get_db()
+    
+    for key, val in request.form.items():
+        if key.startswith('status_'):
+            uid = int(key.replace('status_', ''))
+            # Upsert
+            existing = db.execute('SELECT id FROM attendance WHERE user_id = ? AND date = ?', (uid, date)).fetchone()
+            if existing:
+                db.execute('UPDATE attendance SET status = ?, marked_by = ? WHERE id = ?',
+                           (val, session['user_id'], existing['id']))
+            else:
+                db.execute('INSERT INTO attendance (user_id, date, status, marked_by) VALUES (?,?,?,?)',
+                           (uid, date, val, session['user_id']))
+    db.commit()
+    flash(f'Attendance marked for {date}.', 'success')
+    return redirect(url_for('admin_attendance', date=date))
+
+# === LEAVE REQUESTS ===
+@app.route('/admin/leaves')
+@admin_required
+def admin_leaves():
+    db = get_db()
+    leaves = db.execute('''SELECT lr.*, u.name as user_name, u.unique_id as user_uid, u.role as user_role
+                            FROM leave_requests lr JOIN users u ON lr.user_id = u.id
+                            ORDER BY lr.id DESC''').fetchall()
+    return render_template('admin_leaves.html', leaves=leaves, active_page='leaves')
+
+@app.route('/admin/leaves/update/<int:lid>', methods=['POST'])
+@admin_required
+def admin_update_leave(lid):
+    status = request.form.get('status', 'pending')
+    remarks = request.form.get('remarks', '')
+    db = get_db()
+    db.execute('UPDATE leave_requests SET status = ?, admin_remarks = ? WHERE id = ?',
+               (status, remarks, lid))
+    db.commit()
+    flash(f'Leave {status}.', 'success')
+    return redirect(url_for('admin_leaves'))
+
+# === FEE MANAGEMENT ===
+@app.route('/admin/fees')
+@admin_required
+def admin_fees():
+    db = get_db()
+    payments = db.execute('''SELECT fp.*, u.name as student_name, u.unique_id as student_uid
+                              FROM fee_payments fp JOIN users u ON fp.student_id = u.id
+                              ORDER BY fp.id DESC''').fetchall()
+    return render_template('admin_fees.html', payments=payments,
+                          fee_qr=get_setting('fee_qr_url'), active_page='fees')
+
+@app.route('/admin/fees/qr', methods=['POST'])
+@admin_required
+def admin_update_qr():
+    qr_url = request.form.get('fee_qr_url', '').strip()
+    set_setting('fee_qr_url', qr_url)
+    flash('Fee QR code updated.', 'success')
+    return redirect(url_for('admin_fees'))
+
+@app.route('/admin/fees/verify/<int:pid>', methods=['POST'])
+@admin_required
+def admin_verify_fee(pid):
+    status = request.form.get('status', 'verified')
+    db = get_db()
+    db.execute('UPDATE fee_payments SET status = ? WHERE id = ?', (status, pid))
+    db.commit()
+    flash(f'Payment {status}.', 'success')
+    return redirect(url_for('admin_fees'))
+
+# === MESSAGES ===
+@app.route('/admin/messages', methods=['GET', 'POST'])
+@admin_required
+def admin_messages():
+    db = get_db()
+    if request.method == 'POST':
+        to_role = request.form.get('to_role', 'all')
+        to_user_id = request.form.get('to_user_id', '')
+        subject = request.form.get('subject', '').strip()
+        body = request.form.get('body', '').strip()
+        
+        if not subject or not body:
+            flash('Subject and body required.', 'error')
+            return redirect(url_for('admin_messages'))
+        
+        if to_user_id:
+            db.execute('INSERT INTO messages (from_user_id, to_user_id, subject, body) VALUES (?,?,?,?)',
+                       (session['user_id'], int(to_user_id), subject, body))
+        else:
+            db.execute('INSERT INTO messages (from_user_id, to_role, subject, body) VALUES (?,?,?,?)',
+                       (session['user_id'], to_role, subject, body))
+        db.commit()
+        flash('Message sent successfully.', 'success')
+        return redirect(url_for('admin_messages'))
+    
+    sent = db.execute('''SELECT m.*, u.name as from_name FROM messages m
+                          JOIN users u ON m.from_user_id = u.id
+                          ORDER BY m.id DESC LIMIT 30''').fetchall()
+    users_list = db.execute("SELECT id, name, unique_id, role FROM users ORDER BY name").fetchall()
+    return render_template('admin_messages.html', sent=sent, users_list=users_list, active_page='messages')
+
+# === ENQUIRIES ===
 @app.route('/admin/enquiries')
 @admin_required
 def admin_enquiries():
-    """🚀 View all enquiries"""
     db = get_db()
-    kind_filter = request.args.get('kind', 'all')
-    
-    if kind_filter != 'all':
-        enquiries = db.execute('SELECT * FROM enquiries WHERE kind = ? ORDER BY id DESC', (kind_filter,)).fetchall()
+    kind = request.args.get('kind', 'all')
+    if kind != 'all':
+        enq = db.execute('SELECT * FROM enquiries WHERE kind = ? ORDER BY id DESC', (kind,)).fetchall()
     else:
-        enquiries = db.execute('SELECT * FROM enquiries ORDER BY id DESC').fetchall()
-    
-    return render_template('admin_enquiries.html', enquiries=enquiries, kind_filter=kind_filter, active_page='enquiries')
+        enq = db.execute('SELECT * FROM enquiries ORDER BY id DESC').fetchall()
+    return render_template('admin_enquiries.html', enquiries=enq, kind_filter=kind, active_page='enquiries')
 
-@app.route('/admin/enquiries/delete/<int:enq_id>', methods=['POST'])
+@app.route('/admin/enquiries/delete/<int:eid>', methods=['POST'])
 @admin_required
-def admin_delete_enquiry(enq_id):
-    """🚀 Delete enquiry"""
+def admin_delete_enquiry(eid):
     db = get_db()
-    db.execute('DELETE FROM enquiries WHERE id = ?', (enq_id,))
+    db.execute('DELETE FROM enquiries WHERE id = ?', (eid,))
     db.commit()
-    flash('Enquiry deleted successfully.', 'success')
+    flash('Enquiry deleted.', 'success')
     return redirect(url_for('admin_enquiries'))
 
 # =========================================
-# 7. API & FORM ROUTES
+# 11. API & FORM ROUTES (Public)
 # =========================================
 @app.route('/api/notices')
 def api_notices():
-    notices = get_all_notices()
-    return jsonify({'notices': [dict(notice) for notice in notices]})
+    return jsonify({'notices': [dict(n) for n in get_all_notices()]})
 
 @app.route('/admission-enquiry', methods=['POST'])
 def admission_enquiry():
@@ -458,20 +689,16 @@ def admission_enquiry():
     email = request.form.get('email', '').strip()
     class_name = request.form.get('class_name', '').strip()
     message = request.form.get('message', '').strip()
-
-    if not name or len(name) < 2:
-        flash('Please enter a valid name (at least 2 characters).', 'error')
+    
+    if not name or not phone or not re.match(r'^[0-9+() -]{10,18}$', phone):
+        flash('Valid name and phone required.', 'error')
         return redirect(url_for('home') + '#admission')
-        
-    if not phone or not re.match(r'^[0-9+() -]{10,18}$', phone):
-        flash('Please enter a valid phone number.', 'error')
-        return redirect(url_for('home') + '#admission')
-
+    
     db = get_db()
-    db.execute('INSERT INTO enquiries (kind, name, phone, email, class_name, message) VALUES (?, ?, ?, ?, ?, ?)',
+    db.execute('INSERT INTO enquiries (kind, name, phone, email, class_name, message) VALUES (?,?,?,?,?,?)',
                ('admission', name, phone, email, class_name, message))
     db.commit()
-    flash('Thank you! Your admission enquiry has been submitted.', 'success')
+    flash('Enquiry submitted!', 'success')
     return redirect(url_for('home') + '#admission')
 
 @app.route('/contact', methods=['POST'])
@@ -479,51 +706,37 @@ def contact():
     name = request.form.get('name', '').strip()
     phone = request.form.get('phone', '').strip()
     message = request.form.get('message', '').strip()
-
     if not name or not phone or not message:
-        flash('Please complete your name, phone and message.', 'error')
+        flash('Please complete all fields.', 'error')
         return redirect(url_for('home') + '#contact')
-        
-    if not re.match(r'^[0-9+() -]{10,18}$', phone):
-        flash('Please enter a valid phone number.', 'error')
-        return redirect(url_for('home') + '#contact')
-
     db = get_db()
-    db.execute('INSERT INTO enquiries (kind, name, phone, message) VALUES (?, ?, ?, ?)',
+    db.execute('INSERT INTO enquiries (kind, name, phone, message) VALUES (?,?,?,?)',
                ('contact', name, phone, message))
     db.commit()
-    flash('Your message has been received.', 'success')
+    flash('Message received.', 'success')
     return redirect(url_for('home') + '#contact')
 
 @app.route('/health')
 def health():
-    return jsonify({'status': 'ok', 'application': 'Residential Shanti Niketan'})
+    return jsonify({'status': 'ok'})
 
 # =========================================
-# 8. ERROR HANDLERS & SECURITY
+# 12. ERROR HANDLERS
 # =========================================
 @app.errorhandler(404)
-def page_not_found(e):
-    return "Page not found", 404
-
-@app.errorhandler(413)
-def too_large(_error):
-    flash('The submitted form is too large. Please shorten your message.', 'error')
-    return redirect(url_for('home') + '#contact')
+def nf(e): return "Page not found", 404
 
 @app.errorhandler(500)
-def internal_error(e):
-    return "Internal Server Error. Please try again later.", 500
+def ie(e): return "Server error", 500
 
 @app.after_request
-def add_security_headers(response):
+def add_headers(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
-    response.headers['X-XSS-Protection'] = '1; mode=block'
     return response
 
 # =========================================
-# 9. APP INITIALIZATION
+# INIT
 # =========================================
 init_db()
 

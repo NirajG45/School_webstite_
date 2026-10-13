@@ -1,0 +1,61 @@
+{% extends "admin_base.html" %}
+{% block title %}Messages{% endblock %}
+{% block page_title %}Messages to Users{% endblock %}
+
+{% block content %}
+<div class="admin-grid-2-uneven">
+    <div class="admin-panel">
+        <div class="admin-panel-head"><h3><i class="fa-solid fa-paper-plane"></i> Send New Message</h3></div>
+        <form method="POST" action="{{ url_for('admin_messages') }}" class="admin-form">
+            <label>Send To
+                <select name="to_role" id="toRole" onchange="toggleUserSelect()">
+                    <option value="all">📢 All Users</option>
+                    <option value="teacher">All Teachers</option>
+                    <option value="parent">All Parents</option>
+                    <option value="student">All Students</option>
+                    <option value="specific">🎯 Specific User</option>
+                </select>
+            </label>
+            <label id="userSelectWrap" style="display:none;">Select Specific User
+                <select name="to_user_id">
+                    <option value="">-- Choose User --</option>
+                    {% for u in users_list %}
+                    <option value="{{ u.id }}">{{ u.name }} ({{ u.unique_id }} - {{ u.role }})</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Subject
+                <input type="text" name="subject" required maxlength="200" placeholder="e.g. Exam Schedule Update">
+            </label>
+            <label>Message
+                <textarea name="body" rows="6" required maxlength="2000" placeholder="Type your message..."></textarea>
+            </label>
+            <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-paper-plane"></i> Send Message</button>
+        </form>
+    </div>
+    
+    <div class="admin-panel">
+        <div class="admin-panel-head"><h3><i class="fa-solid fa-clock-rotate-left"></i> Sent Messages</h3></div>
+        <div class="admin-notice-list">
+            {% for m in sent %}
+            <div class="admin-notice-item" style="flex-direction:column; align-items:flex-start;">
+                <div style="width:100%;">
+                    <small class="muted">To: {{ m.to_role or 'Specific' }} • {{ m.created_at[:16] }}</small>
+                    <p style="font-weight:700;color:#0a2340;margin:5px 0;">{{ m.subject }}</p>
+                    <span style="font-size:12px;color:#65758a;">{{ m.body[:150] }}{% if m.body|length > 150 %}...{% endif %}</span>
+                </div>
+            </div>
+            {% else %}
+            <p class="empty-row">No messages sent yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleUserSelect() {
+        const v = document.getElementById('toRole').value;
+        document.getElementById('userSelectWrap').style.display = v === 'specific' ? 'block' : 'none';
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,178 @@
+{% extends "admin_base.html" %}
+{% block title %}Create User{% endblock %}
+{% block page_title %}Create New User{% endblock %}
+
+{% block content %}
+<div class="admin-panel" style="max-width:800px;">
+    <div class="admin-panel-head">
+        <h3><i class="fa-solid fa-user-plus"></i> Create New User</h3>
+    </div>
+    <form method="POST" action="{{ url_for('admin_create_user') }}" class="admin-form" id="createUserForm">
+        <div class="form-row-2col">
+            <label>Role *
+                <select name="role" id="roleSelect" required onchange="toggleRoleFields()">
+                    <option value="">-- Select Role --</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="parent">Parent</option>
+                    <option value="student">Student</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </label>
+            <label>Full Name *
+                <input type="text" name="name" required placeholder="Enter full name">
+            </label>
+        </div>
+        <div class="form-row-2col">
+            <label>Email *
+                <input type="email" name="email" required placeholder="user@example.com">
+            </label>
+            <label>Mobile Number *
+                <input type="tel" name="phone" required placeholder="10-digit number">
+            </label>
+        </div>
+        <div class="form-row-2col">
+            <label>Date of Birth
+                <input type="date" name="dob">
+            </label>
+            <label>Gender
+                <select name="gender">
+                    <option value="">Select</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                </select>
+            </label>
+        </div>
+
+        <!-- Teacher Fields -->
+        <div class="role-fields" id="fields-teacher" style="display:none;">
+            <div class="form-row-2col">
+                <label>Qualification
+                    <select name="qualification">
+                        <option value="">Select</option>
+                        <option>B.Ed</option>
+                        <option>M.Ed</option>
+                        <option>Graduate</option>
+                        <option>Post Graduate</option>
+                    </select>
+                </label>
+                <label>Experience
+                    <select name="experience">
+                        <option value="">Select</option>
+                        <option>Fresher</option>
+                        <option>1-3 Years</option>
+                        <option>3-5 Years</option>
+                        <option>5+ Years</option>
+                    </select>
+                </label>
+            </div>
+            <label>Subject
+                <input type="text" name="subject" placeholder="e.g. Mathematics">
+            </label>
+        </div>
+
+        <!-- Admin Fields -->
+        <div class="role-fields" id="fields-admin" style="display:none;">
+            <div class="form-row-2col">
+                <label>Designation
+                    <select name="designation">
+                        <option value="">Select</option>
+                        <option>Principal</option>
+                        <option>Vice Principal</option>
+                        <option>Accountant</option>
+                        <option>Office Assistant</option>
+                    </select>
+                </label>
+                <label>Department
+                    <select name="department">
+                        <option value="">Select</option>
+                        <option>Administration</option>
+                        <option>Accounts</option>
+                        <option>HR</option>
+                        <option>Maintenance</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+
+        <!-- Parent Fields -->
+        <div class="role-fields" id="fields-parent" style="display:none;">
+            <div class="form-row-2col">
+                <label>Relation with Child
+                    <select name="relation">
+                        <option value="">Select</option>
+                        <option>Father</option>
+                        <option>Mother</option>
+                        <option>Guardian</option>
+                    </select>
+                </label>
+                <label>Child's Name
+                    <input type="text" name="child_name" placeholder="Child's full name">
+                </label>
+            </div>
+            <label>Child's Class
+                <select name="child_class">
+                    <option value="">Select</option>
+                    <option>Pre-Nursery</option>
+                    <option>Nursery</option>
+                    <option>LKG</option>
+                    <option>UKG</option>
+                    <option>Class 1</option>
+                    <option>Class 2</option>
+                    <option>Class 3</option>
+                    <option>Class 4</option>
+                    <option>Class 5</option>
+                    <option>Class 6</option>
+                    <option>Class 7</option>
+                    <option>Class 8</option>
+                </select>
+            </label>
+        </div>
+
+        <!-- Student Fields -->
+        <div class="role-fields" id="fields-student" style="display:none;">
+            <label>Class
+                <select name="child_class">
+                    <option value="">Select</option>
+                    <option>Pre-Nursery</option>
+                    <option>Nursery</option>
+                    <option>LKG</option>
+                    <option>UKG</option>
+                    <option>Class 1</option>
+                    <option>Class 2</option>
+                    <option>Class 3</option>
+                    <option>Class 4</option>
+                    <option>Class 5</option>
+                    <option>Class 6</option>
+                    <option>Class 7</option>
+                    <option>Class 8</option>
+                </select>
+            </label>
+        </div>
+
+        <label>Address
+            <textarea name="address" rows="2" placeholder="Full address"></textarea>
+        </label>
+
+        <div class="info-banner">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+                <strong>Auto-generated:</strong> A unique ID will be created automatically<br>
+                <strong>Default Password:</strong> <code>snv@450</code> (User must change on first login)
+            </div>
+        </div>
+
+        <button type="submit" class="btn-admin-primary">
+            <i class="fa-solid fa-check"></i> Create User
+        </button>
+    </form>
+</div>
+
+<script>
+    function toggleRoleFields() {
+        const role = document.getElementById('roleSelect').value;
+        document.querySelectorAll('.role-fields').forEach(el => el.style.display = 'none');
+        if (role) document.getElementById('fields-' + role).style.display = 'block';
+    }
+</script>
+{% endblock %}

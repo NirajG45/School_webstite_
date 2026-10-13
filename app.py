@@ -263,6 +263,22 @@ def user_dashboard():
     notices = get_all_notices()
     return render_template('user.html', user=user, notices=notices)
 
+# =========================================
+# 3.5 ADMIN DECORATOR
+# =========================================
+def admin_required(f):
+    """🚀 सिर्फ Admin role वाले यूज़र ही एक्सेस कर सकें।"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('user_id'):
+            flash('Please login to access admin panel.', 'error')
+            return redirect(url_for('login_page'))
+        if session.get('user_role') != 'admin':
+            flash('Access denied. Admin privileges required.', 'error')
+            return redirect(url_for('user_dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.route('/profile/update', methods=['POST'])
 @login_required
 def update_profile():
@@ -284,6 +300,148 @@ def update_profile():
     session['user_name'] = name
     flash('Profile updated successfully!', 'success')
     return redirect(url_for('user_dashboard'))
+
+# =========================================
+# 6.5 ADMIN PANEL ROUTES
+# =========================================
+@app.route('/admin')
+@admin_required
+def admin_dashboard():
+    """🚀 Admin Dashboard with Stats"""
+    db = get_db()
+    
+    # Stats calculate करें
+    total_users = db.execute('SELECT COUNT(*) FROM users').fetchone()[0]
+    total_teachers = db.execute("SELECT COUNT(*) FROM users WHERE role='teacher'").fetchone()[0]
+    total_parents = db.execute("SELECT COUNT(*) FROM users WHERE role='parent'").fetchone()[0]
+    total_students = db.execute("SELECT COUNT(*) FROM users WHERE role='student'").fetchone()[0]
+    total_admins = db.execute("SELECT COUNT(*) FROM users WHERE role='admin'").fetchone()[0]
+    total_notices = db.execute('SELECT COUNT(*) FROM notices').fetchone()[0]
+    total_enquiries = db.execute('SELECT COUNT(*) FROM enquiries').fetchone()[0]
+    total_admissions = db.execute("SELECT COUNT(*) FROM enquiries WHERE kind='admission'").fetchone()[0]
+    total_contacts = db.execute("SELECT COUNT(*) FROM enquiries WHERE kind='contact'").fetchone()[0]
+    
+    stats = {
+        'total_users': total_users,
+        'total_teachers': total_teachers,
+        'total_parents': total_parents,
+        'total_students': total_students,
+        'total_admins': total_admins,
+        'total_notices': total_notices,
+        'total_enquiries': total_enquiries,
+        'total_admissions': total_admissions,
+        'total_contacts': total_contacts,
+    }
+    
+    # Recent activity (5 latest users, 5 latest enquiries)
+    recent_users = db.execute('SELECT * FROM users ORDER BY id DESC LIMIT 5').fetchall()
+    recent_enquiries = db.execute('SELECT * FROM enquiries ORDER BY id DESC LIMIT 5').fetchall()
+    
+    return render_template('admin.html', stats=stats, recent_users=recent_users, recent_enquiries=recent_enquiries, active_page='dashboard')
+
+@app.route('/admin/users')
+@admin_required
+def admin_users():
+    """🚀 All Users Management"""
+    db = get_db()
+    role_filter = request.args.get('role', 'all')
+    
+    if role_filter != 'all':
+        users = db.execute('SELECT * FROM users WHERE role = ? ORDER BY id DESC', (role_filter,)).fetchall()
+    else:
+        users = db.execute('SELECT * FROM users ORDER BY id DESC').fetchall()
+    
+    return render_template('admin_users.html', users=users, role_filter=role_filter, active_page='users')
+
+@app.route('/admin/users/delete/<int:user_id>', methods=['POST'])
+@admin_required
+def admin_delete_user(user_id):
+    """🚀 Delete a user"""
+    if user_id == session['user_id']:
+        flash('You cannot delete your own account!', 'error')
+        return redirect(url_for('admin_users'))
+    
+    db = get_db()
+    db.execute('DELETE FROM users WHERE id = ?', (user_id,))
+    db.commit()
+    flash('User deleted successfully.', 'success')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/users/change-role/<int:user_id>', methods=['POST'])
+@admin_required
+def admin_change_role(user_id):
+    """🚀 Change user role"""
+    new_role = request.form.get('role', 'student')
+    if new_role not in ['teacher', 'admin', 'parent', 'student']:
+        flash('Invalid role.', 'error')
+        return redirect(url_for('admin_users'))
+    
+    db = get_db()
+    db.execute('UPDATE users SET role = ? WHERE id = ?', (new_role, user_id))
+    db.commit()
+    flash('User role updated successfully.', 'success')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/notices')
+@admin_required
+def admin_notices():
+    """🚀 Notice Management"""
+    notices = get_all_notices()
+    return render_template('admin_notices.html', notices=notices, active_page='notices')
+
+@app.route('/admin/notices/add', methods=['POST'])
+@admin_required
+def admin_add_notice():
+    """🚀 Add new notice"""
+    date = request.form.get('date', '').strip()
+    title = request.form.get('title', '').strip()
+    tag = request.form.get('tag', '').strip()
+    description = request.form.get('description', '').strip()
+    
+    if not date or not title or not tag:
+        flash('Please fill Date, Title, and Tag fields.', 'error')
+        return redirect(url_for('admin_notices'))
+    
+    db = get_db()
+    db.execute('INSERT INTO notices (date, title, tag, description) VALUES (?, ?, ?, ?)',
+               (date, title, tag, description))
+    db.commit()
+    flash('Notice added successfully!', 'success')
+    return redirect(url_for('admin_notices'))
+
+@app.route('/admin/notices/delete/<int:notice_id>', methods=['POST'])
+@admin_required
+def admin_delete_notice(notice_id):
+    """🚀 Delete notice"""
+    db = get_db()
+    db.execute('DELETE FROM notices WHERE id = ?', (notice_id,))
+    db.commit()
+    flash('Notice deleted successfully.', 'success')
+    return redirect(url_for('admin_notices'))
+
+@app.route('/admin/enquiries')
+@admin_required
+def admin_enquiries():
+    """🚀 View all enquiries"""
+    db = get_db()
+    kind_filter = request.args.get('kind', 'all')
+    
+    if kind_filter != 'all':
+        enquiries = db.execute('SELECT * FROM enquiries WHERE kind = ? ORDER BY id DESC', (kind_filter,)).fetchall()
+    else:
+        enquiries = db.execute('SELECT * FROM enquiries ORDER BY id DESC').fetchall()
+    
+    return render_template('admin_enquiries.html', enquiries=enquiries, kind_filter=kind_filter, active_page='enquiries')
+
+@app.route('/admin/enquiries/delete/<int:enq_id>', methods=['POST'])
+@admin_required
+def admin_delete_enquiry(enq_id):
+    """🚀 Delete enquiry"""
+    db = get_db()
+    db.execute('DELETE FROM enquiries WHERE id = ?', (enq_id,))
+    db.commit()
+    flash('Enquiry deleted successfully.', 'success')
+    return redirect(url_for('admin_enquiries'))
 
 # =========================================
 # 7. API & FORM ROUTES

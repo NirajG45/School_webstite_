@@ -4,8 +4,7 @@ import sqlite3
 import re
 from functools import wraps
 from datetime import timedelta
-from flask import (Flask, render_template, request, redirect, url_for, 
-                   flash, jsonify, g, session)
+from flask import (Flask, render_template, request, redirect, url_for, flash, jsonify, g, session)
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # =========================================
@@ -22,7 +21,7 @@ app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB for Resume uploads
 app.config['SESSION_COOKIE_SECURE'] = True if os.environ.get('FLASK_ENV') == 'production' else False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)  # 🚀 Session 7 दिन तक valid रहेगा
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)  # Session 7 दिन तक valid रहेगा
 
 # Initial Seed Data for Notices
 INITIAL_NOTICES = [
@@ -115,7 +114,7 @@ def get_user_by_id(user_id):
 # 3. LOGIN DECORATOR (Protects Routes)
 # =========================================
 def login_required(f):
-    """🚀 UPGRADE: कोई भी प्रोटेक्टेड राउट सिर्फ लॉगिन यूज़र ही खोल सके।"""
+    """UPGRADE: कोई भी प्रोटेक्टेड राउट सिर्फ लॉगिन यूज़र ही खोल सके।"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('user_id'):
@@ -146,7 +145,7 @@ def academics_page():
 # =========================================
 @app.route('/login', methods=['GET'])
 def login_page():
-    # 🚀 UPGRADE: अगर यूज़र पहले से लॉगिन है, तो डैशबोर्ड पर भेजें
+    # UPGRADE: अगर यूज़र पहले से लॉगिन है, तो डैशबोर्ड पर भेजें
     if session.get('user_id'):
         return redirect(url_for('user_dashboard'))
     return render_template('login.html')
@@ -173,7 +172,7 @@ def register():
         flash('Password must be at least 6 characters long.', 'error')
         return redirect(url_for('login_page'))
 
-    # 🚀 UPGRADE: Email format check
+    # UPGRADE: Email format check
     if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
         flash('Please enter a valid email address.', 'error')
         return redirect(url_for('login_page'))
@@ -229,13 +228,13 @@ def login():
     user = db.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
     
     if user and check_password_hash(user['password_hash'], password):
-        # 🚀 UPGRADE: Session को Permanent बनाएं (7 दिन तक valid)
+        # UPGRADE: Session को Permanent बनाएं (7 दिन तक valid)
         session.permanent = True
         session['user_id'] = user['id']
         session['user_name'] = user['name']
         session['user_role'] = user['role']
         flash(f'Welcome back, {user["name"]}!', 'success')
-        # 🚀 UPGRADE: होम की जगह डैशबोर्ड पर भेजें
+        # UPGRADE: होम की जगह डैशबोर्ड पर भेजें
         return redirect(url_for('user_dashboard'))
     else:
         flash('Invalid email or password.', 'error')
@@ -253,7 +252,7 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def user_dashboard():
-    """🚀 UPGRADE: यूज़र का निजी डैशबोर्ड।"""
+    """UPGRADE: यूज़र का निजी डैशबोर्ड।"""
     user = get_user_by_id(session['user_id'])
     if not user:
         # अगर किसी कारणवश DB में यूज़र न मिले
@@ -267,7 +266,7 @@ def user_dashboard():
 @app.route('/profile/update', methods=['POST'])
 @login_required
 def update_profile():
-    """🚀 UPGRADE: यूज़र अपनी प्रोफाइल अपडेट कर सके।"""
+    """UPGRADE: यूज़र अपनी प्रोफाइल अपडेट कर सके।"""
     name = request.form.get('name', '').strip()
     phone = request.form.get('phone', '').strip()
     address = request.form.get('address', '').strip()

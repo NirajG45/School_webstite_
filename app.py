@@ -479,9 +479,30 @@ def admin_delete_user(user_id):
     flash('User deleted.', 'success')
     return redirect(url_for('admin_users'))
 
+@app.route('/admin/users/change-role/<int:user_id>', methods=['POST'])
+@admin_required
+def admin_change_role(user_id):
+    """🚀 User का role बदलें"""
+    new_role = request.form.get('role', 'student')
+    if new_role not in ['teacher', 'admin', 'parent', 'student']:
+        flash('Invalid role.', 'error')
+        return redirect(url_for('admin_users'))
+    
+    # खुद का role न बदल पाए
+    if user_id == session['user_id']:
+        flash('You cannot change your own role!', 'error')
+        return redirect(url_for('admin_users'))
+    
+    db = get_db()
+    db.execute('UPDATE users SET role = ? WHERE id = ?', (new_role, user_id))
+    db.commit()
+    flash('User role updated successfully.', 'success')
+    return redirect(url_for('admin_users'))
+
 @app.route('/admin/users/reset-password/<int:user_id>', methods=['POST'])
 @admin_required
 def admin_reset_password(user_id):
+    """🚀 Password reset करके default पर लाएं"""
     db = get_db()
     db.execute('UPDATE users SET password_hash = ?, force_password_change = 1 WHERE id = ?',
                (generate_password_hash(DEFAULT_PASSWORD), user_id))
@@ -492,6 +513,11 @@ def admin_reset_password(user_id):
 @app.route('/admin/users/toggle/<int:user_id>', methods=['POST'])
 @admin_required
 def admin_toggle_user(user_id):
+    """🚀 User को Active/Inactive करें"""
+    if user_id == session['user_id']:
+        flash('You cannot deactivate yourself!', 'error')
+        return redirect(url_for('admin_users'))
+    
     db = get_db()
     db.execute('UPDATE users SET is_active = CASE WHEN is_active=1 THEN 0 ELSE 1 END WHERE id = ?', (user_id,))
     db.commit()

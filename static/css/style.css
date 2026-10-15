@@ -3643,3 +3643,43 @@ img { display: block; max-width: 100%; }
         font-size: 13px;
     }
 }
+
+/* =========================================
+   USER PROFILE LINK WRAPPER (For Dashboard Headers)
+   ========================================= */
+.user-profile-link {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    color: inherit;
+}
+
+.user-profile-link:focus-visible {
+    outline: 3px solid var(--yellow, #ffd447);
+    outline-offset: 4px;
+    border-radius: 50%;
+}
+
+/* Mobile quick links container spacing */
+.mobile-quick-links {
+    padding: 0 20px;
+}
+
+/* Session/role indicator dot on avatar */
+.user-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    width: 10px;
+    height: 10px;
+    background: #2ca66b;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(44, 166, 107, 0.15);
+}
+
+.user-avatar {
+    position: relative;
+}
+

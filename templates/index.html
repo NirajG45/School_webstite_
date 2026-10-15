@@ -19,7 +19,7 @@
 
 <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    
+
     <!-- =========================================
          HEADER SECTION
          ========================================= -->
@@ -45,46 +45,115 @@
                 <a class="nav-link" href="#notices"><i class="fa-solid fa-bell"></i> Notices</a>
                 <a class="nav-link" href="#contact"><i class="fa-regular fa-envelope"></i> Contact</a>
             </nav>
-                        <div class="header-actions">
+
+            <div class="header-actions">
                 {% if session.get('user_id') %}
-                    <!-- ✅ यूज़र लॉगिन है: Initials वाला अवतार दिखाएं -->
-                    <div class="user-profile">
-                        <div class="user-avatar" title="{{ session['user_name'] }}">
-                            {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                <!-- ✅ LOGGED IN: User profile with hover dropdown -->
+                <div class="user-profile">
+                    <!-- Click anywhere here → goes to dashboard -->
+                    <a href="{{ url_for('user_dashboard') }}" class="user-avatar-btn"
+                        title="{{ session['user_name'] }}">
+                        <div class="user-avatar">
+                            {{ session['user_name'].split()[0][0] | upper }}{{
+                            session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1
+                            else '' }}
                         </div>
-                        <div class="user-dropdown">
-                            <span>Hello, {{ session['user_name'].split()[0] }}</span>
-                            <a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                    </a>
+                    <!-- Hover dropdown: shows name + ID -->
+                    <div class="user-dropdown">
+                        <div class="user-info-head">
+                            <div class="user-info-avatar">
+                                {{ session['user_name'].split()[0][0] | upper }}{{
+                                session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1
+                                else '' }}
+                            </div>
+                            <div class="user-info-text">
+                                <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
+                                <small><i class="fa-solid fa-id-badge"></i> ID: {{ session.get('unique_id', 'N/A') }}
+                                </small>
+                                <small class="user-role-tag">{{ session.get('user_role', 'User')|capitalize }}</small>
+                            </div>
                         </div>
+                        <hr class="user-divider">
+                        <a href="{{ url_for('user_dashboard') }}">
+                            <i class="fa-solid fa-gauge"></i> My Dashboard
+                        </a>
+                        {% if session.get('user_role') == 'admin' %}
+                        <a href="{{ url_for('admin_dashboard') }}">
+                            <i class="fa-solid fa-user-gear"></i> Admin Panel
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('change_password') }}">
+                            <i class="fa-solid fa-key"></i> Change Password
+                        </a>
+                        <a href="{{ url_for('logout') }}" class="logout-link">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        </a>
                     </div>
+                </div>
                 {% else %}
-                    <!-- ✅ यूज़र लॉगआउट है: Login बटन दिखाएं (Enquire की जगह) -->
-                    <a class="login-btn" href="{{ url_for('login_page') }}">
-                        <i class="fa-regular fa-user"></i><span>Login</span>
-                    </a>
-                    
-                    <!-- पुराना Enquire बटन (अब Secondary बटन के रूप में) -->
-                    <a class="enquire-btn-secondary" href="#admission">
-                        <i class="fa-regular fa-paper-plane"></i><span>Enquire</span>
-                    </a>
+                <!-- ✅ LOGGED OUT: Login button -->
+                <a class="login-btn" href="{{ url_for('login_page') }}">
+                    <i class="fa-regular fa-user"></i><span>Login</span>
+                </a>
+
+                <!-- Old Enquire button -->
+                <a class="enquire-btn-secondary" href="#admission">
+                    <i class="fa-regular fa-paper-plane"></i><span>Enquire</span>
+                </a>
                 {% endif %}
-                
+
                 <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open navigation menu"
                     aria-controls="mobileMenu" aria-expanded="false"><span></span><span></span><span></span></button>
             </div>
         </div>
     </header>
-    
+
     <div class="menu-backdrop" id="menuBackdrop" hidden></div>
-    
+
     <!-- =========================================
-         MOBILE MENU
+         MOBILE MENU (with user info)
          ========================================= -->
     <aside class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation" aria-hidden="true" inert>
         <div class="mobile-menu-head">
             <span>Explore School</span>
-            <button type="button" id="menuClose" aria-label="Close navigation menu"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" id="menuClose" aria-label="Close navigation menu"><i
+                    class="fa-solid fa-xmark"></i></button>
         </div>
+
+        <!-- ✅ Mobile User Info Section -->
+        {% if session.get('user_id') %}
+        <div class="mobile-user-box logged-in">
+            <div class="mobile-user-avatar">
+                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if
+                session['user_name'].split()|length > 1 else '' }}
+            </div>
+            <div class="mobile-user-text">
+                <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
+                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
+                <span class="mobile-role-badge">{{ session.get('user_role', 'User')|capitalize }}</span>
+            </div>
+        </div>
+        <div class="mobile-quick-links">
+            <a href="{{ url_for('user_dashboard') }}" class="mobile-dash-btn">
+                <i class="fa-solid fa-gauge"></i> Open My Dashboard
+            </a>
+        </div>
+        {% else %}
+        <div class="mobile-user-box logged-out">
+            <div class="mobile-login-icon">
+                <i class="fa-regular fa-user"></i>
+            </div>
+            <div class="mobile-user-text">
+                <strong>Not Logged In</strong>
+                <small>Please login first to access your dashboard</small>
+            </div>
+            <a href="{{ url_for('login_page') }}" class="mobile-login-btn">
+                <i class="fa-solid fa-right-to-bracket"></i> Login Now
+            </a>
+        </div>
+        {% endif %}
+
         <nav class="mobile-nav">
             <a href="#top"><i class="fa-solid fa-house"></i> Home</a>
             <a href="#about"><i class="fa-solid fa-users"></i> About Us</a>
@@ -93,20 +162,33 @@
             <a href="#gallery"><i class="fa-regular fa-images"></i> Gallery</a>
             <a href="#notices"><i class="fa-solid fa-bell"></i> Notice Board</a>
             <a href="#contact"><i class="fa-regular fa-envelope"></i> Contact Us</a>
+
+            {% if session.get('user_id') %}
+            <a href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+            {% if session.get('user_role') == 'admin' %}
+            <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-user-gear"></i> Admin Panel</a>
+            {% endif %}
+            <a href="{{ url_for('change_password') }}"><i class="fa-solid fa-key"></i> Change Password</a>
+            <a href="{{ url_for('logout') }}" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i>
+                Logout</a>
+            {% else %}
+            <a href="{{ url_for('login_page') }}" class="mobile-login-nav"><i class="fa-solid fa-right-to-bracket"></i>
+                Login</a>
+            {% endif %}
         </nav>
         <div class="mobile-menu-foot">Learn <span>•</span> Grow <span>•</span> Succeed</div>
     </aside>
-    
+
     {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="flash-stack"
         role="status" aria-live="polite">{% for category, message in messages %}<div class="flash {{ category }}">
             <span>{{ message }}</span><button type="button" aria-label="Dismiss message" class="flash-close">×</button>
         </div>{% endfor %}</div>{% endif %}{% endwith %}
-    
+
     <!-- =========================================
          MAIN CONTENT
          ========================================= -->
     <main id="main">
-        
+
         <!-- HERO SECTION -->
         <section class="hero" aria-labelledby="hero-title">
             <div class="hero-shade"></div>
@@ -118,7 +200,8 @@
                     <p class="hero-desc">A home away from home — where every child learns, grows and builds a brighter
                         tomorrow.</p>
                     <div class="hero-actions">
-                        <a class="btn btn-yellow" href="#about">Explore our school <i class="fa-solid fa-arrow-right"></i></a>
+                        <a class="btn btn-yellow" href="#about">Explore our school <i
+                                class="fa-solid fa-arrow-right"></i></a>
                         <a class="btn btn-glass" href="#admission">Admission enquiry</a>
                     </div>
                     <div class="hero-points">
@@ -142,7 +225,7 @@
             </div>
             <div class="hero-bottom-wave"></div>
         </section>
-        
+
         <!-- QUICK STRIP -->
         <section class="quick-strip wrap" aria-label="School shortcuts">
             <a href="#about">
@@ -171,7 +254,7 @@
                 <i class="fa-solid fa-arrow-up-right-from-square shortcut-arrow"></i>
             </a>
         </section>
-        
+
         <!-- CONTENT GRID -->
         <section class="content-grid wrap" id="about">
             <article class="about-card panel">
@@ -189,10 +272,11 @@
                         <i class="fa-solid fa-graduation-cap"></i>
                         <span><b>Classes offered</b><br>Pre-Nursery to Class 8</span>
                     </div>
-                    <a class="nav-link" href="{{ url_for('academics_page') }}"><i class="fa-solid fa-book-open"></i> Academics</a>
+                    <a class="nav-link" href="{{ url_for('academics_page') }}"><i class="fa-solid fa-book-open"></i>
+                        Academics</a>
                 </div>
             </article>
-            
+
             <aside class="panel quick-panel" id="academics">
                 <div class="panel-title">
                     <span class="panel-title-icon"><i class="fa-solid fa-bolt"></i></span>
@@ -221,7 +305,7 @@
                     </a>
                 </div>
             </aside>
-            
+
             <aside class="panel notices-panel" id="notices">
                 <div class="panel-title notice-title">
                     <span class="panel-title-icon"><i class="fa-solid fa-bell"></i></span>
@@ -240,11 +324,11 @@
                     </article>
                     {% endfor %}
                 </div>
-                <!-- ✅ यहाँ एरर ठीक कर दिया गया है: url_for('notice.html') की जगह url_for('notices_page') -->
-                <a class="all-notices" href="{{ url_for('notices_page') }}">View All Notices <i class="fa-solid fa-arrow-right"></i></a>
+                <a class="all-notices" href="{{ url_for('notices_page') }}">View All Notices <i
+                        class="fa-solid fa-arrow-right"></i></a>
             </aside>
         </section>
-        
+
         <!-- STATS SECTION -->
         <section class="stats wrap" id="facilities" aria-label="School highlights">
             <div class="stat">
@@ -265,69 +349,68 @@
             </div>
             <p class="stat-footnote">*Replace sample figures with verified school data before publishing.</p>
         </section>
-        
+
         <!-- LOWER GRID -->
         <section class="lower-grid wrap" id="gallery">
-            <!-- ✅ यहाँ डुप्लीकेट id="gallery" हटा दिया गया है ताकि JavaScript सही काम करे -->
             <div class="classes-banner gallery-slider-box">
-                
+
                 <!-- Background Image Slider -->
                 <div class="slider-track" id="autoSlider">
-                    <!-- Image 1 -->
                     <div class="slide">
-                        <img src="{{ url_for('static', filename='images/campus.jpg') }}" alt="School Image 1" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/campus.jpg') }}" alt="School Image 1"
+                            loading="lazy">
                     </div>
-                    <!-- Image 2 -->
                     <div class="slide">
-                        <img src="{{ url_for('static', filename='images/head2.jpeg') }}" alt="School Image 2" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/head2.jpeg') }}" alt="School Image 2"
+                            loading="lazy">
                     </div>
-                    <!-- Image 3 -->
                     <div class="slide">
-                        <img src="{{ url_for('static', filename='images/Niraj.jpeg') }}" alt="School Image 3" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/Niraj.jpeg') }}" alt="School Image 3"
+                            loading="lazy">
                     </div>
-
                     <div class="slide">
-                        <img src="{{ url_for('static', filename='images/all.jpeg') }}" alt="School Image 3" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/all.jpeg') }}" alt="School Image 3"
+                            loading="lazy">
                     </div>
-
                     <div class="slide">
-                        <img src="{{ url_for('static', filename='images/all_starfs.jpeg') }}" alt="School Image 3" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/all_starfs.jpeg') }}" alt="School Image 3"
+                            loading="lazy">
                     </div>
-
                     <div class="slide">
-                        <img src="{{ url_for('static', filename='images/Doc.jpeg') }}" alt="School Image 3" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/Doc.jpeg') }}" alt="School Image 3"
+                            loading="lazy">
                     </div>
-
                     <div class="slide">
-                        <img src="{{ url_for('static', filename='images/head.jpeg') }}" alt="School Image 3" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/head.jpeg') }}" alt="School Image 3"
+                            loading="lazy">
                     </div>
-
                     <div class="slide">
-                        <img src="{{ url_for('static', filename='images/head_maam.jpeg') }}" alt="School Image 3" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/head_maam.jpeg') }}" alt="School Image 3"
+                            loading="lazy">
                     </div>
-
                     <div class="slide">
-                        <img src="{{ url_for('static', filename='images/Radhay_Krishna.jpeg') }}" alt="School Image 3" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/Radhay_Krishna.jpeg') }}" alt="School Image 3"
+                            loading="lazy">
                     </div>
-
                     <div class="slide">
-                        <img src="{{ url_for('static', filename='images/teachers_day.jpeg') }}" alt="School Image 3" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/teachers_day.jpeg') }}" alt="School Image 3"
+                            loading="lazy">
                     </div>
-
                     <div class="slide">
-                        <img src="{{ url_for('static', filename='images/teachers.jpeg') }}" alt="School Image 3" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/teachers.jpeg') }}" alt="School Image 3"
+                            loading="lazy">
                     </div>
-
                     <div class="slide">
-                        <img src="{{ url_for('static', filename='images/drawings.jpeg') }}" alt="School Image 3" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/drawings.jpeg') }}" alt="School Image 3"
+                            loading="lazy">
                     </div>
-
                     <div class="slide">
-                        <img src="{{ url_for('static', filename='images/Niraj.jpeg') }}" alt="School Image 3" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/Niraj.jpeg') }}" alt="School Image 3"
+                            loading="lazy">
                     </div>
-
                     <div class="slide">
-                        <img src="{{ url_for('static', filename='images/Niraj.jpeg') }}" alt="School Image 3" loading="lazy">
+                        <img src="{{ url_for('static', filename='images/Niraj.jpeg') }}" alt="School Image 3"
+                            loading="lazy">
                     </div>
                 </div>
 
@@ -339,12 +422,13 @@
                         <p>A strong foundation for curious minds and confident learners.</p>
                     </div>
                     <div class="class-pills">
-                        <span>Pre-Nursery</span><span>Nursery</span><span>LKG</span><span>UKG</span><span>Class 1–8</span>
+                        <span>Pre-Nursery</span><span>Nursery</span><span>LKG</span><span>UKG</span><span>Class
+                            1–8</span>
                     </div>
                 </div>
 
             </div>
-            
+
             <section class="form-panel panel" id="admission">
                 <div class="form-heading">
                     <span class="panel-title-icon"><i class="fa-solid fa-paper-plane"></i></span>
@@ -360,7 +444,8 @@
                     </label>
                     <div class="form-row">
                         <label>Phone number
-                            <input name="phone" type="tel" inputmode="tel" autocomplete="tel" required pattern="[0-9+() -]{10,18}" placeholder="Mobile number">
+                            <input name="phone" type="tel" inputmode="tel" autocomplete="tel" required
+                                pattern="[0-9+() -]{10,18}" placeholder="Mobile number">
                         </label>
                         <label>Class of interest
                             <select name="class_name">
@@ -381,16 +466,19 @@
                         </label>
                     </div>
                     <label>Email (optional)
-                        <input name="email" type="email" autocomplete="email" maxlength="120" placeholder="you@example.com">
+                        <input name="email" type="email" autocomplete="email" maxlength="120"
+                            placeholder="you@example.com">
                     </label>
                     <label>Message (optional)
-                        <textarea name="message" rows="3" maxlength="1000" placeholder="Tell us how we can help"></textarea>
+                        <textarea name="message" rows="3" maxlength="1000"
+                            placeholder="Tell us how we can help"></textarea>
                     </label>
-                    <button class="btn btn-primary" type="submit">Submit enquiry <i class="fa-solid fa-arrow-right"></i></button>
+                    <button class="btn btn-primary" type="submit">Submit enquiry <i
+                            class="fa-solid fa-arrow-right"></i></button>
                 </form>
             </section>
         </section>
-        
+
         <!-- CONTACT BAND -->
         <section class="contact-band" id="contact">
             <div class="wrap contact-inner">
@@ -403,22 +491,23 @@
                     <label class="sr-only" for="contactName">Your name</label>
                     <input id="contactName" name="name" required maxlength="100" placeholder="Your name">
                     <label class="sr-only" for="contactPhone">Phone number</label>
-                    <input id="contactPhone" name="phone" required type="tel" inputmode="tel" pattern="[0-9+() -]{10,18}" placeholder="Phone number">
+                    <input id="contactPhone" name="phone" required type="tel" inputmode="tel"
+                        pattern="[0-9+() -]{10,18}" placeholder="Phone number">
                     <label class="sr-only" for="contactMessage">Message</label>
-                    <textarea id="contactMessage" name="message" required rows="2" maxlength="1000" placeholder="Your message"></textarea>
-                    <button class="btn btn-yellow" type="submit">Send message <i class="fa-solid fa-paper-plane"></i></button>
+                    <textarea id="contactMessage" name="message" required rows="2" maxlength="1000"
+                        placeholder="Your message"></textarea>
+                    <button class="btn btn-yellow" type="submit">Send message <i
+                            class="fa-solid fa-paper-plane"></i></button>
                 </form>
             </div>
         </section>
     </main>
 
     <!-- =========================================
-         UPGRADED FOOTER SECTION
+         FOOTER SECTION
          ========================================= -->
     <footer class="site-footer">
         <div class="wrap footer-inner">
-            
-            <!-- Column 1: Main Brand -->
             <div class="footer-brand-col">
                 <a class="footer-brand" href="#top" aria-label="Residential Shanti Niketan home">
                     <span class="brand-mark small-mark">
@@ -433,33 +522,26 @@
                 </a>
             </div>
 
-            <!-- Column 2: Extra Identity Elements (Preserved as per request) -->
             <div class="footer-links-col">
                 <h4>About School</h4>
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                    <!-- Yahan aapka 'RSN' wala code bina delete kiye rakh diya hai -->
-                    <!-- <span class="brand-mark small-mark" style="flex: 0 0 40px; margin: 0;">RSN</span> -->
                     <span>
-                        <strong style="color: #fff; font-size: 13px; display: block;">Residential Shanti Niketan</strong>
+                        <strong style="color: #fff; font-size: 13px; display: block;">Residential Shanti
+                            Niketan</strong>
                         <small style="font-size: 11px; color: #aebfd0;">Navinagar Jamui</small>
                     </span>
                 </div>
-                <!-- Yahan aapka tagline bina delete kiye rakh diya hai -->
                 <p style="font-size: 12.5px; color: #aebfd0; margin: 0;">Education • Values • A brighter future</p>
             </div>
 
-            <!-- Column 3: Back to Top -->
             <div class="footer-contact-col">
                 <h4>Navigate</h4>
                 <a class="back-top" href="#top">Back to top <i class="fa-solid fa-arrow-up"></i></a>
             </div>
-            
         </div>
-        
-        <!-- Updated Footer Bottom with Developer Credit -->
+
         <div class="footer-bottom">
             <p class="copyright-text">© <span id="year"></span> Residential Shanti Niketan. Website concept.</p>
-            
             <div class="developer-credit">
                 <span class="dev-badge">
                     <i class="fa-solid fa-code"></i>
@@ -471,7 +553,8 @@
             </div>
         </div>
     </footer>
-    
+
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
 </body>
+
 </html>

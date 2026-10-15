@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | RSN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header" id="top">
+        <div class="header-inner">
+            <a class="brand" href="{{ url_for('home') }}">
+                <a href="{{ url_for('home') }}" class="brand-mark">
+                    <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="Logo"
+                        class="school-logo">
+                </a>
+                <span class="brand-copy">
+                    <strong>RESIDENTIAL SHANTI NIKETAN</strong>
+                    <b>NAVINAGAR JAMUI</b>
+                    <small>Pre-Nursery to Class 8 <i>•</i> शिक्षा • संस्कार • उज्ज्वल भविष्य</small>
+                </span>
+            </a>
+            <nav class="desktop-nav">
+                <a class="nav-link" href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
+                <a class="nav-link" href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> My
+                    Dashboard</a>
+            </nav>
+            <div class="header-actions">
+                <div class="user-profile">
+                    <div class="user-avatar" title="{{ session['user_name'] }}">
+                        {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper
+                        if session['user_name'].split()|length > 1 else '' }}
+                    </div>
+                    <div class="user-dropdown">
+                        <span>Hello, {{ session['user_name'].split()[0] }}</span>
+                        <a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                    </div>
+                </div>
+                <button class="menu-toggle" id="menuToggle"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="menu-backdrop" id="menuBackdrop" hidden></div>
+    <aside class="mobile-menu" id="mobileMenu" inert>
+        <div class="mobile-menu-head"><span>Menu</span><button type="button" id="menuClose"><i
+                    class="fa-solid fa-xmark"></i></button></div>
+        <nav class="mobile-nav">
+            <a href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+            <a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </nav>
+    </aside>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}
+    <div class="flash-stack">{% for cat, msg in messages %}
+        <div class="flash {{ cat }}"><span>{{ msg }}</span><button class="flash-close">×</button></div>
+        {% endfor %}
+    </div>
+    {% endif %}{% endwith %}
+
+    <main id="main">
+
+        <section class="user-welcome-banner student-banner">
+            <div class="wrap welcome-inner">
+                <div class="welcome-text">
+                    <p class="section-kicker light"><i class="fa-solid fa-graduation-cap"></i> STUDENT PORTAL</p>
+                    <h1>Hello, {{ user.name.split()[0] }}! 🎓</h1>
+                    <p>Student ID: <strong>{{ user.unique_id }}</strong> • Class: <strong>{{ user.child_class or 'N/A'
+                            }}</strong></p>
+                </div>
+                <div class="welcome-avatar">
+                    <div class="big-avatar student-avatar">
+                        {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length
+                        > 1 else '' }}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="wrap dashboard-grid">
+
+            <!-- PROFILE -->
+            <div class="panel">
+                <div class="panel-title">
+                    <span class="panel-title-icon student-icon"><i class="fa-solid fa-id-card"></i></span>
+                    <h2>My Profile</h2>
+                </div>
+                <div class="profile-body">
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-solid fa-id-badge"></i> Student ID</span>
+                        <span class="profile-value"><strong>{{ user.unique_id }}</strong></span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-regular fa-user"></i> Name</span>
+                        <span class="profile-value">{{ user.name }}</span>
+                    </div>
+                    {% if user.child_class %}
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-solid fa-book"></i> Class</span>
+                        <span class="profile-value">{{ user.child_class }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-regular fa-envelope"></i> Email</span>
+                        <span class="profile-value">{{ user.email }}</span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-solid fa-phone"></i> Mobile</span>
+                        <span class="profile-value">{{ user.phone }}</span>
+                    </div>
+                    {% if user.dob %}
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-regular fa-calendar"></i> Date of Birth</span>
+                        <span class="profile-value">{{ user.dob }}</span>
+                    </div>
+                    {% endif %}
+                    <a href="{{ url_for('change_password') }}" class="btn-admin-primary"
+                        style="margin-top:15px; display:inline-flex;">
+                        <i class="fa-solid fa-key"></i> Change Password
+                    </a>
+                </div>
+            </div>
+
+            <!-- ATTENDANCE -->
+            <div class="panel">
+                <div class="panel-title">
+                    <span class="panel-title-icon student-icon"><i class="fa-solid fa-clipboard-check"></i></span>
+                    <h2>My Attendance</h2>
+                </div>
+                <div class="attendance-summary">
+                    {% set present = attendance|selectattr('status','equalto','present')|list|length %}
+                    {% set absent = attendance|selectattr('status','equalto','absent')|list|length %}
+                    <div class="att-stat"><strong style="color:#168254;">{{ present }}</strong><small>Present</small>
+                    </div>
+                    <div class="att-stat"><strong style="color:#d71938;">{{ absent }}</strong><small>Absent</small>
+                    </div>
+                    <div class="att-stat"><strong>{{ attendance|length }}</strong><small>Total</small></div>
+                </div>
+                <div class="att-list">
+                    {% for a in attendance[:10] %}
+                    <div class="att-row">
+                        <span>{{ a.date }}</span>
+                        <span class="att-badge att-{{ a.status }}">{{ a.status|capitalize }}</span>
+                    </div>
+                    {% else %}
+                    <p class="empty-row">No attendance yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- FEE PAYMENT -->
+            <div class="panel">
+                <div class="panel-title">
+                    <span class="panel-title-icon student-icon"><i class="fa-solid fa-indian-rupee-sign"></i></span>
+                    <h2>Pay Your Fees</h2>
+                </div>
+                <div style="padding:20px;">
+                    {% if fee_qr or upi_link %}
+                    <div class="fee-payment-box">
+                        <p class="fee-payment-title"><i class="fa-solid fa-qrcode"></i> Online Payment Options</p>
+                        {% if fee_qr %}
+                        <div class="fee-qr-wrap">
+                            <p class="fee-qr-label">Scan with any UPI app</p>
+                            <img src="{{ fee_qr }}" alt="QR" class="fee-qr-img">
+                        </div>
+                        {% endif %}
+                        {% if upi_link %}
+                        <a href="{{ upi_link }}" class="upi-pay-btn">
+                            <i class="fa-solid fa-mobile-screen-button"></i> Pay via UPI App
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="fee-not-set">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <p>Payment options not set yet. Contact office.</p>
+                    </div>
+                    {% endif %}
+
+                    <form method="POST" action="{{ url_for('fee_pay') }}" class="admin-form">
+                        <label>Amount (₹) <input type="number" name="amount" step="0.01" required
+                                placeholder="5000"></label>
+                        <label>Transaction ID <input type="text" name="transaction_id" placeholder="UPI txn ID"></label>
+                        <label>Remarks <input type="text" name="remarks" placeholder="Optional"></label>
+                        <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-check"></i> Submit
+                            Payment</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- FEE HISTORY -->
+            <div class="panel">
+                <div class="panel-title">
+                    <span class="panel-title-icon student-icon"><i class="fa-solid fa-receipt"></i></span>
+                    <h2>My Fee History</h2>
+                </div>
+                <div class="notice-list" style="padding:15px 20px;">
+                    {% for f in fees %}
+                    <div class="att-row">
+                        <div>
+                            <strong style="color:var(--navy);">₹{{ f.amount }}</strong>
+                            <small style="display:block;color:#65758a;font-size:11px;">{{ f.payment_date }}{% if
+                                f.transaction_id %} • {{ f.transaction_id }}{% endif %}</small>
+                        </div>
+                        <span
+                            class="kind-badge kind-{{ 'admission' if f.status=='verified' else 'contact' if f.status=='rejected' else 'notice' }}">{{
+                            f.status|capitalize }}</span>
+                    </div>
+                    {% else %}
+                    <p class="empty-row">No payments yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- NOTICES -->
+            <div class="panel">
+                <div class="panel-title notice-title">
+                    <span class="panel-title-icon"><i class="fa-solid fa-bell"></i></span>
+                    <h2>Notices for Students</h2>
+                    <span class="live-dot"></span>
+                </div>
+                <div class="notice-list">
+                    {% for n in notices[:6] %}
+                    <article class="notice">
+                        <span class="notice-file"><i class="fa-regular fa-file-lines"></i></span>
+                        <div><small>{{ n.date }} <b>{{ n.tag }}</b></small>
+                            <p>{{ n.title }}</p>
+                        </div>
+                    </article>
+                    {% else %}
+                    <p class="empty-row" style="padding:20px;">No notices yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- MESSAGES -->
+            <div class="panel">
+                <div class="panel-title">
+                    <span class="panel-title-icon student-icon"><i class="fa-solid fa-comments"></i></span>
+                    <h2>Messages from School</h2>
+                </div>
+                <div class="notice-list">
+                    {% for m in messages[:5] %}
+                    <article class="notice">
+                        <span class="notice-file"><i class="fa-solid fa-envelope"></i></span>
+                        <div><small>{{ m.created_at[:10] }}</small>
+                            <p><strong>{{ m.subject }}</strong></p><small style="color:#65758a;">{{ m.body[:100]
+                                }}...</small>
+                        </div>
+                    </article>
+                    {% else %}
+                    <p class="empty-row" style="padding:20px;">No messages yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="wrap footer-inner">
+            <div class="footer-brand-col">
+                <a class="footer-brand" href="{{ url_for('home') }}">
+                    <span class="brand-mark small-mark"><img
+                            src="{{ url_for('static', filename='images/school-logo.png') }}" class="school-logo"></span>
+                    <span class="footer-brand-copy">
+                        <strong>Residential Shanti Niketan</strong>
+                        <small>Navinagar, Jamui</small>
+                        <span class="footer-tagline">Education • Values • Excellence</span>
+                    </span>
+                </a>
+            </div>
+            <div class="footer-links-col">
+                <h4>About School</h4>
+                <p style="font-size:12.5px;color:#aebfd0;margin:0;">Education • Values • A brighter future</p>
+            </div>
+            <div class="footer-contact-col">
+                <h4>Navigate</h4><a class="back-top" href="#top">Back to top <i class="fa-solid fa-arrow-up"></i></a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p class="copyright-text">© <span id="year"></span> Residential Shanti Niketan.</p>
+            <div class="developer-credit"><span class="dev-badge"><i class="fa-solid fa-code"></i> Developed by
+                    <strong>Niraj Kumar</strong> <a href="tel:9155658081" class="dev-contact"><i
+                            class="fa-solid fa-phone"></i> 9155658081</a></span></div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const t = document.getElementById('menuToggle'), m = document.getElementById('mobileMenu'), b = document.getElementById('menuBackdrop'), c = document.getElementById('menuClose');
+            if (t && m) {
+                t.addEventListener('click', () => { m.classList.toggle('is-open'); b.hidden = !b.hidden; });
+                c?.addEventListener('click', () => { m.classList.remove('is-open'); b.hidden = true; });
+                b?.addEventListener('click', () => { m.classList.remove('is-open'); b.hidden = true; });
+            }
+            const y = document.getElementById('year'); if (y) y.textContent = new Date().getFullYear();
+            document.querySelectorAll('.flash-close').forEach(btn => btn.addEventListener('click', () => btn.closest('.flash').remove()));
+        });
+    </script>
+</body>
+
+</html>

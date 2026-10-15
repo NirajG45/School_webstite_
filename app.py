@@ -298,7 +298,7 @@ def logout():
     return redirect(url_for('home'))
 
 # =========================================
-# 7. USER DASHBOARD
+# 7. USER DASHBOARD (ROLE-SPECIFIC ROUTING)
 # =========================================
 @app.route('/dashboard')
 @login_required
@@ -310,41 +310,62 @@ def user_dashboard():
     
     notices = get_all_notices(user['role'])
     db = get_db()
+    role = user['role']
     
-    # Fetch attendance
+    # ===== Common data for all roles =====
     attendance = db.execute(
         'SELECT * FROM attendance WHERE user_id = ? ORDER BY date DESC LIMIT 30',
         (user['id'],)
     ).fetchall()
     
-    # Fetch leave requests (for teacher)
-    leaves = []
-    if user['role'] == 'teacher':
+    messages = db.execute(
+        'SELECT * FROM messages WHERE to_user_id = ? OR to_role = ? ORDER BY id DESC LIMIT 20',
+        (user['id'], role)
+    ).fetchall()
+    
+    # ===== ROLE-SPECIFIC ROUTING =====
+    
+    # ---------- TEACHER DASHBOARD ----------
+    if role == 'teacher':
         leaves = db.execute(
             'SELECT * FROM leave_requests WHERE user_id = ? ORDER BY id DESC',
             (user['id'],)
         ).fetchall()
+        return render_template('teacher_dashboard.html',
+                              user=user, notices=notices, attendance=attendance,
+                              leaves=leaves, messages=messages)
     
-    # Fetch fee payments (for student/parent)
-    fees = []
-    if user['role'] in ('student', 'parent'):
+    # ---------- STUDENT DASHBOARD ----------
+    elif role == 'student':
         fees = db.execute(
             'SELECT * FROM fee_payments WHERE student_id = ? ORDER BY id DESC',
             (user['id'],)
         ).fetchall()
+        return render_template('student_dashboard.html',
+                              user=user, notices=notices, attendance=attendance,
+                              fees=fees, messages=messages,
+                              fee_qr=get_setting('fee_qr_url'),
+                              upi_link=get_setting('upi_link'))
     
-    # Fetch messages
-    messages = db.execute(
-        'SELECT * FROM messages WHERE to_user_id = ? OR to_role = ? ORDER BY id DESC LIMIT 20',
-        (user['id'], user['role'])
-    ).fetchall()
+    # ---------- PARENT DASHBOARD ----------
+    elif role == 'parent':
+        fees = db.execute(
+            'SELECT * FROM fee_payments WHERE student_id = ? ORDER BY id DESC',
+            (user['id'],)
+        ).fetchall()
+        return render_template('parent_dashboard.html',
+                              user=user, notices=notices, attendance=attendance,
+                              fees=fees, messages=messages,
+                              fee_qr=get_setting('fee_qr_url'),
+                              upi_link=get_setting('upi_link'))
     
-    # UPGRADE: Pass upi_link to user dashboard
-    return render_template('user.html', user=user, notices=notices, 
-                          attendance=attendance, leaves=leaves, fees=fees, 
-                          messages=messages,
-                          fee_qr=get_setting('fee_qr_url'),
-                          upi_link=get_setting('upi_link'))
+    # ---------- FALLBACK (Admin or unknown role) ----------
+    else:
+        return render_template('user.html',
+                              user=user, notices=notices, attendance=attendance,
+                              leaves=[], fees=[], messages=messages,
+                              fee_qr=get_setting('fee_qr_url'),
+                              upi_link=get_setting('upi_link'))
 
 # =========================================
 # 8. TEACHER LEAVE REQUEST

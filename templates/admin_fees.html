@@ -4,24 +4,79 @@
 
 {% block content %}
 <div class="admin-grid-2">
-    <!-- QR CODE MANAGEMENT -->
+    <!-- QR CODE & UPI MANAGEMENT -->
     <div class="admin-panel">
         <div class="admin-panel-head">
-            <h3><i class="fa-solid fa-qrcode"></i> Fee Payment QR Code</h3>
+            <h3><i class="fa-solid fa-qrcode"></i> Payment QR & UPI Setup</h3>
         </div>
-        <form method="POST" action="{{ url_for('admin_update_qr') }}" class="admin-form">
-            <label>QR Code Image URL
-                <input type="url" name="fee_qr_url" value="{{ fee_qr }}" placeholder="https://example.com/qr.png" required>
+        
+        <form method="POST" action="{{ url_for('admin_update_qr') }}" class="admin-form" enctype="multipart/form-data">
+            
+            <!-- UPI LINK -->
+            <label>
+                <i class="fa-solid fa-link" style="color:var(--red);margin-right:5px;"></i> UPI Payment Link
+                <input type="text" name="upi_link" value="{{ upi_link or '' }}" 
+                       placeholder="upi://pay?pa=yourname@upi&pn=School Name"
+                       maxlength="500">
             </label>
-            <p class="muted" style="font-size:12px;">
-                <i class="fa-solid fa-info-circle"></i> Upload your school's payment QR image to a hosting service and paste the URL here.
+            <p class="muted" style="font-size:11px;margin-top:-8px;">
+                <i class="fa-solid fa-info-circle"></i> Example: <code>upi://pay?pa=school@upi&pn=RSN</code> — Users can click this on mobile to pay directly.
             </p>
-            <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-save"></i> Update QR</button>
+
+            <!-- QR IMAGE UPLOAD -->
+            <label>
+                <i class="fa-solid fa-upload" style="color:var(--red);margin-right:5px;"></i> Upload QR Image (File)
+                <div class="file-upload-wrapper" style="margin-top:5px;">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span id="fileName">Choose QR image file...</span>
+                    <input type="file" name="qr_image" accept="image/*" onchange="document.getElementById('fileName').textContent = this.files[0] ? this.files[0].name : 'Choose QR image file...'">
+                </div>
+            </label>
+            <p class="muted" style="font-size:11px;margin-top:-8px;">
+                <i class="fa-solid fa-info-circle"></i> Supported: PNG, JPG, JPEG, GIF, WEBP. Max 2MB.
+            </p>
+
+            <!-- OR QR URL -->
+            <label>
+                <i class="fa-solid fa-image" style="color:var(--red);margin-right:5px;"></i> Or Paste QR Image URL
+                <input type="url" name="fee_qr_url" value="" 
+                       placeholder="https://example.com/qr.png">
+            </label>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button type="submit" class="btn-admin-primary">
+                    <i class="fa-solid fa-save"></i> Save Changes
+                </button>
+            </div>
         </form>
+
+        <!-- CURRENT QR PREVIEW -->
         {% if fee_qr %}
         <div style="padding:20px; text-align:center; border-top:1px solid #eaeff5;">
-            <p style="font-size:12px;color:#65758a;margin-bottom:10px;">Current QR Code Preview:</p>
-            <img src="{{ fee_qr }}" alt="Fee QR" style="max-width:220px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+            <p style="font-size:12px;color:#65758a;margin-bottom:10px;font-weight:700;">
+                <i class="fa-solid fa-qrcode"></i> Current QR Code:
+            </p>
+            <img src="{{ fee_qr }}" alt="Fee QR" style="max-width:220px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.1);border:3px solid var(--yellow);">
+            
+            <form method="POST" action="{{ url_for('admin_update_qr') }}" style="margin-top:15px;">
+                <input type="hidden" name="delete_qr" value="1">
+                <button type="submit" class="btn-icon-danger" style="width:auto;padding:8px 16px;" 
+                        onclick="return confirm('Remove current QR code?')">
+                    <i class="fa-solid fa-trash"></i> Remove QR
+                </button>
+            </form>
+        </div>
+        {% else %}
+        <div style="padding:30px; text-align:center; border-top:1px solid #eaeff5;">
+            <i class="fa-solid fa-qrcode" style="font-size:40px;color:#c4d0dc;"></i>
+            <p style="font-size:12px;color:#96a3b1;margin-top:10px;">No QR code uploaded yet.</p>
+        </div>
+        {% endif %}
+        
+        {% if upi_link %}
+        <div style="padding:15px 20px; background:#e3f5eb; border-top:1px solid #eaeff5; font-size:12px;">
+            <strong style="color:#168254;"><i class="fa-solid fa-check-circle"></i> UPI Link Active:</strong>
+            <p style="margin:5px 0 0;color:#0a2340;word-break:break-all;font-family:monospace;">{{ upi_link }}</p>
         </div>
         {% endif %}
     </div>
@@ -42,6 +97,19 @@
                 <span>Verified</span>
                 <strong style="color:#168254;">{{ payments|selectattr('status', 'equalto', 'verified')|list|length }}</strong>
             </div>
+            <div class="mini-stat">
+                <span>Rejected</span>
+                <strong style="color:#a86a00;">{{ payments|selectattr('status', 'equalto', 'rejected')|list|length }}</strong>
+            </div>
+        </div>
+        
+        <div class="admin-panel-head" style="border-top:1px solid #eaeff5;border-bottom:0;">
+            <h3 style="font-size:13px;"><i class="fa-solid fa-circle-info"></i> Quick Tips</h3>
+        </div>
+        <div style="padding:15px 20px; font-size:12px; color:#65758a; line-height:1.8;">
+            <p>✅ <strong>UPI Link:</strong> Generate from your school's UPI app (GPay, PhonePe, Paytm) and paste above.</p>
+            <p>✅ <strong>QR Image:</strong> Screenshot your UPI QR and upload it as an image file.</p>
+            <p>✅ <strong>Both work:</strong> Users can click the UPI link on mobile OR scan the QR.</p>
         </div>
     </div>
 </div>
@@ -67,8 +135,8 @@
                     <td>
                         {% if p.status == 'pending' %}
                         <form method="POST" action="{{ url_for('admin_verify_fee', pid=p.id) }}" style="display:inline-flex;gap:5px;">
-                            <button name="status" value="verified" class="btn-icon-approve"><i class="fa-solid fa-check"></i></button>
-                            <button name="status" value="rejected" class="btn-icon-danger"><i class="fa-solid fa-xmark"></i></button>
+                            <button name="status" value="verified" class="btn-icon-approve" title="Verify"><i class="fa-solid fa-check"></i></button>
+                            <button name="status" value="rejected" class="btn-icon-danger" title="Reject"><i class="fa-solid fa-xmark"></i></button>
                         </form>
                         {% endif %}
                     </td>
@@ -80,4 +148,42 @@
         </table>
     </div>
 </div>
+
+<style>
+.file-upload-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 2px dashed #dbe4ed;
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: #fbfcfe;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+.file-upload-wrapper:hover {
+    background: #f0f6fc;
+    border-color: #3e82b8;
+}
+.file-upload-wrapper i {
+    color: var(--red);
+    font-size: 20px;
+}
+.file-upload-wrapper span {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0a2340;
+    text-transform: none;
+    letter-spacing: 0;
+}
+.file-upload-wrapper input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+</style>
 {% endblock %}

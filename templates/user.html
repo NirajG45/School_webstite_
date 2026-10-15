@@ -272,7 +272,9 @@
             </div>
             {% endif %}
 
-            <!-- FEE PAYMENT (STUDENT/PARENT) -->
+            <!-- =========================================
+                 FEE PAYMENT (STUDENT/PARENT) — UPGRADED
+                 ========================================= -->
             {% if user.role in ['student', 'parent'] %}
             <div class="panel">
                 <div class="panel-title">
@@ -280,13 +282,39 @@
                     <h2>Fee Payment</h2>
                 </div>
                 <div style="padding:20px;">
-                    {% if fee_qr %}
-                    <div
-                        style="text-align:center;margin-bottom:20px;padding:15px;background:#f8fafc;border-radius:12px;">
-                        <p style="font-size:12px;color:#65758a;margin-bottom:10px;">Scan QR to Pay</p>
-                        <img src="{{ fee_qr }}" alt="Fee QR" style="max-width:180px;border-radius:10px;">
+
+                    <!-- QR + UPI Link Section -->
+                    {% if fee_qr or upi_link %}
+                    <div class="fee-payment-box">
+                        <p class="fee-payment-title">
+                            <i class="fa-solid fa-qrcode"></i> Pay Your Fees Online
+                        </p>
+
+                        {% if fee_qr %}
+                        <div class="fee-qr-wrap">
+                            <p class="fee-qr-label">Scan this QR with any UPI app</p>
+                            <img src="{{ fee_qr }}" alt="Fee QR" class="fee-qr-img">
+                        </div>
+                        {% endif %}
+
+                        {% if upi_link %}
+                        <a href="{{ upi_link }}" class="upi-pay-btn">
+                            <i class="fa-solid fa-mobile-screen-button"></i>
+                            Pay Now via UPI App
+                        </a>
+                        <p class="upi-hint">
+                            <i class="fa-solid fa-info-circle"></i> Works on mobile with GPay, PhonePe, Paytm, etc.
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="fee-not-set">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <p>Payment options not set up yet. Please contact the school office.</p>
                     </div>
                     {% endif %}
+
+                    <!-- Manual Payment Entry Form -->
                     <form method="POST" action="{{ url_for('fee_pay') }}" class="admin-form">
                         <label>Amount (₹)
                             <input type="number" name="amount" step="0.01" required placeholder="e.g. 5000">
@@ -301,6 +329,7 @@
                             <i class="fa-solid fa-check"></i> Submit Payment
                         </button>
                     </form>
+
                     {% if fees %}
                     <h4 style="font-size:13px;color:#65758a;margin:20px 0 8px;">Recent Payments</h4>
                     {% for f in fees[:5] %}

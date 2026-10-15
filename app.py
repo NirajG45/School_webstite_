@@ -5,9 +5,9 @@ import re
 import secrets
 from functools import wraps
 from datetime import timedelta, datetime
-from flask import (Flask, render_template, request, redirect, url_for, 
-                   flash, jsonify, g, session)
+from flask import (Flask, render_template, request, redirect, url_for, flash, jsonify, g, session)
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 # =========================================
 # 1. APP CONFIGURATION
@@ -23,7 +23,16 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
-DEFAULT_PASSWORD = 'snv@450'  # 🚀 Default password for new users
+# UPGRADE: Upload folder for QR codes
+UPLOAD_FOLDER = BASE_DIR / 'static' / 'uploads'
+UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+DEFAULT_PASSWORD = 'snv@450'  # Default password for new users
 
 INITIAL_NOTICES = [
     {'date': '05 Oct 2026', 'title': 'Admissions enquiry open for Session 2026–27', 'tag': 'Admissions', 'desc': 'Admissions are now open for the upcoming academic session.', 'target_role': 'all'},
@@ -112,6 +121,8 @@ def init_db():
         # Default school settings
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('fee_qr_url', '')")
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('school_name', 'Residential Shanti Niketan')")
+        # UPGRADE: Default UPI link setting
+        db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('upi_link', '')")
         
         db.commit()
 
@@ -133,7 +144,7 @@ def get_user_by_unique_id(uid):
     return db.execute('SELECT * FROM users WHERE unique_id = ?', (uid,)).fetchone()
 
 def generate_unique_id(role):
-    """🚀 Generate unique ID like TSNV00001, PSNV00001, STSNV00001"""
+    """Generate unique ID like TSNV00001, PSNV00001, STSNV00001"""
     db = get_db()
     prefixes = {'admin': 'SNV', 'teacher': 'TSNV', 'parent': 'PSNV', 'student': 'STSNV'}
     prefix = prefixes.get(role, 'SNV')
@@ -328,10 +339,12 @@ def user_dashboard():
         (user['id'], user['role'])
     ).fetchall()
     
+    # UPGRADE: Pass upi_link to user dashboard
     return render_template('user.html', user=user, notices=notices, 
                           attendance=attendance, leaves=leaves, fees=fees, 
                           messages=messages,
-                          fee_qr=get_setting('fee_qr_url'))
+                          fee_qr=get_setting('fee_qr_url'),
+                          upi_link=get_setting('upi_link'))
 
 # =========================================
 # 8. TEACHER LEAVE REQUEST
@@ -462,7 +475,7 @@ def admin_create_user():
              experience, subject, designation, department, relation, child_name, child_class, address))
         db.commit()
         
-        flash(f'✅ {role.capitalize()} created! ID: {unique_id} | Default Password: {DEFAULT_PASSWORD}', 'success')
+        flash(f'{role.capitalize()} created! ID: {unique_id} | Default Password: {DEFAULT_PASSWORD}', 'success')
         return redirect(url_for('admin_users'))
     
     return render_template('admin_create_user.html', active_page='create_user')
@@ -482,7 +495,7 @@ def admin_delete_user(user_id):
 @app.route('/admin/users/change-role/<int:user_id>', methods=['POST'])
 @admin_required
 def admin_change_role(user_id):
-    """🚀 User का role बदलें"""
+    """User का role बदलें"""
     new_role = request.form.get('role', 'student')
     if new_role not in ['teacher', 'admin', 'parent', 'student']:
         flash('Invalid role.', 'error')
@@ -502,7 +515,7 @@ def admin_change_role(user_id):
 @app.route('/admin/users/reset-password/<int:user_id>', methods=['POST'])
 @admin_required
 def admin_reset_password(user_id):
-    """🚀 Password reset करके default पर लाएं"""
+    """Password reset करके default पर लाएं"""
     db = get_db()
     db.execute('UPDATE users SET password_hash = ?, force_password_change = 1 WHERE id = ?',
                (generate_password_hash(DEFAULT_PASSWORD), user_id))
@@ -513,7 +526,7 @@ def admin_reset_password(user_id):
 @app.route('/admin/users/toggle/<int:user_id>', methods=['POST'])
 @admin_required
 def admin_toggle_user(user_id):
-    """🚀 User को Active/Inactive करें"""
+    """User को Active/Inactive करें"""
     if user_id == session['user_id']:
         flash('You cannot deactivate yourself!', 'error')
         return redirect(url_for('admin_users'))
@@ -628,15 +641,51 @@ def admin_fees():
     payments = db.execute('''SELECT fp.*, u.name as student_name, u.unique_id as student_uid
                               FROM fee_payments fp JOIN users u ON fp.student_id = u.id
                               ORDER BY fp.id DESC''').fetchall()
+    # UPGRADE: Pass upi_link to admin fees page
     return render_template('admin_fees.html', payments=payments,
-                          fee_qr=get_setting('fee_qr_url'), active_page='fees')
+                          fee_qr=get_setting('fee_qr_url'),
+                          upi_link=get_setting('upi_link'),
+                          active_page='fees')
 
 @app.route('/admin/fees/qr', methods=['POST'])
 @admin_required
 def admin_update_qr():
-    qr_url = request.form.get('fee_qr_url', '').strip()
-    set_setting('fee_qr_url', qr_url)
-    flash('Fee QR code updated.', 'success')
+    """UPGRADE: QR image upload या UPI link update करें"""
+    
+    # UPI Link
+    upi_link = request.form.get('upi_link', '').strip()
+    if upi_link:
+        set_setting('upi_link', upi_link)
+    
+    # QR Image - File Upload
+    qr_file = request.files.get('qr_image')
+    if qr_file and qr_file.filename:
+        if allowed_file(qr_file.filename):
+            ext = qr_file.filename.rsplit('.', 1)[1].lower()
+            filename = f"fee_qr_{secrets.token_hex(6)}.{ext}"
+            filepath = app.config['UPLOAD_FOLDER'] / filename
+            qr_file.save(filepath)
+            # Store relative URL for template
+            qr_url = url_for('static', filename=f'uploads/{filename}')
+            set_setting('fee_qr_url', qr_url)
+            flash('QR image uploaded successfully!', 'success')
+        else:
+            flash('Invalid file type. Only PNG, JPG, JPEG, GIF, WEBP allowed.', 'error')
+    
+    # QR Image - URL (fallback)
+    qr_url_input = request.form.get('fee_qr_url', '').strip()
+    if qr_url_input:
+        set_setting('fee_qr_url', qr_url_input)
+        flash('QR URL updated successfully!', 'success')
+    
+    # Delete QR
+    if request.form.get('delete_qr') == '1':
+        set_setting('fee_qr_url', '')
+        flash('QR code removed.', 'success')
+    
+    if upi_link:
+        flash('UPI link saved successfully!', 'success')
+    
     return redirect(url_for('admin_fees'))
 
 @app.route('/admin/fees/verify/<int:pid>', methods=['POST'])

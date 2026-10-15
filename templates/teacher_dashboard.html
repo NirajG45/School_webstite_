@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Dashboard | RSN</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -17,13 +14,11 @@
 <body>
     <a class="skip-link" href="#main">Skip to content</a>
 
-    <!-- HEADER -->
     <header class="site-header" id="top">
         <div class="header-inner">
             <a class="brand" href="{{ url_for('home') }}">
                 <a href="{{ url_for('home') }}" class="brand-mark">
-                    <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="Logo"
-                        class="school-logo">
+                    <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="Logo" class="school-logo">
                 </a>
                 <span class="brand-copy">
                     <strong>RESIDENTIAL SHANTI NIKETAN</strong>
@@ -33,71 +28,98 @@
             </a>
             <nav class="desktop-nav">
                 <a class="nav-link" href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
-                <a class="nav-link" href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> My
-                    Dashboard</a>
-                <a class="nav-link" href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i>
-                    Contact</a>
+                <a class="nav-link" href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+                <a class="nav-link" href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i> Contact</a>
             </nav>
             <div class="header-actions">
-                <div class="user-profile">
-                    <div class="user-avatar" title="{{ session['user_name'] }}">
-                        {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper
-                        if session['user_name'].split()|length > 1 else '' }}
+                <a href="{{ url_for('user_dashboard') }}" class="user-profile-link">
+                    <div class="user-profile">
+                        <div class="user-avatar" title="{{ session['user_name'] }}">
+                            {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                        </div>
+                        <div class="user-dropdown">
+                            <div class="user-info-head">
+                                <div class="user-info-avatar">
+                                    {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                                </div>
+                                <div class="user-info-text">
+                                    <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
+                                    <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
+                                    <span class="user-role-tag">{{ session.get('user_role', 'Teacher')|capitalize }}</span>
+                                </div>
+                            </div>
+                            <hr class="user-divider">
+                            <a href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+                            <a href="{{ url_for('change_password') }}"><i class="fa-solid fa-key"></i> Change Password</a>
+                            <a href="{{ url_for('logout') }}" class="logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                        </div>
                     </div>
-                    <div class="user-dropdown">
-                        <span>Hello, {{ session['user_name'].split()[0] }}</span>
-                        <a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
-                    </div>
-                </div>
-                <button class="menu-toggle" id="menuToggle"
-                    type="button"><span></span><span></span><span></span></button>
+                </a>
+                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-controls="mobileMenu" aria-expanded="false">
+                    <span></span><span></span><span></span>
+                </button>
             </div>
         </div>
     </header>
 
     <div class="menu-backdrop" id="menuBackdrop" hidden></div>
 
-    <aside class="mobile-menu" id="mobileMenu" inert>
+    <aside class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation" aria-hidden="true" inert>
         <div class="mobile-menu-head">
             <span>Menu</span>
-            <button type="button" id="menuClose"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" id="menuClose" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
         </div>
+
+        {% if session.get('user_id') %}
+        <div class="mobile-user-box logged-in">
+            <div class="mobile-user-avatar">
+                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+            </div>
+            <div class="mobile-user-text">
+                <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
+                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
+                <span class="mobile-role-badge">{{ session.get('user_role', 'User')|capitalize }}</span>
+            </div>
+        </div>
+        <div class="mobile-quick-links">
+            <a href="{{ url_for('user_dashboard') }}" class="mobile-dash-btn">
+                <i class="fa-solid fa-gauge"></i> Open My Dashboard
+            </a>
+        </div>
+        {% endif %}
+
         <nav class="mobile-nav">
             <a href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
-            <a href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
-            <a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            <a href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+            <a href="{{ url_for('change_password') }}"><i class="fa-solid fa-key"></i> Change Password</a>
+            <a href="{{ url_for('logout') }}" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </nav>
+        <div class="mobile-menu-foot">Learn <span>•</span> Grow <span>•</span> Succeed</div>
     </aside>
 
     {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}
     <div class="flash-stack">{% for cat, msg in messages %}
         <div class="flash {{ cat }}"><span>{{ msg }}</span><button class="flash-close">×</button></div>
-        {% endfor %}
-    </div>
+    {% endfor %}</div>
     {% endif %}{% endwith %}
 
     <main id="main">
-
-        <!-- Welcome Banner - Teacher Theme -->
         <section class="user-welcome-banner teacher-banner">
             <div class="wrap welcome-inner">
                 <div class="welcome-text">
                     <p class="section-kicker light"><i class="fa-solid fa-chalkboard-user"></i> TEACHER PORTAL</p>
                     <h1>Welcome, {{ user.name.split()[0] }}! 👨‍🏫</h1>
-                    <p>Your Teacher ID: <strong>{{ user.unique_id }}</strong> • <strong>{{ user.subject or 'All
-                            Subjects' }}</strong></p>
+                    <p>Your Teacher ID: <strong>{{ user.unique_id }}</strong> • <strong>{{ user.subject or 'All Subjects' }}</strong></p>
                 </div>
                 <div class="welcome-avatar">
                     <div class="big-avatar teacher-avatar">
-                        {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length
-                        > 1 else '' }}
+                        {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length > 1 else '' }}
                     </div>
                 </div>
             </div>
         </section>
 
         <section class="wrap dashboard-grid">
-
             <!-- PROFILE -->
             <div class="panel">
                 <div class="panel-title">
@@ -139,8 +161,7 @@
                         <span class="profile-value">{{ user.experience }}</span>
                     </div>
                     {% endif %}
-                    <a href="{{ url_for('change_password') }}" class="btn-admin-primary"
-                        style="margin-top:15px; display:inline-flex;">
+                    <a href="{{ url_for('change_password') }}" class="btn-admin-primary" style="margin-top:15px; display:inline-flex;">
                         <i class="fa-solid fa-key"></i> Change Password
                     </a>
                 </div>
@@ -155,10 +176,8 @@
                 <div class="attendance-summary">
                     {% set present = attendance|selectattr('status','equalto','present')|list|length %}
                     {% set absent = attendance|selectattr('status','equalto','absent')|list|length %}
-                    <div class="att-stat"><strong style="color:#168254;">{{ present }}</strong><small>Present</small>
-                    </div>
-                    <div class="att-stat"><strong style="color:#d71938;">{{ absent }}</strong><small>Absent</small>
-                    </div>
+                    <div class="att-stat"><strong style="color:#168254;">{{ present }}</strong><small>Present</small></div>
+                    <div class="att-stat"><strong style="color:#d71938;">{{ absent }}</strong><small>Absent</small></div>
                     <div class="att-stat"><strong>{{ attendance|length }}</strong><small>Total Days</small></div>
                 </div>
                 <div class="att-list">
@@ -210,19 +229,14 @@
                 </div>
                 <div class="notice-list" style="padding:15px 20px;">
                     {% for l in leaves %}
-                    <div class="att-row"
-                        style="flex-direction:column; align-items:flex-start; gap:8px; padding:12px 0;">
+                    <div class="att-row" style="flex-direction:column; align-items:flex-start; gap:8px; padding:12px 0;">
                         <div style="display:flex; width:100%; justify-content:space-between; align-items:center;">
                             <span style="font-size:12px; font-weight:700;">{{ l.from_date }} → {{ l.to_date }}</span>
-                            <span
-                                class="kind-badge kind-{{ 'admission' if l.status=='approved' else 'contact' if l.status=='rejected' else 'notice' }}">{{
-                                l.status|capitalize }}</span>
+                            <span class="kind-badge kind-{{ 'admission' if l.status=='approved' else 'contact' if l.status=='rejected' else 'notice' }}">{{ l.status|capitalize }}</span>
                         </div>
-                        <small style="color:#65758a; font-size:11px;"><strong>{{ l.leave_type }}</strong> — {{
-                            l.reason[:80] }}{% if l.reason|length > 80 %}...{% endif %}</small>
+                        <small style="color:#65758a; font-size:11px;"><strong>{{ l.leave_type }}</strong> — {{ l.reason[:80] }}{% if l.reason|length > 80 %}...{% endif %}</small>
                         {% if l.admin_remarks %}
-                        <small style="color:#1768a7; font-size:11px;"><i class="fa-solid fa-comment"></i> Admin: {{
-                            l.admin_remarks }}</small>
+                        <small style="color:#1768a7; font-size:11px;"><i class="fa-solid fa-comment"></i> Admin: {{ l.admin_remarks }}</small>
                         {% endif %}
                     </div>
                     {% else %}
@@ -274,18 +288,15 @@
                     {% endfor %}
                 </div>
             </div>
-
         </section>
     </main>
 
-    <!-- FOOTER -->
     <footer class="site-footer">
         <div class="wrap footer-inner">
             <div class="footer-brand-col">
                 <a class="footer-brand" href="{{ url_for('home') }}">
                     <span class="brand-mark small-mark">
-                        <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="Logo"
-                            class="school-logo">
+                        <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="Logo" class="school-logo">
                     </span>
                     <span class="footer-brand-copy">
                         <strong>Residential Shanti Niketan</strong>
@@ -316,20 +327,52 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const t = document.getElementById('menuToggle');
-            const m = document.getElementById('mobileMenu');
-            const b = document.getElementById('menuBackdrop');
-            const c = document.getElementById('menuClose');
-            if (t && m) {
-                t.addEventListener('click', () => { m.classList.toggle('is-open'); b.hidden = !b.hidden; document.body.classList.toggle('menu-open'); });
-                c?.addEventListener('click', () => { m.classList.remove('is-open'); b.hidden = true; });
-                b?.addEventListener('click', () => { m.classList.remove('is-open'); b.hidden = true; });
+            const menuToggle = document.getElementById('menuToggle');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const menuBackdrop = document.getElementById('menuBackdrop');
+            const menuClose = document.getElementById('menuClose');
+
+            if (!menuToggle || !mobileMenu || !menuBackdrop) return;
+
+            function openMenu() {
+                mobileMenu.classList.add('is-open');
+                mobileMenu.removeAttribute('inert');
+                mobileMenu.setAttribute('aria-hidden', 'false');
+                menuToggle.setAttribute('aria-expanded', 'true');
+                menuBackdrop.hidden = false;
+                setTimeout(() => menuBackdrop.classList.add('is-open'), 10);
+                document.body.classList.add('menu-open');
             }
-            const y = document.getElementById('year');
-            if (y) y.textContent = new Date().getFullYear();
-            document.querySelectorAll('.flash-close').forEach(btn => btn.addEventListener('click', () => btn.closest('.flash').remove()));
+
+            function closeMenu() {
+                mobileMenu.classList.remove('is-open');
+                mobileMenu.setAttribute('inert', '');
+                mobileMenu.setAttribute('aria-hidden', 'true');
+                menuToggle.setAttribute('aria-expanded', 'false');
+                menuBackdrop.classList.remove('is-open');
+                setTimeout(() => { menuBackdrop.hidden = true; }, 300);
+                document.body.classList.remove('menu-open');
+            }
+
+            menuToggle.addEventListener('click', () => {
+                menuToggle.getAttribute('aria-expanded') === 'true' ? closeMenu() : openMenu();
+            });
+            if (menuClose) menuClose.addEventListener('click', closeMenu);
+            menuBackdrop.addEventListener('click', closeMenu);
+            mobileMenu.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
+
+            const yearEl = document.getElementById('year');
+            if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+            document.querySelectorAll('.flash-close').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const flash = btn.closest('.flash');
+                    flash.style.opacity = '0';
+                    flash.style.transform = 'translateX(100%)';
+                    setTimeout(() => flash.remove(), 300);
+                });
+            });
         });
     </script>
 </body>
-
 </html>

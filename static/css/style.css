@@ -3519,3 +3519,127 @@ img { display: block; max-width: 100%; }
         font-size: 12px;
     }
 }
+
+/* =========================================
+   ADMIN SIDEBAR — USER INFO BOX (NEW)
+   ========================================= */
+.admin-user-box {
+    margin: 16px 14px 6px;
+    padding: 16px 14px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255, 212, 71, 0.08), rgba(215, 25, 56, 0.08));
+    border: 1px solid rgba(255, 212, 71, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-user-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--yellow, #ffd447), var(--red, #d71938));
+}
+
+.admin-user-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--red, #d71938), #b9102c);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 15px;
+    border: 2px solid var(--yellow, #ffd447);
+    flex: 0 0 46px;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 12px rgba(215, 25, 56, 0.3);
+}
+
+.admin-user-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.admin-user-text strong {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-user-text small {
+    font-size: 10.5px;
+    color: #b1c2d4;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.admin-user-text small i {
+    color: var(--yellow, #ffd447);
+    font-size: 10px;
+}
+
+.admin-role-badge {
+    display: inline-block;
+    background: var(--yellow, #ffd447);
+    color: #092f58;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    align-self: flex-start;
+    margin-top: 1px;
+}
+
+/* Mobile toggle improvements */
+.admin-menu-toggle {
+    transition: all 0.25s ease;
+}
+
+.admin-menu-toggle:active {
+    transform: scale(0.95);
+}
+
+/* Sidebar open transition refinement */
+.admin-sidebar {
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-backdrop {
+    transition: opacity 0.3s ease;
+}
+
+/* Hide user box on very small screens if needed */
+@media (max-width: 900px) {
+    .admin-user-box {
+        margin: 14px 12px 6px;
+        padding: 14px 12px;
+    }
+    .admin-user-avatar {
+        width: 42px;
+        height: 42px;
+        font-size: 14px;
+        flex-basis: 42px;
+    }
+    .admin-user-text strong {
+        font-size: 13px;
+    }
+}

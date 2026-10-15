@@ -15,6 +15,9 @@
 
 <body class="admin-body">
 
+    <!-- =========================================
+         ADMIN SIDEBAR (with user info box)
+         ========================================= -->
     <aside class="admin-sidebar" id="adminSidebar">
         <div class="admin-sidebar-head">
             <a href="{{ url_for('home') }}" class="admin-logo">
@@ -22,6 +25,21 @@
                 <span><strong>RSN</strong><small>Admin Panel</small></span>
             </a>
         </div>
+
+        <!-- ✅ NEW: Admin User Info Box -->
+        {% if session.get('user_id') %}
+        <div class="admin-user-box">
+            <div class="admin-user-avatar">
+                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+            </div>
+            <div class="admin-user-text">
+                <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
+                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
+                <span class="admin-role-badge">Admin</span>
+            </div>
+        </div>
+        {% endif %}
+
         <nav class="admin-nav">
             <a href="{{ url_for('admin_dashboard') }}"
                 class="admin-nav-link {% if active_page=='dashboard' %}active{% endif %}">
@@ -53,16 +71,16 @@
                 <i class="fa-solid fa-envelope-open-text"></i> Enquiries</a>
             <hr class="admin-divider">
             <a href="{{ url_for('home') }}" class="admin-nav-link"><i class="fa-solid fa-house"></i> View Website</a>
-            <a href="{{ url_for('user_dashboard') }}" class="admin-nav-link"><i class="fa-solid fa-user"></i> My
-                Profile</a>
-            <a href="{{ url_for('logout') }}" class="admin-nav-link logout-link"><i
-                    class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            <a href="{{ url_for('user_dashboard') }}" class="admin-nav-link"><i class="fa-solid fa-user"></i> My Profile</a>
+            <a href="{{ url_for('logout') }}" class="admin-nav-link logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </nav>
     </aside>
 
     <div class="admin-main">
         <header class="admin-topbar">
-            <button class="admin-menu-toggle" id="adminMenuToggle"><i class="fa-solid fa-bars"></i></button>
+            <button class="admin-menu-toggle" id="adminMenuToggle" aria-label="Toggle sidebar" aria-expanded="false">
+                <i class="fa-solid fa-bars"></i>
+            </button>
             <h1 class="admin-page-title">{% block page_title %}Dashboard{% endblock %}</h1>
             <div class="admin-user-info">
                 <span class="admin-user-name">{{ session['user_name'] }}</span>
@@ -88,20 +106,57 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const t = document.getElementById('adminMenuToggle');
-            const s = document.getElementById('adminSidebar');
-            const b = document.getElementById('adminBackdrop');
-            if (t && s) {
-                t.addEventListener('click', () => { s.classList.toggle('open'); b.classList.toggle('open'); });
-                b.addEventListener('click', () => { s.classList.remove('open'); b.classList.remove('open'); });
+            const menuToggle = document.getElementById('adminMenuToggle');
+            const adminSidebar = document.getElementById('adminSidebar');
+            const adminBackdrop = document.getElementById('adminBackdrop');
+
+            if (!menuToggle || !adminSidebar || !adminBackdrop) return;
+
+            function openSidebar() {
+                adminSidebar.classList.add('open');
+                adminBackdrop.classList.add('open');
+                menuToggle.setAttribute('aria-expanded', 'true');
+                document.body.style.overflow = 'hidden';
             }
+
+            function closeSidebar() {
+                adminSidebar.classList.remove('open');
+                adminBackdrop.classList.remove('open');
+                menuToggle.setAttribute('aria-expanded', 'false');
+                document.body.style.overflow = '';
+            }
+
+            menuToggle.addEventListener('click', () => {
+                adminSidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+            });
+
+            adminBackdrop.addEventListener('click', closeSidebar);
+
+            // Close sidebar when a link is clicked
+            adminSidebar.querySelectorAll('.admin-nav-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 900) closeSidebar();
+                });
+            });
+
+            // Close on resize to desktop
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 900 && adminSidebar.classList.contains('open')) {
+                    closeSidebar();
+                }
+            });
+
+            // Flash close
             document.querySelectorAll('.flash-close').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const f = btn.closest('.flash');
-                    f.style.opacity = '0'; f.style.transform = 'translateX(100%)';
+                    f.style.opacity = '0';
+                    f.style.transform = 'translateX(100%)';
                     setTimeout(() => f.remove(), 300);
                 });
             });
+
+            // Confirm delete
             document.querySelectorAll('[data-confirm]').forEach(el => {
                 el.addEventListener('submit', e => { if (!confirm(el.dataset.confirm)) e.preventDefault(); });
             });

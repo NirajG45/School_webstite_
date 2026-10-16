@@ -111,12 +111,104 @@ def init_db():
             to_user_id INTEGER, to_role TEXT, subject TEXT NOT NULL, body TEXT NOT NULL,
             is_read INTEGER DEFAULT 0, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
+        # =========================================
+        # 🚀 NEW TABLES (for Gallery/Faculty/Events/Achievements)
+        # =========================================
+        
+        # Events / News Table
+        db.execute('''CREATE TABLE IF NOT EXISTS events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL,
+            description TEXT, event_date TEXT NOT NULL, event_time TEXT,
+            location TEXT, category TEXT DEFAULT 'general',
+            is_featured INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        
+        # Faculty Directory Table
+        db.execute('''CREATE TABLE IF NOT EXISTS faculty (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL,
+            subject TEXT NOT NULL, qualification TEXT, experience TEXT,
+            photo_url TEXT, bio TEXT, display_order INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        
+        # Testimonials Table
+        db.execute('''CREATE TABLE IF NOT EXISTS testimonials (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, author_name TEXT NOT NULL,
+            author_role TEXT DEFAULT 'Parent', message TEXT NOT NULL,
+            rating INTEGER DEFAULT 5, is_approved INTEGER DEFAULT 1,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        
+        # Achievements Table
+        db.execute('''CREATE TABLE IF NOT EXISTS achievements (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, student_name TEXT NOT NULL,
+            class_name TEXT, achievement TEXT NOT NULL, year TEXT,
+            category TEXT DEFAULT 'academic', photo_url TEXT,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        
         # Seed notices
         count = db.execute('SELECT COUNT(*) FROM notices').fetchone()[0]
         if count == 0:
             for n in INITIAL_NOTICES:
                 db.execute('INSERT INTO notices (date, title, tag, description, target_role) VALUES (?,?,?,?,?)',
                            (n['date'], n['title'], n['tag'], n['desc'], n['target_role']))
+        
+        # =========================================
+        # 🚀 NEW SEED DATA
+        # =========================================
+        
+        # Seed Events
+        ev_count = db.execute('SELECT COUNT(*) FROM events').fetchone()[0]
+        if ev_count == 0:
+            events_seed = [
+                ('Annual Sports Day 2026', 'A day full of sports, teamwork and fun for all students.', '2026-12-15', '09:00 AM', 'Main Playground', 'sports', 1),
+                ('Parent-Teacher Meeting', 'PTM for all classes — parents are requested to attend.', '2026-11-20', '10:00 AM', 'School Hall', 'meeting', 1),
+                ('Annual Function 2026', 'Cultural program showcasing student talents.', '2026-12-25', '05:00 PM', 'School Auditorium', 'cultural', 1),
+                ('Winter Vacation Begins', 'School will remain closed for winter vacation.', '2026-12-28', 'All Day', 'School', 'holiday', 0),
+                ('Republic Day Celebration', 'Flag hoisting ceremony followed by cultural program.', '2027-01-26', '08:00 AM', 'School Ground', 'cultural', 0),
+                ('Science Exhibition', 'Students showcase innovative science projects.', '2027-02-10', '10:00 AM', 'Science Lab', 'academic', 0),
+            ]
+            for e in events_seed:
+                db.execute('INSERT INTO events (title, description, event_date, event_time, location, category, is_featured) VALUES (?,?,?,?,?,?,?)', e)
+        
+        # Seed Faculty
+        fac_count = db.execute('SELECT COUNT(*) FROM faculty').fetchone()[0]
+        if fac_count == 0:
+            faculty_seed = [
+                ('Mr. Niraj Kumar', 'Mathematics', 'M.Sc., B.Ed', '8+ Years', 'Passionate about making math fun and accessible for every student.', 1),
+                ('Mrs. Priya Sharma', 'English', 'M.A. English, B.Ed', '10+ Years', 'Believes in developing strong communication skills through literature.', 2),
+                ('Mr. Rajesh Verma', 'Science', 'M.Sc. Physics, B.Ed', '6+ Years', 'Encourages curiosity and hands-on learning in science.', 3),
+                ('Mrs. Anita Kumari', 'Hindi', 'M.A. Hindi, B.Ed', '12+ Years', 'Dedicated to promoting Hindi language and cultural values.', 4),
+                ('Mr. Sanjay Prasad', 'Social Science', 'M.A. History, B.Ed', '5+ Years', 'Makes history come alive with engaging storytelling.', 5),
+                ('Ms. Neha Singh', 'Computer Science', 'MCA', '4+ Years', 'Prepares students for the digital future.', 6),
+            ]
+            for f in faculty_seed:
+                db.execute('INSERT INTO faculty (name, subject, qualification, experience, bio, display_order) VALUES (?,?,?,?,?,?)', f)
+        
+        # Seed Testimonials
+        test_count = db.execute('SELECT COUNT(*) FROM testimonials').fetchone()[0]
+        if test_count == 0:
+            test_seed = [
+                ('Mrs. Sunita Devi', 'Parent', 'Excellent school with caring teachers. My daughter has grown so much in confidence.', 5),
+                ('Mr. Ramesh Kumar', 'Parent', 'The attention given to each student is remarkable. Highly recommend RSN.', 5),
+                ('Mr. Anil Yadav', 'Parent', 'Best school in Navinagar Jamui. Quality education and strong values.', 5),
+                ('Mrs. Kavita Verma', 'Parent', 'My son loves going to school every day. The teachers are wonderful.', 5),
+                ('Mr. Deepak Singh', 'Parent', 'Great balance of academics and extracurricular activities.', 5),
+            ]
+            for t in test_seed:
+                db.execute('INSERT INTO testimonials (author_name, author_role, message, rating) VALUES (?,?,?,?)', t)
+        
+        # Seed Achievements
+        ach_count = db.execute('SELECT COUNT(*) FROM achievements').fetchone()[0]
+        if ach_count == 0:
+            ach_seed = [
+                ('Aarav Kumar', 'Class 8', '1st Position in District Math Olympiad', '2026', 'academic'),
+                ('Priya Kumari', 'Class 7', 'Gold Medal in State Chess Championship', '2026', 'sports'),
+                ('Rohit Raj', 'Class 6', 'Winner — Inter-School Science Quiz', '2026', 'academic'),
+                ('Ananya Singh', 'Class 5', 'Best Performer in Annual Dance Competition', '2026', 'cultural'),
+                ('Vivaan Sharma', 'Class 4', '1st Place in Drawing Competition', '2026', 'cultural'),
+                ('Aadhya Verma', 'Class 3', 'Best Student Award — Session 2025-26', '2026', 'academic'),
+            ]
+            for a in ach_seed:
+                db.execute('INSERT INTO achievements (student_name, class_name, achievement, year, category) VALUES (?,?,?,?,?)', a)
         
         # Default school settings
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('fee_qr_url', '')")
@@ -218,7 +310,24 @@ def get_dashboard_url(role):
 @app.route('/')
 def home():
     notices = get_all_notices()
-    return render_template('index.html', notices=notices)
+    db = get_db()
+    
+    # 🚀 NEW: Fetch featured content for homepage
+    upcoming_events = db.execute(
+        "SELECT * FROM events WHERE event_date >= date('now') ORDER BY event_date ASC LIMIT 3"
+    ).fetchall()
+    testimonials = db.execute(
+        'SELECT * FROM testimonials WHERE is_approved = 1 ORDER BY RANDOM() LIMIT 4'
+    ).fetchall()
+    achievements = db.execute(
+        'SELECT * FROM achievements ORDER BY id DESC LIMIT 3'
+    ).fetchall()
+    
+    return render_template('index.html', 
+                          notices=notices,
+                          upcoming_events=upcoming_events,
+                          testimonials=testimonials,
+                          achievements=achievements)
 
 @app.route('/notice')
 def notices_page():
@@ -228,6 +337,60 @@ def notices_page():
 @app.route('/academics')
 def academics_page():
     return render_template('academics.html')
+
+# =========================================
+# 🚀 NEW PUBLIC ROUTES: Gallery, Faculty, Events, Achievements, FAQ
+# =========================================
+
+@app.route('/gallery')
+def gallery_page():
+    """Photo gallery with categories"""
+    gallery_images = [
+        {'url': 'campus.jpg', 'title': 'School Campus', 'category': 'campus'},
+        {'url': 'head2.jpeg', 'title': 'Annual Day', 'category': 'events'},
+        {'url': 'all.jpeg', 'title': 'Group Photo', 'category': 'events'},
+        {'url': 'all_starfs.jpeg', 'title': 'Our Staff', 'category': 'faculty'},
+        {'url': 'Doc.jpeg', 'title': 'Teachers', 'category': 'faculty'},
+        {'url': 'head.jpeg', 'title': 'Management', 'category': 'faculty'},
+        {'url': 'head_maam.jpeg', 'title': 'Principal Ma\'am', 'category': 'faculty'},
+        {'url': 'Radhay_Krishna.jpeg', 'title': 'Cultural Program', 'category': 'events'},
+        {'url': 'teachers_day.jpeg', 'title': 'Teachers Day', 'category': 'events'},
+        {'url': 'teachers.jpeg', 'title': 'Teaching Staff', 'category': 'faculty'},
+        {'url': 'drawings.jpeg', 'title': 'Student Art', 'category': 'activities'},
+        {'url': 'Niraj.jpeg', 'title': 'Sports Day', 'category': 'sports'},
+    ]
+    return render_template('gallery.html', images=gallery_images)
+
+
+@app.route('/faculty')
+def faculty_page():
+    """Faculty directory"""
+    db = get_db()
+    faculty_list = db.execute('SELECT * FROM faculty ORDER BY display_order, id').fetchall()
+    return render_template('faculty.html', faculty=faculty_list)
+
+
+@app.route('/events')
+def events_page():
+    """Events & News page"""
+    db = get_db()
+    events = db.execute('SELECT * FROM events ORDER BY event_date ASC').fetchall()
+    return render_template('events.html', events=events)
+
+
+@app.route('/faq')
+def faq_page():
+    """FAQ page"""
+    return render_template('faq.html')
+
+
+@app.route('/achievements')
+def achievements_page():
+    """Student achievements showcase"""
+    db = get_db()
+    achievements = db.execute('SELECT * FROM achievements ORDER BY id DESC').fetchall()
+    return render_template('achievements.html', achievements=achievements)
+
 
 # =========================================
 # 6. AUTH ROUTES (LOGIN ONLY - NO REGISTRATION)
@@ -838,3 +1001,4 @@ init_db()
 
 if __name__ == '__main__':
     app.run(debug=os.environ.get('FLASK_DEBUG', '0') == '1', host='127.0.0.1', port=int(os.environ.get('PORT', 5000)))
+    

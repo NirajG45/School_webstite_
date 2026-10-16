@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Faculty | Residential Shanti Niketan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="brand" href="{{ url_for('home') }}">
+                <a href="{{ url_for('home') }}" class="brand-mark">
+                    <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="Logo" class="school-logo">
+                </a>
+                <span class="brand-copy">
+                    <strong>RESIDENTIAL SHANTI NIKETAN</strong>
+                    <b>NAVINAGAR JAMUI</b>
+                    <small>Pre-Nursery to Class 8 <i>•</i> शिक्षा • संस्कार • उज्ज्वल भविष्य</small>
+                </span>
+            </a>
+            <nav class="desktop-nav">
+                <a class="nav-link" href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
+                <a class="nav-link" href="{{ url_for('gallery_page') }}"><i class="fa-regular fa-images"></i> Gallery</a>
+                <a class="nav-link active" href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i> Faculty</a>
+                <a class="nav-link" href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i> Events</a>
+                <a class="nav-link" href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i> Achievements</a>
+                <a class="nav-link" href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
+            </nav>
+            <div class="header-actions">
+                <a class="login-btn" href="{{ url_for('login_page') }}"><i class="fa-regular fa-user"></i><span>Login</span></a>
+                <button class="menu-toggle" id="menuToggle"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-hero">
+            <div class="wrap">
+                <div class="page-hero-inner">
+                    <div class="page-hero-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+                    <div>
+                        <h1>Meet Our Faculty</h1>
+                        <p>Dedicated educators committed to shaping bright futures</p>
+                    </div>
+                    <a href="{{ url_for('home') }}" class="btn-back-home">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="faculty-page-content wrap">
+            <div class="faculty-grid">
+                {% for f in faculty %}
+                <div class="faculty-card">
+                    <div class="faculty-avatar">
+                        {% if f.photo_url %}
+                        <img src="{{ f.photo_url }}" alt="{{ f.name }}">
+                        {% else %}
+                        <span>{{ f.name.split()[0][0] }}{{ f.name.split()[-1][0] if f.name.split()|length > 1 else '' }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="faculty-info">
+                        <h3>{{ f.name }}</h3>
+                        <span class="faculty-subject">{{ f.subject }}</span>
+                        <div class="faculty-meta">
+                            {% if f.qualification %}
+                            <span><i class="fa-solid fa-graduation-cap"></i> {{ f.qualification }}</span>
+                            {% endif %}
+                            {% if f.experience %}
+                            <span><i class="fa-solid fa-briefcase"></i> {{ f.experience }}</span>
+                            {% endif %}
+                        </div>
+                        {% if f.bio %}
+                        <p class="faculty-bio">{{ f.bio }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <p class="empty-row">No faculty members yet.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="wrap footer-inner">
+            <div class="footer-brand-col">
+                <a class="footer-brand" href="{{ url_for('home') }}">
+                    <span class="brand-mark small-mark">
+                        <img src="{{ url_for('static', filename='images/school-logo.png') }}" class="school-logo" alt="Logo">
+                    </span>
+                    <span class="footer-brand-copy">
+                        <strong>Residential Shanti Niketan</strong>
+                        <small>Navinagar, Jamui</small>
+                        <span class="footer-tagline">Education • Values • Excellence</span>
+                    </span>
+                </a>
+            </div>
+            <div class="footer-links-col">
+                <h4>About School</h4>
+                <p style="font-size:12.5px;color:#aebfd0;margin:0;">Education • Values • A brighter future</p>
+            </div>
+            <div class="footer-contact-col">
+                <h4>Navigate</h4>
+                <a class="back-top" href="#top">Back to top <i class="fa-solid fa-arrow-up"></i></a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p class="copyright-text">© <span id="year"></span> Residential Shanti Niketan.</p>
+            <div class="developer-credit">
+                <span class="dev-badge"><i class="fa-solid fa-code"></i> Developed by <strong>Niraj Kumar</strong>
+                    <a href="tel:9155658081" class="dev-contact"><i class="fa-solid fa-phone"></i> 9155658081</a>
+                </span>
+            </div>
+        </div>
+    </footer>
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

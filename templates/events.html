@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events & News | Residential Shanti Niketan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="brand" href="{{ url_for('home') }}">
+                <a href="{{ url_for('home') }}" class="brand-mark">
+                    <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="Logo" class="school-logo">
+                </a>
+                <span class="brand-copy">
+                    <strong>RESIDENTIAL SHANTI NIKETAN</strong>
+                    <b>NAVINAGAR JAMUI</b>
+                    <small>Pre-Nursery to Class 8 <i>•</i> शिक्षा • संस्कार • उज्ज्वल भविष्य</small>
+                </span>
+            </a>
+            <nav class="desktop-nav">
+                <a class="nav-link" href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
+                <a class="nav-link" href="{{ url_for('gallery_page') }}"><i class="fa-regular fa-images"></i> Gallery</a>
+                <a class="nav-link" href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i> Faculty</a>
+                <a class="nav-link active" href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i> Events</a>
+                <a class="nav-link" href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i> Achievements</a>
+                <a class="nav-link" href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
+            </nav>
+            <div class="header-actions">
+                <a class="login-btn" href="{{ url_for('login_page') }}"><i class="fa-regular fa-user"></i><span>Login</span></a>
+                <button class="menu-toggle" id="menuToggle"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-hero">
+            <div class="wrap">
+                <div class="page-hero-inner">
+                    <div class="page-hero-icon"><i class="fa-regular fa-calendar-days"></i></div>
+                    <div>
+                        <h1>Events & News</h1>
+                        <p>Stay updated with everything happening at our school</p>
+                    </div>
+                    <a href="{{ url_for('home') }}" class="btn-back-home">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="events-page-content wrap">
+            <div class="events-timeline">
+                {% for e in events %}
+                <div class="event-card">
+                    <div class="event-date-box">
+                        <span class="event-month">{{ e.event_date[5:7] }}</span>
+                        <span class="event-day">{{ e.event_date[8:10] }}</span>
+                        <span class="event-year">{{ e.event_date[0:4] }}</span>
+                    </div>
+                    <div class="event-details">
+                        <span class="event-category cat-{{ e.category }}">{{ e.category | capitalize }}</span>
+                        <h3>{{ e.title }}</h3>
+                        {% if e.description %}<p>{{ e.description }}</p>{% endif %}
+                        <div class="event-meta">
+                            {% if e.event_time %}<span><i class="fa-regular fa-clock"></i> {{ e.event_time }}</span>{% endif %}
+                            {% if e.location %}<span><i class="fa-solid fa-location-dot"></i> {{ e.location }}</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <p class="empty-row">No upcoming events yet.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="wrap footer-inner">
+            <div class="footer-brand-col">
+                <a class="footer-brand" href="{{ url_for('home') }}">
+                    <span class="brand-mark small-mark">
+                        <img src="{{ url_for('static', filename='images/school-logo.png') }}" class="school-logo" alt="Logo">
+                    </span>
+                    <span class="footer-brand-copy">
+                        <strong>Residential Shanti Niketan</strong>
+                        <small>Navinagar, Jamui</small>
+                        <span class="footer-tagline">Education • Values • Excellence</span>
+                    </span>
+                </a>
+            </div>
+            <div class="footer-contact-col">
+                <h4>Navigate</h4>
+                <a class="back-top" href="#top">Back to top <i class="fa-solid fa-arrow-up"></i></a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p class="copyright-text">© <span id="year"></span> Residential Shanti Niketan.</p>
+        </div>
+    </footer>
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Gallery | Residential Shanti Niketan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="site-header" id="top">
+        <div class="header-inner">
+            <a class="brand" href="{{ url_for('home') }}">
+                <a href="{{ url_for('home') }}" class="brand-mark">
+                    <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="Logo" class="school-logo">
+                </a>
+                <span class="brand-copy">
+                    <strong>RESIDENTIAL SHANTI NIKETAN</strong>
+                    <b>NAVINAGAR JAMUI</b>
+                    <small>Pre-Nursery to Class 8 <i>•</i> शिक्षा • संस्कार • उज्ज्वल भविष्य</small>
+                </span>
+            </a>
+            <nav class="desktop-nav">
+                <a class="nav-link" href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
+                <a class="nav-link" href="{{ url_for('gallery_page') }}"><i class="fa-regular fa-images"></i> Gallery</a>
+                <a class="nav-link" href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i> Faculty</a>
+                <a class="nav-link" href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i> Events</a>
+                <a class="nav-link" href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i> Achievements</a>
+                <a class="nav-link" href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
+            </nav>
+            <div class="header-actions">
+                {% if session.get('user_id') %}
+                <div class="user-profile">
+                    <a href="{{ url_for('user_dashboard') }}" class="user-avatar-btn">
+                        <div class="user-avatar">{{ session['user_name'].split()[0][0] | upper }}</div>
+                    </a>
+                </div>
+                {% else %}
+                <a class="login-btn" href="{{ url_for('login_page') }}"><i class="fa-regular fa-user"></i><span>Login</span></a>
+                {% endif %}
+                <button class="menu-toggle" id="menuToggle"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-hero">
+            <div class="wrap">
+                <div class="page-hero-inner">
+                    <div class="page-hero-icon"><i class="fa-regular fa-images"></i></div>
+                    <div>
+                        <h1>Photo Gallery</h1>
+                        <p>Explore memories, events and life at Residential Shanti Niketan</p>
+                    </div>
+                    <a href="{{ url_for('home') }}" class="btn-back-home">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="gallery-page-content wrap">
+            <!-- Filter Tabs -->
+            <div class="gallery-filters">
+                <button class="gallery-filter-btn active" data-filter="all">
+                    <i class="fa-solid fa-border-all"></i> All
+                </button>
+                <button class="gallery-filter-btn" data-filter="campus">
+                    <i class="fa-solid fa-school"></i> Campus
+                </button>
+                <button class="gallery-filter-btn" data-filter="events">
+                    <i class="fa-solid fa-calendar-star"></i> Events
+                </button>
+                <button class="gallery-filter-btn" data-filter="faculty">
+                    <i class="fa-solid fa-chalkboard-user"></i> Faculty
+                </button>
+                <button class="gallery-filter-btn" data-filter="sports">
+                    <i class="fa-solid fa-futbol"></i> Sports
+                </button>
+                <button class="gallery-filter-btn" data-filter="activities">
+                    <i class="fa-solid fa-palette"></i> Activities
+                </button>
+            </div>
+
+            <!-- Gallery Grid -->
+            <div class="gallery-page-grid" id="galleryGrid">
+                {% for img in images %}
+                <div class="gallery-page-item" data-category="{{ img.category }}">
+                    <img src="{{ url_for('static', filename='images/' + img.url) }}" alt="{{ img.title }}" loading="lazy">
+                    <div class="gallery-page-overlay">
+                        <h4>{{ img.title }}</h4>
+                        <span class="gallery-category-tag">{{ img.category | capitalize }}</span>
+                        <i class="fa-solid fa-magnifying-glass-plus"></i>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" id="lightboxClose"><i class="fa-solid fa-xmark"></i></button>
+        <button class="lightbox-nav lightbox-prev" id="lightboxPrev"><i class="fa-solid fa-chevron-left"></i></button>
+        <img src="" alt="" id="lightboxImg" class="lightbox-img">
+        <button class="lightbox-nav lightbox-next" id="lightboxNext"><i class="fa-solid fa-chevron-right"></i></button>
+        <div class="lightbox-counter" id="lightboxCounter">1 / 12</div>
+    </div>
+
+    <script>
+        // Filter functionality
+        document.querySelectorAll('.gallery-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.gallery-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const filter = btn.dataset.filter;
+                document.querySelectorAll('.gallery-page-item').forEach(item => {
+                    if (filter === 'all' || item.dataset.category === filter) {
+                        item.style.display = 'block';
+                        item.classList.add('fade-in');
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Lightbox
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+        const lightboxCounter = document.getElementById('lightboxCounter');
+        const items = document.querySelectorAll('.gallery-page-item');
+        let currentIndex = 0;
+
+        items.forEach((item, i) => {
+            item.addEventListener('click', () => openLightbox(i));
+        });
+
+        function openLightbox(index) {
+            currentIndex = index;
+            lightboxImg.src = items[index].querySelector('img').src;
+            lightboxCounter.textContent = `${index + 1} / ${items.length}`;
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+        document.getElementById('lightboxPrev').addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + items.length) % items.length;
+            openLightbox(currentIndex);
+        });
+        document.getElementById('lightboxNext').addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % items.length;
+            openLightbox(currentIndex);
+        });
+        lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
+        document.addEventListener('keydown', (e) => {
+            if (!lightbox.classList.contains('active')) return;
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') document.getElementById('lightboxPrev').click();
+            if (e.key === 'ArrowRight') document.getElementById('lightboxNext').click();
+        });
+
+        // Mobile menu
+        const t = document.getElementById('menuToggle');
+        if (t) t.addEventListener('click', () => {});
+    </script>
+</body>
+</html>

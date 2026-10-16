@@ -36,21 +36,22 @@
                     <small>Pre-Nursery to Class 8 <i>•</i> शिक्षा • संस्कार • उज्ज्वल भविष्य</small>
                 </span>
             </a>
+
+            <!-- ========== UPDATED DESKTOP NAVIGATION ========== -->
             <nav class="desktop-nav" aria-label="Main navigation">
                 <a class="nav-link active" href="#top"><i class="fa-solid fa-house"></i> Home</a>
-                <a class="nav-link" href="#about"><i class="fa-solid fa-users"></i> About Us</a>
-                <a class="nav-link" href="#academics"><i class="fa-solid fa-book-open"></i> Academics</a>
-                <a class="nav-link" href="#facilities"><i class="fa-solid fa-building-columns"></i> Facilities</a>
-                <a class="nav-link" href="#gallery"><i class="fa-regular fa-images"></i> Gallery</a>
-                <a class="nav-link" href="#notices"><i class="fa-solid fa-bell"></i> Notices</a>
+                <a class="nav-link" href="{{ url_for('gallery_page') }}"><i class="fa-regular fa-images"></i> Gallery</a>
+                <a class="nav-link" href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i> Faculty</a>
+                <a class="nav-link" href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i> Events</a>
+                <a class="nav-link" href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i> Achievements</a>
+                <a class="nav-link" href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
                 <a class="nav-link" href="#contact"><i class="fa-regular fa-envelope"></i> Contact</a>
             </nav>
 
             <div class="header-actions">
                 {% if session.get('user_id') %}
-                <!-- ✅ LOGGED IN: User profile with hover dropdown -->
+                <!-- LOGGED IN: User profile with hover dropdown -->
                 <div class="user-profile">
-                    <!-- Click anywhere here → goes to dashboard -->
                     <a href="{{ url_for('user_dashboard') }}" class="user-avatar-btn"
                         title="{{ session['user_name'] }}">
                         <div class="user-avatar">
@@ -59,7 +60,6 @@
                             else '' }}
                         </div>
                     </a>
-                    <!-- Hover dropdown: shows name + ID -->
                     <div class="user-dropdown">
                         <div class="user-info-head">
                             <div class="user-info-avatar">
@@ -92,12 +92,9 @@
                     </div>
                 </div>
                 {% else %}
-                <!-- ✅ LOGGED OUT: Login button -->
                 <a class="login-btn" href="{{ url_for('login_page') }}">
                     <i class="fa-regular fa-user"></i><span>Login</span>
                 </a>
-
-                <!-- Old Enquire button -->
                 <a class="enquire-btn-secondary" href="#admission">
                     <i class="fa-regular fa-paper-plane"></i><span>Enquire</span>
                 </a>
@@ -121,7 +118,6 @@
                     class="fa-solid fa-xmark"></i></button>
         </div>
 
-        <!-- ✅ Mobile User Info Section -->
         {% if session.get('user_id') %}
         <div class="mobile-user-box logged-in">
             <div class="mobile-user-avatar">
@@ -154,12 +150,16 @@
         </div>
         {% endif %}
 
+        <!-- ========== UPDATED MOBILE NAVIGATION ========== -->
         <nav class="mobile-nav">
             <a href="#top"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="{{ url_for('gallery_page') }}"><i class="fa-regular fa-images"></i> Photo Gallery</a>
+            <a href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i> Our Faculty</a>
+            <a href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i> Events & News</a>
+            <a href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i> Achievements</a>
+            <a href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
             <a href="#about"><i class="fa-solid fa-users"></i> About Us</a>
             <a href="#academics"><i class="fa-solid fa-book-open"></i> Academics</a>
-            <a href="#facilities"><i class="fa-solid fa-building-columns"></i> Facilities</a>
-            <a href="#gallery"><i class="fa-regular fa-images"></i> Gallery</a>
             <a href="#notices"><i class="fa-solid fa-bell"></i> Notice Board</a>
             <a href="#contact"><i class="fa-regular fa-envelope"></i> Contact Us</a>
 
@@ -225,6 +225,41 @@
             </div>
             <div class="hero-bottom-wave"></div>
         </section>
+
+        <!-- =========================================
+             🚀 NEW: UPCOMING EVENTS (Home Preview)
+             ========================================= -->
+        {% if upcoming_events %}
+        <section class="wrap home-events-section">
+            <div class="section-heading-center">
+                <p class="section-kicker">WHAT'S HAPPENING</p>
+                <h2>Upcoming Events</h2>
+                <p>Stay informed about the latest activities and events at our school</p>
+            </div>
+            <div class="home-events-grid">
+                {% for e in upcoming_events %}
+                <div class="home-event-card">
+                    <div class="home-event-date">
+                        <span class="he-month">{{ e.event_date[5:7] }}</span>
+                        <span class="he-day">{{ e.event_date[8:10] }}</span>
+                    </div>
+                    <div class="home-event-info">
+                        <span class="event-category cat-{{ e.category }}">{{ e.category | capitalize }}</span>
+                        <h3>{{ e.title }}</h3>
+                        <p>{{ e.description or '' }}</p>
+                        <div class="event-meta">
+                            {% if e.event_time %}<span><i class="fa-regular fa-clock"></i> {{ e.event_time }}</span>{% endif %}
+                            {% if e.location %}<span><i class="fa-solid fa-location-dot"></i> {{ e.location }}</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div style="text-align:center; margin-top:25px;">
+                <a href="{{ url_for('events_page') }}" class="btn btn-primary">View All Events <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        </section>
+        {% endif %}
 
         <!-- QUICK STRIP -->
         <section class="quick-strip wrap" aria-label="School shortcuts">
@@ -350,6 +385,39 @@
             <p class="stat-footnote">*Replace sample figures with verified school data before publishing.</p>
         </section>
 
+        <!-- =========================================
+             🚀 NEW: TESTIMONIALS (Home)
+             ========================================= -->
+        {% if testimonials %}
+        <section class="home-testimonials">
+            <div class="wrap">
+                <div class="section-heading-center" style="margin-bottom:40px;">
+                    <p class="section-kicker light">WHAT PARENTS SAY</p>
+                    <h2 style="color:#fff;">Trusted by Parents</h2>
+                    <p style="color:#d6e6f4;">Hear from our school community</p>
+                </div>
+                <div class="testimonials-slider" id="testimonialsSlider">
+                    {% for t in testimonials %}
+                    <div class="testimonial-card">
+                        <div class="testimonial-quote"><i class="fa-solid fa-quote-left"></i></div>
+                        <div class="testimonial-stars">
+                            {% for i in range(t.rating) %}<i class="fa-solid fa-star"></i>{% endfor %}
+                        </div>
+                        <p class="testimonial-text">"{{ t.message }}"</p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar">{{ t.author_name.split()[0][0] }}{{ t.author_name.split()[-1][0] if t.author_name.split()|length > 1 else '' }}</div>
+                            <div>
+                                <strong>{{ t.author_name }}</strong>
+                                <small>{{ t.author_role }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
         <!-- LOWER GRID -->
         <section class="lower-grid wrap" id="gallery">
             <div class="classes-banner gallery-slider-box">
@@ -425,6 +493,12 @@
                         <span>Pre-Nursery</span><span>Nursery</span><span>LKG</span><span>UKG</span><span>Class
                             1–8</span>
                     </div>
+                    <!-- NEW: View Gallery Button -->
+                    <div style="margin-top:20px;">
+                        <a href="{{ url_for('gallery_page') }}" class="btn btn-yellow" style="display:inline-flex;">
+                            <i class="fa-regular fa-images"></i> View Full Gallery
+                        </a>
+                    </div>
                 </div>
 
             </div>
@@ -479,6 +553,34 @@
             </section>
         </section>
 
+        <!-- =========================================
+             🚀 NEW: ACHIEVEMENTS PREVIEW (Home)
+             ========================================= -->
+        {% if achievements %}
+        <section class="wrap home-achievements-section">
+            <div class="section-heading-center">
+                <p class="section-kicker">PROUD MOMENTS</p>
+                <h2>Recent Achievements</h2>
+                <p>Celebrating our students' success stories</p>
+            </div>
+            <div class="home-achievements-grid">
+                {% for a in achievements %}
+                <div class="home-achievement-card">
+                    <div class="home-achievement-icon cat-{{ a.category }}">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <h4>{{ a.student_name }}</h4>
+                    <small>{{ a.class_name }} • {{ a.year }}</small>
+                    <p>{{ a.achievement }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            <div style="text-align:center; margin-top:25px;">
+                <a href="{{ url_for('achievements_page') }}" class="btn btn-primary">View All Achievements <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        </section>
+        {% endif %}
+
         <!-- CONTACT BAND -->
         <section class="contact-band" id="contact">
             <div class="wrap contact-inner">
@@ -522,16 +624,16 @@
                 </a>
             </div>
 
+            <!-- NEW: Quick Links in Footer -->
             <div class="footer-links-col">
-                <h4>About School</h4>
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                    <span>
-                        <strong style="color: #fff; font-size: 13px; display: block;">Residential Shanti
-                            Niketan</strong>
-                        <small style="font-size: 11px; color: #aebfd0;">Navinagar Jamui</small>
-                    </span>
+                <h4>Quick Links</h4>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+                    <a href="{{ url_for('gallery_page') }}" style="font-size:12.5px;color:#aebfd0;display:flex;align-items:center;gap:8px;transition:all 0.25s;"><i class="fa-regular fa-images" style="color:var(--yellow);font-size:11px;"></i> Photo Gallery</a>
+                    <a href="{{ url_for('faculty_page') }}" style="font-size:12.5px;color:#aebfd0;display:flex;align-items:center;gap:8px;transition:all 0.25s;"><i class="fa-solid fa-chalkboard-user" style="color:var(--yellow);font-size:11px;"></i> Our Faculty</a>
+                    <a href="{{ url_for('events_page') }}" style="font-size:12.5px;color:#aebfd0;display:flex;align-items:center;gap:8px;transition:all 0.25s;"><i class="fa-regular fa-calendar-days" style="color:var(--yellow);font-size:11px;"></i> Events</a>
+                    <a href="{{ url_for('achievements_page') }}" style="font-size:12.5px;color:#aebfd0;display:flex;align-items:center;gap:8px;transition:all 0.25s;"><i class="fa-solid fa-trophy" style="color:var(--yellow);font-size:11px;"></i> Achievements</a>
+                    <a href="{{ url_for('faq_page') }}" style="font-size:12.5px;color:#aebfd0;display:flex;align-items:center;gap:8px;transition:all 0.25s;"><i class="fa-solid fa-circle-question" style="color:var(--yellow);font-size:11px;"></i> FAQ</a>
                 </div>
-                <p style="font-size: 12.5px; color: #aebfd0; margin: 0;">Education • Values • A brighter future</p>
             </div>
 
             <div class="footer-contact-col">

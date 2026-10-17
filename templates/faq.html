@@ -54,85 +54,21 @@
 
         <section class="faq-content wrap">
             <div class="faq-list">
-                <details class="faq-item" open>
+                {% for f in faqs %}
+                <details class="faq-item" {% if loop.first %}open{% endif %}>
                     <summary>
-                        <span><i class="fa-solid fa-graduation-cap"></i> What classes does the school offer?</span>
+                        <span><i class="fa-solid fa-circle-question"></i> {{ f.question }}</span>
                         <i class="fa-solid fa-chevron-down faq-arrow"></i>
                     </summary>
-                    <div class="faq-answer">
-                        Residential Shanti Niketan offers education from <strong>Pre-Nursery to Class 8</strong>, covering Pre-Primary (Pre-Nursery, Nursery, LKG, UKG), Primary (Class 1-5), and Middle School (Class 6-8).
-                    </div>
+                    <div class="faq-answer">{{ f.answer }}</div>
                 </details>
-                
-                <details class="faq-item">
-                    <summary>
-                        <span><i class="fa-solid fa-file-signature"></i> How can I apply for admission?</span>
-                        <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                    </summary>
-                    <div class="faq-answer">
-                        You can fill the admission enquiry form on our homepage, or contact the school office directly at <strong>9155658081</strong>. Our team will guide you through the admission process.
-                    </div>
-                </details>
-                
-                <details class="faq-item">
-                    <summary>
-                        <span><i class="fa-solid fa-indian-rupee-sign"></i> How can I pay the school fees?</span>
-                        <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                    </summary>
-                    <div class="faq-answer">
-                        Fees can be paid online through our Parent/Student Portal using <strong>UPI (Google Pay, PhonePe, Paytm)</strong> by scanning the QR code or clicking the UPI payment link. Payment history is also tracked in your dashboard.
-                    </div>
-                </details>
-                
-                <details class="faq-item">
-                    <summary>
-                        <span><i class="fa-solid fa-key"></i> How do I get my login credentials?</span>
-                        <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                    </summary>
-                    <div class="faq-answer">
-                        Login credentials are created by the school admin. You will receive your <strong>Unique ID</strong> (e.g., TSNV00001, PSNV00001, STSNV00001) and a default password. On your first login, you will be asked to set a new password.
-                    </div>
-                </details>
-                
-                <details class="faq-item">
-                    <summary>
-                        <span><i class="fa-solid fa-clock"></i> What are the school timings?</span>
-                        <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                    </summary>
-                    <div class="faq-answer">
-                        The school operates from <strong>Monday to Saturday</strong>, with class timings varying by grade. For specific timings, please refer to the class routine or contact the school office.
-                    </div>
-                </details>
-                
-                <details class="faq-item">
-                    <summary>
-                        <span><i class="fa-solid fa-bus"></i> Is transportation available?</span>
-                        <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                    </summary>
-                    <div class="faq-answer">
-                        Please contact the school office for information about transportation facilities in your area.
-                    </div>
-                </details>
-                
-                <details class="faq-item">
-                    <summary>
-                        <span><i class="fa-solid fa-clipboard-check"></i> How can parents track their child's attendance?</span>
-                        <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                    </summary>
-                    <div class="faq-answer">
-                        Parents can log into their <strong>Parent Dashboard</strong> to view their child's complete attendance record, including present days, absent days, and leave history.
-                    </div>
-                </details>
-                
-                <details class="faq-item">
-                    <summary>
-                        <span><i class="fa-solid fa-shield-halved"></i> Is the school environment safe for children?</span>
-                        <i class="fa-solid fa-chevron-down faq-arrow"></i>
-                    </summary>
-                    <div class="faq-answer">
-                        Absolutely! We prioritize student safety with a <strong>caring environment</strong>, trained staff, and a secure campus. Our core values include safety, respect, and holistic development.
-                    </div>
-                </details>
+                {% else %}
+                <div style="text-align:center;padding:60px 20px;">
+                    <i class="fa-solid fa-circle-question" style="font-size:60px;color:#cbd5e1;margin-bottom:15px;"></i>
+                    <h3 style="color:var(--navy);font-family:'Playfair Display',serif;">No FAQs Yet</h3>
+                    <p style="color:var(--muted);font-size:13px;">Admin will add FAQs soon.</p>
+                </div>
+                {% endfor %}
             </div>
         </section>
     </main>

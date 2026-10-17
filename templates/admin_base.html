@@ -69,6 +69,24 @@
             <a href="{{ url_for('admin_enquiries') }}"
                 class="admin-nav-link {% if active_page=='enquiries' %}active{% endif %}">
                 <i class="fa-solid fa-envelope-open-text"></i> Enquiries</a>
+
+                        <!-- NEW: Website Content Management -->
+            <hr class="admin-divider">
+            <p style="font-size:10px;color:#6b8299;text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:8px 16px 6px;">Website Content</p>
+            <a href="{{ url_for('admin_faculty') }}" class="admin-nav-link {% if active_page=='faculty' %}active{% endif %}">
+                <i class="fa-solid fa-chalkboard-user"></i> Faculty</a>
+            <a href="{{ url_for('admin_events') }}" class="admin-nav-link {% if active_page=='events' %}active{% endif %}">
+                <i class="fa-regular fa-calendar-days"></i> Events</a>
+            <a href="{{ url_for('admin_gallery') }}" class="admin-nav-link {% if active_page=='gallery' %}active{% endif %}">
+                <i class="fa-regular fa-images"></i> Gallery</a>
+            <a href="{{ url_for('admin_achievements') }}" class="admin-nav-link {% if active_page=='achievements' %}active{% endif %}">
+                <i class="fa-solid fa-trophy"></i> Achievements</a>
+            <a href="{{ url_for('admin_testimonials') }}" class="admin-nav-link {% if active_page=='testimonials' %}active{% endif %}">
+                <i class="fa-solid fa-quote-left"></i> Testimonials</a>
+            <a href="{{ url_for('admin_faq') }}" class="admin-nav-link {% if active_page=='faq' %}active{% endif %}">
+                <i class="fa-solid fa-circle-question"></i> FAQ</a>
+            <hr class="admin-divider">
+
             <hr class="admin-divider">
             <a href="{{ url_for('home') }}" class="admin-nav-link"><i class="fa-solid fa-house"></i> View Website</a>
             <a href="{{ url_for('user_dashboard') }}" class="admin-nav-link"><i class="fa-solid fa-user"></i> My Profile</a>

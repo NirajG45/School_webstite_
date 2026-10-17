@@ -17,7 +17,7 @@ DB_PATH = Path(os.environ.get('SCHOOL_DB_PATH', BASE_DIR / 'school.db'))
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'change-this-before-deployment')
-app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024
 app.config['SESSION_COOKIE_SECURE'] = True if os.environ.get('FLASK_ENV') == 'production' else False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
@@ -112,7 +112,7 @@ def init_db():
             is_read INTEGER DEFAULT 0, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
         # =========================================
-        # 🚀 NEW TABLES (for Gallery/Faculty/Events/Achievements)
+        # 🚀 NEW TABLES
         # =========================================
         
         # Events / News Table
@@ -144,20 +144,38 @@ def init_db():
             category TEXT DEFAULT 'academic', photo_url TEXT,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # Seed notices
-        count = db.execute('SELECT COUNT(*) FROM notices').fetchone()[0]
-        if count == 0:
+        # Gallery Images Table
+        db.execute('''CREATE TABLE IF NOT EXISTS gallery (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL,
+            image_url TEXT NOT NULL, category TEXT DEFAULT 'campus',
+            display_order INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        
+        # FAQ Table
+        db.execute('''CREATE TABLE IF NOT EXISTS faq (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, question TEXT NOT NULL,
+            answer TEXT NOT NULL, display_order INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        
+        # =========================================
+        # 🚀 SEED DATA (Only once per table)
+        # =========================================
+        def _is_seeded(key):
+            r = db.execute("SELECT value FROM school_settings WHERE key = ?", (f'_seed_{key}',)).fetchone()
+            return r and r[0] == '1'
+        
+        def _mark_seeded(key):
+            db.execute("INSERT OR REPLACE INTO school_settings (key, value) VALUES (?, '1')", (f'_seed_{key}',))
+        
+        # Seed Notices
+        if not _is_seeded('notices'):
             for n in INITIAL_NOTICES:
                 db.execute('INSERT INTO notices (date, title, tag, description, target_role) VALUES (?,?,?,?,?)',
                            (n['date'], n['title'], n['tag'], n['desc'], n['target_role']))
-        
-        # =========================================
-        # 🚀 NEW SEED DATA
-        # =========================================
+            _mark_seeded('notices')
         
         # Seed Events
-        ev_count = db.execute('SELECT COUNT(*) FROM events').fetchone()[0]
-        if ev_count == 0:
+        if not _is_seeded('events'):
             events_seed = [
                 ('Annual Sports Day 2026', 'A day full of sports, teamwork and fun for all students.', '2026-12-15', '09:00 AM', 'Main Playground', 'sports', 1),
                 ('Parent-Teacher Meeting', 'PTM for all classes — parents are requested to attend.', '2026-11-20', '10:00 AM', 'School Hall', 'meeting', 1),
@@ -168,24 +186,19 @@ def init_db():
             ]
             for e in events_seed:
                 db.execute('INSERT INTO events (title, description, event_date, event_time, location, category, is_featured) VALUES (?,?,?,?,?,?,?)', e)
+            _mark_seeded('events')
         
         # Seed Faculty
-        fac_count = db.execute('SELECT COUNT(*) FROM faculty').fetchone()[0]
-        if fac_count == 0:
+        if not _is_seeded('faculty'):
             faculty_seed = [
                 ('Mr. Niraj Kumar', 'Mathematics', 'M.Sc., B.Ed', '8+ Years', 'Passionate about making math fun and accessible for every student.', 1),
-                ('Mrs. Priya Sharma', 'English', 'M.A. English, B.Ed', '10+ Years', 'Believes in developing strong communication skills through literature.', 2),
-                ('Mr. Rajesh Verma', 'Science', 'M.Sc. Physics, B.Ed', '6+ Years', 'Encourages curiosity and hands-on learning in science.', 3),
-                ('Mrs. Anita Kumari', 'Hindi', 'M.A. Hindi, B.Ed', '12+ Years', 'Dedicated to promoting Hindi language and cultural values.', 4),
-                ('Mr. Sanjay Prasad', 'Social Science', 'M.A. History, B.Ed', '5+ Years', 'Makes history come alive with engaging storytelling.', 5),
-                ('Ms. Neha Singh', 'Computer Science', 'MCA', '4+ Years', 'Prepares students for the digital future.', 6),
             ]
             for f in faculty_seed:
                 db.execute('INSERT INTO faculty (name, subject, qualification, experience, bio, display_order) VALUES (?,?,?,?,?,?)', f)
+            _mark_seeded('faculty')
         
         # Seed Testimonials
-        test_count = db.execute('SELECT COUNT(*) FROM testimonials').fetchone()[0]
-        if test_count == 0:
+        if not _is_seeded('testimonials'):
             test_seed = [
                 ('Mrs. Sunita Devi', 'Parent', 'Excellent school with caring teachers. My daughter has grown so much in confidence.', 5),
                 ('Mr. Ramesh Kumar', 'Parent', 'The attention given to each student is remarkable. Highly recommend RSN.', 5),
@@ -195,10 +208,10 @@ def init_db():
             ]
             for t in test_seed:
                 db.execute('INSERT INTO testimonials (author_name, author_role, message, rating) VALUES (?,?,?,?)', t)
+            _mark_seeded('testimonials')
         
         # Seed Achievements
-        ach_count = db.execute('SELECT COUNT(*) FROM achievements').fetchone()[0]
-        if ach_count == 0:
+        if not _is_seeded('achievements'):
             ach_seed = [
                 ('Aarav Kumar', 'Class 8', '1st Position in District Math Olympiad', '2026', 'academic'),
                 ('Priya Kumari', 'Class 7', 'Gold Medal in State Chess Championship', '2026', 'sports'),
@@ -209,11 +222,47 @@ def init_db():
             ]
             for a in ach_seed:
                 db.execute('INSERT INTO achievements (student_name, class_name, achievement, year, category) VALUES (?,?,?,?,?)', a)
+            _mark_seeded('achievements')
+        
+        # Seed Gallery
+        if not _is_seeded('gallery'):
+            gallery_seed = [
+                ('School Campus', 'campus.jpg', 'campus', 1),
+                ('Annual Day', 'head2.jpeg', 'events', 2),
+                ('Group Photo', 'all.jpeg', 'events', 3),
+                ('Our Staff', 'all_starfs.jpeg', 'faculty', 4),
+                ('Teachers', 'Doc.jpeg', 'faculty', 5),
+                ('Management', 'head.jpeg', 'faculty', 6),
+                ('Principal Ma\'am', 'head_maam.jpeg', 'faculty', 7),
+                ('Cultural Program', 'Radhay_Krishna.jpeg', 'events', 8),
+                ('Teachers Day', 'teachers_day.jpeg', 'events', 9),
+                ('Teaching Staff', 'teachers.jpeg', 'faculty', 10),
+                ('Student Art', 'drawings.jpeg', 'activities', 11),
+                ('Sports Day', 'Niraj.jpeg', 'sports', 12),
+            ]
+            for g in gallery_seed:
+                db.execute('INSERT INTO gallery (title, image_url, category, display_order) VALUES (?,?,?,?)', g)
+            _mark_seeded('gallery')
+        
+        # Seed FAQ
+        if not _is_seeded('faq'):
+            faq_seed = [
+                ('What classes does the school offer?', 'Residential Shanti Niketan offers education from Pre-Nursery to Class 8, covering Pre-Primary, Primary, and Middle School.', 1),
+                ('How can I apply for admission?', 'You can fill the admission enquiry form on our homepage, or contact the school office directly at 9155658081.', 2),
+                ('How can I pay the school fees?', 'Fees can be paid online through our Parent/Student Portal using UPI (Google Pay, PhonePe, Paytm).', 3),
+                ('How do I get my login credentials?', 'Login credentials are created by the school admin. You will receive your Unique ID and default password.', 4),
+                ('What are the school timings?', 'The school operates from Monday to Saturday, with class timings varying by grade.', 5),
+                ('Is transportation available?', 'Please contact the school office for information about transportation facilities.', 6),
+                ('How can parents track their child\'s attendance?', 'Parents can log into their Parent Dashboard to view their child\'s complete attendance record.', 7),
+                ('Is the school environment safe for children?', 'Absolutely! We prioritize student safety with a caring environment and trained staff.', 8),
+            ]
+            for f in faq_seed:
+                db.execute('INSERT INTO faq (question, answer, display_order) VALUES (?,?,?)', f)
+            _mark_seeded('faq')
         
         # Default school settings
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('fee_qr_url', '')")
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('school_name', 'Residential Shanti Niketan')")
-        # UPGRADE: Default UPI link setting
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('upi_link', '')")
         
         db.commit()
@@ -254,7 +303,6 @@ def generate_unique_id(role):
     else:
         num = 1
     
-    # Ensure uniqueness
     while True:
         new_id = f"{prefix}{str(num).zfill(5)}"
         exists = db.execute('SELECT 1 FROM users WHERE unique_id = ?', (new_id,)).fetchone()
@@ -281,7 +329,6 @@ def login_required(f):
         if not session.get('user_id'):
             flash('Please login to access this page.', 'error')
             return redirect(url_for('login_page'))
-        # Force password change
         user = get_user_by_id(session['user_id'])
         if user and user['force_password_change'] and request.endpoint not in ('change_password', 'logout', 'static'):
             flash('Please change your default password to continue.', 'error')
@@ -312,7 +359,6 @@ def home():
     notices = get_all_notices()
     db = get_db()
     
-    # 🚀 NEW: Fetch featured content for homepage
     upcoming_events = db.execute(
         "SELECT * FROM events WHERE event_date >= date('now') ORDER BY event_date ASC LIMIT 3"
     ).fetchall()
@@ -338,62 +384,39 @@ def notices_page():
 def academics_page():
     return render_template('academics.html')
 
-# =========================================
-# 🚀 NEW PUBLIC ROUTES: Gallery, Faculty, Events, Achievements, FAQ
-# =========================================
-
 @app.route('/gallery')
 def gallery_page():
-    """Photo gallery with categories"""
-    gallery_images = [
-        {'url': 'campus.jpg', 'title': 'School Campus', 'category': 'campus'},
-        {'url': 'head2.jpeg', 'title': 'Annual Day', 'category': 'events'},
-        {'url': 'all.jpeg', 'title': 'Group Photo', 'category': 'events'},
-        {'url': 'all_starfs.jpeg', 'title': 'Our Staff', 'category': 'faculty'},
-        {'url': 'Doc.jpeg', 'title': 'Teachers', 'category': 'faculty'},
-        {'url': 'head.jpeg', 'title': 'Management', 'category': 'faculty'},
-        {'url': 'head_maam.jpeg', 'title': 'Principal Ma\'am', 'category': 'faculty'},
-        {'url': 'Radhay_Krishna.jpeg', 'title': 'Cultural Program', 'category': 'events'},
-        {'url': 'teachers_day.jpeg', 'title': 'Teachers Day', 'category': 'events'},
-        {'url': 'teachers.jpeg', 'title': 'Teaching Staff', 'category': 'faculty'},
-        {'url': 'drawings.jpeg', 'title': 'Student Art', 'category': 'activities'},
-        {'url': 'Niraj.jpeg', 'title': 'Sports Day', 'category': 'sports'},
-    ]
-    return render_template('gallery.html', images=gallery_images)
-
+    db = get_db()
+    images = db.execute('SELECT * FROM gallery ORDER BY display_order, id').fetchall()
+    return render_template('gallery.html', images=images)
 
 @app.route('/faculty')
 def faculty_page():
-    """Faculty directory"""
     db = get_db()
     faculty_list = db.execute('SELECT * FROM faculty ORDER BY display_order, id').fetchall()
     return render_template('faculty.html', faculty=faculty_list)
 
-
 @app.route('/events')
 def events_page():
-    """Events & News page"""
     db = get_db()
     events = db.execute('SELECT * FROM events ORDER BY event_date ASC').fetchall()
     return render_template('events.html', events=events)
 
-
 @app.route('/faq')
 def faq_page():
-    """FAQ page"""
-    return render_template('faq.html')
-
+    db = get_db()
+    faqs = db.execute('SELECT * FROM faq ORDER BY display_order, id').fetchall()
+    return render_template('faq.html', faqs=faqs)
 
 @app.route('/achievements')
 def achievements_page():
-    """Student achievements showcase"""
     db = get_db()
     achievements = db.execute('SELECT * FROM achievements ORDER BY id DESC').fetchall()
     return render_template('achievements.html', achievements=achievements)
 
 
 # =========================================
-# 6. AUTH ROUTES (LOGIN ONLY - NO REGISTRATION)
+# 6. AUTH ROUTES
 # =========================================
 @app.route('/login', methods=['GET'])
 def login_page():
@@ -461,7 +484,7 @@ def logout():
     return redirect(url_for('home'))
 
 # =========================================
-# 7. USER DASHBOARD (ROLE-SPECIFIC ROUTING)
+# 7. USER DASHBOARD
 # =========================================
 @app.route('/dashboard')
 @login_required
@@ -475,7 +498,6 @@ def user_dashboard():
     db = get_db()
     role = user['role']
     
-    # ===== Common data for all roles =====
     attendance = db.execute(
         'SELECT * FROM attendance WHERE user_id = ? ORDER BY date DESC LIMIT 30',
         (user['id'],)
@@ -486,9 +508,6 @@ def user_dashboard():
         (user['id'], role)
     ).fetchall()
     
-    # ===== ROLE-SPECIFIC ROUTING =====
-    
-    # ---------- TEACHER DASHBOARD ----------
     if role == 'teacher':
         leaves = db.execute(
             'SELECT * FROM leave_requests WHERE user_id = ? ORDER BY id DESC',
@@ -498,7 +517,6 @@ def user_dashboard():
                               user=user, notices=notices, attendance=attendance,
                               leaves=leaves, messages=messages)
     
-    # ---------- STUDENT DASHBOARD ----------
     elif role == 'student':
         fees = db.execute(
             'SELECT * FROM fee_payments WHERE student_id = ? ORDER BY id DESC',
@@ -510,7 +528,6 @@ def user_dashboard():
                               fee_qr=get_setting('fee_qr_url'),
                               upi_link=get_setting('upi_link'))
     
-    # ---------- PARENT DASHBOARD ----------
     elif role == 'parent':
         fees = db.execute(
             'SELECT * FROM fee_payments WHERE student_id = ? ORDER BY id DESC',
@@ -522,7 +539,6 @@ def user_dashboard():
                               fee_qr=get_setting('fee_qr_url'),
                               upi_link=get_setting('upi_link'))
     
-    # ---------- FALLBACK (Admin or unknown role) ----------
     else:
         return render_template('user.html',
                               user=user, notices=notices, attendance=attendance,
@@ -553,7 +569,7 @@ def leave_request():
     return redirect(url_for('user_dashboard'))
 
 # =========================================
-# 9. FEE PAYMENT (Student/Parent)
+# 9. FEE PAYMENT
 # =========================================
 @app.route('/fee/pay', methods=['POST'])
 @login_required
@@ -631,7 +647,6 @@ def admin_create_user():
         unique_id = generate_unique_id(role)
         hashed = generate_password_hash(DEFAULT_PASSWORD)
         
-        # Collect role-specific fields
         dob = request.form.get('dob', '')
         gender = request.form.get('gender', '')
         address = request.form.get('address', '')
@@ -679,13 +694,11 @@ def admin_delete_user(user_id):
 @app.route('/admin/users/change-role/<int:user_id>', methods=['POST'])
 @admin_required
 def admin_change_role(user_id):
-    """User का role बदलें"""
     new_role = request.form.get('role', 'student')
     if new_role not in ['teacher', 'admin', 'parent', 'student']:
         flash('Invalid role.', 'error')
         return redirect(url_for('admin_users'))
     
-    # खुद का role न बदल पाए
     if user_id == session['user_id']:
         flash('You cannot change your own role!', 'error')
         return redirect(url_for('admin_users'))
@@ -699,7 +712,6 @@ def admin_change_role(user_id):
 @app.route('/admin/users/reset-password/<int:user_id>', methods=['POST'])
 @admin_required
 def admin_reset_password(user_id):
-    """Password reset करके default पर लाएं"""
     db = get_db()
     db.execute('UPDATE users SET password_hash = ?, force_password_change = 1 WHERE id = ?',
                (generate_password_hash(DEFAULT_PASSWORD), user_id))
@@ -710,7 +722,6 @@ def admin_reset_password(user_id):
 @app.route('/admin/users/toggle/<int:user_id>', methods=['POST'])
 @admin_required
 def admin_toggle_user(user_id):
-    """User को Active/Inactive करें"""
     if user_id == session['user_id']:
         flash('You cannot deactivate yourself!', 'error')
         return redirect(url_for('admin_users'))
@@ -766,8 +777,6 @@ def admin_attendance():
     date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     
     users = db.execute('SELECT * FROM users WHERE role = ? ORDER BY name', (role,)).fetchall()
-    
-    # Get today's attendance map
     records = db.execute('SELECT * FROM attendance WHERE date = ?', (date,)).fetchall()
     attendance_map = {r['user_id']: r['status'] for r in records}
     
@@ -783,7 +792,6 @@ def admin_mark_attendance():
     for key, val in request.form.items():
         if key.startswith('status_'):
             uid = int(key.replace('status_', ''))
-            # Upsert
             existing = db.execute('SELECT id FROM attendance WHERE user_id = ? AND date = ?', (uid, date)).fetchone()
             if existing:
                 db.execute('UPDATE attendance SET status = ?, marked_by = ? WHERE id = ?',
@@ -825,7 +833,6 @@ def admin_fees():
     payments = db.execute('''SELECT fp.*, u.name as student_name, u.unique_id as student_uid
                               FROM fee_payments fp JOIN users u ON fp.student_id = u.id
                               ORDER BY fp.id DESC''').fetchall()
-    # UPGRADE: Pass upi_link to admin fees page
     return render_template('admin_fees.html', payments=payments,
                           fee_qr=get_setting('fee_qr_url'),
                           upi_link=get_setting('upi_link'),
@@ -834,14 +841,10 @@ def admin_fees():
 @app.route('/admin/fees/qr', methods=['POST'])
 @admin_required
 def admin_update_qr():
-    """UPGRADE: QR image upload या UPI link update करें"""
-    
-    # UPI Link
     upi_link = request.form.get('upi_link', '').strip()
     if upi_link:
         set_setting('upi_link', upi_link)
     
-    # QR Image - File Upload
     qr_file = request.files.get('qr_image')
     if qr_file and qr_file.filename:
         if allowed_file(qr_file.filename):
@@ -849,20 +852,17 @@ def admin_update_qr():
             filename = f"fee_qr_{secrets.token_hex(6)}.{ext}"
             filepath = app.config['UPLOAD_FOLDER'] / filename
             qr_file.save(filepath)
-            # Store relative URL for template
             qr_url = url_for('static', filename=f'uploads/{filename}')
             set_setting('fee_qr_url', qr_url)
             flash('QR image uploaded successfully!', 'success')
         else:
             flash('Invalid file type. Only PNG, JPG, JPEG, GIF, WEBP allowed.', 'error')
     
-    # QR Image - URL (fallback)
     qr_url_input = request.form.get('fee_qr_url', '').strip()
     if qr_url_input:
         set_setting('fee_qr_url', qr_url_input)
         flash('QR URL updated successfully!', 'success')
     
-    # Delete QR
     if request.form.get('delete_qr') == '1':
         set_setting('fee_qr_url', '')
         flash('QR code removed.', 'success')
@@ -934,6 +934,250 @@ def admin_delete_enquiry(eid):
     flash('Enquiry deleted.', 'success')
     return redirect(url_for('admin_enquiries'))
 
+
+# =========================================
+# 10.5. ADMIN — NEW CONTENT MANAGEMENT ROUTES
+# =========================================
+
+# === FACULTY ===
+@app.route('/admin/faculty')
+@admin_required
+def admin_faculty():
+    db = get_db()
+    faculty = db.execute('SELECT * FROM faculty ORDER BY display_order, id').fetchall()
+    return render_template('admin_faculty.html', faculty=faculty, active_page='faculty')
+
+@app.route('/admin/faculty/add', methods=['POST'])
+@admin_required
+def admin_add_faculty():
+    name = request.form.get('name', '').strip()
+    subject = request.form.get('subject', '').strip()
+    qualification = request.form.get('qualification', '').strip()
+    experience = request.form.get('experience', '').strip()
+    bio = request.form.get('bio', '').strip()
+    display_order = request.form.get('display_order', '0')
+    
+    if not name or not subject:
+        flash('Name and Subject are required.', 'error')
+        return redirect(url_for('admin_faculty'))
+    
+    db = get_db()
+    db.execute('INSERT INTO faculty (name, subject, qualification, experience, bio, display_order) VALUES (?,?,?,?,?,?)',
+               (name, subject, qualification, experience, bio, int(display_order) if display_order else 0))
+    db.commit()
+    flash(f'Faculty "{name}" added!', 'success')
+    return redirect(url_for('admin_faculty'))
+
+@app.route('/admin/faculty/delete/<int:fid>', methods=['POST'])
+@admin_required
+def admin_delete_faculty(fid):
+    db = get_db()
+    db.execute('DELETE FROM faculty WHERE id = ?', (fid,))
+    db.commit()
+    flash('Faculty removed.', 'success')
+    return redirect(url_for('admin_faculty'))
+
+
+# === EVENTS ===
+@app.route('/admin/events')
+@admin_required
+def admin_events():
+    db = get_db()
+    events = db.execute('SELECT * FROM events ORDER BY event_date DESC').fetchall()
+    return render_template('admin_events.html', events=events, active_page='events')
+
+@app.route('/admin/events/add', methods=['POST'])
+@admin_required
+def admin_add_event():
+    title = request.form.get('title', '').strip()
+    description = request.form.get('description', '').strip()
+    event_date = request.form.get('event_date', '').strip()
+    event_time = request.form.get('event_time', '').strip()
+    location = request.form.get('location', '').strip()
+    category = request.form.get('category', 'general')
+    
+    if not title or not event_date:
+        flash('Title and Date are required.', 'error')
+        return redirect(url_for('admin_events'))
+    
+    db = get_db()
+    db.execute('INSERT INTO events (title, description, event_date, event_time, location, category) VALUES (?,?,?,?,?,?)',
+               (title, description, event_date, event_time, location, category))
+    db.commit()
+    flash(f'Event "{title}" published!', 'success')
+    return redirect(url_for('admin_events'))
+
+@app.route('/admin/events/delete/<int:eid>', methods=['POST'])
+@admin_required
+def admin_delete_event(eid):
+    db = get_db()
+    db.execute('DELETE FROM events WHERE id = ?', (eid,))
+    db.commit()
+    flash('Event deleted.', 'success')
+    return redirect(url_for('admin_events'))
+
+
+# === GALLERY ===
+@app.route('/admin/gallery')
+@admin_required
+def admin_gallery():
+    db = get_db()
+    images = db.execute('SELECT * FROM gallery ORDER BY display_order, id').fetchall()
+    return render_template('admin_gallery.html', images=images, active_page='gallery')
+
+@app.route('/admin/gallery/add', methods=['POST'])
+@admin_required
+def admin_add_gallery():
+    title = request.form.get('title', '').strip()
+    category = request.form.get('category', 'campus')
+    display_order = request.form.get('display_order', '0')
+    image_url = request.form.get('image_url', '').strip()
+    
+    image_file = request.files.get('image_file')
+    if image_file and image_file.filename:
+        if allowed_file(image_file.filename):
+            ext = image_file.filename.rsplit('.', 1)[1].lower()
+            filename = f"gallery_{secrets.token_hex(6)}.{ext}"
+            images_folder = BASE_DIR / 'static' / 'images'
+            images_folder.mkdir(parents=True, exist_ok=True)
+            image_file.save(images_folder / filename)
+            image_url = filename
+        else:
+            flash('Invalid image type.', 'error')
+            return redirect(url_for('admin_gallery'))
+    
+    if not title or not image_url:
+        flash('Title and Image are required.', 'error')
+        return redirect(url_for('admin_gallery'))
+    
+    db = get_db()
+    db.execute('INSERT INTO gallery (title, image_url, category, display_order) VALUES (?,?,?,?)',
+               (title, image_url, category, int(display_order) if display_order else 0))
+    db.commit()
+    flash(f'Photo "{title}" added!', 'success')
+    return redirect(url_for('admin_gallery'))
+
+@app.route('/admin/gallery/delete/<int:gid>', methods=['POST'])
+@admin_required
+def admin_delete_gallery(gid):
+    db = get_db()
+    db.execute('DELETE FROM gallery WHERE id = ?', (gid,))
+    db.commit()
+    flash('Photo removed.', 'success')
+    return redirect(url_for('admin_gallery'))
+
+
+# === ACHIEVEMENTS ===
+@app.route('/admin/achievements')
+@admin_required
+def admin_achievements():
+    db = get_db()
+    achievements = db.execute('SELECT * FROM achievements ORDER BY id DESC').fetchall()
+    return render_template('admin_achievements.html', achievements=achievements, active_page='achievements')
+
+@app.route('/admin/achievements/add', methods=['POST'])
+@admin_required
+def admin_add_achievement():
+    student_name = request.form.get('student_name', '').strip()
+    class_name = request.form.get('class_name', '').strip()
+    achievement = request.form.get('achievement', '').strip()
+    year = request.form.get('year', '').strip()
+    category = request.form.get('category', 'academic')
+    
+    if not student_name or not achievement:
+        flash('Student name and Achievement required.', 'error')
+        return redirect(url_for('admin_achievements'))
+    
+    db = get_db()
+    db.execute('INSERT INTO achievements (student_name, class_name, achievement, year, category) VALUES (?,?,?,?,?)',
+               (student_name, class_name, achievement, year, category))
+    db.commit()
+    flash(f'Achievement added for {student_name}!', 'success')
+    return redirect(url_for('admin_achievements'))
+
+@app.route('/admin/achievements/delete/<int:aid>', methods=['POST'])
+@admin_required
+def admin_delete_achievement(aid):
+    db = get_db()
+    db.execute('DELETE FROM achievements WHERE id = ?', (aid,))
+    db.commit()
+    flash('Achievement deleted.', 'success')
+    return redirect(url_for('admin_achievements'))
+
+
+# === TESTIMONIALS ===
+@app.route('/admin/testimonials')
+@admin_required
+def admin_testimonials():
+    db = get_db()
+    testimonials = db.execute('SELECT * FROM testimonials ORDER BY id DESC').fetchall()
+    return render_template('admin_testimonials.html', testimonials=testimonials, active_page='testimonials')
+
+@app.route('/admin/testimonials/add', methods=['POST'])
+@admin_required
+def admin_add_testimonial():
+    author_name = request.form.get('author_name', '').strip()
+    author_role = request.form.get('author_role', 'Parent')
+    message = request.form.get('message', '').strip()
+    rating = request.form.get('rating', '5')
+    
+    if not author_name or not message:
+        flash('Name and Message required.', 'error')
+        return redirect(url_for('admin_testimonials'))
+    
+    db = get_db()
+    db.execute('INSERT INTO testimonials (author_name, author_role, message, rating) VALUES (?,?,?,?)',
+               (author_name, author_role, message, int(rating)))
+    db.commit()
+    flash(f'Testimonial from {author_name} added!', 'success')
+    return redirect(url_for('admin_testimonials'))
+
+@app.route('/admin/testimonials/delete/<int:tid>', methods=['POST'])
+@admin_required
+def admin_delete_testimonial(tid):
+    db = get_db()
+    db.execute('DELETE FROM testimonials WHERE id = ?', (tid,))
+    db.commit()
+    flash('Testimonial removed.', 'success')
+    return redirect(url_for('admin_testimonials'))
+
+
+# === FAQ ===
+@app.route('/admin/faq')
+@admin_required
+def admin_faq():
+    db = get_db()
+    faqs = db.execute('SELECT * FROM faq ORDER BY display_order, id').fetchall()
+    return render_template('admin_faq.html', faqs=faqs, active_page='faq')
+
+@app.route('/admin/faq/add', methods=['POST'])
+@admin_required
+def admin_add_faq():
+    question = request.form.get('question', '').strip()
+    answer = request.form.get('answer', '').strip()
+    display_order = request.form.get('display_order', '0')
+    
+    if not question or not answer:
+        flash('Question and Answer required.', 'error')
+        return redirect(url_for('admin_faq'))
+    
+    db = get_db()
+    db.execute('INSERT INTO faq (question, answer, display_order) VALUES (?,?,?)',
+               (question, answer, int(display_order) if display_order else 0))
+    db.commit()
+    flash('FAQ added!', 'success')
+    return redirect(url_for('admin_faq'))
+
+@app.route('/admin/faq/delete/<int:fid>', methods=['POST'])
+@admin_required
+def admin_delete_faq(fid):
+    db = get_db()
+    db.execute('DELETE FROM faq WHERE id = ?', (fid,))
+    db.commit()
+    flash('FAQ deleted.', 'success')
+    return redirect(url_for('admin_faq'))
+
+
 # =========================================
 # 11. API & FORM ROUTES (Public)
 # =========================================
@@ -1001,4 +1245,3 @@ init_db()
 
 if __name__ == '__main__':
     app.run(debug=os.environ.get('FLASK_DEBUG', '0') == '1', host='127.0.0.1', port=int(os.environ.get('PORT', 5000)))
-    

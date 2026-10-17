@@ -1,0 +1,55 @@
+{% extends "admin_base.html" %}
+{% block title %}Gallery{% endblock %}
+{% block page_title %}Gallery Management{% endblock %}
+{% block content %}
+<div class="admin-grid-2-uneven">
+    <div class="admin-panel">
+        <div class="admin-panel-head"><h3><i class="fa-solid fa-plus"></i> Add Photo</h3></div>
+        <form method="POST" action="{{ url_for('admin_add_gallery') }}" class="admin-form" enctype="multipart/form-data">
+            <label>Title * <input type="text" name="title" required maxlength="150"></label>
+            <label>
+                Upload Photo
+                <div style="position:relative;display:flex;align-items:center;gap:10px;border:2px dashed #dbe4ed;border-radius:10px;padding:14px;background:#fbfcfe;cursor:pointer;">
+                    <i class="fa-solid fa-cloud-arrow-up" style="color:var(--red);font-size:20px;"></i>
+                    <span id="galFileName" style="font-size:13px;font-weight:600;color:#0a2340;">Choose image...</span>
+                    <input type="file" name="image_file" accept="image/*" onchange="document.getElementById('galFileName').textContent = this.files[0] ? this.files[0].name : 'Choose image...'" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
+                </div>
+            </label>
+            <label>OR Image Filename/URL <input type="text" name="image_url" placeholder="e.g. campus.jpg"></label>
+            <label>Category
+                <select name="category">
+                    <option value="campus">Campus</option>
+                    <option value="events">Events</option>
+                    <option value="faculty">Faculty</option>
+                    <option value="sports">Sports</option>
+                    <option value="activities">Activities</option>
+                </select>
+            </label>
+            <label>Display Order <input type="number" name="display_order" value="0" min="0"></label>
+            <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-check"></i> Add Photo</button>
+        </form>
+    </div>
+    <div class="admin-panel">
+        <div class="admin-panel-head"><h3><i class="fa-regular fa-images"></i> All Photos ({{ images|length }})</h3></div>
+        <div class="admin-notice-list">
+            {% for img in images %}
+            <div class="admin-notice-item">
+                <div style="display:flex;gap:14px;align-items:center;flex:1;min-width:0;">
+                    <img src="{{ url_for('static', filename='images/' + img.image_url) }}" 
+                         onerror="this.src='{{ img.image_url }}'"
+                         style="width:60px;height:60px;border-radius:8px;object-fit:cover;border:2px solid var(--yellow);flex:0 0 60px;" 
+                         alt="{{ img.title }}">
+                    <div class="notice-item-body" style="flex:1;min-width:0;">
+                        <small class="muted">{{ img.category }} • Order: {{ img.display_order }}</small>
+                        <p>{{ img.title }}</p>
+                    </div>
+                </div>
+                <form method="POST" action="{{ url_for('admin_delete_gallery', gid=img.id) }}" data-confirm="Delete?">
+                    <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
+                </form>
+            </div>
+            {% else %}<p class="empty-row">No photos yet.</p>{% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

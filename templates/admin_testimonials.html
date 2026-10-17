@@ -1,0 +1,40 @@
+{% extends "admin_base.html" %}
+{% block title %}Testimonials{% endblock %}
+{% block page_title %}Testimonials Management{% endblock %}
+{% block content %}
+<div class="admin-grid-2-uneven">
+    <div class="admin-panel">
+        <div class="admin-panel-head"><h3><i class="fa-solid fa-plus"></i> Add Testimonial</h3></div>
+        <form method="POST" action="{{ url_for('admin_add_testimonial') }}" class="admin-form">
+            <label>Author Name * <input type="text" name="author_name" required maxlength="100"></label>
+            <label>Role
+                <select name="author_role">
+                    <option value="Parent">Parent</option>
+                    <option value="Alumni">Alumni</option>
+                    <option value="Guardian">Guardian</option>
+                </select>
+            </label>
+            <label>Message * <textarea name="message" rows="4" required maxlength="500"></textarea></label>
+            <label>Rating (1-5) <input type="number" name="rating" value="5" min="1" max="5"></label>
+            <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-check"></i> Add</button>
+        </form>
+    </div>
+    <div class="admin-panel">
+        <div class="admin-panel-head"><h3><i class="fa-solid fa-quote-left"></i> All Testimonials ({{ testimonials|length }})</h3></div>
+        <div class="admin-notice-list">
+            {% for t in testimonials %}
+            <div class="admin-notice-item">
+                <div class="notice-item-body">
+                    <small class="muted">{{ t.author_role }} • {{ '★' * t.rating }}{{ '☆' * (5 - t.rating) }}</small>
+                    <p>{{ t.author_name }}</p>
+                    <span class="notice-desc muted">{{ t.message[:100] }}{% if t.message|length > 100 %}...{% endif %}</span>
+                </div>
+                <form method="POST" action="{{ url_for('admin_delete_testimonial', tid=t.id) }}" data-confirm="Delete?">
+                    <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
+                </form>
+            </div>
+            {% else %}<p class="empty-row">No testimonials yet.</p>{% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

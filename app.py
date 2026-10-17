@@ -17,7 +17,7 @@ DB_PATH = Path(os.environ.get('SCHOOL_DB_PATH', BASE_DIR / 'school.db'))
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'change-this-before-deployment')
-app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20MB limit
 app.config['SESSION_COOKIE_SECURE'] = True if os.environ.get('FLASK_ENV') == 'production' else False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
@@ -192,6 +192,11 @@ def init_db():
         if not _is_seeded('faculty'):
             faculty_seed = [
                 ('Mr. Niraj Kumar', 'Mathematics', 'M.Sc., B.Ed', '8+ Years', 'Passionate about making math fun and accessible for every student.', 1),
+                ('Mrs. Priya Sharma', 'English', 'M.A. English, B.Ed', '10+ Years', 'Believes in developing strong communication skills through literature.', 2),
+                ('Mr. Rajesh Verma', 'Science', 'M.Sc. Physics, B.Ed', '6+ Years', 'Encourages curiosity and hands-on learning in science.', 3),
+                ('Mrs. Anita Kumari', 'Hindi', 'M.A. Hindi, B.Ed', '12+ Years', 'Dedicated to promoting Hindi language and cultural values.', 4),
+                ('Mr. Sanjay Prasad', 'Social Science', 'M.A. History, B.Ed', '5+ Years', 'Makes history come alive with engaging storytelling.', 5),
+                ('Ms. Neha Singh', 'Computer Science', 'MCA', '4+ Years', 'Prepares students for the digital future.', 6),
             ]
             for f in faculty_seed:
                 db.execute('INSERT INTO faculty (name, subject, qualification, experience, bio, display_order) VALUES (?,?,?,?,?,?)', f)
@@ -396,6 +401,7 @@ def faculty_page():
     faculty_list = db.execute('SELECT * FROM faculty ORDER BY display_order, id').fetchall()
     return render_template('faculty.html', faculty=faculty_list)
 
+# PUBLIC EVENTS PAGE (For all users)
 @app.route('/events')
 def events_page():
     db = get_db()
@@ -978,7 +984,7 @@ def admin_delete_faculty(fid):
     return redirect(url_for('admin_faculty'))
 
 
-# === EVENTS ===
+# === EVENTS (ADMIN) ===
 @app.route('/admin/events')
 @admin_required
 def admin_events():
@@ -1006,6 +1012,39 @@ def admin_add_event():
     db.commit()
     flash(f'Event "{title}" published!', 'success')
     return redirect(url_for('admin_events'))
+
+# 🚀 NEW: EDIT EVENT ROUTE
+@app.route('/admin/events/edit/<int:eid>', methods=['GET', 'POST'])
+@admin_required
+def admin_edit_event(eid):
+    db = get_db()
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
+        event_date = request.form.get('event_date', '').strip()
+        event_time = request.form.get('event_time', '').strip()
+        location = request.form.get('location', '').strip()
+        category = request.form.get('category', 'general')
+        
+        if not title or not event_date:
+            flash('Title and Date are required.', 'error')
+            return redirect(url_for('admin_edit_event', eid=eid))
+        
+        db.execute('''UPDATE events SET title = ?, description = ?, event_date = ?, 
+                      event_time = ?, location = ?, category = ? WHERE id = ?''',
+                   (title, description, event_date, event_time, location, category, eid))
+        db.commit()
+        flash('Event updated successfully!', 'success')
+        return redirect(url_for('admin_events'))
+    
+    # GET request: load event to edit
+    event = db.execute('SELECT * FROM events WHERE id = ?', (eid,)).fetchone()
+    if not event:
+        flash('Event not found.', 'error')
+        return redirect(url_for('admin_events'))
+        
+    events = db.execute('SELECT * FROM events ORDER BY event_date DESC').fetchall()
+    return render_template('admin_events.html', events=events, edit_event=event, active_page='events')
 
 @app.route('/admin/events/delete/<int:eid>', methods=['POST'])
 @admin_required
@@ -1228,6 +1267,11 @@ def health():
 # =========================================
 @app.errorhandler(404)
 def nf(e): return "Page not found", 404
+
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    flash('File is too large! Maximum allowed size is 20MB. Please compress your image and try again.', 'error')
+    return redirect(request.referrer or url_for('admin_gallery') or url_for('admin_events'))
 
 @app.errorhandler(500)
 def ie(e): return "Server error", 500

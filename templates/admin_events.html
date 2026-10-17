@@ -4,28 +4,51 @@
 {% block content %}
 <div class="admin-grid-2-uneven">
     <div class="admin-panel">
-        <div class="admin-panel-head"><h3><i class="fa-solid fa-plus"></i> Add Event</h3></div>
-        <form method="POST" action="{{ url_for('admin_add_event') }}" class="admin-form">
-            <label>Title * <input type="text" name="title" required maxlength="200"></label>
-            <label>Description <textarea name="description" rows="3" maxlength="500"></textarea></label>
+        <!-- Dynamic Heading: Add or Edit -->
+        <div class="admin-panel-head">
+            <h3>
+                <i class="fa-solid fa-{% if edit_event %}pen{% else %}plus{% endif %}"></i> 
+                {% if edit_event %}Edit Event{% else %}Add Event{% endif %}
+            </h3>
+        </div>
+        
+        <!-- Dynamic Form Action: Edit Route or Add Route -->
+        <form method="POST" action="{{ url_for('admin_edit_event', eid=edit_event.id) if edit_event else url_for('admin_add_event') }}" class="admin-form">
+            <label>Title * <input type="text" name="title" value="{{ edit_event.title if edit_event else '' }}" required maxlength="200"></label>
+            <label>Description <textarea name="description" rows="3" maxlength="500">{{ edit_event.description if edit_event else '' }}</textarea></label>
+            
             <div class="form-row-2col">
-                <label>Date * <input type="date" name="event_date" required></label>
-                <label>Time <input type="text" name="event_time" placeholder="e.g. 09:00 AM"></label>
+                <label>Date * <input type="date" name="event_date" value="{{ edit_event.event_date if edit_event else '' }}" required></label>
+                <label>Time <input type="text" name="event_time" value="{{ edit_event.event_time if edit_event else '' }}" placeholder="e.g. 09:00 AM"></label>
             </div>
-            <label>Location <input type="text" name="location" maxlength="100"></label>
+            
+            <label>Location <input type="text" name="location" value="{{ edit_event.location if edit_event else '' }}" maxlength="100"></label>
             <label>Category
                 <select name="category">
-                    <option value="general">General</option>
-                    <option value="sports">Sports</option>
-                    <option value="meeting">Meeting</option>
-                    <option value="cultural">Cultural</option>
-                    <option value="academic">Academic</option>
-                    <option value="holiday">Holiday</option>
+                    <option value="general" {% if edit_event and edit_event.category == 'general' %}selected{% endif %}>General</option>
+                    <option value="sports" {% if edit_event and edit_event.category == 'sports' %}selected{% endif %}>Sports</option>
+                    <option value="meeting" {% if edit_event and edit_event.category == 'meeting' %}selected{% endif %}>Meeting</option>
+                    <option value="cultural" {% if edit_event and edit_event.category == 'cultural' %}selected{% endif %}>Cultural</option>
+                    <option value="academic" {% if edit_event and edit_event.category == 'academic' %}selected{% endif %}>Academic</option>
+                    <option value="holiday" {% if edit_event and edit_event.category == 'holiday' %}selected{% endif %}>Holiday</option>
                 </select>
             </label>
-            <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-check"></i> Publish</button>
+            
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button type="submit" class="btn-admin-primary">
+                    <i class="fa-solid fa-check"></i> {% if edit_event %}Update Event{% else %}Publish{% endif %}
+                </button>
+                
+                <!-- Agar edit mode me hai, to Cancel ka button dikhao -->
+                {% if edit_event %}
+                <a href="{{ url_for('admin_events') }}" class="btn-admin-primary" style="background: #65758a; text-decoration: none;">
+                    <i class="fa-solid fa-xmark"></i> Cancel
+                </a>
+                {% endif %}
+            </div>
         </form>
     </div>
+    
     <div class="admin-panel">
         <div class="admin-panel-head"><h3><i class="fa-regular fa-calendar-days"></i> All Events ({{ events|length }})</h3></div>
         <div class="admin-notice-list">
@@ -35,11 +58,23 @@
                     <small class="muted">{{ e.event_date }} • <strong>{{ e.category }}</strong></small>
                     <p>{{ e.title }}</p>
                 </div>
-                <form method="POST" action="{{ url_for('admin_delete_event', eid=e.id) }}" data-confirm="Delete?">
-                    <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
-                </form>
+                
+                <!-- Action Buttons: Edit + Delete -->
+                <div style="display: flex; gap: 8px;">
+                    <!-- Edit Button (Pen Icon) -->
+                    <a href="{{ url_for('admin_edit_event', eid=e.id) }}" class="btn-icon-approve" title="Edit Event" style="text-decoration: none;">
+                        <i class="fa-solid fa-pen"></i>
+                    </a>
+                    
+                    <!-- Delete Button -->
+                    <form method="POST" action="{{ url_for('admin_delete_event', eid=e.id) }}" data-confirm="Delete this event?">
+                        <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
+                    </form>
+                </div>
             </div>
-            {% else %}<p class="empty-row">No events yet.</p>{% endfor %}
+            {% else %}
+            <p class="empty-row">No events yet.</p>
+            {% endfor %}
         </div>
     </div>
 </div>

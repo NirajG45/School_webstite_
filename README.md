@@ -2,131 +2,141 @@
 
 A modern, fully responsive, full-stack **School Management System** built using **Flask, SQLite, HTML, CSS, and Vanilla JavaScript**.
 
-This project provides a professional digital presence for **"Residential Shanti Niketan, Navinagar Jamui"** with a complete **Role-Based Portal System** including separate dashboards for Teachers, Students, Parents, and Admin (Principal), along with a dynamic Notice Board, Attendance tracking, Leave management, Fee payment via QR/UPI, and Messaging system.
+This project provides a professional digital presence for **"Residential Shanti Niketan, Navinagar Jamui"** with a complete **Role-Based Portal System** including separate dashboards for Teachers, Students, Parents, and Admin (Principal), along with dynamic content management, attendance tracking, leave management, fee payment via QR/UPI, and a robust messaging system.
 
 ---
 
-## 🚀 Key Features
-
-### 🎯 **Role-Based Portal System**
-- **Single Login Page** — No public registration (only Admin can create users)
-- **Auto-Role Detection** — User redirected to their specific dashboard after login
-- **Unique ID System** — Auto-generated IDs like:
-  - Admin → `SNV00001`
-  - Teacher → `TSNV00001`
-  - Parent → `PSNV00001`
-  - Student → `STSNV00001`
-- **Default Password** — `snv@450` with **Force Change on First Login**
-- **Session Management** — 7-day persistent sessions
-
-### 👨‍🏫 **Teacher Dashboard** (`teacher_dashboard.html`)
-- Personal profile (ID, qualification, subject, experience)
-- **My Attendance** — View attendance history with summary
-- **Apply for Leave** — Submit leave requests with date range and reason
-- **Leave History** — Track leave status (pending/approved/rejected)
-- **Notices for Teachers** — Targeted notices from Principal
-- **Messages from Principal** — Direct messages inbox
-
-### 🎓 **Student Dashboard** (`student_dashboard.html`)
-- Personal profile (ID, class, DOB, contact)
-- **Attendance Record** — View personal attendance
-- **Fee Payment** — Pay online via QR code or UPI link
-- **Fee History** — Track all past payments with status
-- **Notices for Students** — Class-specific announcements
-- **Messages from School** — Important updates
-
-### 👨‍👩‍👧 **Parent Dashboard** (`parent_dashboard.html`)
-- Personal profile (Parent ID, relation)
-- **Child Info** — View child's details, class, and DOB
-- **Child's Attendance** — Monitor child's attendance record
-- **Pay Child's Fees** — Online payment via QR/UPI
-- **Fee Payment History** — Complete payment records
-- **Notices for Parents** — PTM and school updates
-- **Messages from School** — Direct communication
-
-### 🛡️ **Admin Panel** (`admin_base.html` + 8 sub-pages)
-- **Dashboard** — Stats cards (users, teachers, parents, students, notices, enquiries, pending leaves/fees)
-- **Create User** — Create Teachers, Parents, Students, or Admin with role-specific fields
-- **All Users** — Manage users with inline role change, password reset, activate/deactivate, delete
-- **Attendance** — Mark daily attendance for students/teachers/parents
-- **Leave Requests** — Approve or reject teacher leave applications with remarks
-- **Notices** — Publish notices with target audience (All/Teachers/Parents/Students)
-- **Messages** — Send messages to all users, specific role, or individual user
-- **Fees & QR** — Upload QR image OR paste UPI link, verify/reject student payments
-- **Enquiries** — View and manage admission & contact enquiries
+## 📑 Table of Contents (Sidebar)
+- [🎯 Key Features](#-key-features)
+  - [Role-Based Portals](#-role-based-portals)
+  - [Admin Panel (CMS)](#️-admin-panel-cms)
+  - [Public Website Pages](#-public-website-pages)
+- [🛠️ Tech Stack](#️-tech-stack)
+- [📁 Project Structure](#-project-structure)
+- [🗄️ Database Schema](#️-database-schema)
+- [⚙️ Setup & Installation](#️-setup--installation)
+- [🔐 Default Credentials](#-default-credentials)
+- [🔄 System Workflows](#-system-workflows)
+- [🛡️ Security & Validations](#️-security--validations)
+- [👨‍💻 Developer](#-developer)
 
 ---
 
-## 🌟 Website Features
+## 🎯 Key Features
 
-### 🏠 **Home Page**
-- **Hero Section** — Attractive bilingual banner (English + Hindi)
-- **Dynamic Notice Board** — Fetches notices from database with live preview
-- **Auto-Sliding Gallery Banner** — Background image slider that pauses on hover
-- **Quick Access Strip** — Fast links to Vision, Facilities, Routine, Notices, Contact
-- **Stats Section** — School highlights
-- **Admission Enquiry Form** — Direct enquiry submission with regex validation
-- **Contact Band** — Quick contact form
-- **Enhanced Header** — User avatar with hover dropdown showing name, ID, and role
-- **Mobile Sidebar** — User info box with "Please Login First" for guests
+### 👥 Role-Based Portals
+*   **Single Login Page** — No public registration (only Admin can create users).
+*   **Auto-Role Detection** — User is automatically redirected to their specific dashboard after login.
+*   **Unique ID System** — Auto-generated IDs like:
+    *   Admin → `SNV00001`
+    *   Teacher → `TSNV00001`
+    *   Parent → `PSNV00001`
+    *   Student → `STSNV00001`
+*   **Default Password** — `snv@450` with **Force Change on First Login**.
+*   **Session Management** — 7-day persistent sessions.
 
-### 📢 **Notice Board Page** (`notice.html`)
-- Live search functionality
-- Category filters (Admissions, Academics, Activities, General)
-- Beautiful card layout with color-coded borders
-- Dynamic pagination
+#### 👨‍🏫 Teacher Dashboard
+*   View Profile (ID, qualification, subject, experience).
+*   **My Attendance** — View attendance history with summary.
+*   **Apply for Leave** — Submit leave requests with date range and reason.
+*   **Leave History** — Track leave status (pending/approved/rejected).
+*   Receive targeted Notices and Messages from Principal.
 
-### 📚 **Academics Page** (`academics.html`)
-- Learning stages (Pre-Primary, Primary, Middle School)
-- Subject grid with icons
-- Routine banner section
+#### 🎓 Student Dashboard
+*   View Profile (ID, class, DOB, contact).
+*   **Attendance Record** — View personal attendance.
+*   **Fee Payment** — Pay online via scanned QR code or UPI link.
+*   **Fee History** — Track all past payments with status.
+*   Receive Notices and Messages from the school.
 
----
-
-## 🔧 Complete Tech Stack
-
-### **Backend**
-- **Framework:** Flask (Python)
-- **Database:** SQLite3 (file-based)
-- **Templating:** Jinja2
-- **Security:** Werkzeug password hashing (generate_password_hash, check_password_hash)
-- **File Handling:** Werkzeug secure uploads with extension validation
-- **Session:** Flask session with 7-day lifetime
-
-### **Frontend**
-- **HTML5** — Semantic markup
-- **CSS3** — Custom properties (variables), Flexbox, CSS Grid, Media Queries
-- **JavaScript (Vanilla ES6)** — Mobile menu, auto-slider, scrollspy, form interactions
-- **Icons:** Font Awesome 6.5.2 (CDN)
-- **Fonts:** Google Fonts (DM Sans & Playfair Display)
+#### 👨‍👩‍👧 Parent Dashboard
+*   View Profile (Parent ID, relation).
+*   **Child Info** — View child's details, class, and DOB.
+*   **Child's Attendance** — Monitor child's daily attendance.
+*   **Pay Child's Fees** — Online payment via QR/UPI.
+*   **Fee Payment History** — Complete payment records.
+*   Receive Notices and Messages from the school.
 
 ---
 
-## 📁 Complete Project Structure
+### 🛡️ Admin Panel (CMS)
+*   **Dashboard Overview** — Real-time stats of users, pending leaves, fees, and enquiries.
+*   **User Management** — Create users (Teacher/Parent/Student), change roles, reset passwords, activate/deactivate, or delete users.
+*   **Attendance Management** — Mark daily attendance (Present, Absent, Leave, Half-Day) for students and teachers.
+*   **Leave Requests** — Approve or reject leave applications with admin remarks.
+*   **Fees & QR Management** — Upload UPI QR Image (up to 20MB), set UPI Link, verify/reject student payments.
+*   **Notice Board** — Publish targeted notices (All, Teachers, Parents, Students).
+*   **Messaging System** — Send messages to specific roles or individual users.
+*   **Enquiries** — View and manage admission and contact form submissions.
+*   **Complete Content Management System (CMS):**
+    *   **Faculty:** Add/Delete teachers and staff.
+    *   **Events:** Add, **Edit**, and Delete school events.
+    *   **Gallery:** Upload new images and delete existing ones.
+    *   **Achievements:** Add and remove student achievements.
+    *   **Testimonials:** Add and remove parent reviews.
+    *   **FAQ:** Add and remove frequently asked questions.
+
+---
+
+### 🌟 Public Website Pages
+*   **Home Page:** Hero section, Quick Access Strip, About, Stats, **Upcoming Events**, **Parent Testimonials**, **Recent Achievements**, Auto-sliding Gallery, Admission Enquiry Form, and Contact Band.
+*   **Gallery (`/gallery`):** Dynamic category filters (Campus, Events, Sports, etc.) with a smooth **Lightbox** view. 100% DB-driven.
+*   **Faculty (`/faculty`):** Beautiful directory showcasing teachers with their qualifications and subjects. 100% DB-driven.
+*   **Events & News (`/events`):** A timeline view of all upcoming and past school events. 100% DB-driven.
+*   **Achievements (`/achievements`):** Showcases the success and awards of students. 100% DB-driven.
+*   **FAQ (`/faq`):** Smooth accordion-style frequently asked questions. 100% DB-driven.
+*   **Notice Board (`/notice`):** Live search and category filters for announcements.
+
+---
+
+## 🛠️ Tech Stack
+
+### Backend
+*   **Framework:** Flask (Python)
+*   **Database:** SQLite3 (file-based)
+*   **Templating:** Jinja2
+*   **Security:** Werkzeug password hashing (`generate_password_hash`, `check_password_hash`).
+*   **File Handling:** Werkzeug secure uploads with extension and size validation (**Max 20MB**).
+
+### Frontend
+*   **HTML5** — Semantic markup.
+*   **CSS3** — Custom properties (variables), Flexbox, CSS Grid, Media Queries.
+*   **JavaScript (Vanilla ES6)** — Mobile menu, auto-slider, lightbox, scrollspy, form interactions.
+*   **Icons:** Font Awesome 6.5.2 (CDN).
+*   **Fonts:** Google Fonts (DM Sans & Playfair Display).
+
+---
+
+## 📁 Project Structure
 
 ```text
 📁 shanti_niketan_flask/
 │
-├── app.py                      # Main Flask app (30+ routes, DB logic, auth, uploads)
-├── school.db                   # SQLite Database (auto-generated with 8 tables)
+├── app.py                      # Main Flask app (Routes, DB logic, Auth, Uploads)
+├── school.db                   # SQLite Database (auto-generated with 14 tables)
 ├── requirements.txt            # Python dependencies (Flask, Werkzeug)
 ├── README.md                   # This documentation
 ├── .gitignore                  # Git ignore rules
 │
 ├── 📁 static/
 │   ├── 📁 css/
-│   │   └── style.css           # 2500+ lines of custom CSS
+│   │   └── style.css           # All custom CSS styles
 │   ├── 📁 js/
 │   │   └── main.js             # Mobile menu, slider, scrollspy logic
-│   ├── 📁 images/              # School logo, campus photos, gallery images
+│   ├── 📁 images/              # School logo, campus photos, dynamic gallery images
 │   └── 📁 uploads/             # Auto-created for QR code image uploads
 │
 └── 📁 templates/
     │
     ├── 🏫 PUBLIC PAGES
-    ├── index.html              # Home page with user avatar
+    ├── index.html              # Home page
     ├── notice.html             # Dynamic Notice Board
     ├── academics.html          # Academics page
+    ├── gallery.html            # Dynamic Photo Gallery
+    ├── faculty.html            # Dynamic Faculty Directory
+    ├── events.html             # Dynamic Public Events Page
+    ├── achievements.html       # Dynamic Achievements Showcase
+    ├── faq.html                # Dynamic FAQ Accordion
     │
     ├── 🔐 AUTHENTICATION
     ├── login.html              # Login page (Unique ID + Password)
@@ -148,6 +158,10 @@ This project provides a professional digital presence for **"Residential Shanti 
         ├── admin_notices.html        # Publish/manage notices
         ├── admin_messages.html       # Send messages
         ├── admin_fees.html           # QR upload & fee verification
-        └── admin_enquiries.html      # View enquiries
-
-        
+        ├── admin_enquiries.html      # View enquiries
+        ├── admin_faculty.html        # Manage Faculty (CMS)
+        ├── admin_events.html         # Manage Events (Add/Edit/Delete)
+        ├── admin_gallery.html        # Manage Gallery (Upload/Delete)
+        ├── admin_achievements.html   # Manage Achievements (CMS)
+        ├── admin_testimonials.html   # Manage Testimonials (CMS)
+        └── admin_faq.html            # Manage FAQs (CMS)

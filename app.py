@@ -974,6 +974,39 @@ def admin_add_faculty():
     flash(f'Faculty "{name}" added!', 'success')
     return redirect(url_for('admin_faculty'))
 
+
+@app.route('/admin/faculty/edit/<int:fid>', methods=['GET', 'POST'])
+@admin_required
+def admin_edit_faculty(fid):
+    db = get_db()
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        subject = request.form.get('subject', '').strip()
+        qualification = request.form.get('qualification', '').strip()
+        experience = request.form.get('experience', '').strip()
+        bio = request.form.get('bio', '').strip()
+        display_order = request.form.get('display_order', '0')
+        
+        if not name or not subject:
+            flash('Name and Subject are required.', 'error')
+            return redirect(url_for('admin_edit_faculty', fid=fid))
+        
+        db.execute('''UPDATE faculty SET name = ?, subject = ?, qualification = ?, 
+                      experience = ?, bio = ?, display_order = ? WHERE id = ?''',
+                   (name, subject, qualification, experience, bio, int(display_order) if display_order else 0, fid))
+        db.commit()
+        flash('Faculty updated successfully!', 'success')
+        return redirect(url_for('admin_faculty'))
+    
+    # GET request: load faculty member to edit
+    edit_faculty = db.execute('SELECT * FROM faculty WHERE id = ?', (fid,)).fetchone()
+    if not edit_faculty:
+        flash('Faculty not found.', 'error')
+        return redirect(url_for('admin_faculty'))
+        
+    faculty = db.execute('SELECT * FROM faculty ORDER BY display_order, id').fetchall()
+    return render_template('admin_faculty.html', faculty=faculty, edit_faculty=edit_faculty, active_page='faculty')
+
 @app.route('/admin/faculty/delete/<int:fid>', methods=['POST'])
 @admin_required
 def admin_delete_faculty(fid):

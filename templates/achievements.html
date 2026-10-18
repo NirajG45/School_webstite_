@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+    <!-- ================= HEADER ================= -->
     <header class="site-header">
         <div class="header-inner">
             <a class="brand" href="{{ url_for('home') }}">
@@ -29,13 +30,80 @@
                 <a class="nav-link active" href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i> Achievements</a>
                 <a class="nav-link" href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
             </nav>
+            
+            <!-- ✅ UPDATED HEADER ACTIONS -->
             <div class="header-actions">
+                {% if session.get('user_id') %}
+                <div class="user-profile">
+                    <a href="{{ url_for('user_dashboard') }}" class="user-avatar-btn" title="{{ session['user_name'] }}">
+                        <div class="user-avatar">
+                            {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                        </div>
+                    </a>
+                    <div class="user-dropdown">
+                        <div class="user-info-head">
+                            <div class="user-info-avatar">
+                                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                            </div>
+                            <div class="user-info-text">
+                                <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
+                                <small><i class="fa-solid fa-id-badge"></i> ID: {{ session.get('unique_id', 'N/A') }}</small>
+                                <small class="user-role-tag">{{ session.get('user_role', 'User')|capitalize }}</small>
+                            </div>
+                        </div>
+                        <hr class="user-divider">
+                        <a href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+                        {% if session.get('user_role') == 'admin' %}
+                        <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-user-gear"></i> Admin Panel</a>
+                        {% endif %}
+                        <a href="{{ url_for('logout') }}" class="logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                    </div>
+                </div>
+                {% else %}
                 <a class="login-btn" href="{{ url_for('login_page') }}"><i class="fa-regular fa-user"></i><span>Login</span></a>
-                <button class="menu-toggle" id="menuToggle"><span></span><span></span><span></span></button>
+                {% endif %}
+                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-controls="mobileMenu" aria-expanded="false"><span></span><span></span><span></span></button>
             </div>
         </div>
     </header>
 
+    <!-- ✅ MOBILE MENU & BACKDROP -->
+    <div class="menu-backdrop" id="menuBackdrop" hidden></div>
+    <aside class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation" aria-hidden="true" inert>
+        <div class="mobile-menu-head">
+            <span>Explore School</span>
+            <button type="button" id="menuClose" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        {% if session.get('user_id') %}
+        <div class="mobile-user-box logged-in">
+            <div class="mobile-user-avatar">{{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}</div>
+            <div class="mobile-user-text">
+                <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
+                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
+                <span class="mobile-role-badge">{{ session.get('user_role', 'User')|capitalize }}</span>
+            </div>
+        </div>
+        <div class="mobile-quick-links">
+            <a href="{{ url_for('user_dashboard') }}" class="mobile-dash-btn"><i class="fa-solid fa-gauge"></i> Open My Dashboard</a>
+        </div>
+        {% endif %}
+        <nav class="mobile-nav">
+            <a href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="{{ url_for('gallery_page') }}"><i class="fa-regular fa-images"></i> Photo Gallery</a>
+            <a href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i> Our Faculty</a>
+            <a href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i> Events & News</a>
+            <a href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i> Achievements</a>
+            <a href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
+            {% if session.get('user_id') %}
+            <a href="{{ url_for('logout') }}" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            {% else %}
+            <a href="{{ url_for('login_page') }}" class="mobile-login-nav"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+            {% endif %}
+        </nav>
+        <div class="mobile-menu-foot">Learn <span>•</span> Grow <span>•</span> Succeed</div>
+    </aside>
+
+    <!-- ================= MAIN CONTENT ================= -->
     <main>
         <section class="page-hero">
             <div class="wrap">
@@ -53,9 +121,19 @@
         </section>
 
         <section class="achievements-content wrap">
-            <div class="achievements-grid">
+            
+            <!-- ✅ NEW: FILTER TABS -->
+            <div class="filter-tabs" style="justify-content: center; margin-bottom: 40px;">
+                <button class="filter-btn active" data-filter="all">All Achievements</button>
+                <button class="filter-btn" data-filter="academic">Academic</button>
+                <button class="filter-btn" data-filter="sports">Sports</button>
+                <button class="filter-btn" data-filter="cultural">Cultural</button>
+            </div>
+
+            <!-- ACHIEVEMENTS GRID -->
+            <div class="achievements-grid" id="achievementsGrid">
                 {% for a in achievements %}
-                <div class="achievement-card">
+                <div class="achievement-card" data-category="{{ a.category }}">
                     <div class="achievement-trophy cat-{{ a.category }}">
                         <i class="fa-solid fa-trophy"></i>
                     </div>
@@ -67,12 +145,18 @@
                     </div>
                 </div>
                 {% else %}
-                <p class="empty-row">No achievements to display.</p>
+                <!-- ✅ NEW: Beautiful Empty State -->
+                <div class="empty-state" style="grid-column: 1/-1;">
+                    <i class="fa-solid fa-trophy"></i>
+                    <h3>No Achievements Yet</h3>
+                    <p>Our students are working hard! New achievements will be displayed here soon.</p>
+                </div>
                 {% endfor %}
             </div>
         </section>
     </main>
 
+    <!-- ================= FOOTER ================= -->
     <footer class="site-footer">
         <div class="wrap footer-inner">
             <div class="footer-brand-col">
@@ -87,15 +171,102 @@
                     </span>
                 </a>
             </div>
+            
+            <!-- ✅ NEW: Quick Links in Footer -->
+            <div class="footer-links-col">
+                <h4>Quick Links</h4>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+                    <a href="{{ url_for('gallery_page') }}" style="font-size:12.5px;color:#aebfd0;display:flex;align-items:center;gap:8px;"><i class="fa-regular fa-images" style="color:var(--yellow);font-size:11px;"></i> Photo Gallery</a>
+                    <a href="{{ url_for('faculty_page') }}" style="font-size:12.5px;color:#aebfd0;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-chalkboard-user" style="color:var(--yellow);font-size:11px;"></i> Our Faculty</a>
+                    <a href="{{ url_for('events_page') }}" style="font-size:12.5px;color:#aebfd0;display:flex;align-items:center;gap:8px;"><i class="fa-regular fa-calendar-days" style="color:var(--yellow);font-size:11px;"></i> Events</a>
+                    <a href="{{ url_for('faq_page') }}" style="font-size:12.5px;color:#aebfd0;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-circle-question" style="color:var(--yellow);font-size:11px;"></i> FAQ</a>
+                </div>
+            </div>
+
             <div class="footer-contact-col">
                 <h4>Navigate</h4>
                 <a class="back-top" href="#top">Back to top <i class="fa-solid fa-arrow-up"></i></a>
             </div>
         </div>
+        
+        <!-- ✅ NEW: Developer Credit -->
         <div class="footer-bottom">
-            <p class="copyright-text">© <span id="year"></span> Residential Shanti Niketan.</p>
+            <p class="copyright-text">© <span id="year"></span> Residential Shanti Niketan. Website concept.</p>
+            <div class="developer-credit">
+                <span class="dev-badge">
+                    <i class="fa-solid fa-code"></i>
+                    <span>Developed by <strong>Niraj Kumar</strong></span>
+                    <a href="tel:9155658081" class="dev-contact"><i class="fa-solid fa-phone"></i> 9155658081</a>
+                </span>
+            </div>
         </div>
     </footer>
-    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+
+    <!-- ================= JAVASCRIPT ================= -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // ✅ 1. Mobile Menu Logic
+            const menuToggle = document.getElementById('menuToggle');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const menuBackdrop = document.getElementById('menuBackdrop');
+            const menuClose = document.getElementById('menuClose');
+
+            if (menuToggle && mobileMenu && menuBackdrop) {
+                function openMenu() {
+                    mobileMenu.classList.add('is-open');
+                    mobileMenu.removeAttribute('inert');
+                    mobileMenu.setAttribute('aria-hidden', 'false');
+                    menuToggle.setAttribute('aria-expanded', 'true');
+                    menuBackdrop.hidden = false;
+                    setTimeout(() => menuBackdrop.classList.add('is-open'), 10);
+                    document.body.classList.add('menu-open');
+                }
+
+                function closeMenu() {
+                    mobileMenu.classList.remove('is-open');
+                    mobileMenu.setAttribute('inert', '');
+                    mobileMenu.setAttribute('aria-hidden', 'true');
+                    menuToggle.setAttribute('aria-expanded', 'false');
+                    menuBackdrop.classList.remove('is-open');
+                    setTimeout(() => { menuBackdrop.hidden = true; }, 300);
+                    document.body.classList.remove('menu-open');
+                }
+
+                menuToggle.addEventListener('click', () => {
+                    menuToggle.getAttribute('aria-expanded') === 'true' ? closeMenu() : openMenu();
+                });
+                if (menuClose) menuClose.addEventListener('click', closeMenu);
+                menuBackdrop.addEventListener('click', closeMenu);
+                mobileMenu.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
+            }
+
+            // ✅ 2. Category Filter Logic
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const achievementCards = document.querySelectorAll('.achievement-card');
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active class from all
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    // Add active class to clicked
+                    btn.classList.add('active');
+
+                    const filterValue = btn.getAttribute('data-filter');
+
+                    achievementCards.forEach(card => {
+                        if (filterValue === 'all' || card.getAttribute('data-category') === filterValue) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+
+            // ✅ 3. Set Footer Year
+            const yearEl = document.getElementById('year');
+            if (yearEl) yearEl.textContent = new Date().getFullYear();
+        });
+    </script>
 </body>
 </html>

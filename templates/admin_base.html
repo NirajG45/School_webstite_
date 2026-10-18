@@ -1,128 +1,243 @@
 <!doctype html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Admin Panel{% endblock %} | Residential Shanti Niketan</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <style>
+        /* =========================================
+           ADMIN BASE LAYOUT FIX
+           ========================================= */
+        body.admin-body { 
+            background: var(--paper); 
+            display: flex; 
+            min-height: 100vh; 
+            margin: 0; 
+            overflow-x: hidden;
+        }
+        
+        /* SIDEBAR */
+        .admin-sidebar { 
+            background: var(--navy); 
+            width: 260px; 
+            flex: 0 0 260px;
+            display: flex; 
+            flex-direction: column;
+            position: fixed;
+            top: 0; bottom: 0; left: 0;
+            z-index: 1050;
+            transition: transform 0.3s ease;
+        }
+        .admin-sidebar-head { padding: 25px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .admin-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .admin-logo img { width: 40px; height: 40px; border-radius: 50%; background: #fff; padding: 3px; border: 2px solid var(--yellow); }
+        .admin-logo span strong { font-family: 'Playfair Display', serif; color: #fff; font-size: 18px; display: block; line-height: 1.1; }
+        .admin-logo span small { color: var(--yellow); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+        
+        /* NAVIGATION LINKS */
+        .admin-nav { padding: 15px 12px; overflow-y: auto; flex: 1; }
+        .nav-group-title {
+            font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase;
+            letter-spacing: 1.5px; margin: 20px 15px 8px; display: block;
+        }
+        .admin-nav-link {
+            padding: 10px 14px; border-radius: 8px; font-size: 13px; color: #cbd5e1;
+            margin-bottom: 4px; display: flex; align-items: center; gap: 12px; 
+            text-decoration: none; transition: all 0.2s;
+        }
+        .admin-nav-link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .admin-nav-link.active { background: var(--red); color: white; box-shadow: 0 4px 12px rgba(215, 25, 56, 0.3); font-weight: 700; }
+        .admin-nav-link i { width: 20px; text-align: center; font-size: 15px; }
+        
+        /* MAIN CONTENT AREA */
+        .admin-main {
+            flex: 1;
+            margin-left: 260px; /* Space for fixed sidebar */
+            width: calc(100% - 260px);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* TOPBAR */
+        .admin-topbar {
+            background: #fff; height: 72px; border-bottom: 1px solid var(--line); 
+            padding: 0 25px; display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 1000;
+        }
+        
+        /* Mobile Toggle Button (Hidden on Desktop) */
+        .admin-menu-toggle {
+            display: none; background: var(--paper); border: 1px solid var(--line);
+            width: 40px; height: 40px; border-radius: 8px; color: var(--navy);
+            font-size: 18px; cursor: pointer; align-items: center; justify-content: center;
+        }
+        
+        .topbar-search {
+            display: flex; align-items: center; gap: 10px; background: var(--paper);
+            padding: 8px 16px; border-radius: 8px; width: 300px; color: var(--muted);
+            border: 1px solid transparent; transition: all 0.2s;
+        }
+        .topbar-search:focus-within { border-color: var(--navy); background: #fff; }
+        .topbar-search input { border: none; background: transparent; outline: none; width: 100%; font-size: 13px; color: var(--ink); }
+        
+        .topbar-right { display: flex; align-items: center; gap: 20px; }
+        .topbar-icon-btn {
+            width: 40px; height: 40px; border-radius: 50%; background: var(--paper); border: 1px solid var(--line);
+            display: flex; align-items: center; justify-content: center; color: var(--navy); cursor: pointer; position: relative;
+        }
+        .topbar-icon-btn::after { content: ''; position: absolute; top: 8px; right: 10px; width: 6px; height: 6px; background: var(--red); border-radius: 50%; }
+        
+        .topbar-profile { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .topbar-profile-avatar { 
+            width: 40px; height: 40px; background: var(--navy); color: white; 
+            border-radius: 8px; display: flex; align-items: center; justify-content: center; 
+            font-weight: 800; font-size: 14px; 
+        }
+        .topbar-profile-info strong { display: block; font-size: 13px; color: var(--navy); line-height: 1.2; }
+        .topbar-profile-info small { display: block; font-size: 11px; color: var(--muted); }
+        
+        .admin-content { padding: 30px; flex: 1; }
+        
+        /* Mobile Backdrop */
+        .admin-backdrop {
+            position: fixed; inset: 0; background: rgba(5, 24, 44, 0.5); z-index: 1040;
+            opacity: 0; visibility: hidden; transition: all 0.3s; backdrop-filter: blur(2px);
+        }
+        .admin-backdrop.open { opacity: 1; visibility: visible; }
+
+        /* RESPONSIVE FIX */
+        @media (max-width: 900px) {
+            .admin-sidebar { transform: translateX(-100%); }
+            .admin-sidebar.open { transform: translateX(0); }
+            .admin-main { margin-left: 0; width: 100%; }
+            .admin-menu-toggle { display: flex; }
+            .topbar-search { display: none; }
+            .topbar-profile-info { display: none; }
+            .admin-content { padding: 20px; }
+        }
+    </style>
 </head>
 
 <body class="admin-body">
 
-    <!-- =========================================
-         ADMIN SIDEBAR (with user info box)
-         ========================================= -->
+    <!-- ADMIN SIDEBAR -->
     <aside class="admin-sidebar" id="adminSidebar">
         <div class="admin-sidebar-head">
             <a href="{{ url_for('home') }}" class="admin-logo">
-                <img src="{{ url_for('static', filename='images/school-logo.png') }}" class="school-logo" alt="Logo">
-                <span><strong>RSN</strong><small>Admin Panel</small></span>
+                <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="Logo">
+                <span>
+                    <strong>Shanti Niketan</strong>
+                    <small>Admin Console</small>
+                </span>
             </a>
         </div>
-
-                <!-- ✅ NEW UPGRADED ADMIN USER INFO BOX -->
-        {% if session.get('user_id') %}
-        <div class="admin-user-box upgraded">
-            <div class="admin-user-avatar-wrapper">
-                <div class="admin-user-avatar">
-                    {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
-                </div>
-                <span class="online-dot" title="Active Now"></span>
-            </div>
-            <div class="admin-user-text">
-                <strong>{{ session['user_name'].split()[0] }}</strong>
-                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
-                <span class="admin-role-badge">Administrator</span>
-            </div>
-        </div>
-        
-        <!-- Sidebar Quick Link -->
-        <div style="padding: 0 16px 10px;">
-            <a href="{{ url_for('user_dashboard') }}" class="admin-nav-link" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); font-size: 12px; padding: 10px; justify-content: center;">
-                <i class="fa-solid fa-user-circle"></i> View My Profile
-            </a>
-        </div>
-        {% endif %}
 
         <nav class="admin-nav">
-            <a href="{{ url_for('admin_dashboard') }}"
-                class="admin-nav-link {% if active_page=='dashboard' %}active{% endif %}">
-                <i class="fa-solid fa-gauge"></i> Dashboard</a>
-            <a href="{{ url_for('admin_create_user') }}"
-                class="admin-nav-link {% if active_page=='create_user' %}active{% endif %}"
-                style="background:rgba(255,215,71,0.1); color:#ffd447;">
-                <i class="fa-solid fa-user-plus"></i> Create User</a>
-            <a href="{{ url_for('admin_users') }}"
-                class="admin-nav-link {% if active_page=='users' %}active{% endif %}">
-                <i class="fa-solid fa-users"></i> All Users</a>
-            <a href="{{ url_for('admin_attendance') }}"
-                class="admin-nav-link {% if active_page=='attendance' %}active{% endif %}">
-                <i class="fa-solid fa-clipboard-check"></i> Attendance</a>
-            <a href="{{ url_for('admin_leaves') }}"
-                class="admin-nav-link {% if active_page=='leaves' %}active{% endif %}">
-                <i class="fa-solid fa-calendar-minus"></i> Leave Requests
-                {% if session.get('pending_leaves_count') %}<span class="notif-dot"></span>{% endif %}</a>
-            <a href="{{ url_for('admin_notices') }}"
-                class="admin-nav-link {% if active_page=='notices' %}active{% endif %}">
-                <i class="fa-solid fa-bell"></i> Notices</a>
-            <a href="{{ url_for('admin_messages') }}"
-                class="admin-nav-link {% if active_page=='messages' %}active{% endif %}">
-                <i class="fa-solid fa-comments"></i> Messages</a>
+            <span class="nav-group-title">Workspace</span>
+            <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link {% if active_page=='dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-gauge"></i> Dashboard
+            </a>
+
+            <span class="nav-group-title">School Management</span>
+            <!-- ✅ RESTORED: Create User Button -->
+            <a href="{{ url_for('admin_create_user') }}" class="admin-nav-link {% if active_page=='create_user' %}active{% endif %}" style="background: rgba(255, 215, 71, 0.1); color: #ffd447;">
+                <i class="fa-solid fa-user-plus"></i> Create User
+            </a>
+            <a href="{{ url_for('admin_users') }}" class="admin-nav-link {% if active_page=='users' %}active{% endif %}">
+                <i class="fa-solid fa-users"></i> All Users
+            </a>
+            <a href="{{ url_for('admin_attendance') }}" class="admin-nav-link {% if active_page=='attendance' %}active{% endif %}">
+                <i class="fa-solid fa-clipboard-check"></i> Attendance
+            </a>
+            <a href="{{ url_for('admin_leaves') }}" class="admin-nav-link {% if active_page=='leaves' %}active{% endif %}">
+                <i class="fa-solid fa-calendar-minus"></i> Leaves
+            </a>
             <a href="{{ url_for('admin_fees') }}" class="admin-nav-link {% if active_page=='fees' %}active{% endif %}">
-                <i class="fa-solid fa-indian-rupee-sign"></i> Fees & QR</a>
-            <a href="{{ url_for('admin_enquiries') }}"
-                class="admin-nav-link {% if active_page=='enquiries' %}active{% endif %}">
-                <i class="fa-solid fa-envelope-open-text"></i> Enquiries</a>
+                <i class="fa-solid fa-indian-rupee-sign"></i> Fees & Payments
+            </a>
+            <a href="{{ url_for('admin_notices') }}" class="admin-nav-link {% if active_page=='notices' %}active{% endif %}">
+                <i class="fa-solid fa-bell"></i> Notices
+            </a>
+            <a href="{{ url_for('admin_messages') }}" class="admin-nav-link {% if active_page=='messages' %}active{% endif %}">
+                <i class="fa-solid fa-comments"></i> Messages
+            </a>
+            <a href="{{ url_for('admin_enquiries') }}" class="admin-nav-link {% if active_page=='enquiries' %}active{% endif %}">
+                <i class="fa-solid fa-envelope-open-text"></i> Enquiries
+            </a>
 
-                        <!-- NEW: Website Content Management -->
-            <hr class="admin-divider">
-            <p style="font-size:10px;color:#6b8299;text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:8px 16px 6px;">Website Content</p>
+            <span class="nav-group-title">Website Content</span>
             <a href="{{ url_for('admin_faculty') }}" class="admin-nav-link {% if active_page=='faculty' %}active{% endif %}">
-                <i class="fa-solid fa-chalkboard-user"></i> Faculty</a>
-            <a href="{{ url_for('admin_events') }}" class="admin-nav-link {% if active_page=='events' %}active{% endif %}">
-                <i class="fa-regular fa-calendar-days"></i> Events</a>
+                <i class="fa-solid fa-chalkboard-user"></i> Faculty
+            </a>
             <a href="{{ url_for('admin_gallery') }}" class="admin-nav-link {% if active_page=='gallery' %}active{% endif %}">
-                <i class="fa-regular fa-images"></i> Gallery</a>
+                <i class="fa-regular fa-images"></i> Gallery
+            </a>
+            <a href="{{ url_for('admin_events') }}" class="admin-nav-link {% if active_page=='events' %}active{% endif %}">
+                <i class="fa-regular fa-calendar-days"></i> Events
+            </a>
             <a href="{{ url_for('admin_achievements') }}" class="admin-nav-link {% if active_page=='achievements' %}active{% endif %}">
-                <i class="fa-solid fa-trophy"></i> Achievements</a>
+                <i class="fa-solid fa-trophy"></i> Achievements
+            </a>
             <a href="{{ url_for('admin_testimonials') }}" class="admin-nav-link {% if active_page=='testimonials' %}active{% endif %}">
-                <i class="fa-solid fa-quote-left"></i> Testimonials</a>
+                <i class="fa-solid fa-quote-left"></i> Testimonials
+            </a>
             <a href="{{ url_for('admin_faq') }}" class="admin-nav-link {% if active_page=='faq' %}active{% endif %}">
-                <i class="fa-solid fa-circle-question"></i> FAQ</a>
-            <hr class="admin-divider">
+                <i class="fa-solid fa-circle-question"></i> FAQs
+            </a>
 
-            <hr class="admin-divider">
-            <a href="{{ url_for('home') }}" class="admin-nav-link"><i class="fa-solid fa-house"></i> View Website</a>
+            <span class="nav-group-title">System</span>
+            <a href="{{ url_for('home') }}" class="admin-nav-link"><i class="fa-solid fa-globe"></i> View Website</a>
+            <!-- ✅ RESTORED: My Profile Link -->
             <a href="{{ url_for('user_dashboard') }}" class="admin-nav-link"><i class="fa-solid fa-user"></i> My Profile</a>
-            <a href="{{ url_for('logout') }}" class="admin-nav-link logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            <a href="{{ url_for('logout') }}" class="admin-nav-link" style="color: #f87171;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </nav>
     </aside>
 
+    <!-- MAIN AREA -->
     <div class="admin-main">
+        <!-- TOPBAR -->
         <header class="admin-topbar">
-            <button class="admin-menu-toggle" id="adminMenuToggle" aria-label="Toggle sidebar" aria-expanded="false">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-            <h1 class="admin-page-title">{% block page_title %}Dashboard{% endblock %}</h1>
-            <div class="admin-user-info">
-                <span class="admin-user-name">{{ session['user_name'] }}</span>
-                <span style="font-size:11px;color:#65758a;">{{ session.get('unique_id','') }}</span>
-                <div class="user-avatar" style="width:38px;height:38px;font-size:14px;">
-                    {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if
-                    session['user_name'].split()|length > 1 else '' }}
+            <div style="display:flex; align-items:center; gap:15px;">
+                <!-- Mobile Menu Toggle Button -->
+                <button class="admin-menu-toggle" id="adminMenuToggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                
+                <div class="topbar-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Search pages, students...">
+                </div>
+            </div>
+            
+            <div class="topbar-right">
+                <div class="topbar-icon-btn"><i class="fa-regular fa-bell"></i></div>
+                <div class="topbar-profile">
+                    <div class="topbar-profile-avatar">
+                        {{ session['user_name'][:2] | upper }}
+                    </div>
+                    <div class="topbar-profile-info">
+                        <strong>{{ session['user_name'].split()[0] }}</strong>
+                        <small>Administrator</small>
+                    </div>
                 </div>
             </div>
         </header>
 
+        <!-- FLASH MESSAGES -->
         {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}
-        <div class="flash-stack">{% for cat, msg in messages %}
-            <div class="flash {{ cat }}"><span>{{ msg }}</span><button class="flash-close">×</button></div>
+        <div class="flash-stack" style="position:fixed; top:80px; right:20px; z-index:9999;">
+            {% for cat, msg in messages %}
+            <div class="flash {{ cat }}" style="background:white; padding:12px 18px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.1); border-left:4px solid {% if cat=='error' %}var(--red){% else %}#168254{% endif %}; font-size:13px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                <span>{{ msg }}</span>
+                <button class="flash-close" style="border:none; background:none; font-size:18px; cursor:pointer; margin-left:15px;">×</button>
+            </div>
             {% endfor %}
         </div>
         {% endif %}{% endwith %}
@@ -130,67 +245,38 @@
         <main class="admin-content">{% block content %}{% endblock %}</main>
     </div>
 
+    <!-- Backdrop for Mobile Menu -->
     <div class="admin-backdrop" id="adminBackdrop"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const menuToggle = document.getElementById('adminMenuToggle');
-            const adminSidebar = document.getElementById('adminSidebar');
-            const adminBackdrop = document.getElementById('adminBackdrop');
+            const toggle = document.getElementById('adminMenuToggle');
+            const sidebar = document.getElementById('adminSidebar');
+            const backdrop = document.getElementById('adminBackdrop');
 
-            if (!menuToggle || !adminSidebar || !adminBackdrop) return;
-
-            function openSidebar() {
-                adminSidebar.classList.add('open');
-                adminBackdrop.classList.add('open');
-                menuToggle.setAttribute('aria-expanded', 'true');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeSidebar() {
-                adminSidebar.classList.remove('open');
-                adminBackdrop.classList.remove('open');
-                menuToggle.setAttribute('aria-expanded', 'false');
-                document.body.style.overflow = '';
-            }
-
-            menuToggle.addEventListener('click', () => {
-                adminSidebar.classList.contains('open') ? closeSidebar() : openSidebar();
-            });
-
-            adminBackdrop.addEventListener('click', closeSidebar);
-
-            // Close sidebar when a link is clicked
-            adminSidebar.querySelectorAll('.admin-nav-link').forEach(link => {
-                link.addEventListener('click', () => {
-                    if (window.innerWidth <= 900) closeSidebar();
+            if (toggle && sidebar && backdrop) {
+                // Open/Close Sidebar
+                toggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('open');
+                    backdrop.classList.toggle('open');
                 });
-            });
 
-            // Close on resize to desktop
-            window.addEventListener('resize', () => {
-                if (window.innerWidth > 900 && adminSidebar.classList.contains('open')) {
-                    closeSidebar();
-                }
-            });
+                // Close on Backdrop Click
+                backdrop.addEventListener('click', () => {
+                    sidebar.classList.remove('open');
+                    backdrop.classList.remove('open');
+                });
+            }
 
-            // Flash close
+            // Flash Messages Close
             document.querySelectorAll('.flash-close').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const f = btn.closest('.flash');
-                    f.style.opacity = '0';
-                    f.style.transform = 'translateX(100%)';
-                    setTimeout(() => f.remove(), 300);
+                    f.style.opacity = '0'; setTimeout(() => f.remove(), 300);
                 });
-            });
-
-            // Confirm delete
-            document.querySelectorAll('[data-confirm]').forEach(el => {
-                el.addEventListener('submit', e => { if (!confirm(el.dataset.confirm)) e.preventDefault(); });
             });
         });
     </script>
     {% block extra_js %}{% endblock %}
 </body>
-
 </html>

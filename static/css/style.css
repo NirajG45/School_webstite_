@@ -4774,3 +4774,105 @@ img { display: block; max-width: 100%; }
         font-size: 22px;
     }
 }
+
+/* =========================================
+   EXACT MATCH SIDEBAR PROFILE (IMAGE STYLE)
+   ========================================= */
+
+.sidebar-profile-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px 20px;
+    margin: 10px 10px 20px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    /* Optional: Agar image jaisa background color chahiye to yahan #0a2340 use kar sakte hain */
+}
+
+/* Avatar Wrapper (Joins Circle + Green Dot) */
+.profile-avatar-wrapper {
+    position: relative;
+    flex: 0 0 70px;
+    width: 70px;
+    height: 70px;
+}
+
+/* Large Circle Avatar */
+.profile-avatar-circle {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #103a71, #1768a7); /* Blueish background for initials */
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    font-weight: 800;
+    border: 3px solid #ffffff; /* White border exactly like the image */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    letter-spacing: 1px;
+    overflow: hidden;
+}
+
+/* Agar aap <img> tag use karte hain to ye style apply hoga */
+.profile-avatar-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Green Online Dot */
+.profile-online-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    background-color: #2ecc71; /* Bright Green */
+    border: 3px solid #0a2340; /* Matches sidebar background to create cut-out effect */
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Right Side Text Area */
+.profile-info-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0; /* Prevents text overflow breaking layout */
+}
+
+/* Name Style (Bold & White) */
+.profile-name {
+    margin: 0 0 4px 0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Meta Info (ID • Role) */
+.profile-meta {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #8b9bb4; /* Light greyish-blue like the image text */
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.3px;
+}
+
+/* Separator Dot */
+.meta-dot {
+    font-size: 16px;
+    color: #8b9bb4;
+    line-height: 1;
+    margin-bottom: 2px;
+}

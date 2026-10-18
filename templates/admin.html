@@ -3,48 +3,77 @@
 {% block page_title %}Dashboard Overview{% endblock %}
 
 {% block content %}
-<div class="admin-stats-grid">
-    <div class="admin-stat-card blue">
-        <div class="stat-icon-wrap"><i class="fa-solid fa-users"></i></div>
-        <div><span class="stat-num">{{ stats.total_users }}</span><span class="stat-label">Total Users</span></div>
+
+<!-- ✅ NEW: WELCOME BANNER -->
+<div class="admin-welcome-banner">
+    <div class="welcome-text">
+        <h2>Welcome back, {{ session['user_name'].split()[0] }}! 👋</h2>
+        <p>Here's what's happening at Residential Shanti Niketan today.</p>
     </div>
-    <div class="admin-stat-card green">
-        <div class="stat-icon-wrap"><i class="fa-solid fa-chalkboard-user"></i></div>
-        <div><span class="stat-num">{{ stats.total_teachers }}</span><span class="stat-label">Teachers</span></div>
-    </div>
-    <div class="admin-stat-card purple">
-        <div class="stat-icon-wrap"><i class="fa-solid fa-users-rays"></i></div>
-        <div><span class="stat-num">{{ stats.total_parents }}</span><span class="stat-label">Parents</span></div>
-    </div>
-    <div class="admin-stat-card orange">
-        <div class="stat-icon-wrap"><i class="fa-solid fa-graduation-cap"></i></div>
-        <div><span class="stat-num">{{ stats.total_students }}</span><span class="stat-label">Students</span></div>
-    </div>
-    <div class="admin-stat-card red">
-        <div class="stat-icon-wrap"><i class="fa-solid fa-envelope"></i></div>
-        <div><span class="stat-num">{{ stats.total_enquiries }}</span><span class="stat-label">Enquiries</span></div>
-    </div>
-    <div class="admin-stat-card yellow">
-        <div class="stat-icon-wrap"><i class="fa-solid fa-bell"></i></div>
-        <div><span class="stat-num">{{ stats.total_notices }}</span><span class="stat-label">Notices</span></div>
+    <div class="welcome-actions">
+        <a href="{{ url_for('admin_create_user') }}" class="btn-welcome"><i class="fa-solid fa-user-plus"></i> Add User</a>
+        <a href="{{ url_for('admin_notices') }}" class="btn-welcome-outline"><i class="fa-solid fa-bullhorn"></i> Post Notice</a>
     </div>
 </div>
 
+<!-- ✅ UPGRADED: STATS CARDS (Now Clickable) -->
+<div class="admin-stats-grid">
+    <a href="{{ url_for('admin_users') }}" class="admin-stat-card blue clickable-card">
+        <div class="stat-icon-wrap"><i class="fa-solid fa-users"></i></div>
+        <div><span class="stat-num">{{ stats.total_users }}</span><span class="stat-label">Total Users</span></div>
+        <i class="fa-solid fa-arrow-right card-arrow"></i>
+    </a>
+    <a href="{{ url_for('admin_users', role='teacher') }}" class="admin-stat-card green clickable-card">
+        <div class="stat-icon-wrap"><i class="fa-solid fa-chalkboard-user"></i></div>
+        <div><span class="stat-num">{{ stats.total_teachers }}</span><span class="stat-label">Teachers</span></div>
+        <i class="fa-solid fa-arrow-right card-arrow"></i>
+    </a>
+    <a href="{{ url_for('admin_users', role='parent') }}" class="admin-stat-card purple clickable-card">
+        <div class="stat-icon-wrap"><i class="fa-solid fa-users-rays"></i></div>
+        <div><span class="stat-num">{{ stats.total_parents }}</span><span class="stat-label">Parents</span></div>
+        <i class="fa-solid fa-arrow-right card-arrow"></i>
+    </a>
+    <a href="{{ url_for('admin_users', role='student') }}" class="admin-stat-card orange clickable-card">
+        <div class="stat-icon-wrap"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div><span class="stat-num">{{ stats.total_students }}</span><span class="stat-label">Students</span></div>
+        <i class="fa-solid fa-arrow-right card-arrow"></i>
+    </a>
+    <a href="{{ url_for('admin_enquiries') }}" class="admin-stat-card red clickable-card">
+        <div class="stat-icon-wrap"><i class="fa-solid fa-envelope"></i></div>
+        <div><span class="stat-num">{{ stats.total_enquiries }}</span><span class="stat-label">Enquiries</span></div>
+        <i class="fa-solid fa-arrow-right card-arrow"></i>
+    </a>
+    <a href="{{ url_for('admin_notices') }}" class="admin-stat-card yellow clickable-card">
+        <div class="stat-icon-wrap"><i class="fa-solid fa-bell"></i></div>
+        <div><span class="stat-num">{{ stats.total_notices }}</span><span class="stat-label">Notices</span></div>
+        <i class="fa-solid fa-arrow-right card-arrow"></i>
+    </a>
+</div>
+
 <div class="admin-grid-2">
+    <!-- ✅ UPGRADED: RECENT USERS -->
     <div class="admin-panel">
         <div class="admin-panel-head">
-            <h3><i class="fa-solid fa-user-plus"></i> Recent Users</h3>
+            <h3><i class="fa-solid fa-user-plus"></i> Recently Joined Users</h3>
             <a href="{{ url_for('admin_users') }}" class="view-all">View All <i class="fa-solid fa-arrow-right"></i></a>
         </div>
         <div class="admin-table-wrap">
             <table class="admin-table">
-                <thead><tr><th>Name</th><th>Role</th><th>Unique ID</th></tr></thead>
+                <thead><tr><th>User Details</th><th>Role</th><th>Unique ID</th></tr></thead>
                 <tbody>
                     {% for u in recent_users %}
                     <tr>
-                        <td><strong>{{ u.name }}</strong></td>
+                        <td>
+                            <div class="user-info-cell">
+                                <div class="table-avatar">{{ u.name.split()[0][0] | upper }}</div>
+                                <div>
+                                    <strong>{{ u.name }}</strong><br>
+                                    <small class="muted">{{ u.email }}</small>
+                                </div>
+                            </div>
+                        </td>
                         <td><span class="role-badge role-{{ u.role }}">{{ u.role|capitalize }}</span></td>
-                        <td class="muted">{{ u.unique_id or '—' }}</td>
+                        <td class="muted"><span style="background:#f0f4f8; padding:2px 8px; border-radius:4px; font-family:monospace;">{{ u.unique_id or '—' }}</span></td>
                     </tr>
                     {% else %}
                     <tr><td colspan="3" class="empty-row">No users yet.</td></tr>
@@ -54,6 +83,7 @@
         </div>
     </div>
 
+    <!-- ✅ UPGRADED: RECENT LEAVE REQUESTS -->
     <div class="admin-panel">
         <div class="admin-panel-head">
             <h3><i class="fa-solid fa-calendar-minus"></i> Recent Leave Requests</h3>
@@ -61,12 +91,18 @@
         </div>
         <div class="admin-table-wrap">
             <table class="admin-table">
-                <thead><tr><th>User</th><th>Type</th><th>Status</th></tr></thead>
+                <thead><tr><th>User</th><th>Dates</th><th>Status</th></tr></thead>
                 <tbody>
                     {% for l in recent_leaves %}
                     <tr>
-                        <td><strong>{{ l.user_name }}</strong><br><small class="muted">{{ l.user_uid }}</small></td>
-                        <td class="muted">{{ l.leave_type }}</td>
+                        <td>
+                            <strong>{{ l.user_name }}</strong><br>
+                            <small class="muted">{{ l.user_uid }}</small>
+                        </td>
+                        <td class="muted">
+                            <i class="fa-regular fa-calendar"></i> {{ l.from_date }} <br> 
+                            <span style="font-size:10px;color:#a0aec0;">to</span> {{ l.to_date }}
+                        </td>
                         <td><span class="kind-badge kind-{{ 'admission' if l.status=='approved' else 'contact' if l.status=='rejected' else 'notice' }}">{{ l.status|capitalize }}</span></td>
                     </tr>
                     {% else %}

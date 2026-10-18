@@ -26,17 +26,27 @@
             </a>
         </div>
 
-        <!-- ✅ NEW: Admin User Info Box -->
+                <!-- ✅ NEW UPGRADED ADMIN USER INFO BOX -->
         {% if session.get('user_id') %}
-        <div class="admin-user-box">
-            <div class="admin-user-avatar">
-                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+        <div class="admin-user-box upgraded">
+            <div class="admin-user-avatar-wrapper">
+                <div class="admin-user-avatar">
+                    {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                </div>
+                <span class="online-dot" title="Active Now"></span>
             </div>
             <div class="admin-user-text">
-                <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
+                <strong>{{ session['user_name'].split()[0] }}</strong>
                 <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
-                <span class="admin-role-badge">Admin</span>
+                <span class="admin-role-badge">Administrator</span>
             </div>
+        </div>
+        
+        <!-- Sidebar Quick Link -->
+        <div style="padding: 0 16px 10px;">
+            <a href="{{ url_for('user_dashboard') }}" class="admin-nav-link" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); font-size: 12px; padding: 10px; justify-content: center;">
+                <i class="fa-solid fa-user-circle"></i> View My Profile
+            </a>
         </div>
         {% endif %}
 

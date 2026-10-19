@@ -50,17 +50,26 @@
 
             <div class="header-actions">
                 {% if session.get('user_id') %}
-                <!-- LOGGED IN: User profile with hover dropdown -->
-                <div class="user-profile">
-                    <a href="{{ url_for('user_dashboard') }}" class="user-avatar-btn"
-                        title="{{ session['user_name'] }}">
+                <!-- =====================================================
+                     UPGRADED USER PROFILE — Hover Expand + Click to Pin
+                     ===================================================== -->
+                <div class="user-profile" id="userProfile">
+                    <button type="button" class="user-avatar-btn" id="userMenuBtn"
+                            aria-haspopup="true" aria-expanded="false" aria-controls="userDropdown"
+                            title="{{ session['user_name'] }} — click to open menu">
                         <div class="user-avatar">
                             {{ session['user_name'].split()[0][0] | upper }}{{
                             session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1
                             else '' }}
                         </div>
-                    </a>
-                    <div class="user-dropdown">
+                        <div class="user-avatar-info">
+                            <strong>{{ session['user_name'].split()[0] }}</strong>
+                            <small>{{ session.get('user_role', 'User')|capitalize }} • {{ session.get('unique_id', '') }}</small>
+                        </div>
+                        <i class="fa-solid fa-chevron-down user-chevron"></i>
+                    </button>
+
+                    <div class="user-dropdown" id="userDropdown" role="menu">
                         <div class="user-info-head">
                             <div class="user-info-avatar">
                                 {{ session['user_name'].split()[0][0] | upper }}{{
@@ -75,22 +84,25 @@
                             </div>
                         </div>
                         <hr class="user-divider">
-                        <a href="{{ url_for('user_dashboard') }}">
+                        <a href="{{ url_for('user_dashboard') }}" role="menuitem">
                             <i class="fa-solid fa-gauge"></i> My Dashboard
                         </a>
                         {% if session.get('user_role') == 'admin' %}
-                        <a href="{{ url_for('admin_dashboard') }}">
+                        <a href="{{ url_for('admin_dashboard') }}" role="menuitem">
                             <i class="fa-solid fa-user-gear"></i> Admin Panel
                         </a>
                         {% endif %}
-                        <a href="{{ url_for('change_password') }}">
+                        <a href="{{ url_for('change_password') }}" role="menuitem">
                             <i class="fa-solid fa-key"></i> Change Password
                         </a>
-                        <a href="{{ url_for('logout') }}" class="logout-link">
+                        <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem">
                             <i class="fa-solid fa-right-from-bracket"></i> Logout
                         </a>
                     </div>
                 </div>
+                <!-- =====================================================
+                     END UPGRADED USER PROFILE
+                     ===================================================== -->
                 {% else %}
                 <a class="login-btn" href="{{ url_for('login_page') }}">
                     <i class="fa-regular fa-user"></i><span>Login</span>

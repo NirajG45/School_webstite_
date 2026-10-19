@@ -34,6 +34,8 @@
                     <small>Pre-Nursery to Class 8 <i>•</i> शिक्षा • संस्कार • उज्ज्वल भविष्य</small>
                 </span>
             </a>
+
+            <!-- ========== UPGRADED DESKTOP NAVIGATION ========== -->
             <nav class="desktop-nav" aria-label="Main navigation">
                 <a class="nav-link" href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
                 <a class="nav-link" href="{{ url_for('home') }}#about"><i class="fa-solid fa-users"></i> About Us</a>
@@ -41,28 +43,75 @@
                     Academics</a>
                 <a class="nav-link" href="{{ url_for('home') }}#gallery"><i class="fa-regular fa-images"></i>
                     Gallery</a>
+                <a class="nav-link" href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i>
+                    Faculty</a>
+                <a class="nav-link" href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i>
+                    Events</a>
+                <a class="nav-link" href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i>
+                    Achievements</a>
+                <a class="nav-link" href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i>
+                    FAQ</a>
                 <a class="nav-link" href="{{ url_for('home') }}#notices"><i class="fa-solid fa-bell"></i> Notices</a>
                 <a class="nav-link" href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i>
                     Contact</a>
             </nav>
+
             <div class="header-actions">
                 {% if session.get('user_id') %}
-                <div class="user-profile">
-                    <div class="user-avatar" title="{{ session['user_name'] }}">
-                        {{ session['user_name'].split()[0][0] | upper }}{{
-                        session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else ''
-                        }}
-                    </div>
-                    <div class="user-dropdown">
-                        <span>Hello, {{ session['user_name'].split()[0] }}</span>
+                <!-- =====================================================
+                     UPGRADED USER PROFILE — Hover Expand + Click to Pin
+                     ===================================================== -->
+                <div class="user-profile" id="userProfile">
+                    <button type="button" class="user-avatar-btn" id="userMenuBtn"
+                            aria-haspopup="true" aria-expanded="false" aria-controls="userDropdown"
+                            title="{{ session['user_name'] }} — click to open menu">
+                        <div class="user-avatar">
+                            {{ session['user_name'].split()[0][0] | upper }}{{
+                            session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1
+                            else '' }}
+                        </div>
+                        <div class="user-avatar-info">
+                            <strong>{{ session['user_name'].split()[0] }}</strong>
+                            <small>{{ session.get('user_role', 'User')|capitalize }} • {{ session.get('unique_id', '') }}</small>
+                        </div>
+                        <i class="fa-solid fa-chevron-down user-chevron"></i>
+                    </button>
+
+                    <div class="user-dropdown" id="userDropdown" role="menu">
+                        <div class="user-info-head">
+                            <div class="user-info-avatar">
+                                {{ session['user_name'].split()[0][0] | upper }}{{
+                                session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1
+                                else '' }}
+                            </div>
+                            <div class="user-info-text">
+                                <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
+                                <small><i class="fa-solid fa-id-badge"></i> ID: {{ session.get('unique_id', 'N/A') }}
+                                </small>
+                                <small class="user-role-tag">{{ session.get('user_role', 'User')|capitalize }}</small>
+                            </div>
+                        </div>
+                        <hr class="user-divider">
                         {% if session.get('user_role') == 'admin' %}
-                        <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-gauge"></i> Admin Panel</a>
+                        <a href="{{ url_for('admin_dashboard') }}" role="menuitem">
+                            <i class="fa-solid fa-user-gear"></i> Admin Panel
+                        </a>
                         {% else %}
-                        <a href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                        <a href="{{ url_for('user_dashboard') }}" role="menuitem">
+                            <i class="fa-solid fa-gauge"></i> Dashboard
+                        </a>
                         {% endif %}
-                        <a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                        <a href="{{ url_for('change_password') }}" role="menuitem">
+                            <i class="fa-solid fa-key"></i> Change Password
+                        </a>
+                        <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        </a>
                     </div>
                 </div>
+                <!-- =====================================================
+                     END UPGRADED USER PROFILE
+                     ===================================================== -->
                 {% else %}
                 <a class="login-btn" href="{{ url_for('login_page') }}">
                     <i class="fa-regular fa-user"></i><span>Login</span>
@@ -77,22 +126,76 @@
     <div class="menu-backdrop" id="menuBackdrop" hidden></div>
 
     <!-- =========================================
-         MOBILE MENU
+         UPGRADED MOBILE MENU (with user info)
          ========================================= -->
     <aside class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation" aria-hidden="true" inert>
         <div class="mobile-menu-head">
             <span>Explore School</span>
             <button type="button" id="menuClose" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
         </div>
+
+        {% if session.get('user_id') %}
+        <div class="mobile-user-box logged-in">
+            <div class="mobile-user-avatar">
+                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if
+                session['user_name'].split()|length > 1 else '' }}
+            </div>
+            <div class="mobile-user-text">
+                <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
+                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
+                <span class="mobile-role-badge">{{ session.get('user_role', 'User')|capitalize }}</span>
+            </div>
+        </div>
+        <div class="mobile-quick-links">
+            <a href="{{ url_for('user_dashboard') }}" class="mobile-dash-btn">
+                <i class="fa-solid fa-gauge"></i> Open My Dashboard
+            </a>
+            {% if session.get('user_role') == 'admin' %}
+            <a href="{{ url_for('admin_dashboard') }}" class="mobile-dash-btn" style="margin-top:6px;">
+                <i class="fa-solid fa-user-gear"></i> Admin Panel
+            </a>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="mobile-user-box logged-out">
+            <div class="mobile-login-icon">
+                <i class="fa-regular fa-user"></i>
+            </div>
+            <div class="mobile-user-text">
+                <strong>Not Logged In</strong>
+                <small>Please login first to access your dashboard</small>
+            </div>
+            <a href="{{ url_for('login_page') }}" class="mobile-login-btn">
+                <i class="fa-solid fa-right-to-bracket"></i> Login Now
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- ========== UPGRADED MOBILE NAVIGATION ========== -->
         <nav class="mobile-nav">
             <a href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
             <a href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
             <a href="{{ url_for('home') }}#about"><i class="fa-solid fa-users"></i> About Us</a>
             <a href="{{ url_for('home') }}#academics"><i class="fa-solid fa-book-open"></i> Academics</a>
             <a href="{{ url_for('home') }}#gallery"><i class="fa-regular fa-images"></i> Gallery</a>
+            <a href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i> Our Faculty</a>
+            <a href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i> Events & News</a>
+            <a href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i> Achievements</a>
+            <a href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
             <a href="{{ url_for('home') }}#notices"><i class="fa-solid fa-bell"></i> Notice Board</a>
             <a href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i> Contact Us</a>
-            <a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+
+            {% if session.get('user_id') %}
+            {% if session.get('user_role') == 'admin' %}
+            <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-user-gear"></i> Admin Panel</a>
+            {% endif %}
+            <a href="{{ url_for('change_password') }}"><i class="fa-solid fa-key"></i> Change Password</a>
+            <a href="{{ url_for('logout') }}" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i>
+                Logout</a>
+            {% else %}
+            <a href="{{ url_for('login_page') }}" class="mobile-login-nav"><i class="fa-solid fa-right-to-bracket"></i>
+                Login</a>
+            {% endif %}
         </nav>
         <div class="mobile-menu-foot">Learn <span>•</span> Grow <span>•</span> Succeed</div>
     </aside>
@@ -472,6 +575,64 @@
                     setTimeout(() => flash.remove(), 300);
                 });
             });
+
+            /* ============================================================
+               NEW: USER PROFILE DROPDOWN — Click to pin, click-outside close
+               ============================================================ */
+            (function initUserDropdown() {
+                const userProfile = document.getElementById('userProfile');
+                const userMenuBtn = document.getElementById('userMenuBtn');
+                const userDropdown = document.getElementById('userDropdown');
+
+                if (!userProfile || !userMenuBtn || !userDropdown) return;
+
+                function openMenu() {
+                    userProfile.classList.add('dropdown-open');
+                    userMenuBtn.setAttribute('aria-expanded', 'true');
+                }
+
+                function closeMenu() {
+                    userProfile.classList.remove('dropdown-open');
+                    userMenuBtn.setAttribute('aria-expanded', 'false');
+                }
+
+                function toggleMenu(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (userProfile.classList.contains('dropdown-open')) {
+                        closeMenu();
+                    } else {
+                        openMenu();
+                    }
+                }
+
+                userMenuBtn.addEventListener('click', toggleMenu);
+
+                userDropdown.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (userProfile.classList.contains('dropdown-open') &&
+                        !userProfile.contains(e.target)) {
+                        closeMenu();
+                    }
+                });
+
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape' && userProfile.classList.contains('dropdown-open')) {
+                        closeMenu();
+                        userMenuBtn.focus();
+                    }
+                });
+
+                document.addEventListener('touchstart', function (e) {
+                    if (userProfile.classList.contains('dropdown-open') &&
+                        !userProfile.contains(e.target)) {
+                        closeMenu();
+                    }
+                }, { passive: true });
+            })();
         });
     </script>
 

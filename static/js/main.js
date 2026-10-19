@@ -176,3 +176,66 @@
   }
 
 })();
+
+/* ============================================================
+   USER PROFILE DROPDOWN — Click to pin, click-outside to close
+   ============================================================ */
+(function initUserDropdown() {
+    const userProfile  = document.getElementById('userProfile');
+    const userMenuBtn  = document.getElementById('userMenuBtn');
+    const userDropdown = document.getElementById('userDropdown');
+
+    if (!userProfile || !userMenuBtn || !userDropdown) return;
+
+    function openMenu() {
+        userProfile.classList.add('dropdown-open');
+        userMenuBtn.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeMenu() {
+        userProfile.classList.remove('dropdown-open');
+        userMenuBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    function toggleMenu(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (userProfile.classList.contains('dropdown-open')) {
+            closeMenu();
+        } else {
+            openMenu();
+        }
+    }
+
+    // Click on button → toggle pin
+    userMenuBtn.addEventListener('click', toggleMenu);
+
+    // Click inside dropdown → don't close (link will navigate)
+    userDropdown.addEventListener('click', function (e) {
+        e.stopPropagation();
+    });
+
+    // Click anywhere outside → close
+    document.addEventListener('click', function (e) {
+        if (userProfile.classList.contains('dropdown-open') &&
+            !userProfile.contains(e.target)) {
+            closeMenu();
+        }
+    });
+
+    // ESC key → close
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && userProfile.classList.contains('dropdown-open')) {
+            closeMenu();
+            userMenuBtn.focus();
+        }
+    });
+
+    // Touch devices: tap outside to close
+    document.addEventListener('touchstart', function (e) {
+        if (userProfile.classList.contains('dropdown-open') &&
+            !userProfile.contains(e.target)) {
+            closeMenu();
+        }
+    }, { passive: true });
+})();

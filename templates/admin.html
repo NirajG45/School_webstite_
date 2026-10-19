@@ -4,242 +4,749 @@
 
 {% block content %}
 <style>
-    /* Dashboard CSS (Matching Website Colors) */
-    .dash-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
-    .dash-header-left span { font-size: 11px; font-weight: 800; color: #168254; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
-    .dash-header-left span::before { content: ''; width: 8px; height: 8px; background: #168254; border-radius: 50%; }
-    .dash-header-left h2 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 800; color: var(--navy); margin: 0 0 5px; }
-    .dash-header-left p { font-size: 14px; color: var(--muted); margin: 0; }
-    .dash-actions { display: flex; gap: 12px; }
-    .btn-dash-outline { padding: 10px 18px; border: 1px solid var(--line); background: white; border-radius: 8px; font-size: 13px; font-weight: 700; color: var(--navy); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; text-decoration: none; }
-    .btn-dash-outline:hover { background: var(--paper); border-color: #cbd5e1; }
-    .btn-dash-primary { padding: 10px 18px; border: none; background: var(--navy); border-radius: 8px; font-size: 13px; font-weight: 700; color: white; cursor: pointer; display: flex; align-items: center; gap: 8px; text-decoration: none; transition: all 0.2s; }
-    .btn-dash-primary:hover { background: #061f39; color: white; transform: translateY(-1px); }
+    /* ============================================================
+       PROFESSIONAL ADMIN DASHBOARD — MODERN & CLEAN
+       ============================================================ */
+    .dash-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
 
-    /* 4 Modern Stat Cards */
-    .dash-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px; }
-    .dash-card { background: white; border-radius: 16px; padding: 24px; border: 1px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.02); position: relative; transition: all 0.3s; }
-    .dash-card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-color: #d0dbe8; }
-    .dash-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
-    .dash-card-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-    .dash-card-icon.blue { background: #e1f1ff; color: #1768a7; }
-    .dash-card-icon.green { background: #e3f5eb; color: #168254; }
-    .dash-card-icon.purple { background: #f0e7ff; color: #7439b2; }
-    .dash-card-icon.red { background: #ffeaee; color: var(--red); }
-    .dash-card-tag { font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
-    .dash-card-tag.green { background: #e3f5eb; color: #168254; }
-    .dash-card-tag.blue { background: #e1f1ff; color: #1768a7; }
-    .dash-card-tag.red { background: #ffeaee; color: var(--red); }
-    .dash-card-label { font-size: 13px; color: var(--muted); font-weight: 600; display: block; margin-bottom: 6px; }
-    .dash-card-value { font-size: 28px; font-weight: 800; color: var(--navy); display: block; line-height: 1; margin-bottom: 15px; }
-    .dash-card-sub { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+    /* === Welcome Header === */
+    .dash-welcome {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    .dash-welcome h1 {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--navy);
+        margin: 0 0 6px;
+        letter-spacing: -0.5px;
+        line-height: 1.15;
+    }
+    .dash-welcome p {
+        font-size: 13.5px;
+        color: var(--muted);
+        margin: 0;
+        line-height: 1.5;
+        max-width: 560px;
+    }
+    .dash-welcome-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .btn-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--navy);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        font-family: inherit;
+        white-space: nowrap;
+    }
+    .btn-soft:hover {
+        background: var(--paper);
+        border-color: #cdd6e0;
+        transform: translateY(-1px);
+    }
+    .btn-solid {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: var(--navy);
+        border: 1px solid var(--navy);
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #fff;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        font-family: inherit;
+        white-space: nowrap;
+    }
+    .btn-solid:hover {
+        background: #061f39;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(9, 47, 88, 0.15);
+        color: #fff;
+    }
 
-    /* Lower Grid */
-    .dash-lower-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .dash-panel { background: white; border-radius: 16px; border: 1px solid var(--line); padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
-    .dash-panel-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-    .dash-panel-head h3 { font-size: 16px; font-weight: 800; color: var(--navy); margin: 0 0 5px; }
-    .dash-panel-head p { font-size: 12px; color: var(--muted); margin: 0; }
-    .view-all { font-size: 12px; color: var(--red); font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
-    .view-all:hover { gap: 10px; color: #b9102c; }
+    /* === Stat Tiles === */
+    .stat-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+    .stat-tile {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 20px;
+        position: relative;
+        transition: all 0.25s ease;
+    }
+    .stat-tile:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(9, 47, 88, 0.06);
+        border-color: #d5dee8;
+    }
+    .stat-tile-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 14px;
+    }
+    .stat-tile-label {
+        font-size: 11.5px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        margin-bottom: 8px;
+    }
+    .stat-tile-value {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--navy);
+        line-height: 1;
+        font-family: 'DM Sans', sans-serif;
+    }
+    .stat-tile-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex: 0 0 40px;
+    }
+    .stat-tile-icon.blue   { background: #e1f1ff; color: #1768a7; }
+    .stat-tile-icon.green  { background: #e3f5eb; color: #168254; }
+    .stat-tile-icon.purple { background: #f0e7ff; color: #7439b2; }
+    .stat-tile-icon.amber  { background: #fff1d6; color: #a86a00; }
+    .stat-tile-sub {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11.5px;
+        color: var(--muted);
+        margin-top: 10px;
+        font-weight: 500;
+    }
+    .stat-tile-sub i { font-size: 6px; }
 
-    /* Quick Actions */
-    .quick-actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .qa-btn { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; text-decoration: none; transition: all 0.2s; background: #fafbfc; }
-    .qa-btn:hover { background: white; border-color: #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transform: translateY(-2px); }
-    .qa-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex: 0 0 32px; }
-    .qa-icon.blue { background: #e1f1ff; color: #1768a7; } 
-    .qa-icon.orange { background: #fff1d6; color: #a86a00; }
-    .qa-icon.purple { background: #f0e7ff; color: #7439b2; } 
-    .qa-icon.green { background: #e3f5eb; color: #168254; }
-    .qa-icon.red { background: #ffeaee; color: var(--red); }
-    .qa-text strong { display: block; font-size: 12px; color: var(--navy); margin-bottom: 2px; }
-    .qa-text small { display: block; font-size: 10px; color: var(--muted); line-height: 1.3; }
+    /* === 2-Column Content Rows === */
+    .content-row {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 16px;
+    }
+    .content-row.even {
+        grid-template-columns: 1fr 1fr;
+    }
 
-    /* Old Tables Preserved & Styled */
-    .old-tables-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-    .old-table-panel { background: white; border-radius: 16px; border: 1px solid var(--line); overflow: hidden; }
-    .old-table-head { padding: 18px 20px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; background: #fafcff; }
-    .old-table-head h3 { font-size: 14px; margin: 0; color: var(--navy); font-weight: 800; }
-    
-    @media (max-width: 1100px) { .dash-lower-grid, .old-tables-grid { grid-template-columns: 1fr; } }
-    @media (max-width: 768px) { .quick-actions-grid { grid-template-columns: 1fr; } }
+    .dash-panel {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .dash-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--line);
+        gap: 12px;
+    }
+    .dash-panel-title {
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--navy);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        letter-spacing: -0.2px;
+    }
+    .dash-panel-title i {
+        color: var(--red);
+        font-size: 13px;
+    }
+    .dash-panel-link {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--red);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .dash-panel-link:hover {
+        gap: 9px;
+        color: #b9102c;
+    }
+    .dash-panel-body {
+        padding: 20px 22px;
+        flex: 1;
+    }
+
+    /* === Quick Actions === */
+    .qa-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    .qa-tile {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px;
+        background: var(--paper);
+        border-radius: 10px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+    .qa-tile:hover {
+        background: #fff;
+        border-color: var(--line);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(9, 47, 88, 0.06);
+    }
+    .qa-tile-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        flex: 0 0 34px;
+    }
+    .qa-tile-icon.blue   { background: #e1f1ff; color: #1768a7; }
+    .qa-tile-icon.amber  { background: #fff1d6; color: #a86a00; }
+    .qa-tile-icon.purple { background: #f0e7ff; color: #7439b2; }
+    .qa-tile-icon.green  { background: #e3f5eb; color: #168254; }
+    .qa-tile-icon.red    { background: #ffeaee; color: var(--red); }
+    .qa-tile-text strong {
+        display: block;
+        font-size: 12.5px;
+        color: var(--navy);
+        font-weight: 700;
+        margin-bottom: 2px;
+        line-height: 1.3;
+    }
+    .qa-tile-text small {
+        display: block;
+        font-size: 10.5px;
+        color: var(--muted);
+        line-height: 1.35;
+    }
+
+    /* === Donut Chart === */
+    .donut-wrap {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 4px 0;
+    }
+    .donut {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        position: relative;
+        box-shadow: 0 4px 16px rgba(9, 47, 88, 0.08);
+    }
+    .donut::before {
+        content: '';
+        position: absolute;
+        inset: 20px;
+        background: #fff;
+        border-radius: 50%;
+    }
+    .donut-center {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+    }
+    .donut-center strong {
+        display: block;
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--navy);
+        line-height: 1;
+    }
+    .donut-center small {
+        display: block;
+        font-size: 9.5px;
+        color: var(--muted);
+        font-weight: 700;
+        margin-top: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+    }
+    .donut-legend {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        flex: 1;
+    }
+    .donut-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+    }
+    .donut-legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        flex-shrink: 0;
+    }
+    .donut-legend-item span {
+        flex: 1;
+        color: var(--muted);
+        font-weight: 600;
+    }
+    .donut-legend-item strong {
+        color: var(--navy);
+        font-weight: 800;
+        font-size: 13px;
+    }
+    .donut-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 30px 20px;
+        text-align: center;
+        gap: 8px;
+        color: var(--muted);
+    }
+    .donut-empty i {
+        font-size: 34px;
+        color: #cbd5e1;
+    }
+    .donut-empty p {
+        margin: 0;
+        font-size: 12px;
+    }
+
+    /* === Tables === */
+    .dash-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .dash-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+    .dash-table thead {
+        background: #fafcfd;
+    }
+    .dash-table th {
+        text-align: left;
+        padding: 11px 22px;
+        font-size: 10.5px;
+        font-weight: 800;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        border-bottom: 1px solid var(--line);
+        white-space: nowrap;
+    }
+    .dash-table td {
+        padding: 13px 22px;
+        color: var(--navy);
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+    .dash-table tr:last-child td { border-bottom: 0; }
+    .dash-table tr:hover { background: #fafcfd; }
+    .dash-table .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .user-avatar-mini {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--red), #b9102c);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 11px;
+        flex: 0 0 32px;
+        letter-spacing: 0.5px;
+        border: 1.5px solid var(--yellow);
+    }
+    .user-cell-text strong {
+        display: block;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--navy);
+        line-height: 1.3;
+    }
+    .user-cell-text small {
+        display: block;
+        font-size: 10.5px;
+        color: var(--muted);
+        margin-top: 1px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 180px;
+        white-space: nowrap;
+    }
+    .role-pill,
+    .status-pill {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 800;
+        padding: 3px 9px;
+        border-radius: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+    .role-pill.role-admin   { background: #e3f5eb; color: #168254; }
+    .role-pill.role-teacher { background: #e1f1ff; color: #1768a7; }
+    .role-pill.role-parent  { background: #f0e7ff; color: #7439b2; }
+    .role-pill.role-student { background: #fff1d6; color: #a86a00; }
+    .status-pill.pending  { background: #fff1d6; color: #a86a00; }
+    .status-pill.approved { background: #e3f5eb; color: #168254; }
+    .status-pill.rejected { background: #ffeaee; color: var(--red); }
+    .uid-cell {
+        color: var(--muted);
+        font-family: 'Courier New', monospace;
+        font-size: 11.5px;
+        font-weight: 600;
+    }
+    .empty-state-cell {
+        text-align: center;
+        padding: 40px 20px !important;
+        color: var(--muted);
+        font-size: 12.5px;
+        font-style: italic;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1100px) {
+        .stat-row { grid-template-columns: repeat(2, 1fr); }
+        .content-row,
+        .content-row.even { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+        .dash-welcome { flex-direction: column; align-items: stretch; }
+        .dash-welcome-actions { width: 100%; }
+        .dash-welcome-actions .btn-soft,
+        .dash-welcome-actions .btn-solid { flex: 1; justify-content: center; }
+        .stat-row { grid-template-columns: 1fr; }
+        .qa-grid { grid-template-columns: 1fr; }
+        .dash-welcome h1 { font-size: 24px; }
+        .stat-tile-value { font-size: 26px; }
+        .dash-panel-header { padding: 14px 16px; }
+        .dash-panel-body { padding: 16px; }
+        .dash-table th,
+        .dash-table td { padding: 10px 14px; }
+        .donut-wrap { flex-direction: column; align-items: center; text-align: center; }
+        .donut-legend { width: 100%; max-width: 220px; }
+    }
 </style>
 
-<!-- 1. HEADER -->
-<div class="dash-header">
-    <div class="dash-header-left">
-        <span>School Control Center</span>
-        <h2>Good evening, {{ session['user_name'].split()[0] }} 👋</h2>
-        <p>Here's what's happening at Residential Shanti Niketan today.</p>
-    </div>
-    <div class="dash-actions">
-        <button class="btn-dash-outline"><i class="fa-solid fa-file-export"></i> Export overview</button>
-        <a href="{{ url_for('home') }}" class="btn-dash-primary"><i class="fa-solid fa-arrow-up-right-from-square"></i> View website</a>
-    </div>
-</div>
+<!-- ============================================================
+     WRAPPER
+     ============================================================ -->
+<div class="dash-wrap">
 
-<!-- 2. STATS CARDS -->
-<div class="dash-stats-grid">
-    <div class="dash-card">
-        <div class="dash-card-top">
-            <div class="dash-card-icon blue"><i class="fa-solid fa-user-graduate"></i></div>
-            <span class="dash-card-tag green"><i class="fa-solid fa-arrow-trend-up"></i> 8.2%</span>
+    <!-- 1. WELCOME HEADER -->
+    <div class="dash-welcome">
+        <div>
+            <h1>Welcome back, {{ session['user_name'].split()[0] }} 👋</h1>
+            <p>Here's what's happening at Residential Shanti Niketan today. Take a quick look at your key metrics below.</p>
         </div>
-        <span class="dash-card-label">Total Students</span>
-        <span class="dash-card-value">{{ stats.total_students or '0' }}</span>
-        <div class="dash-card-sub">Compared with last term</div>
-    </div>
-
-    <div class="dash-card">
-        <div class="dash-card-top">
-            <div class="dash-card-icon green"><i class="fa-solid fa-chalkboard-user"></i></div>
-            <span class="dash-card-tag blue">Active</span>
+        <div class="dash-welcome-actions">
+            <a href="{{ url_for('admin_create_user') }}" class="btn-soft">
+                <i class="fa-solid fa-user-plus"></i> Add user
+            </a>
+            <a href="{{ url_for('home') }}" class="btn-solid">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> View website
+            </a>
         </div>
-        <span class="dash-card-label">Total Teachers</span>
-        <span class="dash-card-value">{{ stats.total_teachers or '0' }}</span>
-        <div class="dash-card-sub">All departments included</div>
     </div>
 
-    <div class="dash-card">
-        <div class="dash-card-top">
-            <div class="dash-card-icon purple"><i class="fa-solid fa-users"></i></div>
-            <span class="dash-card-tag green">+2.4%</span>
-        </div>
-        <span class="dash-card-label">Total Parents</span>
-        <span class="dash-card-value">{{ stats.total_parents or '0' }}</span>
-        <div class="dash-card-sub"><i class="fa-solid fa-circle" style="color:#168254; font-size:6px;"></i> Registered accounts</div>
-    </div>
-
-    <div class="dash-card">
-        <div class="dash-card-top">
-            <div class="dash-card-icon red"><i class="fa-solid fa-envelope"></i></div>
-            <span class="dash-card-tag red">Needs review</span>
-        </div>
-        <span class="dash-card-label">Total Enquiries</span>
-        <span class="dash-card-value">{{ stats.total_enquiries or '0' }}</span>
-        <div class="dash-card-sub">Requires administrator attention</div>
-    </div>
-</div>
-
-<!-- 3. LOWER GRID: Quick Actions + Recent Activity -->
-<div class="dash-lower-grid">
-    
-    <!-- Quick Actions -->
-    <div class="dash-panel">
-        <div class="dash-panel-head">
-            <div>
-                <h3>Quick actions</h3>
-                <p>Common tasks, right at your fingertips.</p>
+    <!-- 2. STAT TILES -->
+    <div class="stat-row">
+        <div class="stat-tile">
+            <div class="stat-tile-top">
+                <div class="stat-tile-icon blue"><i class="fa-solid fa-user-graduate"></i></div>
             </div>
-            <span style="font-size:10px; font-weight:800; background:var(--paper); padding:4px 8px; border-radius:4px; color:var(--muted); letter-spacing:1px;">SHORTCUTS</span>
+            <div class="stat-tile-label">Students</div>
+            <div class="stat-tile-value">{{ stats.total_students or '0' }}</div>
+            <div class="stat-tile-sub">
+                <i class="fa-solid fa-circle" style="color:#168254;"></i> Active enrollment
+            </div>
         </div>
-        <div class="quick-actions-grid">
-            <a href="{{ url_for('admin_create_user') }}" class="qa-btn">
-                <div class="qa-icon blue"><i class="fa-solid fa-plus"></i></div>
-                <div class="qa-text"><strong>Add a user</strong><small>Create student or staff access</small></div>
-            </a>
-            <a href="{{ url_for('admin_notices') }}" class="qa-btn">
-                <div class="qa-icon orange"><i class="fa-solid fa-bullhorn"></i></div>
-                <div class="qa-text"><strong>Publish notice</strong><small>Share an important update</small></div>
-            </a>
-            <a href="{{ url_for('admin_events') }}" class="qa-btn">
-                <div class="qa-icon purple"><i class="fa-regular fa-calendar-plus"></i></div>
-                <div class="qa-text"><strong>Create event</strong><small>Add to the school calendar</small></div>
-            </a>
-            <a href="{{ url_for('admin_gallery') }}" class="qa-btn">
-                <div class="qa-icon green"><i class="fa-regular fa-images"></i></div>
-                <div class="qa-text"><strong>Update gallery</strong><small>Manage school photographs</small></div>
-            </a>
-            <a href="{{ url_for('admin_attendance') }}" class="qa-btn">
-                <div class="qa-icon green"><i class="fa-solid fa-check-double"></i></div>
-                <div class="qa-text"><strong>Review attendance</strong><small>Check daily class records</small></div>
-            </a>
-            <a href="{{ url_for('admin_messages') }}" class="qa-btn">
-                <div class="qa-icon red"><i class="fa-solid fa-envelope-open-text"></i></div>
-                <div class="qa-text"><strong>View messages</strong><small>Respond to enquiries</small></div>
-            </a>
+
+        <div class="stat-tile">
+            <div class="stat-tile-top">
+                <div class="stat-tile-icon green"><i class="fa-solid fa-chalkboard-user"></i></div>
+            </div>
+            <div class="stat-tile-label">Teachers</div>
+            <div class="stat-tile-value">{{ stats.total_teachers or '0' }}</div>
+            <div class="stat-tile-sub">
+                <i class="fa-solid fa-circle" style="color:#1768a7;"></i> All departments
+            </div>
+        </div>
+
+        <div class="stat-tile">
+            <div class="stat-tile-top">
+                <div class="stat-tile-icon purple"><i class="fa-solid fa-users"></i></div>
+            </div>
+            <div class="stat-tile-label">Parents</div>
+            <div class="stat-tile-value">{{ stats.total_parents or '0' }}</div>
+            <div class="stat-tile-sub">
+                <i class="fa-solid fa-circle" style="color:#7439b2;"></i> Registered accounts
+            </div>
+        </div>
+
+        <div class="stat-tile">
+            <div class="stat-tile-top">
+                <div class="stat-tile-icon amber"><i class="fa-solid fa-envelope-open-text"></i></div>
+            </div>
+            <div class="stat-tile-label">Enquiries</div>
+            <div class="stat-tile-value">{{ stats.total_enquiries or '0' }}</div>
+            <div class="stat-tile-sub">
+                <i class="fa-solid fa-circle" style="color:#a86a00;"></i> Awaiting response
+            </div>
         </div>
     </div>
 
-    <!-- Recent Activity (Uses Old Data) -->
-    <div class="dash-panel">
-        <div class="dash-panel-head">
-            <div>
-                <h3>Recent activity</h3>
-                <p>Latest updates across your website.</p>
+    <!-- 3. QUICK ACTIONS + DONUT -->
+    <div class="content-row">
+
+        <!-- Quick Actions -->
+        <div class="dash-panel">
+            <div class="dash-panel-header">
+                <h3 class="dash-panel-title"><i class="fa-solid fa-bolt"></i> Quick actions</h3>
+                <a href="{{ url_for('admin_users') }}" class="dash-panel-link">Manage all <i class="fa-solid fa-arrow-right"></i></a>
             </div>
-            <a href="{{ url_for('admin_users') }}" class="view-all">View all <i class="fa-solid fa-arrow-right"></i></a>
-        </div>
-        
-        <div style="display:flex; flex-direction:column; gap:15px;">
-            {% for u in recent_users[:3] %}
-            <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:15px; border-bottom:1px solid var(--line);">
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <div style="width:36px; height:36px; border-radius:10px; background:var(--paper); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:14px;"><i class="fa-solid fa-user"></i></div>
-                    <div>
-                        <strong style="display:block; font-size:13px; color:var(--navy); margin-bottom:2px;">New user: {{ u.name }}</strong>
-                        <small style="display:block; font-size:11px; color:var(--muted);">Role: {{ u.role|capitalize }} • ID: {{ u.unique_id or '—' }}</small>
-                    </div>
+            <div class="dash-panel-body">
+                <div class="qa-grid">
+                    <a href="{{ url_for('admin_create_user') }}" class="qa-tile">
+                        <div class="qa-tile-icon blue"><i class="fa-solid fa-plus"></i></div>
+                        <div class="qa-tile-text">
+                            <strong>Add a user</strong>
+                            <small>Create student or staff access</small>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('admin_notices') }}" class="qa-tile">
+                        <div class="qa-tile-icon amber"><i class="fa-solid fa-bullhorn"></i></div>
+                        <div class="qa-tile-text">
+                            <strong>Publish notice</strong>
+                            <small>Share an important update</small>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('admin_events') }}" class="qa-tile">
+                        <div class="qa-tile-icon purple"><i class="fa-regular fa-calendar-plus"></i></div>
+                        <div class="qa-tile-text">
+                            <strong>Create event</strong>
+                            <small>Add to school calendar</small>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('admin_gallery') }}" class="qa-tile">
+                        <div class="qa-tile-icon green"><i class="fa-regular fa-images"></i></div>
+                        <div class="qa-tile-text">
+                            <strong>Update gallery</strong>
+                            <small>Manage photographs</small>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('admin_attendance') }}" class="qa-tile">
+                        <div class="qa-tile-icon green"><i class="fa-solid fa-check-double"></i></div>
+                        <div class="qa-tile-text">
+                            <strong>Review attendance</strong>
+                            <small>Check daily class records</small>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('admin_messages') }}" class="qa-tile">
+                        <div class="qa-tile-icon red"><i class="fa-solid fa-envelope-open-text"></i></div>
+                        <div class="qa-tile-text">
+                            <strong>View messages</strong>
+                            <small>Respond to enquiries</small>
+                        </div>
+                    </a>
                 </div>
-                <span class="dash-card-tag" style="background:var(--paper); color:var(--muted);">Updated</span>
             </div>
-            {% else %}
-            <p style="font-size:13px; color:var(--muted);">No recent users found.</p>
-            {% endfor %}
         </div>
-    </div>
-</div>
 
-<!-- 4. OLD TABLES PRESERVED (Recent Users & Leaves Tables from old code) -->
-<div class="old-tables-grid">
-    <!-- Recent Users Table (Old Code) -->
-    <div class="old-table-panel">
-        <div class="old-table-head">
-            <h3><i class="fa-solid fa-user-plus" style="color:var(--red);"></i> Recent Users List</h3>
-            <a href="{{ url_for('admin_users') }}" class="view-all">View All <i class="fa-solid fa-arrow-right"></i></a>
-        </div>
-        <div class="admin-table-wrap">
-            <table class="admin-table">
-                <thead><tr><th>Name</th><th>Role</th><th>Unique ID</th></tr></thead>
-                <tbody>
-                    {% for u in recent_users %}
-                    <tr>
-                        <td><strong>{{ u.name }}</strong></td>
-                        <td><span class="role-badge role-{{ u.role }}">{{ u.role|capitalize }}</span></td>
-                        <td class="muted">{{ u.unique_id or '—' }}</td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="3" class="empty-row">No users yet.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <!-- Account Distribution Donut -->
+        <div class="dash-panel">
+            <div class="dash-panel-header">
+                <h3 class="dash-panel-title"><i class="fa-solid fa-chart-pie"></i> Account distribution</h3>
+            </div>
+            <div class="dash-panel-body">
+                {% set total_accounts = (stats.total_students or 0) + (stats.total_teachers or 0) + (stats.total_parents or 0) %}
+
+                {% if total_accounts > 0 %}
+                    {% set student_pct = ((stats.total_students or 0) / total_accounts * 100)|round|int %}
+                    {% set teacher_pct = ((stats.total_teachers or 0) / total_accounts * 100)|round|int %}
+                    {% set student_end_deg = (student_pct * 3.6)|round|int %}
+                    {% set teacher_end_deg = ((student_pct + teacher_pct) * 3.6)|round|int %}
+                    <div class="donut-wrap">
+                        <div class="donut" style="background: conic-gradient(
+                            #1768a7 0deg {{ student_end_deg }}deg,
+                            #168254 {{ student_end_deg }}deg {{ teacher_end_deg }}deg,
+                            #7439b2 {{ teacher_end_deg }}deg 360deg
+                        );">
+                            <div class="donut-center">
+                                <strong>{{ total_accounts }}</strong>
+                                <small>Total</small>
+                            </div>
+                        </div>
+                        <div class="donut-legend">
+                            <div class="donut-legend-item">
+                                <span class="donut-legend-dot" style="background:#1768a7;"></span>
+                                <span>Students</span>
+                                <strong>{{ stats.total_students or 0 }}</strong>
+                            </div>
+                            <div class="donut-legend-item">
+                                <span class="donut-legend-dot" style="background:#168254;"></span>
+                                <span>Teachers</span>
+                                <strong>{{ stats.total_teachers or 0 }}</strong>
+                            </div>
+                            <div class="donut-legend-item">
+                                <span class="donut-legend-dot" style="background:#7439b2;"></span>
+                                <span>Parents</span>
+                                <strong>{{ stats.total_parents or 0 }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="donut-empty">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <p>No accounts yet. Add users to see distribution.</p>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 
-    <!-- Recent Leaves Table (Old Code) -->
-    <div class="old-table-panel">
-        <div class="old-table-head">
-            <h3><i class="fa-solid fa-calendar-minus" style="color:var(--red);"></i> Recent Leaves List</h3>
-            <a href="{{ url_for('admin_leaves') }}" class="view-all">View All <i class="fa-solid fa-arrow-right"></i></a>
+    <!-- 4. RECENT USERS + RECENT LEAVES -->
+    <div class="content-row even">
+
+        <!-- Recent Users -->
+        <div class="dash-panel">
+            <div class="dash-panel-header">
+                <h3 class="dash-panel-title"><i class="fa-solid fa-user-plus"></i> Recent users</h3>
+                <a href="{{ url_for('admin_users') }}" class="dash-panel-link">View all <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="dash-table-wrap">
+                <table class="dash-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>Unique ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in recent_users %}
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar-mini">
+                                        {{ u.name.split()[0][0]|upper }}{{ u.name.split()[-1][0]|upper if u.name.split()|length > 1 else '' }}
+                                    </div>
+                                    <div class="user-cell-text">
+                                        <strong>{{ u.name }}</strong>
+                                        <small>{{ u.email or '—' }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="role-pill role-{{ u.role }}">{{ u.role|capitalize }}</span>
+                            </td>
+                            <td class="uid-cell">{{ u.unique_id or '—' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="empty-state-cell">No users yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="admin-table-wrap">
-            <table class="admin-table">
-                <thead><tr><th>User</th><th>Type</th><th>Status</th></tr></thead>
-                <tbody>
-                    {% for l in recent_leaves %}
-                    <tr>
-                        <td><strong>{{ l.user_name }}</strong><br><small class="muted">{{ l.user_uid }}</small></td>
-                        <td class="muted">{{ l.leave_type }}</td>
-                        <td><span class="kind-badge kind-{{ 'admission' if l.status=='approved' else 'contact' if l.status=='rejected' else 'notice' }}">{{ l.status|capitalize }}</span></td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="3" class="empty-row">No leave requests.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+        <!-- Recent Leaves -->
+        <div class="dash-panel">
+            <div class="dash-panel-header">
+                <h3 class="dash-panel-title"><i class="fa-solid fa-calendar-minus"></i> Recent leaves</h3>
+                <a href="{{ url_for('admin_leaves') }}" class="dash-panel-link">View all <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="dash-table-wrap">
+                <table class="dash-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for l in recent_leaves %}
+                        <tr>
+                            <td>
+                                <div class="user-cell-text">
+                                    <strong>{{ l.user_name }}</strong>
+                                    <small>{{ l.user_uid or '—' }}</small>
+                                </div>
+                            </td>
+                            <td style="color:var(--muted); font-size:12px;">{{ l.leave_type }}</td>
+                            <td>
+                                <span class="status-pill {{ l.status }}">{{ l.status|capitalize }}</span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="empty-state-cell">No leave requests yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
+
     </div>
+
 </div>
 
 {% endblock %}

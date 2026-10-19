@@ -3,33 +3,128 @@
 {% block page_title %}Create New User{% endblock %}
 
 {% block content %}
-<div class="admin-panel" style="max-width:800px;">
+<style>
+    .admin-form .section-head {
+        margin: 22px 0 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: .3px;
+        text-transform: uppercase;
+        color: #4a5568;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .admin-form .section-head i { color: #4f46e5; }
+    .req { color: #e53e3e; font-weight: 700; }
+    .opt-tag {
+        font-size: 10px;
+        color: #a0aec0;
+        font-weight: 400;
+        text-transform: none;
+        margin-left: 4px;
+    }
+    .field-help { display: block; font-size: 11px; color: #718096; margin-top: 3px; }
+    .role-fields {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 2px dashed #e2e8f0;
+    }
+    .form-row-3col {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+    }
+    @media (max-width: 720px) {
+        .form-row-2col, .form-row-3col { grid-template-columns: 1fr; }
+    }
+    .photo-box {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 8px;
+    }
+    .photo-preview, .photo-placeholder {
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px dashed #cbd5e0;
+        flex-shrink: 0;
+    }
+    .photo-preview { display: none; background: #edf2f7; }
+    .photo-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #a0aec0;
+        font-size: 32px;
+        background: #edf2f7;
+    }
+    .role-hint {
+        display: none;
+        margin: 10px 0 0;
+        padding: 10px 14px;
+        border-radius: 6px;
+        background: #ebf8ff;
+        color: #2b6cb0;
+        font-size: 13px;
+        border-left: 4px solid #4299e1;
+    }
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 22px;
+        padding-top: 16px;
+        border-top: 1px solid #e2e8f0;
+    }
+    .btn-secondary {
+        padding: 10px 18px;
+        border-radius: 6px;
+        border: 1px solid #cbd5e0;
+        background: #fff;
+        color: #4a5568;
+        cursor: pointer;
+        font-weight: 600;
+    }
+    .btn-secondary:hover { background: #f7fafc; }
+</style>
+
+<div class="admin-panel" style="max-width: 1000px;">
     <div class="admin-panel-head">
         <h3><i class="fa-solid fa-user-plus"></i> Create New User</h3>
     </div>
-    <form method="POST" action="{{ url_for('admin_create_user') }}" class="admin-form" id="createUserForm">
+
+    <form method="POST" action="{{ url_for('admin_create_user') }}"
+          class="admin-form" id="createUserForm" enctype="multipart/form-data">
+
+        <!-- ================= ROLE + FULL NAME ================= -->
         <div class="form-row-2col">
-            <label>Role *
+            <label>Role <span class="req">*</span>
                 <select name="role" id="roleSelect" required onchange="toggleRoleFields()">
                     <option value="">-- Select Role --</option>
                     <option value="teacher">Teacher</option>
+                    <option value="admin">Admin</option>
                     <option value="parent">Parent</option>
                     <option value="student">Student</option>
-                    <option value="admin">Admin</option>
                 </select>
             </label>
-            <label>Full Name *
-                <input type="text" name="name" required placeholder="Enter full name">
+            <label>Full Name <span class="req">*</span>
+                <input type="text" name="name" required maxlength="100"
+                       placeholder="Enter full name">
             </label>
         </div>
-        <div class="form-row-2col">
-            <label>Email *
-                <input type="email" name="email" required placeholder="user@example.com">
-            </label>
-            <label>Mobile Number *
-                <input type="tel" name="phone" required placeholder="10-digit number">
-            </label>
-        </div>
+
+        <div class="role-hint" id="roleHint"></div>
+
+        <!-- ================= PERSONAL DETAILS ================= -->
+        <div class="section-head"><i class="fa-solid fa-id-card"></i> Personal Details</div>
+
         <div class="form-row-2col">
             <label>Date of Birth
                 <input type="date" name="dob">
@@ -44,18 +139,128 @@
             </label>
         </div>
 
-        <!-- Teacher Fields -->
+        <div class="form-row-2col">
+            <label>Blood Group
+                <select name="blood_group">
+                    <option value="">Select</option>
+                    <option>A+</option><option>A-</option>
+                    <option>B+</option><option>B-</option>
+                    <option>O+</option><option>O-</option>
+                    <option>AB+</option><option>AB-</option>
+                </select>
+            </label>
+            <label>Marital Status
+                <select name="marital_status">
+                    <option value="">Select</option>
+                    <option>Single</option>
+                    <option>Married</option>
+                    <option>Divorced</option>
+                    <option>Widowed</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="form-row-2col">
+            <label>Aadhaar Number <span class="req" id="aadharStar" style="display:none;">*</span>
+                <input type="text" name="aadhar" id="aadharInput" maxlength="12"
+                       pattern="[0-9]{12}" inputmode="numeric"
+                       placeholder="12-digit Aadhaar">
+                <small class="field-help">Only digits, 12 characters</small>
+            </label>
+            <label>PAN Number <span class="opt-tag">optional</span>
+                <input type="text" name="pan" maxlength="10" pattern="[A-Za-z]{5}[0-9]{4}[A-Za-z]"
+                       style="text-transform: uppercase;"
+                       placeholder="ABCDE1234F">
+            </label>
+        </div>
+
+        <div class="form-row-2col">
+            <label>Nationality
+                <input type="text" name="nationality" value="Indian" maxlength="50">
+            </label>
+            <label>Mother Tongue
+                <input type="text" name="mother_tongue" maxlength="50" placeholder="e.g. Hindi">
+            </label>
+        </div>
+
+        <!-- ================= CONTACT DETAILS ================= -->
+        <div class="section-head"><i class="fa-solid fa-address-book"></i> Contact Details</div>
+
+        <div class="form-row-2col">
+            <label>Email <span class="req">*</span>
+                <input type="email" name="email" required maxlength="100"
+                       placeholder="user@example.com">
+            </label>
+            <label>Mobile Number <span class="req">*</span>
+                <input type="tel" name="phone" maxlength="10" pattern="[0-9]{10}"
+                       inputmode="numeric" required placeholder="10-digit number">
+            </label>
+        </div>
+
+        <div class="form-row-2col">
+            <label>Alternate Mobile <span class="opt-tag">optional</span>
+                <input type="tel" name="alternate_mobile" maxlength="10"
+                       pattern="[0-9]{10}" inputmode="numeric">
+            </label>
+            <label>WhatsApp Number <span class="opt-tag">optional</span>
+                <input type="tel" name="whatsapp" maxlength="10"
+                       pattern="[0-9]{10}" inputmode="numeric">
+            </label>
+        </div>
+
+        <label>Full Address
+            <textarea name="address" rows="2" maxlength="300"
+                      placeholder="House no, street, area"></textarea>
+        </label>
+
+        <div class="form-row-3col">
+            <label>City
+                <input type="text" name="city" maxlength="60" placeholder="City">
+            </label>
+            <label>State
+                <input type="text" name="state" maxlength="60" placeholder="State">
+            </label>
+            <label>Pincode
+                <input type="text" name="pincode" maxlength="6" pattern="[0-9]{6}"
+                       inputmode="numeric" placeholder="6-digit">
+            </label>
+        </div>
+
+        <!-- ================= PHOTO ================= -->
+        <div class="section-head"><i class="fa-solid fa-camera"></i> Profile Photo</div>
+        <div class="photo-box">
+            <img id="photoPreview" class="photo-preview" alt="preview">
+            <div id="photoPlaceholder" class="photo-placeholder"><i class="fa-solid fa-user"></i></div>
+            <div>
+                <label style="margin:0;">Upload Photo
+                    <span class="req" id="photoStar" style="display:none;">*</span>
+                    <input type="file" name="photo" id="photoInput" accept="image/*">
+                    <small class="field-help">JPG / PNG, max 2 MB</small>
+                </label>
+            </div>
+        </div>
+
+        <!-- ================= TEACHER ================= -->
         <div class="role-fields" id="fields-teacher" style="display:none;">
+            <div class="section-head"><i class="fa-solid fa-chalkboard-user"></i> Teacher Details</div>
+
             <div class="form-row-2col">
-                <label>Qualification
+                <label>Qualification <span class="req">*</span>
                     <select name="qualification">
                         <option value="">Select</option>
-                        <option>B.Ed</option>
-                        <option>M.Ed</option>
-                        <option>Graduate</option>
-                        <option>Post Graduate</option>
+                        <option>B.Ed</option><option>M.Ed</option>
+                        <option>Graduate</option><option>Post Graduate</option>
+                        <option>B.Tech / B.E</option><option>M.Tech / M.E</option>
+                        <option>Other</option>
                     </select>
                 </label>
+                <label>Specialization
+                    <input type="text" name="specialization" maxlength="100"
+                           placeholder="e.g. Mathematics, Physics">
+                </label>
+            </div>
+
+            <div class="form-row-2col">
                 <label>Experience
                     <select name="experience">
                         <option value="">Select</option>
@@ -65,40 +270,210 @@
                         <option>5+ Years</option>
                     </select>
                 </label>
+                <label>Primary Subject <span class="req">*</span>
+                    <input type="text" name="subject" maxlength="100"
+                           placeholder="e.g. Mathematics">
+                </label>
             </div>
-            <label>Subject
-                <input type="text" name="subject" placeholder="e.g. Mathematics">
+
+            <div class="form-row-2col">
+                <label>Classes Assigned
+                    <input type="text" name="classes_assigned" maxlength="100"
+                           placeholder="e.g. Class 6, 7, 8">
+                </label>
+                <label>Languages Known
+                    <input type="text" name="languages" maxlength="100"
+                           placeholder="e.g. Hindi, English">
+                </label>
+            </div>
+
+            <div class="form-row-2col">
+                <label>Employee ID
+                    <input type="text" name="employee_id" maxlength="30"
+                           placeholder="Auto-generated if blank">
+                </label>
+                <label>Designation
+                    <input type="text" name="designation" maxlength="60"
+                           placeholder="e.g. PGT, TGT, PRT">
+                </label>
+            </div>
+
+            <div class="form-row-2col">
+                <label>Joining Date
+                    <input type="date" name="joining_date">
+                </label>
+                <label>Employment Type
+                    <select name="employment_type">
+                        <option value="">Select</option>
+                        <option>Full-Time</option>
+                        <option>Part-Time</option>
+                        <option>Contract</option>
+                        <option>Visiting</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="form-row-2col">
+                <label>Total Experience (Years)
+                    <input type="number" name="total_experience" min="0" max="60"
+                           placeholder="e.g. 5">
+                </label>
+                <label>Previous School / Institute
+                    <input type="text" name="previous_school" maxlength="150"
+                           placeholder="Last working place">
+                </label>
+            </div>
+
+            <div class="section-head" style="margin-top:14px;">
+                <i class="fa-solid fa-building-columns"></i> Salary & Bank
+            </div>
+
+            <div class="form-row-2col">
+                <label>Monthly Salary (₹)
+                    <input type="number" name="salary" min="0" step="100"
+                           placeholder="e.g. 35000">
+                </label>
+                <label>Bank Name
+                    <input type="text" name="bank_name" maxlength="100"
+                           placeholder="e.g. SBI, HDFC">
+                </label>
+            </div>
+
+            <div class="form-row-2col">
+                <label>Account Number
+                    <input type="text" name="account_number" maxlength="20"
+                           inputmode="numeric" pattern="[0-9]{6,20}"
+                           placeholder="Bank account number">
+                </label>
+                <label>IFSC Code
+                    <input type="text" name="ifsc" maxlength="11"
+                           pattern="[A-Za-z]{4}0[A-Za-z0-9]{6}"
+                           style="text-transform: uppercase;"
+                           placeholder="e.g. SBIN0001234">
+                </label>
+            </div>
+
+            <div class="section-head" style="margin-top:14px;">
+                <i class="fa-solid fa-phone-volume"></i> Emergency Contact
+            </div>
+
+            <div class="form-row-2col">
+                <label>Emergency Contact Name
+                    <input type="text" name="emergency_name" maxlength="100">
+                </label>
+                <label>Emergency Contact Mobile
+                    <input type="tel" name="emergency_contact" maxlength="10"
+                           pattern="[0-9]{10}" inputmode="numeric">
+                </label>
+            </div>
+
+            <label>Certifications / Notes
+                <textarea name="notes" rows="2" maxlength="300"
+                          placeholder="Any additional certifications or remarks"></textarea>
             </label>
         </div>
 
-        <!-- Admin Fields -->
+        <!-- ================= ADMIN ================= -->
         <div class="role-fields" id="fields-admin" style="display:none;">
+            <div class="section-head"><i class="fa-solid fa-user-tie"></i> Admin Details</div>
+
             <div class="form-row-2col">
-                <label>Designation
+                <label>Designation <span class="req">*</span>
                     <select name="designation">
                         <option value="">Select</option>
                         <option>Principal</option>
                         <option>Vice Principal</option>
                         <option>Accountant</option>
                         <option>Office Assistant</option>
+                        <option>HR Manager</option>
+                        <option>IT Admin</option>
+                        <option>Librarian</option>
                     </select>
                 </label>
-                <label>Department
+                <label>Department <span class="req">*</span>
                     <select name="department">
                         <option value="">Select</option>
                         <option>Administration</option>
                         <option>Accounts</option>
                         <option>HR</option>
                         <option>Maintenance</option>
+                        <option>IT</option>
+                        <option>Library</option>
                     </select>
+                </label>
+            </div>
+
+            <div class="form-row-2col">
+                <label>Employee ID
+                    <input type="text" name="employee_id" maxlength="30"
+                           placeholder="Auto-generated if blank">
+                </label>
+                <label>Joining Date
+                    <input type="date" name="joining_date">
+                </label>
+            </div>
+
+            <div class="form-row-2col">
+                <label>Employment Type
+                    <select name="employment_type">
+                        <option value="">Select</option>
+                        <option>Full-Time</option>
+                        <option>Part-Time</option>
+                        <option>Contract</option>
+                    </select>
+                </label>
+                <label>Reporting To
+                    <input type="text" name="reporting_to" maxlength="100"
+                           placeholder="e.g. Principal">
+                </label>
+            </div>
+
+            <div class="section-head" style="margin-top:14px;">
+                <i class="fa-solid fa-building-columns"></i> Salary & Bank
+            </div>
+
+            <div class="form-row-2col">
+                <label>Monthly Salary (₹)
+                    <input type="number" name="salary" min="0" step="100">
+                </label>
+                <label>Bank Name
+                    <input type="text" name="bank_name" maxlength="100">
+                </label>
+            </div>
+
+            <div class="form-row-2col">
+                <label>Account Number
+                    <input type="text" name="account_number" maxlength="20"
+                           inputmode="numeric" pattern="[0-9]{6,20}">
+                </label>
+                <label>IFSC Code
+                    <input type="text" name="ifsc" maxlength="11"
+                           pattern="[A-Za-z]{4}0[A-Za-z0-9]{6}"
+                           style="text-transform: uppercase;">
+                </label>
+            </div>
+
+            <div class="section-head" style="margin-top:14px;">
+                <i class="fa-solid fa-phone-volume"></i> Emergency Contact
+            </div>
+
+            <div class="form-row-2col">
+                <label>Emergency Contact Name
+                    <input type="text" name="emergency_name" maxlength="100">
+                </label>
+                <label>Emergency Contact Mobile
+                    <input type="tel" name="emergency_contact" maxlength="10"
+                           pattern="[0-9]{10}" inputmode="numeric">
                 </label>
             </div>
         </div>
 
-        <!-- Parent Fields -->
+        <!-- ================= PARENT ================= -->
         <div class="role-fields" id="fields-parent" style="display:none;">
+            <div class="section-head"><i class="fa-solid fa-people-roof"></i> Parent / Guardian Details</div>
+
             <div class="form-row-2col">
-                <label>Relation with Child
+                <label>Relation with Child <span class="req">*</span>
                     <select name="relation">
                         <option value="">Select</option>
                         <option>Father</option>
@@ -106,73 +481,449 @@
                         <option>Guardian</option>
                     </select>
                 </label>
-                <label>Child's Name
-                    <input type="text" name="child_name" placeholder="Child's full name">
+                <label>Occupation
+                    <input type="text" name="occupation" maxlength="100"
+                           placeholder="e.g. Business, Govt. Job">
                 </label>
             </div>
-            <label>Child's Class
-                <select name="child_class">
-                    <option value="">Select</option>
-                    <option>Pre-Nursery</option>
-                    <option>Nursery</option>
-                    <option>LKG</option>
-                    <option>UKG</option>
-                    <option>Class 1</option>
-                    <option>Class 2</option>
-                    <option>Class 3</option>
-                    <option>Class 4</option>
-                    <option>Class 5</option>
-                    <option>Class 6</option>
-                    <option>Class 7</option>
-                    <option>Class 8</option>
-                </select>
+
+            <div class="form-row-2col">
+                <label>Education Qualification
+                    <input type="text" name="education" maxlength="100"
+                           placeholder="e.g. B.Com, M.A.">
+                </label>
+                <label>Annual Income (₹)
+                    <input type="text" name="annual_income" maxlength="20"
+                           placeholder="e.g. 5,00,000">
+                </label>
+            </div>
+
+            <div class="form-row-2col">
+                <label>Spouse Name
+                    <input type="text" name="spouse_name" maxlength="100">
+                </label>
+                <label>Spouse Occupation
+                    <input type="text" name="spouse_occupation" maxlength="100">
+                </label>
+            </div>
+
+            <div class="form-row-2col">
+                <label>Spouse Mobile
+                    <input type="tel" name="spouse_mobile" maxlength="10"
+                           pattern="[0-9]{10}" inputmode="numeric">
+                </label>
+                <label>Office Phone
+                    <input type="tel" name="office_phone" maxlength="15"
+                           placeholder="e.g. 0120-1234567">
+                </label>
+            </div>
+
+            <label>Office Address
+                <textarea name="office_address" rows="2" maxlength="250"
+                          placeholder="Office / workplace address"></textarea>
             </label>
+
+            <div class="section-head" style="margin-top:16px;">
+                <i class="fa-solid fa-child"></i> Child Details
+            </div>
+
+            <div class="form-row-2col">
+                <label>Child's Name <span class="req">*</span>
+                    <input type="text" name="child_name" maxlength="100"
+                           placeholder="Child's full name">
+                </label>
+                <label>Child's Admission No
+                    <input type="text" name="child_admission_no" maxlength="30"
+                           placeholder="School admission number">
+                </label>
+            </div>
+
+            <div class="form-row-3col">
+                <label>Child's Class <span class="req">*</span>
+                    <select name="child_class">
+                        <option value="">Select</option>
+                        <option>Pre-Nursery</option><option>Nursery</option>
+                        <option>LKG</option><option>UKG</option>
+                        <option>Class 1</option><option>Class 2</option>
+                        <option>Class 3</option><option>Class 4</option>
+                        <option>Class 5</option><option>Class 6</option>
+                        <option>Class 7</option><option>Class 8</option>
+                        <option>Class 9</option><option>Class 10</option>
+                        <option>Class 11</option><option>Class 12</option>
+                    </select>
+                </label>
+                <label>Section
+                    <select name="child_section">
+                        <option value="">Select</option>
+                        <option>A</option><option>B</option>
+                        <option>C</option><option>D</option>
+                    </select>
+                </label>
+                <label>Child DOB
+                    <input type="date" name="child_dob">
+                </label>
+            </div>
+
+            <div class="section-head" style="margin-top:16px;">
+                <i class="fa-solid fa-phone-volume"></i> Emergency Contact
+            </div>
+
+            <div class="form-row-2col">
+                <label>Emergency Contact Name
+                    <input type="text" name="emergency_name" maxlength="100">
+                </label>
+                <label>Emergency Contact Mobile
+                    <input type="tel" name="emergency_contact" maxlength="10"
+                           pattern="[0-9]{10}" inputmode="numeric">
+                </label>
+            </div>
         </div>
 
-        <!-- Student Fields -->
+        <!-- ================= STUDENT ================= -->
         <div class="role-fields" id="fields-student" style="display:none;">
-            <label>Class
-                <select name="child_class">
-                    <option value="">Select</option>
-                    <option>Pre-Nursery</option>
-                    <option>Nursery</option>
-                    <option>LKG</option>
-                    <option>UKG</option>
-                    <option>Class 1</option>
-                    <option>Class 2</option>
-                    <option>Class 3</option>
-                    <option>Class 4</option>
-                    <option>Class 5</option>
-                    <option>Class 6</option>
-                    <option>Class 7</option>
-                    <option>Class 8</option>
-                </select>
+            <div class="section-head"><i class="fa-solid fa-graduation-cap"></i> Academic Details</div>
+
+            <div class="form-row-2col">
+                <label>Admission Number <span class="req">*</span>
+                    <input type="text" name="admission_no" maxlength="30"
+                           placeholder="Auto-generated if blank">
+                </label>
+                <label>Roll Number
+                    <input type="text" name="roll_no" maxlength="20"
+                           placeholder="Class roll number">
+                </label>
+            </div>
+
+            <div class="form-row-2col">
+                <label>Admission Date
+                    <input type="date" name="admission_date">
+                </label>
+                <label>Class <span class="req">*</span>
+                    <select name="class_name">
+                        <option value="">Select</option>
+                        <option>Pre-Nursery</option><option>Nursery</option>
+                        <option>LKG</option><option>UKG</option>
+                        <option>Class 1</option><option>Class 2</option>
+                        <option>Class 3</option><option>Class 4</option>
+                        <option>Class 5</option><option>Class 6</option>
+                        <option>Class 7</option><option>Class 8</option>
+                        <option>Class 9</option><option>Class 10</option>
+                        <option>Class 11</option><option>Class 12</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="form-row-2col">
+                <label>Section <span class="req">*</span>
+                    <select name="section">
+                        <option value="">Select</option>
+                        <option>A</option><option>B</option>
+                        <option>C</option><option>D</option>
+                    </select>
+                </label>
+                <label>Previous School
+                    <input type="text" name="previous_school" maxlength="150"
+                           placeholder="Last attended school">
+                </label>
+            </div>
+
+            <div class="form-row-3col">
+                <label>Previous Class
+                    <input type="text" name="previous_class" maxlength="20">
+                </label>
+                <label>Previous Percentage
+                    <input type="text" name="previous_percentage" maxlength="10"
+                           placeholder="e.g. 85%">
+                </label>
+                <label>Category
+                    <select name="category">
+                        <option value="">Select</option>
+                        <option>General</option><option>OBC</option>
+                        <option>SC</option><option>ST</option>
+                        <option>EWS</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="form-row-2col">
+                <label>Religion
+                    <input type="text" name="religion" maxlength="50"
+                           placeholder="e.g. Hindu">
+                </label>
+                <label>Nationality
+                    <input type="text" name="nationality" value="Indian" maxlength="50">
+                </label>
+            </div>
+
+            <div class="section-head" style="margin-top:16px;">
+                <i class="fa-solid fa-user-group"></i> Father's Details
+            </div>
+
+            <div class="form-row-2col">
+                <label>Father's Name <span class="req">*</span>
+                    <input type="text" name="father_name" maxlength="100">
+                </label>
+                <label>Father's Occupation
+                    <input type="text" name="father_occupation" maxlength="100">
+                </label>
+            </div>
+
+            <div class="form-row-2col">
+                <label>Father's Mobile <span class="req">*</span>
+                    <input type="tel" name="father_mobile" maxlength="10"
+                           pattern="[0-9]{10}" inputmode="numeric">
+                </label>
+                <label>Father's Email
+                    <input type="email" name="father_email" maxlength="100">
+                </label>
+            </div>
+
+            <label>Father's Education
+                <input type="text" name="father_education" maxlength="100"
+                       placeholder="e.g. B.Com, Graduate">
+            </label>
+
+            <div class="section-head" style="margin-top:16px;">
+                <i class="fa-solid fa-user-group"></i> Mother's Details
+            </div>
+
+            <div class="form-row-2col">
+                <label>Mother's Name <span class="req">*</span>
+                    <input type="text" name="mother_name" maxlength="100">
+                </label>
+                <label>Mother's Occupation
+                    <input type="text" name="mother_occupation" maxlength="100">
+                </label>
+            </div>
+
+            <div class="form-row-2col">
+                <label>Mother's Mobile
+                    <input type="tel" name="mother_mobile" maxlength="10"
+                           pattern="[0-9]{10}" inputmode="numeric">
+                </label>
+                <label>Mother's Email
+                    <input type="email" name="mother_email" maxlength="100">
+                </label>
+            </div>
+
+            <label>Mother's Education
+                <input type="text" name="mother_education" maxlength="100">
+            </label>
+
+            <div class="section-head" style="margin-top:16px;">
+                <i class="fa-solid fa-user-shield"></i> Guardian & Emergency Contact
+            </div>
+
+            <div class="form-row-2col">
+                <label>Guardian Name
+                    <input type="text" name="guardian_name" maxlength="100"
+                           placeholder="If different from parents">
+                </label>
+                <label>Guardian Relation
+                    <input type="text" name="guardian_relation" maxlength="50"
+                           placeholder="e.g. Uncle, Aunt">
+                </label>
+            </div>
+
+            <div class="form-row-2col">
+                <label>Guardian Mobile
+                    <input type="tel" name="guardian_mobile" maxlength="10"
+                           pattern="[0-9]{10}" inputmode="numeric">
+                </label>
+                <label>Emergency Contact Mobile
+                    <input type="tel" name="emergency_contact" maxlength="10"
+                           pattern="[0-9]{10}" inputmode="numeric">
+                </label>
+            </div>
+
+            <div class="section-head" style="margin-top:16px;">
+                <i class="fa-solid fa-notes-medical"></i> Medical Info
+            </div>
+
+            <div class="form-row-2col">
+                <label>Allergies
+                    <input type="text" name="allergies" maxlength="150"
+                           placeholder="e.g. Peanuts, Dust">
+                </label>
+                <label>Medical Conditions
+                    <input type="text" name="medical_conditions" maxlength="150"
+                           placeholder="e.g. Asthma">
+                </label>
+            </div>
+
+            <label>Disability (if any)
+                <input type="text" name="disability" maxlength="150">
+            </label>
+
+            <div class="section-head" style="margin-top:16px;">
+                <i class="fa-solid fa-bus"></i> Transport
+            </div>
+
+            <div class="form-row-3col">
+                <label>Route
+                    <input type="text" name="transport_route" maxlength="60"
+                           placeholder="e.g. Route 4">
+                </label>
+                <label>Pickup Point
+                    <input type="text" name="pickup_point" maxlength="100">
+                </label>
+                <label>Vehicle Number
+                    <input type="text" name="vehicle_no" maxlength="20">
+                </label>
+            </div>
+
+            <div class="section-head" style="margin-top:16px;">
+                <i class="fa-solid fa-building-columns"></i> Bank (for scholarship / refunds)
+            </div>
+
+            <div class="form-row-2col">
+                <label>Account Number
+                    <input type="text" name="account_number" maxlength="20"
+                           inputmode="numeric" pattern="[0-9]{6,20}">
+                </label>
+                <label>Bank Name
+                    <input type="text" name="bank_name" maxlength="100">
+                </label>
+            </div>
+
+            <label>IFSC Code
+                <input type="text" name="ifsc" maxlength="11"
+                       pattern="[A-Za-z]{4}0[A-Za-z0-9]{6}"
+                       style="text-transform: uppercase;">
+            </label>
+
+            <div class="section-head" style="margin-top:16px;">
+                <i class="fa-solid fa-users"></i> Sibling & Other Info
+            </div>
+
+            <div class="form-row-2col">
+                <label>Sibling Name
+                    <input type="text" name="sibling_name" maxlength="100">
+                </label>
+                <label>Sibling Class
+                    <input type="text" name="sibling_class" maxlength="20">
+                </label>
+            </div>
+
+            <label>Hobbies / Interests
+                <textarea name="hobbies" rows="2" maxlength="200"
+                          placeholder="e.g. Cricket, Painting"></textarea>
             </label>
         </div>
 
-        <label>Address
-            <textarea name="address" rows="2" placeholder="Full address"></textarea>
-        </label>
-
-        <div class="info-banner">
+        <!-- ================= INFO BANNER ================= -->
+        <div class="info-banner" style="margin-top:22px;">
             <i class="fa-solid fa-circle-info"></i>
             <div>
                 <strong>Auto-generated:</strong> A unique ID will be created automatically<br>
-                <strong>Default Password:</strong> <code>snv@450</code> (User must change on first login)
+                <strong>Default Password:</strong> <code>snv@450</code>
+                (User must change on first login)
             </div>
         </div>
 
-        <button type="submit" class="btn-admin-primary">
-            <i class="fa-solid fa-check"></i> Create User
-        </button>
+        <div class="form-actions">
+            <button type="submit" class="btn-admin-primary">
+                <i class="fa-solid fa-check"></i> Create User
+            </button>
+            <button type="button" class="btn-secondary" id="resetBtn">
+                <i class="fa-solid fa-rotate-left"></i> Reset
+            </button>
+        </div>
     </form>
 </div>
 
 <script>
+    const ROLE_HINTS = {
+        teacher: '📘 Teacher ke liye qualification aur subject mandatory. Salary / bank details optional.',
+        admin:   '🏢 Admin ke liye designation aur department mandatory.',
+        parent:  '👨‍👩‍👧 Parent ke liye relation, child name aur child class mandatory.',
+        student: '🎓 Student ke liye photo, aadhaar, father & mother details, class & section mandatory.'
+    };
+    const ALL_ROLES = ['teacher', 'admin', 'parent', 'student'];
+
+    /* Toggle role sections + disable hidden inputs (fix duplicate-name bug) */
     function toggleRoleFields() {
         const role = document.getElementById('roleSelect').value;
-        document.querySelectorAll('.role-fields').forEach(el => el.style.display = 'none');
-        if (role) document.getElementById('fields-' + role).style.display = 'block';
+
+        ALL_ROLES.forEach(function (r) {
+            const el = document.getElementById('fields-' + r);
+            if (!el) return;
+            const show = (r === role);
+            el.style.display = show ? 'block' : 'none';
+            el.querySelectorAll('input, select, textarea').forEach(function (inp) {
+                inp.disabled = !show;
+            });
+        });
+
+        // Aadhaar & Photo required only for student
+        const isStudent = (role === 'student');
+        const aadhar = document.getElementById('aadharInput');
+        const photo = document.getElementById('photoInput');
+        document.getElementById('aadharStar').style.display = isStudent ? 'inline' : 'none';
+        document.getElementById('photoStar').style.display = isStudent ? 'inline' : 'none';
+        if (isStudent) { aadhar.setAttribute('required', 'required'); photo.setAttribute('required', 'required'); }
+        else { aadhar.removeAttribute('required'); photo.removeAttribute('required'); }
+
+        // Hint
+        const hint = document.getElementById('roleHint');
+        if (role && ROLE_HINTS[role]) {
+            hint.textContent = ROLE_HINTS[role];
+            hint.style.display = 'block';
+        } else {
+            hint.style.display = 'none';
+        }
     }
+
+    /* Photo preview + size check */
+    document.getElementById('photoInput').addEventListener('change', function (e) {
+        const file = e.target.files && e.target.files[0];
+        const preview = document.getElementById('photoPreview');
+        const placeholder = document.getElementById('photoPlaceholder');
+        if (!file) {
+            preview.style.display = 'none';
+            placeholder.style.display = 'flex';
+            return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Photo 2 MB se kam honi chahiye.');
+            e.target.value = '';
+            preview.style.display = 'none';
+            placeholder.style.display = 'flex';
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+            preview.src = ev.target.result;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    });
+
+    /* Reset */
+    document.getElementById('resetBtn').addEventListener('click', function () {
+        if (!confirm('Saara bhar hua data clear kar dena hai?')) return;
+        document.getElementById('createUserForm').reset();
+        document.getElementById('photoPreview').style.display = 'none';
+        document.getElementById('photoPlaceholder').style.display = 'flex';
+        toggleRoleFields();
+    });
+
+    /* Auto-uppercase PAN, IFSC */
+    document.querySelectorAll('input[name="pan"], input[name="ifsc"]').forEach(function (inp) {
+        inp.addEventListener('input', function () {
+            this.value = this.value.toUpperCase();
+        });
+    });
+
+    /* Digits-only enforcement for numeric fields */
+    document.querySelectorAll('input[inputmode="numeric"]').forEach(function (inp) {
+        inp.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '');
+        });
+    });
+
+    /* Initialise */
+    document.addEventListener('DOMContentLoaded', toggleRoleFields);
 </script>
 {% endblock %}

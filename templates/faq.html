@@ -12,9 +12,9 @@
     <header class="site-header">
         <div class="header-inner">
             <a class="brand" href="{{ url_for('home') }}">
-                <a href="{{ url_for('home') }}" class="brand-mark">
+                <span class="brand-mark">
                     <img src="{{ url_for('static', filename='images/school-logo.png') }}" class="school-logo" alt="Logo">
-                </a>
+                </span>
                 <span class="brand-copy">
                     <strong>RESIDENTIAL SHANTI NIKETAN</strong>
                     <b>NAVINAGAR JAMUI</b>
@@ -30,7 +30,18 @@
                 <a class="nav-link active" href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
             </nav>
             <div class="header-actions">
+                {% if session.get('user_id') %}
+                <div class="user-profile">
+                    <a href="{{ url_for('user_dashboard') }}"
+                       class="user-avatar-btn"
+                       title="{{ session.get('user_name', 'User') }}"
+                       aria-label="Open dashboard">
+                        <div class="user-avatar">{{ (session.get('user_name') or 'U')[0] | upper }}</div>
+                    </a>
+                </div>
+                {% else %}
                 <a class="login-btn" href="{{ url_for('login_page') }}"><i class="fa-regular fa-user"></i><span>Login</span></a>
+                {% endif %}
                 <button class="menu-toggle" id="menuToggle"><span></span><span></span><span></span></button>
             </div>
         </div>

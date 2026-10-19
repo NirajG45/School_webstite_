@@ -12,6 +12,101 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        /* =========================================
+           NEW: EDIT PROFILE MODAL STYLES
+           ========================================= */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 24, 44, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 5000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-container {
+            background: #fff;
+            width: 100%;
+            max-width: 550px;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            margin: 20px;
+        }
+        .modal-overlay.active .modal-container {
+            transform: translateY(0) scale(1);
+        }
+        .modal-header {
+            padding: 18px 22px;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--line, #e4eaf1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: var(--navy, #092f58);
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .modal-header h3 i { color: var(--blue, #124d82); }
+        .modal-close {
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            color: #65758a;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .modal-close:hover {
+            color: var(--red, #d71938);
+            transform: rotate(90deg);
+        }
+        .modal-body {
+            padding: 22px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .modal-footer {
+            padding: 16px 22px;
+            background: #f8fafc;
+            border-top: 1px solid var(--line, #e4eaf1);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .btn-secondary {
+            padding: 10px 18px;
+            background: #fff;
+            border: 1px solid var(--line, #e4eaf1);
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--muted, #65758a);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-secondary:hover {
+            background: #f1f5f9;
+            color: var(--navy, #092f58);
+        }
+    </style>
 </head>
 
 <body>
@@ -109,9 +204,6 @@
                         </a>
                     </div>
                 </div>
-                <!-- =====================================================
-                     END UPGRADED USER PROFILE
-                     ===================================================== -->
                 {% else %}
                 <a class="login-btn" href="{{ url_for('login_page') }}">
                     <i class="fa-regular fa-user"></i><span>Login</span>
@@ -275,10 +367,18 @@
                         <span class="profile-value">{{ user.child_class }}</span>
                     </div>
                     {% endif %}
-                    <a href="{{ url_for('change_password') }}" class="btn-admin-primary"
-                        style="margin-top:15px; display:inline-flex;">
-                        <i class="fa-solid fa-key"></i> Change Password
-                    </a>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                        <a href="{{ url_for('change_password') }}" class="btn-admin-primary" style="display:inline-flex;">
+                            <i class="fa-solid fa-key"></i> Change Password
+                        </a>
+                        <!-- NEW: Edit Profile Button (Only for Admins) -->
+                        {% if session.get('user_role') == 'admin' %}
+                        <button type="button" id="openEditModalBtn" class="btn-admin-primary" style="display:inline-flex; background: #fff; color: var(--blue); border: 1px solid var(--line); box-shadow: none;">
+                            <i class="fa-solid fa-user-pen"></i> Edit Profile
+                        </button>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
@@ -475,6 +575,49 @@
     </main>
 
     <!-- =========================================
+         NEW: EDIT PROFILE MODAL (Hidden by default)
+         ========================================= -->
+    {% if session.get('user_role') == 'admin' %}
+    <div class="modal-overlay" id="editProfileModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-pen"></i> Edit User Profile</h3>
+                <button type="button" class="modal-close" id="closeModalBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin_edit_profile', user_id=user.id) }}">
+                <div class="modal-body admin-form" style="padding: 22px; gap: 15px;">
+                    <div class="form-row-2col">
+                        <label>Full Name <input type="text" name="name" value="{{ user.name }}" required></label>
+                        <label>Email <input type="email" name="email" value="{{ user.email }}" required></label>
+                    </div>
+                    <div class="form-row-2col">
+                        <label>Phone <input type="text" name="phone" value="{{ user.phone }}" required></label>
+                        <label>Role 
+                            <select name="role">
+                                <option value="student" {% if user.role == 'student' %}selected{% endif %}>Student</option>
+                                <option value="parent" {% if user.role == 'parent' %}selected{% endif %}>Parent</option>
+                                <option value="teacher" {% if user.role == 'teacher' %}selected{% endif %}>Teacher</option>
+                                <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                            </select>
+                        </label>
+                    </div>
+                    {% if user.role in ['student', 'parent'] %}
+                    <div class="form-row-2col">
+                        <label>Child Name <input type="text" name="child_name" value="{{ user.child_name or '' }}"></label>
+                        <label>Child Class <input type="text" name="child_class" value="{{ user.child_class or '' }}"></label>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="cancelModalBtn">Cancel</button>
+                    <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-check"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- =========================================
          FOOTER (Same as index.html)
          ========================================= -->
     <footer class="site-footer">
@@ -633,6 +776,46 @@
                     }
                 }, { passive: true });
             })();
+
+            /* ============================================================
+               NEW: EDIT PROFILE MODAL LOGIC
+               ============================================================ */
+            const modal = document.getElementById('editProfileModal');
+            const openModalBtn = document.getElementById('openEditModalBtn');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const cancelModalBtn = document.getElementById('cancelModalBtn');
+
+            if (modal && openModalBtn) {
+                // Open Modal
+                openModalBtn.addEventListener('click', () => {
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                });
+
+                // Close Modal Function
+                function closeModal() {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = ''; // Restore scrolling
+                }
+
+                // Close on Button Clicks
+                if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+                if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
+
+                // Close on outside click
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeModal();
+                    }
+                });
+
+                // Close on Escape key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && modal.classList.contains('active')) {
+                        closeModal();
+                    }
+                });
+            }
         });
     </script>
 

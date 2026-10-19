@@ -45,6 +45,92 @@ INITIAL_NOTICES = [
 ]
 
 # =========================================
+# 1.5. USER TABLE — EXTRA COLUMNS (MIGRATION)
+# =========================================
+USER_EXTRA_COLUMNS = {
+    # Common / personal
+    'blood_group': 'TEXT', 'marital_status': 'TEXT', 'aadhar': 'TEXT', 'pan': 'TEXT',
+    'nationality': 'TEXT', 'mother_tongue': 'TEXT',
+    # Contact
+    'alternate_mobile': 'TEXT', 'whatsapp': 'TEXT',
+    'city': 'TEXT', 'state': 'TEXT', 'pincode': 'TEXT',
+    'photo_url': 'TEXT',
+    # Teacher
+    'specialization': 'TEXT', 'classes_assigned': 'TEXT', 'languages': 'TEXT',
+    'employee_id': 'TEXT', 'joining_date': 'TEXT', 'employment_type': 'TEXT',
+    'total_experience': 'TEXT', 'previous_school': 'TEXT',
+    'salary': 'TEXT', 'bank_name': 'TEXT', 'account_number': 'TEXT', 'ifsc': 'TEXT',
+    'emergency_name': 'TEXT', 'emergency_contact': 'TEXT', 'notes': 'TEXT',
+    # Admin
+    'reporting_to': 'TEXT',
+    # Parent
+    'occupation': 'TEXT', 'education': 'TEXT', 'annual_income': 'TEXT',
+    'spouse_name': 'TEXT', 'spouse_occupation': 'TEXT', 'spouse_mobile': 'TEXT',
+    'office_phone': 'TEXT', 'office_address': 'TEXT',
+    'child_admission_no': 'TEXT', 'child_section': 'TEXT', 'child_dob': 'TEXT',
+    # Student - academic
+    'admission_no': 'TEXT', 'roll_no': 'TEXT', 'admission_date': 'TEXT',
+    'class_name': 'TEXT', 'section': 'TEXT',
+    'previous_class': 'TEXT', 'previous_percentage': 'TEXT',
+    'category': 'TEXT', 'religion': 'TEXT',
+    # Student - father / mother / guardian
+    'father_name': 'TEXT', 'father_occupation': 'TEXT', 'father_mobile': 'TEXT',
+    'father_email': 'TEXT', 'father_education': 'TEXT',
+    'mother_name': 'TEXT', 'mother_occupation': 'TEXT', 'mother_mobile': 'TEXT',
+    'mother_email': 'TEXT', 'mother_education': 'TEXT',
+    'guardian_name': 'TEXT', 'guardian_relation': 'TEXT', 'guardian_mobile': 'TEXT',
+    # Student - medical / transport / misc
+    'allergies': 'TEXT', 'medical_conditions': 'TEXT', 'disability': 'TEXT',
+    'transport_route': 'TEXT', 'pickup_point': 'TEXT', 'vehicle_no': 'TEXT',
+    'sibling_name': 'TEXT', 'sibling_class': 'TEXT', 'hobbies': 'TEXT',
+}
+
+# ---------- Allowlisted field names per role ----------
+COMMON_FIELDS = [
+    'dob', 'gender', 'blood_group', 'marital_status', 'aadhar', 'pan',
+    'nationality', 'mother_tongue',
+    'email', 'phone', 'alternate_mobile', 'whatsapp',
+    'address', 'city', 'state', 'pincode',
+]
+TEACHER_FIELDS = [
+    'qualification', 'specialization', 'experience', 'subject',
+    'classes_assigned', 'languages', 'employee_id', 'designation',
+    'joining_date', 'employment_type', 'total_experience', 'previous_school',
+    'salary', 'bank_name', 'account_number', 'ifsc',
+    'emergency_name', 'emergency_contact', 'notes',
+]
+ADMIN_FIELDS = [
+    'designation', 'department', 'employee_id', 'joining_date',
+    'employment_type', 'reporting_to',
+    'salary', 'bank_name', 'account_number', 'ifsc',
+    'emergency_name', 'emergency_contact',
+]
+PARENT_FIELDS = [
+    'relation', 'occupation', 'education', 'annual_income',
+    'spouse_name', 'spouse_occupation', 'spouse_mobile',
+    'office_phone', 'office_address',
+    'child_name', 'child_admission_no', 'child_class', 'child_section', 'child_dob',
+    'emergency_name', 'emergency_contact',
+]
+STUDENT_FIELDS = [
+    'admission_no', 'roll_no', 'admission_date', 'class_name', 'section',
+    'previous_school', 'previous_class', 'previous_percentage', 'category', 'religion',
+    'father_name', 'father_occupation', 'father_mobile', 'father_email', 'father_education',
+    'mother_name', 'mother_occupation', 'mother_mobile', 'mother_email', 'mother_education',
+    'guardian_name', 'guardian_relation', 'guardian_mobile', 'emergency_contact',
+    'allergies', 'medical_conditions', 'disability',
+    'transport_route', 'pickup_point', 'vehicle_no',
+    'account_number', 'bank_name', 'ifsc',
+    'sibling_name', 'sibling_class', 'hobbies',
+]
+ROLE_FIELDS = {
+    'teacher': TEACHER_FIELDS,
+    'admin': ADMIN_FIELDS,
+    'parent': PARENT_FIELDS,
+    'student': STUDENT_FIELDS,
+}
+
+# =========================================
 # 2. DATABASE HELPERS
 # =========================================
 def get_db():
@@ -58,6 +144,15 @@ def close_db(_error=None):
     db = g.pop('db', None)
     if db is not None:
         db.close()
+
+
+def migrate_users_table(db):
+    """Idempotent: existing users table me missing columns add karta hai."""
+    existing = {row[1] for row in db.execute("PRAGMA table_info(users)").fetchall()}
+    for col, coltype in USER_EXTRA_COLUMNS.items():
+        if col not in existing:
+            db.execute(f'ALTER TABLE users ADD COLUMN {col} {coltype}')
+
 
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -83,6 +178,9 @@ def init_db():
             designation TEXT, department TEXT, relation TEXT, child_name TEXT,
             child_class TEXT, address TEXT, is_active INTEGER DEFAULT 1,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+
+        # 🚀 UPGRADE: add all new columns for teacher/admin/parent/student
+        migrate_users_table(db)
         
         # Leave Requests
         db.execute('''CREATE TABLE IF NOT EXISTS leave_requests (
@@ -328,6 +426,51 @@ def set_setting(key, value):
     db.execute('INSERT OR REPLACE INTO school_settings (key, value) VALUES (?, ?)', (key, value))
     db.commit()
 
+
+# =========================================
+# 3.1. USER PHOTO + FIELD HELPERS
+# =========================================
+def save_user_photo(file_storage, max_mb=2):
+    """Save uploaded user photo to static/uploads/photos/. Returns public URL or None."""
+    if not file_storage or not file_storage.filename:
+        return None
+    if not allowed_file(file_storage.filename):
+        return None
+    # Optional size check
+    try:
+        file_storage.stream.seek(0, os.SEEK_END)
+        size = file_storage.stream.tell()
+        file_storage.stream.seek(0)
+        if size > max_mb * 1024 * 1024:
+            return None
+    except (AttributeError, OSError):
+        pass  # stream not seekable — skip size check
+    ext = file_storage.filename.rsplit('.', 1)[1].lower()
+    filename = f"user_{secrets.token_hex(8)}.{ext}"
+    photos_dir = UPLOAD_FOLDER / 'photos'
+    photos_dir.mkdir(parents=True, exist_ok=True)
+    file_storage.save(photos_dir / filename)
+    return url_for('static', filename=f'uploads/photos/{filename}')
+
+
+def _collect_form_fields(role):
+    """Fetch allowlisted fields from request.form (empty -> None) + safe normalization."""
+    data = {}
+    for k in COMMON_FIELDS:
+        v = request.form.get(k, '').strip()
+        data[k] = v or None
+    for k in ROLE_FIELDS.get(role, []):
+        v = request.form.get(k, '').strip()
+        data[k] = v or None
+    # Normalization (safety net even if JS bypassed)
+    if data.get('pan'):
+        data['pan'] = data['pan'].upper()
+    if data.get('ifsc'):
+        data['ifsc'] = data['ifsc'].upper()
+    if data.get('aadhar'):
+        data['aadhar'] = re.sub(r'\D', '', data['aadhar']) or None
+    return data
+
 # =========================================
 # 4. DECORATORS
 # =========================================
@@ -422,6 +565,90 @@ def achievements_page():
     db = get_db()
     achievements = db.execute('SELECT * FROM achievements ORDER BY id DESC').fetchall()
     return render_template('achievements.html', achievements=achievements)
+
+
+@app.route('/admin/edit-profile/<int:user_id>', methods=['POST'])
+@admin_required
+def admin_edit_profile(user_id):
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+
+    if not user:
+        flash('User not found.', 'error')
+        return redirect(request.referrer or url_for('admin_users'))
+
+    # Form se data receive karo
+    name = request.form.get('name', '').strip()
+    email = request.form.get('email', '').strip()
+    phone = request.form.get('phone', '').strip()
+    role = request.form.get('role', user['role'])
+
+    # Validation
+    if not name or not email or not phone or not role:
+        flash('Name, Email, Phone and Role are required.', 'error')
+        return redirect(request.referrer or url_for('admin_users'))
+
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        flash('Invalid email format.', 'error')
+        return redirect(request.referrer or url_for('admin_users'))
+
+    if role not in ('teacher', 'admin', 'parent', 'student'):
+        flash('Invalid role.', 'error')
+        return redirect(request.referrer or url_for('admin_users'))
+
+    # Collect any extra fields present in the submitted form (role-aware)
+    editable = set(COMMON_FIELDS) | set(ROLE_FIELDS.get(role, []))
+    updates = {}
+    for f in editable:
+        if f in request.form:
+            updates[f] = request.form.get(f, '').strip() or None
+
+    # Normalization
+    if updates.get('pan'):
+        updates['pan'] = updates['pan'].upper()
+    if updates.get('ifsc'):
+        updates['ifsc'] = updates['ifsc'].upper()
+    if updates.get('aadhar'):
+        updates['aadhar'] = re.sub(r'\D', '', updates['aadhar']) or None
+
+    # Student: keep class_name <-> child_class in sync for backward compat
+    if role == 'student':
+        if updates.get('class_name'):
+            updates['child_class'] = updates['class_name']
+        elif updates.get('child_class') and 'class_name' not in updates:
+            updates['class_name'] = updates['child_class']
+
+    # Photo (optional upload during edit)
+    new_photo = request.files.get('photo')
+    if new_photo and new_photo.filename:
+        saved_url = save_user_photo(new_photo)
+        if saved_url:
+            updates['photo_url'] = saved_url
+
+    # Build UPDATE
+    set_parts = ['name = ?', 'email = ?', 'phone = ?', 'role = ?']
+    params = [name, email, phone, role]
+    for k, v in updates.items():
+        set_parts.append(f'{k} = ?')
+        params.append(v)
+    params.append(user_id)
+
+    try:
+        db.execute(f"UPDATE users SET {', '.join(set_parts)} WHERE id = ?", tuple(params))
+        db.commit()
+
+        # Agar admin apna hi profile edit kar raha hai, to session update karo
+        if session['user_id'] == user_id:
+            session['user_name'] = name
+            session['user_role'] = role
+
+        flash('Profile updated successfully!', 'success')
+    except sqlite3.IntegrityError:
+        flash('Email already exists. Please use a different email.', 'error')
+    except Exception as e:
+        flash(f'An error occurred: {str(e)}', 'error')
+
+    return redirect(request.referrer or url_for('admin_users'))
 
 
 # =========================================
@@ -643,49 +870,97 @@ def admin_create_user():
         name = request.form.get('name', '').strip()
         email = request.form.get('email', '').strip()
         phone = request.form.get('phone', '').strip()
-        
-        if not role or not name or not email or not phone:
-            flash('Please fill required fields.', 'error')
+
+        # ---------- Core validation ----------
+        if role not in ('teacher', 'admin', 'parent', 'student'):
+            flash('Please select a valid role.', 'error')
             return redirect(url_for('admin_create_user'))
-        
+        if not name or not email or not phone:
+            flash('Name, Email and Mobile are required.', 'error')
+            return redirect(url_for('admin_create_user'))
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            flash('Invalid email format.', 'error')
+            return redirect(url_for('admin_create_user'))
+        if not re.match(r'^[0-9]{10}$', phone):
+            flash('Mobile must be exactly 10 digits.', 'error')
+            return redirect(url_for('admin_create_user'))
+
         db = get_db()
         if db.execute('SELECT 1 FROM users WHERE email = ?', (email,)).fetchone():
-            flash('Email already exists.', 'error')
+            flash('Email already exists. Please use a different email.', 'error')
             return redirect(url_for('admin_create_user'))
-        
+
+        # ---------- Role-specific required checks ----------
+        if role == 'teacher':
+            if not request.form.get('qualification') or not request.form.get('subject'):
+                flash('Qualification and Subject are required for teacher.', 'error')
+                return redirect(url_for('admin_create_user'))
+        elif role == 'admin':
+            if not request.form.get('designation') or not request.form.get('department'):
+                flash('Designation and Department are required for admin.', 'error')
+                return redirect(url_for('admin_create_user'))
+        elif role == 'parent':
+            if (not request.form.get('relation')
+                    or not request.form.get('child_name')
+                    or not request.form.get('child_class')):
+                flash('Relation, Child name and Class are required for parent.', 'error')
+                return redirect(url_for('admin_create_user'))
+        elif role == 'student':
+            required = ['class_name', 'section', 'father_name', 'mother_name',
+                        'father_mobile', 'aadhar']
+            if any(not request.form.get(f) for f in required):
+                flash('Class, Section, Father & Mother names, Father mobile and Aadhaar are required for student.', 'error')
+                return redirect(url_for('admin_create_user'))
+            if not re.match(r'^[0-9]{12}$', request.form.get('aadhar', '')):
+                flash('Aadhaar must be exactly 12 digits.', 'error')
+                return redirect(url_for('admin_create_user'))
+
+        # ---------- Collect all fields ----------
+        fields = _collect_form_fields(role)
+
+        # Student: mirror class_name -> child_class (backward compat for dashboards)
+        if role == 'student' and fields.get('class_name'):
+            fields['child_class'] = fields['class_name']
+            fields['child_section'] = fields.get('section')
+
+        # Photo (required by form JS for students, but validate server-side too)
+        photo_url = save_user_photo(request.files.get('photo'))
+        if photo_url:
+            fields['photo_url'] = photo_url
+        elif role == 'student':
+            flash('Student photo is required (JPG/PNG, max 2MB).', 'error')
+            return redirect(url_for('admin_create_user'))
+
+        # ---------- Insert ----------
         unique_id = generate_unique_id(role)
         hashed = generate_password_hash(DEFAULT_PASSWORD)
-        
-        dob = request.form.get('dob', '')
-        gender = request.form.get('gender', '')
-        address = request.form.get('address', '')
-        qualification = experience = subject = designation = department = relation = child_name = child_class = None
-        
-        if role == 'teacher':
-            qualification = request.form.get('qualification', '')
-            experience = request.form.get('experience', '')
-            subject = request.form.get('subject', '')
-        elif role == 'admin':
-            designation = request.form.get('designation', '')
-            department = request.form.get('department', '')
-        elif role == 'parent':
-            relation = request.form.get('relation', '')
-            child_name = request.form.get('child_name', '')
-            child_class = request.form.get('child_class', '')
-        elif role == 'student':
-            child_class = request.form.get('child_class', '')
-        
-        db.execute('''INSERT INTO users 
-            (unique_id, role, name, email, phone, password_hash, dob, gender, qualification, 
-             experience, subject, designation, department, relation, child_name, child_class, address)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
-            (unique_id, role, name, email, phone, hashed, dob, gender, qualification,
-             experience, subject, designation, department, relation, child_name, child_class, address))
-        db.commit()
-        
+
+        base = {
+            'unique_id': unique_id,
+            'role': role,
+            'name': name,
+            'email': email,
+            'phone': phone,
+            'password_hash': hashed,
+        }
+        base.update(fields)
+
+        cols = ', '.join(base.keys())
+        placeholders = ', '.join(['?'] * len(base))
+        try:
+            db.execute(f'INSERT INTO users ({cols}) VALUES ({placeholders})',
+                       tuple(base.values()))
+            db.commit()
+        except sqlite3.IntegrityError as e:
+            flash(f'Database error: {e}', 'error')
+            return redirect(url_for('admin_create_user'))
+        except Exception as e:
+            flash(f'Error creating user: {e}', 'error')
+            return redirect(url_for('admin_create_user'))
+
         flash(f'{role.capitalize()} created! ID: {unique_id} | Default Password: {DEFAULT_PASSWORD}', 'success')
         return redirect(url_for('admin_users'))
-    
+
     return render_template('admin_create_user.html', active_page='create_user')
 
 @app.route('/admin/users/delete/<int:user_id>', methods=['POST'])

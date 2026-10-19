@@ -9,11 +9,438 @@
     <title>Notice Board | Residential Shanti Niketan</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        /* =========================================
+           UPGRADED NOTICE PAGE STYLES
+           ========================================= */
+        
+        /* Hero Section */
+        .page-hero {
+            background: linear-gradient(135deg, #061f39 0%, #092f58 50%, #14578b 100%);
+            padding: 70px 0;
+            border-bottom: 4px solid var(--yellow, #ffd447);
+            position: relative;
+            overflow: hidden;
+        }
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 80% 20%, rgba(255, 212, 71, 0.15) 0%, transparent 40%),
+                        radial-gradient(circle at 20% 80%, rgba(23, 104, 167, 0.2) 0%, transparent 40%);
+            pointer-events: none;
+        }
+        .page-hero-inner {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            position: relative;
+            z-index: 2;
+        }
+        .page-hero-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--yellow, #ffd447), #f4cc3f);
+            color: var(--navy, #092f58);
+            border-radius: 24px;
+            display: grid;
+            place-items: center;
+            font-size: 34px;
+            flex: 0 0 auto;
+            box-shadow: 0 15px 35px rgba(255, 212, 71, 0.4);
+            transform: rotate(-5deg);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .page-hero:hover .page-hero-icon {
+            transform: rotate(0deg) scale(1.05);
+        }
+        .page-hero h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: clamp(32px, 4vw, 48px);
+            margin: 0 0 10px;
+            letter-spacing: -1px;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .page-hero p {
+            color: #d6e6f4;
+            margin: 0;
+            font-size: 15.5px;
+            max-width: 550px;
+            line-height: 1.6;
+        }
+        .btn-back-home {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 22px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 13.5px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            white-space: nowrap;
+        }
+        .btn-back-home:hover {
+            background: var(--yellow, #ffd447);
+            color: var(--navy, #092f58);
+            border-color: var(--yellow, #ffd447);
+            transform: translateX(-5px);
+            box-shadow: 0 8px 20px rgba(255, 212, 71, 0.3);
+        }
+
+        /* Content Area */
+        .notices-page-content {
+            padding: 50px 0 80px;
+        }
+
+        /* Search & Filter Bar */
+        .notice-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            background: #fff;
+            padding: 18px 22px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(12, 45, 79, 0.05);
+            border: 1px solid var(--line, #e4eaf1);
+            position: sticky;
+            top: calc(var(--header-h, 88px) + 15px);
+            z-index: 100;
+        }
+        .search-box {
+            flex: 1 1 300px;
+            position: relative;
+        }
+        .search-box i {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8da4ba;
+            font-size: 16px;
+            transition: color 0.3s ease;
+        }
+        .search-box input {
+            width: 100%;
+            height: 52px;
+            padding: 0 20px 0 52px;
+            border: 1.5px solid var(--line, #e4eaf1);
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .search-box input:focus {
+            border-color: var(--blue, #124d82);
+            box-shadow: 0 0 0 4px rgba(18, 77, 130, 0.1);
+            background: #fff;
+        }
+        .search-box input:focus + i {
+            color: var(--blue, #124d82);
+        }
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 11px 22px;
+            border: 1.5px solid var(--line, #e4eaf1);
+            background: #fff;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--muted, #65758a);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .filter-btn:hover {
+            background: #f4f8fc;
+            color: var(--navy, #092f58);
+            border-color: #b0c4d8;
+            transform: translateY(-2px);
+        }
+        .filter-btn.active {
+            background: var(--navy, #092f58);
+            color: #fff;
+            border-color: var(--navy, #092f58);
+            box-shadow: 0 6px 18px rgba(9, 47, 88, 0.2);
+        }
+
+        /* Notices Grid */
+        .notices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+        .notice-card {
+            background: #fff;
+            border: 1px solid var(--line, #e4eaf1);
+            border-radius: 18px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(12, 45, 79, 0.03);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Left colored border */
+        .notice-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--line, #e4eaf1);
+            transition: all 0.3s ease;
+        }
+        .notice-card[data-category="admissions"]::before { background: var(--red, #d71938); }
+        .notice-card[data-category="academics"]::before { background: #1768a7; }
+        .notice-card[data-category="activities"]::before { background: #168254; }
+        .notice-card[data-category="notice"]::before { background: #7439b2; }
+        .notice-card[data-category="general"]::before { background: #7439b2; }
+
+        .notice-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(12, 45, 79, 0.12);
+            border-color: #d0dbe8;
+        }
+        .notice-card:hover::before {
+            width: 6px;
+        }
+
+        .notice-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+        .notice-date {
+            color: #65758a;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .notice-tag {
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        /* Dynamic Tag Colors */
+        .tag-admissions { background: #ffeaee; color: var(--red, #d71938); }
+        .tag-academics { background: #e1f1ff; color: #1768a7; }
+        .tag-activities { background: #e3f5eb; color: #168254; }
+        .tag-notice, .tag-general { background: #f0e7ff; color: #7439b2; }
+
+        .notice-card-body h3 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--navy, #092f58);
+            margin: 0 0 10px;
+            line-height: 1.4;
+            transition: color 0.3s ease;
+        }
+        .notice-card:hover .notice-card-body h3 {
+            color: var(--blue, #124d82);
+        }
+        .notice-card-body p {
+            font-size: 13px;
+            color: var(--muted, #65758a);
+            line-height: 1.65;
+            margin: 0;
+        }
+        
+        .notice-card-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px dashed var(--line, #e4eaf1);
+        }
+        .read-more {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--blue, #124d82);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .read-more:hover {
+            color: var(--red, #d71938);
+            gap: 12px;
+        }
+
+        /* Admin Actions (Edit / Delete) */
+        .admin-card-actions {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transform: translateY(-5px);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        .notice-card:hover .admin-card-actions {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .admin-action-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+        .admin-action-btn.edit {
+            background: #e1f1ff;
+            color: #1768a7;
+            text-decoration: none;
+        }
+        .admin-action-btn.edit:hover {
+            background: #1768a7;
+            color: #fff;
+            transform: scale(1.1);
+        }
+        .admin-action-btn.delete {
+            background: #ffeaee;
+            color: var(--red, #d71938);
+        }
+        .admin-action-btn.delete:hover {
+            background: var(--red, #d71938);
+            color: #fff;
+            transform: scale(1.1);
+        }
+        .inline-form {
+            display: inline;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            background: #fff;
+            border-radius: 18px;
+            border: 2px dashed var(--line, #e4eaf1);
+            margin-top: 20px;
+        }
+        .empty-state i {
+            font-size: 64px;
+            color: #cbd5e1;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+        .empty-state h3 {
+            color: var(--navy, #092f58);
+            margin: 0 0 10px;
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+        }
+        .empty-state p {
+            color: var(--muted, #65758a);
+            font-size: 14px;
+            margin: 0;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 50px;
+        }
+        .page-btn {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            background: #fff;
+            border: 1px solid var(--line, #e4eaf1);
+            color: var(--navy, #092f58);
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.25s ease;
+            text-decoration: none;
+        }
+        .page-btn:hover:not(.disabled):not(.active) {
+            background: #f4f8fc;
+            border-color: var(--blue, #124d82);
+            color: var(--blue, #124d82);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(18, 77, 130, 0.1);
+        }
+        .page-btn.active {
+            background: var(--navy, #092f58);
+            color: #fff;
+            border-color: var(--navy, #092f58);
+            box-shadow: 0 8px 20px rgba(9, 47, 88, 0.25);
+        }
+        .page-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f4f7fb;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-hero { padding: 50px 0; }
+            .page-hero-inner { flex-direction: column; text-align: center; gap: 20px; }
+            .page-hero-icon { width: 70px; height: 70px; font-size: 28px; }
+            .btn-back-home { margin-left: 0; width: 100%; justify-content: center; }
+            
+            .notice-controls { flex-direction: column; align-items: stretch; padding: 15px; top: 70px; }
+            .search-box { flex: 1 1 auto; }
+            .filter-tabs { justify-content: center; }
+            .filter-btn { flex: 1 1 auto; text-align: center; padding: 10px 12px; font-size: 12px; }
+            
+            .notices-grid { grid-template-columns: 1fr; }
+            .admin-card-actions { opacity: 1; transform: none; } /* Always show on mobile */
+        }
+    </style>
 </head>
 
 <body>
@@ -120,9 +547,24 @@
             <!-- Notices Grid -->
             <div class="notices-grid" id="noticesGrid">
 
-                <!-- 🚀 DYNAMIC NOTICES LOOP (Yahan aapke app.py se data aayega) -->
+                <!-- 🚀 DYNAMIC NOTICES LOOP -->
                 {% for notice in notices %}
                 <article class="notice-card" data-category="{{ notice.tag|lower }}">
+                    
+                    <!-- Admin Edit/Delete Actions -->
+                    {% if session.get('user_role') == 'admin' %}
+                    <div class="admin-card-actions">
+                        <a href="{{ url_for('admin_notices') }}" class="admin-action-btn edit" title="Edit Notice (Goes to Admin Panel)">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </a>
+                        <form action="{{ url_for('admin_delete_notice', nid=notice.id) }}" method="POST" class="inline-form" onsubmit="return confirm('Are you sure you want to delete this notice permanently?')">
+                            <button type="submit" class="admin-action-btn delete" title="Delete Notice">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+
                     <div class="notice-card-header">
                         <span class="notice-date"><i class="fa-regular fa-calendar-days"></i> {{ notice.date }}</span>
                         <span class="notice-tag tag-{{ notice.tag|lower }}">{{ notice.tag }}</span>
@@ -229,7 +671,13 @@
                     const title = card.querySelector('h3').textContent.toLowerCase();
                     const desc = card.querySelector('p').textContent.toLowerCase();
 
-                    const matchesFilter = currentFilter === 'all' || category.includes(currentFilter);
+                    // Handle 'general' tag mapping to 'notice'
+                    let mappedFilter = currentFilter;
+                    if (currentFilter === 'notice' && category === 'general') {
+                        mappedFilter = 'general';
+                    }
+
+                    const matchesFilter = currentFilter === 'all' || category.includes(mappedFilter);
                     const matchesSearch = title.includes(currentSearch) || desc.includes(currentSearch);
 
                     if (matchesFilter && matchesSearch) {
@@ -269,21 +717,6 @@
             });
         });
     </script>
-
-    <!-- Add FadeIn Animation to CSS inline for quick fix -->
-    <style>
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
 </body>
 
 </html>

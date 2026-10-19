@@ -3,25 +3,486 @@
 {% block page_title %}User Management{% endblock %}
 
 {% block content %}
+
+<style>
+/* ============================================================
+   USER MANAGEMENT — PREMIUM STYLES
+   ============================================================ */
+
+/* ---------- Stats row ---------- */
+.user-stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+.user-stat-card {
+    background: #fff;
+    border: 1px solid var(--line, #e4eaf1);
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    transition: transform .25s, box-shadow .25s;
+}
+.user-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px rgba(9,47,88,.09);
+}
+.user-stat-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 17px;
+    flex-shrink: 0;
+}
+.user-stat-icon.total    { background: #e0f2fe; color: #0284c7; }
+.user-stat-icon.active   { background: #dcfce7; color: #16a34a; }
+.user-stat-icon.inactive { background: #fee2e2; color: #dc2626; }
+.user-stat-icon.admins   { background: #fef3c7; color: #d97706; }
+.user-stat-meta strong {
+    display: block;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--navy, #092f58);
+    line-height: 1.1;
+}
+.user-stat-meta small {
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--muted, #65758a);
+}
+
+/* ---------- Search ---------- */
+.table-search {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 320px;
+    margin-right: auto;
+    margin-left: 16px;
+}
+.table-search input {
+    width: 100%;
+    padding: 9px 14px 9px 38px;
+    border: 1px solid var(--line, #e4eaf1);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13px;
+    background: #f8fafc;
+    color: var(--navy, #092f58);
+    transition: all .2s;
+}
+.table-search input:focus {
+    outline: none;
+    background: #fff;
+    border-color: var(--blue, #124d82);
+    box-shadow: 0 0 0 3px rgba(18,77,130,.12);
+}
+.table-search i {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted, #65758a);
+    font-size: 13px;
+    pointer-events: none;
+}
+
+/* ---------- Table polish ---------- */
+#usersTable tbody tr {
+    transition: background .18s;
+}
+#usersTable tbody tr:hover {
+    background: #f8fafc;
+}
+
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.user-cell-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--navy, #092f58), var(--blue, #124d82));
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 12.5px;
+    font-weight: 800;
+    flex-shrink: 0;
+    letter-spacing: 0.5px;
+}
+.user-cell-meta strong {
+    display: block;
+    font-size: 13px;
+    color: var(--navy, #092f58);
+    font-weight: 700;
+    line-height: 1.2;
+}
+.user-cell-meta small {
+    display: block;
+    font-size: 11.5px;
+    color: var(--muted, #65758a);
+    line-height: 1.3;
+}
+
+/* Role pills */
+.user-role-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+}
+.user-role-pill i { font-size: 9px; }
+.user-role-pill.admin   { background: #fef3c7; color: #b45309; }
+.user-role-pill.teacher { background: #dbeafe; color: #1e40af; }
+.user-role-pill.parent  { background: #fce7f3; color: #9d174d; }
+.user-role-pill.student { background: #e0e7ff; color: #4338ca; }
+
+/* Status pills */
+.user-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.user-status-pill.active   { background: #dcfce7; color: #15803d; }
+.user-status-pill.inactive { background: #fee2e2; color: #b91c1c; }
+.user-status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+.user-status-pill.active .user-status-dot {
+    animation: pulseDot 1.9s infinite;
+}
+@keyframes pulseDot {
+    0%   { box-shadow: 0 0 0 0 rgba(22,163,74,.55); }
+    70%  { box-shadow: 0 0 0 6px rgba(22,163,74,0); }
+    100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); }
+}
+
+/* ---------- Action buttons ---------- */
+.action-btn-group {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.btn-icon-edit,
+.btn-icon-approve,
+.btn-icon-danger {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    border: none;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .2s cubic-bezier(.2,.7,.3,1);
+    padding: 0;
+}
+.btn-icon-edit {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+.btn-icon-edit:hover {
+    background: #0284c7;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(2,132,199,.32);
+}
+.btn-icon-approve {
+    background: #f1f5f9;
+    color: #475569;
+}
+.btn-icon-approve:hover {
+    background: var(--navy, #092f58);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(9,47,88,.25);
+}
+.btn-icon-danger {
+    background: #fee2e2;
+    color: #dc2626;
+}
+.btn-icon-danger:hover {
+    background: #dc2626;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(220,38,38,.32);
+}
+
+/* ============================================================
+   EDIT USER MODAL
+   ============================================================ */
+.user-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 24, 44, 0.62);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 6000;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .3s ease, visibility .3s ease;
+}
+.user-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+.user-modal-box {
+    background: #fff;
+    width: 100%;
+    max-width: 620px;
+    max-height: 92vh;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 30px 70px rgba(0,0,0,.32);
+    transform: translateY(22px) scale(.96);
+    transition: transform .3s cubic-bezier(.2,.75,.3,1);
+}
+.user-modal.active .user-modal-box {
+    transform: translateY(0) scale(1);
+}
+.user-modal-head {
+    padding: 18px 22px;
+    background: linear-gradient(135deg, #f8fafc 0%, #eef4fb 100%);
+    border-bottom: 1px solid var(--line, #e4eaf1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.user-modal-head h3 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--navy, #092f58);
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.user-modal-head h3 i { color: var(--blue, #124d82); }
+.user-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--muted, #65758a);
+    font-size: 16px;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: all .22s;
+}
+.user-modal-close:hover {
+    background: #fee2e2;
+    color: var(--red, #d71938);
+    transform: rotate(90deg);
+}
+.user-modal-body {
+    padding: 22px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.user-modal-section-title {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+    color: var(--muted, #65758a);
+    margin: 4px 0 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed var(--line, #e4eaf1);
+}
+.user-modal-body label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--navy, #092f58);
+}
+.user-modal-body input,
+.user-modal-body select {
+    padding: 10px 13px;
+    border: 1px solid var(--line, #e4eaf1);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--navy, #092f58);
+    background: #f8fafc;
+    transition: all .2s;
+}
+.user-modal-body input:focus,
+.user-modal-body select:focus {
+    outline: none;
+    background: #fff;
+    border-color: var(--blue, #124d82);
+    box-shadow: 0 0 0 3px rgba(18,77,130,.12);
+}
+.user-modal-body input[readonly] {
+    background: #eef4fb;
+    color: var(--muted, #65758a);
+    cursor: not-allowed;
+}
+.user-modal-row-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.user-modal-foot {
+    padding: 16px 22px;
+    background: #f8fafc;
+    border-top: 1px solid var(--line, #e4eaf1);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+.user-modal-btn-cancel {
+    padding: 10px 18px;
+    background: #fff;
+    border: 1px solid var(--line, #e4eaf1);
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    color: var(--muted, #65758a);
+    cursor: pointer;
+    transition: all .2s;
+}
+.user-modal-btn-cancel:hover {
+    background: #f1f5f9;
+    color: var(--navy, #092f58);
+}
+.user-modal-btn-save {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, var(--blue, #124d82), #1a5fa0);
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #fff;
+    cursor: pointer;
+    transition: all .22s;
+    box-shadow: 0 6px 16px rgba(18,77,130,.24);
+}
+.user-modal-btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(18,77,130,.34);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 720px) {
+    .table-search {
+        max-width: 100%;
+        margin: 10px 0 0;
+        order: 3;
+    }
+    .admin-panel-head { flex-wrap: wrap; }
+    .user-modal-row-2col { grid-template-columns: 1fr; }
+    .user-modal-body { padding: 18px; }
+    .user-modal-foot { padding: 14px 18px; }
+    .user-stat-meta strong { font-size: 19px; }
+}
+</style>
+
+<!-- ============================================================
+     STATS ROW
+     ============================================================ -->
+<div class="user-stats-row">
+    <div class="user-stat-card">
+        <div class="user-stat-icon total"><i class="fa-solid fa-users"></i></div>
+        <div class="user-stat-meta">
+            <strong>{{ users|length }}</strong>
+            <small>Total Users</small>
+        </div>
+    </div>
+    <div class="user-stat-card">
+        <div class="user-stat-icon active"><i class="fa-solid fa-user-check"></i></div>
+        <div class="user-stat-meta">
+            <strong>{{ users|selectattr('is_active')|list|length }}</strong>
+            <small>Active</small>
+        </div>
+    </div>
+    <div class="user-stat-card">
+        <div class="user-stat-icon inactive"><i class="fa-solid fa-user-slash"></i></div>
+        <div class="user-stat-meta">
+            <strong>{{ users|rejectattr('is_active')|list|length }}</strong>
+            <small>Inactive</small>
+        </div>
+    </div>
+    <div class="user-stat-card">
+        <div class="user-stat-icon admins"><i class="fa-solid fa-user-shield"></i></div>
+        <div class="user-stat-meta">
+            <strong>{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</strong>
+            <small>Admins</small>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     MAIN PANEL
+     ============================================================ -->
 <div class="admin-panel">
     <div class="admin-panel-head">
         <h3><i class="fa-solid fa-users"></i> All Users ({{ users|length }})</h3>
+
+        <div class="table-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="userSearch" placeholder="Search name, email, ID…" autocomplete="off">
+        </div>
+
         <div class="filter-tabs">
-            <a href="{{ url_for('admin_users', role='all') }}" class="filter-tab {% if role_filter=='all' %}active{% endif %}">All</a>
-            <a href="{{ url_for('admin_users', role='admin') }}" class="filter-tab {% if role_filter=='admin' %}active{% endif %}">Admin</a>
+            <a href="{{ url_for('admin_users', role='all') }}"     class="filter-tab {% if role_filter=='all' %}active{% endif %}">All</a>
+            <a href="{{ url_for('admin_users', role='admin') }}"   class="filter-tab {% if role_filter=='admin' %}active{% endif %}">Admin</a>
             <a href="{{ url_for('admin_users', role='teacher') }}" class="filter-tab {% if role_filter=='teacher' %}active{% endif %}">Teacher</a>
-            <a href="{{ url_for('admin_users', role='parent') }}" class="filter-tab {% if role_filter=='parent' %}active{% endif %}">Parent</a>
+            <a href="{{ url_for('admin_users', role='parent') }}"  class="filter-tab {% if role_filter=='parent' %}active{% endif %}">Parent</a>
             <a href="{{ url_for('admin_users', role='student') }}" class="filter-tab {% if role_filter=='student' %}active{% endif %}">Student</a>
         </div>
     </div>
+
     <div class="admin-table-wrap">
-        <table class="admin-table">
+        <table class="admin-table" id="usersTable">
             <thead>
                 <tr>
                     <th>Unique ID</th>
                     <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
+                    <th>Contact</th>
                     <th>Role</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -29,55 +490,268 @@
             </thead>
             <tbody>
                 {% for u in users %}
-                <tr>
-                    <td><strong style="color:var(--red);">{{ u.unique_id or '—' }}</strong></td>
-                    <td><strong>{{ u.name }}</strong></td>
-                    <td class="muted">{{ u.email }}</td>
-                    <td class="muted">{{ u.phone }}</td>
+                <tr data-search="{{ (u.name ~ ' ' ~ u.email ~ ' ' ~ (u.phone or '') ~ ' ' ~ (u.unique_id or '') ~ ' ' ~ u.role)|lower }}">
                     <td>
-                        <form method="POST" action="{{ url_for('admin_change_role', user_id=u.id) }}" class="inline-form">
-                            <select name="role" class="role-select" onchange="this.form.submit()">
+                        <strong style="color:var(--red, #d71938);">{{ u.unique_id or '—' }}</strong>
+                    </td>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-cell-avatar">
+                                {{ u.name.split()[0][0]|upper }}{{ u.name.split()[-1][0]|upper if u.name.split()|length > 1 else '' }}
+                            </div>
+                            <div class="user-cell-meta">
+                                <strong>{{ u.name }}</strong>
+                                <small>{{ u.email }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size:12.5px; color:var(--muted, #65758a);">
+                            <i class="fa-solid fa-phone" style="font-size:10px; color:#94a3b8; margin-right:4px;"></i>
+                            {{ u.phone or '—' }}
+                        </div>
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin_change_role', user_id=u.id) }}" class="inline-form" style="margin:0;">
+                            <select name="role" class="role-select" onchange="this.form.submit()" title="Change role">
                                 <option value="teacher" {% if u.role=='teacher' %}selected{% endif %}>Teacher</option>
-                                <option value="admin" {% if u.role=='admin' %}selected{% endif %}>Admin</option>
-                                <option value="parent" {% if u.role=='parent' %}selected{% endif %}>Parent</option>
+                                <option value="admin"   {% if u.role=='admin'   %}selected{% endif %}>Admin</option>
+                                <option value="parent"  {% if u.role=='parent'  %}selected{% endif %}>Parent</option>
                                 <option value="student" {% if u.role=='student' %}selected{% endif %}>Student</option>
                             </select>
                         </form>
+                        <span class="user-role-pill {{ u.role }}" style="margin-top:6px; display:inline-flex;">
+                            <i class="fa-solid fa-{% if u.role=='admin' %}user-shield{% elif u.role=='teacher' %}chalkboard-user{% elif u.role=='parent' %}user-group{% else %}user-graduate{% endif %}"></i>
+                            {{ u.role|capitalize }}
+                        </span>
                     </td>
                     <td>
                         {% if u.is_active %}
-                        <span class="role-badge" style="background:#e3f5eb; color:#168254;">Active</span>
+                        <span class="user-status-pill active">
+                            <span class="user-status-dot"></span> Active
+                        </span>
                         {% else %}
-                        <span class="role-badge" style="background:#ffeaee; color:var(--red);">Inactive</span>
+                        <span class="user-status-pill inactive">
+                            <span class="user-status-dot"></span> Inactive
+                        </span>
                         {% endif %}
                     </td>
-                    <td style="display:flex; gap:6px; flex-wrap:wrap;">
-                        <form method="POST" action="{{ url_for('admin_toggle_user', user_id=u.id) }}" style="display:inline;">
-                            <button type="submit" class="btn-icon-approve" title="Toggle Active">
-                                <i class="fa-solid fa-power-off"></i>
+                    <td>
+                        <div class="action-btn-group">
+                            <!-- NEW: Edit button -->
+                            <button type="button"
+                                    class="btn-icon-edit"
+                                    title="Edit user details"
+                                    aria-label="Edit {{ u.name }}"
+                                    data-user-id="{{ u.id }}"
+                                    data-unique-id="{{ u.unique_id or '' }}"
+                                    data-name="{{ u.name }}"
+                                    data-email="{{ u.email }}"
+                                    data-phone="{{ u.phone or '' }}"
+                                    data-role="{{ u.role }}"
+                                    data-child-name="{{ u.child_name or '' }}"
+                                    data-child-class="{{ u.child_class or '' }}"
+                                    data-edit-url="{{ url_for('admin_edit_profile', user_id=u.id) }}"
+                                    onclick="openEditUser(this)">
+                                <i class="fa-solid fa-pen"></i>
                             </button>
-                        </form>
-                        <form method="POST" action="{{ url_for('admin_reset_password', user_id=u.id) }}" style="display:inline;" data-confirm="Reset password to default 'snv@450'?">
-                            <button type="submit" class="btn-icon-approve" title="Reset Password">
-                                <i class="fa-solid fa-key"></i>
-                            </button>
-                        </form>
-                        {% if u.id != session['user_id'] %}
-                        <form method="POST" action="{{ url_for('admin_delete_user', user_id=u.id) }}" style="display:inline;" data-confirm="Delete this user permanently?">
-                            <button type="submit" class="btn-icon-danger" title="Delete">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </form>
-                        {% else %}
-                        <span class="muted small-text" style="font-size:10px;">(You)</span>
-                        {% endif %}
+
+                            <form method="POST" action="{{ url_for('admin_toggle_user', user_id=u.id) }}" style="display:inline; margin:0;">
+                                <button type="submit" class="btn-icon-approve" title="Toggle active status">
+                                    <i class="fa-solid fa-power-off"></i>
+                                </button>
+                            </form>
+
+                            <form method="POST" action="{{ url_for('admin_reset_password', user_id=u.id) }}" style="display:inline; margin:0;" data-confirm="Reset password to default 'snv@450'?">
+                                <button type="submit" class="btn-icon-approve" title="Reset password">
+                                    <i class="fa-solid fa-key"></i>
+                                </button>
+                            </form>
+
+                            {% if u.id != session['user_id'] %}
+                            <form method="POST" action="{{ url_for('admin_delete_user', user_id=u.id) }}" style="display:inline; margin:0;" data-confirm="Delete this user permanently?">
+                                <button type="submit" class="btn-icon-danger" title="Delete user">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                            {% else %}
+                            <span style="font-size:10px; color:var(--muted, #65758a); font-weight:700;">(You)</span>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
-                {% else %}
-                <tr><td colspan="7" class="empty-row">No users found for this filter.</td></tr>
                 {% endfor %}
+
+                {% if not users %}
+                <tr><td colspan="6" class="empty-row">
+                    <i class="fa-solid fa-users-slash" style="font-size:22px; opacity:.5; display:block; margin-bottom:8px;"></i>
+                    No users found for this filter.
+                </td></tr>
+                {% endif %}
+
+                <!-- Shown when search yields no matches -->
+                <tr id="searchEmptyRow" style="display:none;">
+                    <td colspan="6" class="empty-row">
+                        <i class="fa-solid fa-magnifying-glass" style="font-size:22px; opacity:.5; display:block; margin-bottom:8px;"></i>
+                        No users match your search.
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
 </div>
+
+<!-- ============================================================
+     EDIT USER MODAL
+     ============================================================ -->
+<div class="user-modal" id="editUserModal" role="dialog" aria-modal="true" aria-labelledby="editUserTitle">
+    <div class="user-modal-box">
+        <div class="user-modal-head">
+            <h3 id="editUserTitle"><i class="fa-solid fa-user-pen"></i> Edit User Details</h3>
+            <button type="button" class="user-modal-close" id="editUserClose" aria-label="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form method="POST" id="editUserForm" action="">
+            <div class="user-modal-body">
+
+                <p class="user-modal-section-title">Account Information</p>
+
+                <div class="user-modal-row-2col">
+                    <label>Unique ID
+                        <input type="text" id="eu_unique" readonly>
+                    </label>
+                    <label>Role
+                        <select name="role" id="eu_role">
+                            <option value="student">Student</option>
+                            <option value="parent">Parent</option>
+                            <option value="teacher">Teacher</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </label>
+                </div>
+
+                <p class="user-modal-section-title" style="margin-top:6px;">Personal Details</p>
+
+                <label>Full Name
+                    <input type="text" name="name" id="eu_name" required minlength="2" maxlength="80" placeholder="Full name">
+                </label>
+
+                <div class="user-modal-row-2col">
+                    <label>Email Address
+                        <input type="email" name="email" id="eu_email" required placeholder="user@example.com">
+                    </label>
+                    <label>Mobile Number
+                        <input type="tel" name="phone" id="eu_phone" required placeholder="10-digit number">
+                    </label>
+                </div>
+
+                <!-- Child fields — shown only for student/parent -->
+                <div id="eu_child_group" style="display:none;">
+                    <p class="user-modal-section-title" style="margin-top:6px;">Child Information</p>
+                    <div class="user-modal-row-2col">
+                        <label>Child Name
+                            <input type="text" name="child_name" id="eu_child_name" maxlength="80" placeholder="Child's full name">
+                        </label>
+                        <label>Child Class
+                            <input type="text" name="child_class" id="eu_child_class" maxlength="20" placeholder="e.g. Class 5">
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+            <div class="user-modal-foot">
+                <button type="button" class="user-modal-btn-cancel" id="editUserCancel">Cancel</button>
+                <button type="submit" class="user-modal-btn-save">
+                    <i class="fa-solid fa-check"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+(function () {
+    'use strict';
+
+    /* ---------------- Edit Modal ---------------- */
+    const modal      = document.getElementById('editUserModal');
+    const form       = document.getElementById('editUserForm');
+    const closeBtn   = document.getElementById('editUserClose');
+    const cancelBtn  = document.getElementById('editUserCancel');
+    const roleSelect = document.getElementById('eu_role');
+    const childGroup = document.getElementById('eu_child_group');
+
+    if (!modal || !form) return;
+
+    function toggleChildFields() {
+        const role = roleSelect.value;
+        const show = (role === 'student' || role === 'parent');
+        childGroup.style.display = show ? '' : 'none';
+    }
+
+    // Expose globally for inline onclick
+    window.openEditUser = function (btn) {
+        const d = btn.dataset;
+
+        document.getElementById('eu_unique').value       = d.uniqueId || '';
+        document.getElementById('eu_name').value         = d.name || '';
+        document.getElementById('eu_email').value        = d.email || '';
+        document.getElementById('eu_phone').value        = d.phone || '';
+        document.getElementById('eu_role').value         = d.role || 'student';
+        document.getElementById('eu_child_name').value   = d.childName || '';
+        document.getElementById('eu_child_class').value  = d.childClass || '';
+
+        toggleChildFields();
+
+        // Set form action from data attribute (uses url_for)
+        form.action = d.editUrl;
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        setTimeout(() => document.getElementById('eu_name').focus(), 120);
+    };
+
+    function closeModal() {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    roleSelect.addEventListener('change', toggleChildFields);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+    });
+
+    /* ---------------- Live Search ---------------- */
+    const searchInput = document.getElementById('userSearch');
+    const searchEmpty = document.getElementById('searchEmptyRow');
+    const rows = document.querySelectorAll('#usersTable tbody tr[data-search]');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            const q = this.value.toLowerCase().trim();
+            let visible = 0;
+
+            rows.forEach(row => {
+                const match = !q || row.dataset.search.includes(q);
+                row.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+
+            if (searchEmpty) {
+                searchEmpty.style.display = (visible === 0 && rows.length > 0) ? '' : 'none';
+            }
+        });
+    }
+})();
+</script>
+
 {% endblock %}

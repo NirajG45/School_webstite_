@@ -153,10 +153,32 @@ def migrate_users_table(db):
         if col not in existing:
             db.execute(f'ALTER TABLE users ADD COLUMN {col} {coltype}')
 
+def migrate_attendance_table(db):
+    """Add subject column to attendance if it doesn't exist."""
+    existing = {row[1] for row in db.execute("PRAGMA table_info(attendance)").fetchall()}
+    if 'subject' not in existing:
+        db.execute("ALTER TABLE attendance ADD COLUMN subject TEXT DEFAULT 'General'")
+
+def migrate_faculty_table(db):
+    """Sync users table teachers to faculty table."""
+    existing = {row[1] for row in db.execute("PRAGMA table_info(faculty)").fetchall()}
+    if 'user_id' not in existing:
+        db.execute('ALTER TABLE faculty ADD COLUMN user_id INTEGER')
+        
+    # One-time sync for existing teachers
+    teachers = db.execute("SELECT id, name, subject, qualification, experience, photo_url FROM users WHERE role='teacher'").fetchall()
+    for t in teachers:
+        if not db.execute("SELECT 1 FROM faculty WHERE user_id = ? OR name = ?", (t['id'], t['name'])).fetchone():
+            db.execute('''INSERT INTO faculty (user_id, name, subject, qualification, experience, photo_url) 
+                          VALUES (?, ?, ?, ?, ?, ?)''',
+                       (t['id'], t['name'], t['subject'] or 'General', t['qualification'] or '', t['experience'] or '', t['photo_url']))
 
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(DB_PATH) as db:
+        # 👇 YE LINE ADD KAREIN (Ye error fix kar degi)
+        db.row_factory = sqlite3.Row  
+        
         # Enquiries
         db.execute('''CREATE TABLE IF NOT EXISTS enquiries (
             id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL, name TEXT NOT NULL,
@@ -179,7 +201,7 @@ def init_db():
             child_class TEXT, address TEXT, is_active INTEGER DEFAULT 1,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
 
-        # 🚀 UPGRADE: add all new columns for teacher/admin/parent/student
+        # UPGRADE: add all new columns for teacher/admin/parent/student
         migrate_users_table(db)
         
         # Leave Requests
@@ -189,11 +211,22 @@ def init_db():
             reason TEXT NOT NULL, status TEXT DEFAULT 'pending',
             admin_remarks TEXT, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # Attendance
+        # Attendance (UPDATED: added subject column)
         db.execute('''CREATE TABLE IF NOT EXISTS attendance (
             id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL,
-            date TEXT NOT NULL, status TEXT NOT NULL, remarks TEXT,
-            marked_by INTEGER, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+            date TEXT NOT NULL, status TEXT NOT NULL, subject TEXT DEFAULT 'General', 
+            remarks TEXT, marked_by INTEGER, 
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        
+        # Call migration for attendance table
+        migrate_attendance_table(db)
+        
+        # NEW: Exam Marks Table
+        db.execute('''CREATE TABLE IF NOT EXISTS exam_marks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, student_id INTEGER NOT NULL,
+            exam_type TEXT NOT NULL, subject TEXT NOT NULL, 
+            marks_obtained REAL NOT NULL, total_marks REAL NOT NULL DEFAULT 100,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
         # Fee Payments
         db.execute('''CREATE TABLE IF NOT EXISTS fee_payments (
@@ -213,7 +246,7 @@ def init_db():
             is_read INTEGER DEFAULT 0, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
         # =========================================
-        # 🚀 NEW TABLES
+        # NEW TABLES
         # =========================================
         
         # Events / News Table
@@ -226,10 +259,13 @@ def init_db():
         
         # Faculty Directory Table
         db.execute('''CREATE TABLE IF NOT EXISTS faculty (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL,
+            id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, name TEXT NOT NULL,
             subject TEXT NOT NULL, qualification TEXT, experience TEXT,
             photo_url TEXT, bio TEXT, display_order INTEGER DEFAULT 0,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        
+        # Call migration for faculty table
+        migrate_faculty_table(db)
         
         # Testimonials Table
         db.execute('''CREATE TABLE IF NOT EXISTS testimonials (
@@ -259,7 +295,7 @@ def init_db():
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
         # =========================================
-        # 🚀 SEED DATA (Only once per table)
+        # SEED DATA (Only once per table)
         # =========================================
         def _is_seeded(key):
             r = db.execute("SELECT value FROM school_settings WHERE key = ?", (f'_seed_{key}',)).fetchone()
@@ -372,7 +408,6 @@ def init_db():
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('upi_link', '')")
         
         db.commit()
-
 # =========================================
 # 3. UTILITY HELPERS
 # =========================================
@@ -425,6 +460,42 @@ def set_setting(key, value):
     db = get_db()
     db.execute('INSERT OR REPLACE INTO school_settings (key, value) VALUES (?, ?)', (key, value))
     db.commit()
+
+# 🚀 Combine both faculty and users (teachers) for display
+def get_combined_faculty():
+    """Fetches manual faculty AND registered teachers (from users) to show them together."""
+    db = get_db()
+    
+    # 1. Manually added faculty (Admin -> Faculty page)
+    manual_faculty = db.execute(
+        'SELECT id, name, subject, qualification, experience, photo_url, bio, display_order FROM faculty ORDER BY display_order, id'
+    ).fetchall()
+    
+    # 2. Registered teachers (Admin -> Create User page)
+    teachers = db.execute(
+        "SELECT id, name, subject, qualification, experience, photo_url FROM users WHERE role = 'teacher' AND is_active = 1"
+    ).fetchall()
+    
+    combined = []
+    seen_names = set() 
+    
+    # Add manual faculty first
+    for f in manual_faculty:
+        combined.append(dict(f))
+        seen_names.add(f['name'].strip().lower())
+        
+    # Add registered teachers (if not already in manual faculty)
+    for t in teachers:
+        if t['name'].strip().lower() not in seen_names:
+            t_dict = dict(t)
+            t_dict['bio'] = t_dict.get('bio') or 'Dedicated teacher at Residential Shanti Niketan.'
+            t_dict['display_order'] = 999 # Place at the end
+            combined.append(t_dict)
+            seen_names.add(t['name'].strip().lower())
+            
+    # Sort by display order, then name
+    combined.sort(key=lambda x: (x.get('display_order', 0), x['name']))
+    return combined
 
 
 # =========================================
@@ -505,27 +576,6 @@ def get_dashboard_url(role):
 # =========================================
 # 5. PUBLIC ROUTES
 # =========================================
-# @app.route('/')
-# def home():
-#     notices = get_all_notices()
-#     db = get_db()
-    
-#     upcoming_events = db.execute(
-#         "SELECT * FROM events WHERE event_date >= date('now') ORDER BY event_date ASC LIMIT 3"
-#     ).fetchall()
-#     testimonials = db.execute(
-#         'SELECT * FROM testimonials WHERE is_approved = 1 ORDER BY RANDOM() LIMIT 4'
-#     ).fetchall()
-#     achievements = db.execute(
-#         'SELECT * FROM achievements ORDER BY id DESC LIMIT 3'
-#     ).fetchall()
-    
-#     return render_template('index.html', 
-#                           notices=notices,
-#                           upcoming_events=upcoming_events,
-#                           testimonials=testimonials,
-#                           achievements=achievements)
-    
 @app.route('/')
 def home():
     notices = get_all_notices()
@@ -541,7 +591,7 @@ def home():
         'SELECT * FROM achievements ORDER BY id DESC LIMIT 3'
     ).fetchall()
     
-    # 🚀 NEW: Fetch Gallery Images dynamically
+    # NEW: Fetch Gallery Images dynamically
     gallery_images = db.execute('SELECT * FROM gallery ORDER BY display_order, id').fetchall()
     
     return render_template('index.html', 
@@ -568,8 +618,8 @@ def gallery_page():
 
 @app.route('/faculty')
 def faculty_page():
-    db = get_db()
-    faculty_list = db.execute('SELECT * FROM faculty ORDER BY display_order, id').fetchall()
+    # 🚀 CHANGED: Ab ye dono tables ka data combine karke layega
+    faculty_list = get_combined_faculty()
     return render_template('faculty.html', faculty=faculty_list)
 
 # PUBLIC EVENTS PAGE (For all users)
@@ -660,6 +710,24 @@ def admin_edit_profile(user_id):
 
     try:
         db.execute(f"UPDATE users SET {', '.join(set_parts)} WHERE id = ?", tuple(params))
+        
+        # 🚀 Sync Edit to Faculty Table
+        if role == 'teacher':
+            fac = db.execute('SELECT id FROM faculty WHERE user_id = ?', (user_id,)).fetchone()
+            if fac:
+                db.execute('''UPDATE faculty SET name = ?, subject = COALESCE(?, subject), 
+                              qualification = COALESCE(?, qualification), experience = COALESCE(?, experience), 
+                              photo_url = COALESCE(?, photo_url) WHERE user_id = ?''',
+                           (name, updates.get('subject'), updates.get('qualification'), 
+                            updates.get('experience'), updates.get('photo_url'), user_id))
+            else:
+                db.execute('''INSERT INTO faculty (user_id, name, subject, qualification, experience, photo_url) 
+                              VALUES (?, ?, ?, ?, ?, ?)''',
+                           (user_id, name, updates.get('subject') or 'General', 
+                            updates.get('qualification') or '', updates.get('experience') or '', updates.get('photo_url')))
+        else:
+            db.execute('DELETE FROM faculty WHERE user_id = ?', (user_id,))
+
         db.commit()
 
         # Agar admin apna hi profile edit kar raha hai, to session update karo
@@ -759,10 +827,14 @@ def user_dashboard():
     db = get_db()
     role = user['role']
     
-    attendance = db.execute(
-        'SELECT * FROM attendance WHERE user_id = ? ORDER BY date DESC LIMIT 30',
+    # Fetch all attendance for stats
+    all_attendance = db.execute(
+        'SELECT * FROM attendance WHERE user_id = ? ORDER BY date DESC',
         (user['id'],)
     ).fetchall()
+    
+    # Keep only 30 for the recent logs display (as per template)
+    attendance = all_attendance[:30]
     
     messages = db.execute(
         'SELECT * FROM messages WHERE to_user_id = ? OR to_role = ? ORDER BY id DESC LIMIT 20',
@@ -783,8 +855,25 @@ def user_dashboard():
             'SELECT * FROM fee_payments WHERE student_id = ? ORDER BY id DESC',
             (user['id'],)
         ).fetchall()
+        
+        # 🚀 NEW: Calculate Subject-wise Attendance
+        subject_stats = {}
+        for a in all_attendance:
+            sub = a['subject'] if 'subject' in a.keys() and a['subject'] else 'General'
+            if sub not in subject_stats:
+                subject_stats[sub] = {'present': 0, 'absent': 0, 'total': 0}
+            subject_stats[sub]['total'] += 1
+            if a['status'].lower() == 'present':
+                subject_stats[sub]['present'] += 1
+            else:
+                subject_stats[sub]['absent'] += 1
+
+        # 🚀 NEW: Fetch Exam Marks
+        exam_marks = db.execute('SELECT * FROM exam_marks WHERE student_id = ? ORDER BY exam_type, subject', (user['id'],)).fetchall()
+        
         return render_template('student_dashboard.html',
                               user=user, notices=notices, attendance=attendance,
+                              subject_stats=subject_stats, exam_marks=exam_marks,
                               fees=fees, messages=messages,
                               fee_qr=get_setting('fee_qr_url'),
                               upi_link=get_setting('upi_link'))
@@ -1033,7 +1122,7 @@ def admin_create_user():
         unique_id = generate_unique_id(role)
         hashed    = generate_password_hash(DEFAULT_PASSWORD)
 
-        # 🚀 NEW: Auto-generate admission_no if blank for student
+        # NEW: Auto-generate admission_no if blank for student
         if role == 'student' and not fields.get('admission_no'):
             fields['admission_no'] = unique_id
 
@@ -1046,8 +1135,18 @@ def admin_create_user():
         cols         = ', '.join(base.keys())
         placeholders = ', '.join(['?'] * len(base))
         try:
-            db.execute(f'INSERT INTO users ({cols}) VALUES ({placeholders})',
+            cursor = db.execute(f'INSERT INTO users ({cols}) VALUES ({placeholders})',
                        tuple(base.values()))
+            new_user_id = cursor.lastrowid
+            
+            # 🚀 Sync Teacher to Faculty Table
+            if role == 'teacher':
+                db.execute('''INSERT INTO faculty (user_id, name, subject, qualification, experience, photo_url, bio) 
+                              VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                           (new_user_id, name, fields.get('subject') or 'General', 
+                            fields.get('qualification') or '', fields.get('experience') or '', 
+                            fields.get('photo_url'), 'Teacher at Residential Shanti Niketan.'))
+                            
             db.commit()
         except sqlite3.IntegrityError as e:
             flash(f'Database error: {e}', 'error')
@@ -1112,6 +1211,7 @@ def admin_delete_user(user_id):
         return redirect(url_for('admin_users'))
     db = get_db()
     db.execute('DELETE FROM users WHERE id = ?', (user_id,))
+    db.execute('DELETE FROM faculty WHERE user_id = ?', (user_id,)) # 🚀 Faculty se bhi delete karein
     db.commit()
     flash('User deleted.', 'success')
     return redirect(url_for('admin_users'))
@@ -1129,7 +1229,17 @@ def admin_change_role(user_id):
         return redirect(url_for('admin_users'))
     
     db = get_db()
+    user = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
     db.execute('UPDATE users SET role = ? WHERE id = ?', (new_role, user_id))
+    
+    # 🚀 Sync Role Change to Faculty
+    if new_role == 'teacher':
+        if not db.execute('SELECT 1 FROM faculty WHERE user_id = ?', (user_id,)).fetchone():
+            db.execute('INSERT INTO faculty (user_id, name, subject) VALUES (?, ?, ?)', 
+                       (user_id, user['name'], user['subject'] or 'General'))
+    else:
+        db.execute('DELETE FROM faculty WHERE user_id = ?', (user_id,))
+        
     db.commit()
     flash('User role updated successfully.', 'success')
     return redirect(url_for('admin_users'))
@@ -1212,20 +1322,21 @@ def admin_attendance():
 @admin_required
 def admin_mark_attendance():
     date = request.form.get('date', datetime.now().strftime('%Y-%m-%d'))
+    subject = request.form.get('subject', 'General') # 🚀 NEW: Subject field
     db = get_db()
     
     for key, val in request.form.items():
         if key.startswith('status_'):
             uid = int(key.replace('status_', ''))
-            existing = db.execute('SELECT id FROM attendance WHERE user_id = ? AND date = ?', (uid, date)).fetchone()
+            existing = db.execute('SELECT id FROM attendance WHERE user_id = ? AND date = ? AND subject = ?', (uid, date, subject)).fetchone()
             if existing:
                 db.execute('UPDATE attendance SET status = ?, marked_by = ? WHERE id = ?',
                            (val, session['user_id'], existing['id']))
             else:
-                db.execute('INSERT INTO attendance (user_id, date, status, marked_by) VALUES (?,?,?,?)',
-                           (uid, date, val, session['user_id']))
+                db.execute('INSERT INTO attendance (user_id, date, status, subject, marked_by) VALUES (?,?,?,?,?)',
+                           (uid, date, val, subject, session['user_id']))
     db.commit()
-    flash(f'Attendance marked for {date}.', 'success')
+    flash(f'Attendance marked for {date} ({subject}).', 'success')
     return redirect(url_for('admin_attendance', date=date))
 
 # === LEAVE REQUESTS ===
@@ -1368,8 +1479,8 @@ def admin_delete_enquiry(eid):
 @app.route('/admin/faculty')
 @admin_required
 def admin_faculty():
-    db = get_db()
-    faculty = db.execute('SELECT * FROM faculty ORDER BY display_order, id').fetchall()
+    # 🚀 CHANGED: Ab admin page pe bhi dono tables ka data show hoga
+    faculty = get_combined_faculty()
     return render_template('admin_faculty.html', faculty=faculty, active_page='faculty')
 
 @app.route('/admin/faculty/add', methods=['POST'])
@@ -1423,7 +1534,7 @@ def admin_edit_faculty(fid):
         flash('Faculty not found.', 'error')
         return redirect(url_for('admin_faculty'))
         
-    faculty = db.execute('SELECT * FROM faculty ORDER BY display_order, id').fetchall()
+    faculty = get_combined_faculty()
     return render_template('admin_faculty.html', faculty=faculty, edit_faculty=edit_faculty, active_page='faculty')
 
 @app.route('/admin/faculty/delete/<int:fid>', methods=['POST'])
@@ -1465,7 +1576,7 @@ def admin_add_event():
     flash(f'Event "{title}" published!', 'success')
     return redirect(url_for('admin_events'))
 
-# 🚀 NEW: EDIT EVENT ROUTE
+# NEW: EDIT EVENT ROUTE
 @app.route('/admin/events/edit/<int:eid>', methods=['GET', 'POST'])
 @admin_required
 def admin_edit_event(eid):

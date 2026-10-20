@@ -505,6 +505,27 @@ def get_dashboard_url(role):
 # =========================================
 # 5. PUBLIC ROUTES
 # =========================================
+# @app.route('/')
+# def home():
+#     notices = get_all_notices()
+#     db = get_db()
+    
+#     upcoming_events = db.execute(
+#         "SELECT * FROM events WHERE event_date >= date('now') ORDER BY event_date ASC LIMIT 3"
+#     ).fetchall()
+#     testimonials = db.execute(
+#         'SELECT * FROM testimonials WHERE is_approved = 1 ORDER BY RANDOM() LIMIT 4'
+#     ).fetchall()
+#     achievements = db.execute(
+#         'SELECT * FROM achievements ORDER BY id DESC LIMIT 3'
+#     ).fetchall()
+    
+#     return render_template('index.html', 
+#                           notices=notices,
+#                           upcoming_events=upcoming_events,
+#                           testimonials=testimonials,
+#                           achievements=achievements)
+    
 @app.route('/')
 def home():
     notices = get_all_notices()
@@ -520,11 +541,15 @@ def home():
         'SELECT * FROM achievements ORDER BY id DESC LIMIT 3'
     ).fetchall()
     
+    # 🚀 NEW: Fetch Gallery Images dynamically
+    gallery_images = db.execute('SELECT * FROM gallery ORDER BY display_order, id').fetchall()
+    
     return render_template('index.html', 
                           notices=notices,
                           upcoming_events=upcoming_events,
                           testimonials=testimonials,
-                          achievements=achievements)
+                          achievements=achievements,
+                          gallery_images=gallery_images) # <-- Passed to template
 
 @app.route('/notice')
 def notices_page():
@@ -866,86 +891,159 @@ def admin_users():
 @admin_required
 def admin_create_user():
     if request.method == 'POST':
-        role = request.form.get('role', '')
-        name = request.form.get('name', '').strip()
-        email = request.form.get('email', '').strip()
-        phone = request.form.get('phone', '').strip()
-
-        # ---------- Core validation ----------
-        if role not in ('teacher', 'admin', 'parent', 'student'):
-            flash('Please select a valid role.', 'error')
-            return redirect(url_for('admin_create_user'))
-        if not name or not email or not phone:
-            flash('Name, Email and Mobile are required.', 'error')
-            return redirect(url_for('admin_create_user'))
-        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-            flash('Invalid email format.', 'error')
-            return redirect(url_for('admin_create_user'))
-        if not re.match(r'^[0-9]{10}$', phone):
-            flash('Mobile must be exactly 10 digits.', 'error')
-            return redirect(url_for('admin_create_user'))
-
+        form = request.form.to_dict()
+        errors = {}
         db = get_db()
-        if db.execute('SELECT 1 FROM users WHERE email = ?', (email,)).fetchone():
-            flash('Email already exists. Please use a different email.', 'error')
-            return redirect(url_for('admin_create_user'))
 
-        # ---------- Role-specific required checks ----------
+        role  = (form.get('role')  or '').strip()
+        name  = (form.get('name')  or '').strip()
+        email = (form.get('email') or '').strip()
+        phone = (form.get('phone') or '').strip()
+
+        # ---------- ROLE ----------
+        if not role:
+            errors['role'] = 'Please select a role'
+        elif role not in ('teacher', 'admin', 'parent', 'student'):
+            errors['role'] = 'Invalid role selected'
+
+        # ---------- NAME ----------
+        if not name:
+            errors['name'] = 'Full name is required'
+        elif len(name) < 2:
+            errors['name'] = 'Name must be at least 2 characters'
+        elif len(name) > 100:
+            errors['name'] = 'Name must be at most 100 characters'
+
+        # ---------- EMAIL ----------
+        if not email:
+            errors['email'] = 'Email is required'
+        elif not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+            errors['email'] = 'Invalid email format (e.g. user@example.com)'
+        elif db.execute('SELECT 1 FROM users WHERE LOWER(email) = LOWER(?)',
+                        (email,)).fetchone():
+            errors['email'] = 'This email is already registered'
+
+        # ---------- PHONE ----------
+        if not phone:
+            errors['phone'] = 'Mobile number is required'
+        elif not re.match(r'^[0-9]{10}$', phone):
+            errors['phone'] = 'Mobile number must be exactly 10 digits'
+        elif db.execute('SELECT 1 FROM users WHERE phone = ?',
+                        (phone,)).fetchone():
+            errors['phone'] = 'This mobile number is already registered'
+
+        # ---------- COMMON FORMAT CHECKS ----------
+        pincode = (form.get('pincode') or '').strip()
+        if pincode and not re.match(r'^[0-9]{6}$', pincode):
+            errors['pincode'] = 'Pincode must be exactly 6 digits'
+
+        aadhar = (form.get('aadhar') or '').strip()
+        if aadhar and not re.match(r'^[0-9]{12}$', aadhar):
+            errors['aadhar'] = 'Aadhaar must be exactly 12 digits'
+
+        pan = (form.get('pan') or '').strip()
+        if pan and not re.match(r'^[A-Za-z]{5}[0-9]{4}[A-Za-z]$', pan):
+            errors['pan'] = 'Invalid PAN format (e.g. ABCDE1234F)'
+
+        for mfield in ('alternate_mobile', 'whatsapp', 'emergency_contact',
+                       'father_mobile', 'mother_mobile', 'guardian_mobile',
+                       'spouse_mobile'):
+            v = (form.get(mfield) or '').strip()
+            if v and not re.match(r'^[0-9]{10}$', v):
+                errors[mfield] = 'Must be exactly 10 digits'
+
+        for efield in ('father_email', 'mother_email'):
+            v = (form.get(efield) or '').strip()
+            if v and not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", v):
+                errors[efield] = 'Invalid email format'
+
+        acct = (form.get('account_number') or '').strip()
+        if acct and not re.match(r'^[0-9]{6,20}$', acct):
+            errors['account_number'] = 'Account number must be 6-20 digits'
+
+        ifsc = (form.get('ifsc') or '').strip()
+        if ifsc and not re.match(r'^[A-Za-z]{4}0[A-Za-z0-9]{6}$', ifsc):
+            errors['ifsc'] = 'Invalid IFSC code (e.g. SBIN0001234)'
+
+        # ---------- ROLE-SPECIFIC REQUIRED ----------
         if role == 'teacher':
-            if not request.form.get('qualification') or not request.form.get('subject'):
-                flash('Qualification and Subject are required for teacher.', 'error')
-                return redirect(url_for('admin_create_user'))
-        elif role == 'admin':
-            if not request.form.get('designation') or not request.form.get('department'):
-                flash('Designation and Department are required for admin.', 'error')
-                return redirect(url_for('admin_create_user'))
-        elif role == 'parent':
-            if (not request.form.get('relation')
-                    or not request.form.get('child_name')
-                    or not request.form.get('child_class')):
-                flash('Relation, Child name and Class are required for parent.', 'error')
-                return redirect(url_for('admin_create_user'))
-        elif role == 'student':
-            required = ['class_name', 'section', 'father_name', 'mother_name',
-                        'father_mobile', 'aadhar']
-            if any(not request.form.get(f) for f in required):
-                flash('Class, Section, Father & Mother names, Father mobile and Aadhaar are required for student.', 'error')
-                return redirect(url_for('admin_create_user'))
-            if not re.match(r'^[0-9]{12}$', request.form.get('aadhar', '')):
-                flash('Aadhaar must be exactly 12 digits.', 'error')
-                return redirect(url_for('admin_create_user'))
+            if not (form.get('qualification') or '').strip():
+                errors['qualification'] = 'Qualification is required'
+            if not (form.get('subject') or '').strip():
+                errors['subject'] = 'Primary Subject is required'
 
-        # ---------- Collect all fields ----------
+        elif role == 'admin':
+            if not (form.get('designation') or '').strip():
+                errors['designation'] = 'Designation is required'
+            if not (form.get('department') or '').strip():
+                errors['department'] = 'Department is required'
+
+        elif role == 'parent':
+            if not (form.get('relation') or '').strip():
+                errors['relation'] = 'Relation with child is required'
+            if not (form.get('child_name') or '').strip():
+                errors['child_name'] = "Child's name is required"
+            if not (form.get('child_class') or '').strip():
+                errors['child_class'] = "Child's class is required"
+
+        elif role == 'student':
+            student_required = {
+                # 'admission_no':  'Admission number is required',  <-- REMOVED
+                'class_name':    'Class is required',
+                'section':       'Section is required',
+                'father_name':   "Father's name is required",
+                'mother_name':   "Mother's name is required",
+                'father_mobile': "Father's mobile is required",
+                'aadhar':        'Aadhaar is required for student',
+            }
+            for f, msg in student_required.items():
+                if not (form.get(f) or '').strip():
+                    errors[f] = msg
+
+        # ---------- PHOTO (Optional) ----------
+        photo_file = request.files.get('photo')
+        has_photo = bool(photo_file and photo_file.filename)
+        
+        # if role == 'student' and not has_photo:
+        #     errors['photo'] = 'Profile photo is required for student'  <-- REMOVED
+
+        if has_photo and not allowed_file(photo_file.filename):
+            errors['photo'] = 'Only JPG / PNG / WEBP / GIF allowed'
+
+        # ---------- STOP & RE-RENDER IF ANY ERROR ----------
+        if errors:
+            flash(f'Please fix {len(errors)} error{"s" if len(errors)>1 else ""} below.', 'error')
+            return render_template(
+                'admin_create_user.html',
+                form=form, errors=errors,
+                active_page='create_user'
+            )
+
+        # ---------- SUCCESS: INSERT ----------
         fields = _collect_form_fields(role)
 
-        # Student: mirror class_name -> child_class (backward compat for dashboards)
         if role == 'student' and fields.get('class_name'):
-            fields['child_class'] = fields['class_name']
+            fields['child_class']   = fields['class_name']
             fields['child_section'] = fields.get('section')
 
-        # Photo (required by form JS for students, but validate server-side too)
-        photo_url = save_user_photo(request.files.get('photo'))
+        photo_url = save_user_photo(photo_file)
         if photo_url:
             fields['photo_url'] = photo_url
-        elif role == 'student':
-            flash('Student photo is required (JPG/PNG, max 2MB).', 'error')
-            return redirect(url_for('admin_create_user'))
 
-        # ---------- Insert ----------
         unique_id = generate_unique_id(role)
-        hashed = generate_password_hash(DEFAULT_PASSWORD)
+        hashed    = generate_password_hash(DEFAULT_PASSWORD)
+
+        # 🚀 NEW: Auto-generate admission_no if blank for student
+        if role == 'student' and not fields.get('admission_no'):
+            fields['admission_no'] = unique_id
 
         base = {
-            'unique_id': unique_id,
-            'role': role,
-            'name': name,
-            'email': email,
-            'phone': phone,
-            'password_hash': hashed,
+            'unique_id': unique_id, 'role': role, 'name': name,
+            'email': email, 'phone': phone, 'password_hash': hashed,
         }
         base.update(fields)
 
-        cols = ', '.join(base.keys())
+        cols         = ', '.join(base.keys())
         placeholders = ', '.join(['?'] * len(base))
         try:
             db.execute(f'INSERT INTO users ({cols}) VALUES ({placeholders})',
@@ -953,15 +1051,58 @@ def admin_create_user():
             db.commit()
         except sqlite3.IntegrityError as e:
             flash(f'Database error: {e}', 'error')
-            return redirect(url_for('admin_create_user'))
+            return render_template('admin_create_user.html',
+                                   form=form, errors={'_': str(e)},
+                                   active_page='create_user')
         except Exception as e:
             flash(f'Error creating user: {e}', 'error')
-            return redirect(url_for('admin_create_user'))
+            return render_template('admin_create_user.html',
+                                   form=form, errors={'_': str(e)},
+                                   active_page='create_user')
 
-        flash(f'{role.capitalize()} created! ID: {unique_id} | Default Password: {DEFAULT_PASSWORD}', 'success')
+        flash(f'{role.capitalize()} created! ID: {unique_id} | '
+              f'Default Password: {DEFAULT_PASSWORD}', 'success')
         return redirect(url_for('admin_users'))
 
-    return render_template('admin_create_user.html', active_page='create_user')
+    # ---------- GET ----------
+    return render_template('admin_create_user.html',
+                           form={}, errors={},
+                           active_page='create_user')
+
+
+# =========================================
+# 10.1. API — LIVE EMAIL / PHONE AVAILABILITY
+# =========================================
+@app.route('/api/check-availability')
+@admin_required
+def api_check_availability():
+    field = request.args.get('field', '')
+    value = request.args.get('value', '').strip()
+    db = get_db()
+
+    if field == 'email':
+        if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", value):
+            return jsonify({'available': False, 'error': 'Invalid email format'})
+        exists = db.execute(
+            'SELECT 1 FROM users WHERE LOWER(email) = LOWER(?)', (value,)
+        ).fetchone()
+        return jsonify({
+            'available': not exists,
+            'error': 'This email is already registered' if exists else ''
+        })
+
+    if field == 'phone':
+        if not re.match(r'^[0-9]{10}$', value):
+            return jsonify({'available': False, 'error': 'Must be exactly 10 digits'})
+        exists = db.execute(
+            'SELECT 1 FROM users WHERE phone = ?', (value,)
+        ).fetchone()
+        return jsonify({
+            'available': not exists,
+            'error': 'This mobile number is already registered' if exists else ''
+        })
+
+    return jsonify({'available': True, 'error': ''})
 
 @app.route('/admin/users/delete/<int:user_id>', methods=['POST'])
 @admin_required
@@ -1607,3 +1748,5 @@ if __name__ == '__main__':
         host=os.environ.get('HOST', '127.0.0.1'),
         port=int(os.environ.get('PORT', 5000))
     )
+    
+    # gayatrinirajng@gmail.com

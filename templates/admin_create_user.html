@@ -2,97 +2,105 @@
 {% block title %}Create User{% endblock %}
 {% block page_title %}Create New User{% endblock %}
 
+{# ---------- small macros for error display ---------- #}
+{% macro err(name) -%}
+<small class="field-error{% if errors.get(name) %} show{% endif %}"
+       data-field="{{ name }}">{{ errors.get(name, '') }}</small>
+{%- endmacro %}
+
+{% macro cls(name) -%}
+{% if errors.get(name) %}has-error{% endif %}
+{%- endmacro %}
+
 {% block content %}
 <style>
     .admin-form .section-head {
-        margin: 22px 0 12px;
-        padding-bottom: 8px;
+        margin: 22px 0 12px; padding-bottom: 8px;
         border-bottom: 1px solid #e2e8f0;
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: .3px;
-        text-transform: uppercase;
-        color: #4a5568;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        font-size: 13px; font-weight: 700; letter-spacing: .3px;
+        text-transform: uppercase; color: #4a5568;
+        display: flex; align-items: center; gap: 8px;
     }
     .admin-form .section-head i { color: #4f46e5; }
     .req { color: #e53e3e; font-weight: 700; }
-    .opt-tag {
-        font-size: 10px;
-        color: #a0aec0;
-        font-weight: 400;
-        text-transform: none;
-        margin-left: 4px;
-    }
+    .opt-tag { font-size: 10px; color: #a0aec0; font-weight: 400;
+               text-transform: none; margin-left: 4px; }
     .field-help { display: block; font-size: 11px; color: #718096; margin-top: 3px; }
+    .field-error {
+        display: none; font-size: 11.5px; font-weight: 600;
+        color: #e53e3e; margin-top: 4px;
+    }
+    .field-error.show { display: block; }
+
+    .admin-form input.has-error,
+    .admin-form select.has-error,
+    .admin-form textarea.has-error {
+        border-color: #e53e3e !important;
+        background: #fff5f5 !important;
+        box-shadow: 0 0 0 3px rgba(229, 62, 62, .10) !important;
+    }
+    .admin-form input.has-success {
+        border-color: #38a169 !important;
+        background: #f0fff4 !important;
+    }
+
+    .form-error-banner {
+        display: flex; gap: 12px; align-items: flex-start;
+        padding: 14px 16px; border-radius: 8px;
+        background: #fff5f5; border-left: 4px solid #e53e3e;
+        color: #742a2a; margin-bottom: 18px;
+    }
+    .form-error-banner i { color: #e53e3e; font-size: 18px; margin-top: 2px; }
+    .form-error-banner ul { margin: 6px 0 0 18px; padding: 0; font-size: 12.5px; }
+    .form-error-banner ul li { margin: 2px 0; }
+
     .role-fields {
-        margin-top: 14px;
-        padding-top: 14px;
+        margin-top: 14px; padding-top: 14px;
         border-top: 2px dashed #e2e8f0;
     }
     .form-row-3col {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 12px;
+        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
     }
     @media (max-width: 720px) {
         .form-row-2col, .form-row-3col { grid-template-columns: 1fr; }
     }
     .photo-box {
-        display: flex;
-        gap: 16px;
-        align-items: center;
-        flex-wrap: wrap;
-        padding: 12px;
-        background: #f8fafc;
-        border-radius: 8px;
+        display: flex; gap: 16px; align-items: center;
+        flex-wrap: wrap; padding: 12px;
+        background: #f8fafc; border-radius: 8px;
     }
     .photo-preview, .photo-placeholder {
-        width: 96px;
-        height: 96px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px dashed #cbd5e0;
-        flex-shrink: 0;
+        width: 96px; height: 96px; border-radius: 50%;
+        object-fit: cover; border: 2px dashed #cbd5e0; flex-shrink: 0;
     }
     .photo-preview { display: none; background: #edf2f7; }
     .photo-placeholder {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #a0aec0;
-        font-size: 32px;
-        background: #edf2f7;
+        display: flex; align-items: center; justify-content: center;
+        color: #a0aec0; font-size: 32px; background: #edf2f7;
     }
     .role-hint {
-        display: none;
-        margin: 10px 0 0;
-        padding: 10px 14px;
-        border-radius: 6px;
-        background: #ebf8ff;
-        color: #2b6cb0;
-        font-size: 13px;
-        border-left: 4px solid #4299e1;
+        display: none; margin: 10px 0 0; padding: 10px 14px;
+        border-radius: 6px; background: #ebf8ff; color: #2b6cb0;
+        font-size: 13px; border-left: 4px solid #4299e1;
     }
     .form-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 22px;
-        padding-top: 16px;
-        border-top: 1px solid #e2e8f0;
+        display: flex; gap: 10px; margin-top: 22px;
+        padding-top: 16px; border-top: 1px solid #e2e8f0;
     }
     .btn-secondary {
-        padding: 10px 18px;
-        border-radius: 6px;
-        border: 1px solid #cbd5e0;
-        background: #fff;
-        color: #4a5568;
-        cursor: pointer;
-        font-weight: 600;
+        padding: 10px 18px; border-radius: 6px;
+        border: 1px solid #cbd5e0; background: #fff;
+        color: #4a5568; cursor: pointer; font-weight: 600;
     }
     .btn-secondary:hover { background: #f7fafc; }
+
+    .availability-msg {
+        display: none; font-size: 11.5px; font-weight: 600;
+        margin-top: 4px;
+    }
+    .availability-msg.checking { display: block; color: #718096; }
+    .availability-msg.ok { display: block; color: #38a169; }
+    .availability-msg.bad { display: block; color: #e53e3e; }
 </style>
 
 <div class="admin-panel" style="max-width: 1000px;">
@@ -100,23 +108,43 @@
         <h3><i class="fa-solid fa-user-plus"></i> Create New User</h3>
     </div>
 
+    {% if errors %}
+    <div class="form-error-banner">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <div>
+            <strong>Please fix {{ errors|length }} error{{ 's' if errors|length > 1 else '' }} below:</strong>
+            <ul>
+                {% for field, msg in errors.items() %}
+                    {% if field != '_' %}<li>{{ msg }}</li>{% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
     <form method="POST" action="{{ url_for('admin_create_user') }}"
-          class="admin-form" id="createUserForm" enctype="multipart/form-data">
+          class="admin-form" id="createUserForm"
+          enctype="multipart/form-data" novalidate>
 
         <!-- ================= ROLE + FULL NAME ================= -->
         <div class="form-row-2col">
             <label>Role <span class="req">*</span>
-                <select name="role" id="roleSelect" required onchange="toggleRoleFields()">
+                <select name="role" id="roleSelect" class="{{ cls('role') }}"
+                        onchange="toggleRoleFields()">
                     <option value="">-- Select Role --</option>
-                    <option value="teacher">Teacher</option>
-                    <option value="admin">Admin</option>
-                    <option value="parent">Parent</option>
-                    <option value="student">Student</option>
+                    {% for r in ['teacher','admin','parent','student'] %}
+                    <option value="{{ r }}" {% if form.get('role') == r %}selected{% endif %}>
+                        {{ r|capitalize }}
+                    </option>
+                    {% endfor %}
                 </select>
+                {{ err('role') }}
             </label>
             <label>Full Name <span class="req">*</span>
-                <input type="text" name="name" required maxlength="100"
-                       placeholder="Enter full name">
+                <input type="text" name="name" maxlength="100"
+                       value="{{ form.get('name', '') }}"
+                       class="{{ cls('name') }}" placeholder="Enter full name">
+                {{ err('name') }}
             </label>
         </div>
 
@@ -127,14 +155,14 @@
 
         <div class="form-row-2col">
             <label>Date of Birth
-                <input type="date" name="dob">
+                <input type="date" name="dob" value="{{ form.get('dob', '') }}">
             </label>
             <label>Gender
                 <select name="gender">
                     <option value="">Select</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                    <option>Other</option>
+                    {% for g in ['Male','Female','Other'] %}
+                    <option {% if form.get('gender') == g %}selected{% endif %}>{{ g }}</option>
+                    {% endfor %}
                 </select>
             </label>
         </div>
@@ -143,19 +171,17 @@
             <label>Blood Group
                 <select name="blood_group">
                     <option value="">Select</option>
-                    <option>A+</option><option>A-</option>
-                    <option>B+</option><option>B-</option>
-                    <option>O+</option><option>O-</option>
-                    <option>AB+</option><option>AB-</option>
+                    {% for bg in ['A+','A-','B+','B-','O+','O-','AB+','AB-'] %}
+                    <option {% if form.get('blood_group') == bg %}selected{% endif %}>{{ bg }}</option>
+                    {% endfor %}
                 </select>
             </label>
             <label>Marital Status
                 <select name="marital_status">
                     <option value="">Select</option>
-                    <option>Single</option>
-                    <option>Married</option>
-                    <option>Divorced</option>
-                    <option>Widowed</option>
+                    {% for m in ['Single','Married','Divorced','Widowed'] %}
+                    <option {% if form.get('marital_status') == m %}selected{% endif %}>{{ m }}</option>
+                    {% endfor %}
                 </select>
             </label>
         </div>
@@ -163,66 +189,93 @@
         <div class="form-row-2col">
             <label>Aadhaar Number <span class="req" id="aadharStar" style="display:none;">*</span>
                 <input type="text" name="aadhar" id="aadharInput" maxlength="12"
-                       pattern="[0-9]{12}" inputmode="numeric"
+                       inputmode="numeric"
+                       value="{{ form.get('aadhar', '') }}"
+                       class="{{ cls('aadhar') }}"
                        placeholder="12-digit Aadhaar">
                 <small class="field-help">Only digits, 12 characters</small>
+                {{ err('aadhar') }}
             </label>
             <label>PAN Number <span class="opt-tag">optional</span>
-                <input type="text" name="pan" maxlength="10" pattern="[A-Za-z]{5}[0-9]{4}[A-Za-z]"
+                <input type="text" name="pan" maxlength="10"
                        style="text-transform: uppercase;"
+                       value="{{ form.get('pan', '') }}"
+                       class="{{ cls('pan') }}"
                        placeholder="ABCDE1234F">
+                {{ err('pan') }}
             </label>
         </div>
 
         <div class="form-row-2col">
             <label>Nationality
-                <input type="text" name="nationality" value="Indian" maxlength="50">
+                <input type="text" name="nationality"
+                       value="{{ form.get('nationality', 'Indian') }}" maxlength="50">
             </label>
             <label>Mother Tongue
-                <input type="text" name="mother_tongue" maxlength="50" placeholder="e.g. Hindi">
+                <input type="text" name="mother_tongue" maxlength="50"
+                       value="{{ form.get('mother_tongue', '') }}"
+                       placeholder="e.g. Hindi">
             </label>
         </div>
 
-        <!-- ================= CONTACT DETAILS ================= -->
+        <!-- ================= CONTACT ================= -->
         <div class="section-head"><i class="fa-solid fa-address-book"></i> Contact Details</div>
 
         <div class="form-row-2col">
             <label>Email <span class="req">*</span>
-                <input type="email" name="email" required maxlength="100"
-                       placeholder="user@example.com">
+                <input type="email" name="email" id="emailInput" maxlength="100"
+                       value="{{ form.get('email', '') }}"
+                       class="{{ cls('email') }}" placeholder="user@example.com">
+                <small class="field-help availability-msg" id="emailAvail"></small>
+                {{ err('email') }}
             </label>
             <label>Mobile Number <span class="req">*</span>
-                <input type="tel" name="phone" maxlength="10" pattern="[0-9]{10}"
-                       inputmode="numeric" required placeholder="10-digit number">
+                <input type="tel" name="phone" id="phoneInput" maxlength="10"
+                       inputmode="numeric"
+                       value="{{ form.get('phone', '') }}"
+                       class="{{ cls('phone') }}" placeholder="10-digit number">
+                <small class="field-help availability-msg" id="phoneAvail"></small>
+                {{ err('phone') }}
             </label>
         </div>
 
         <div class="form-row-2col">
             <label>Alternate Mobile <span class="opt-tag">optional</span>
                 <input type="tel" name="alternate_mobile" maxlength="10"
-                       pattern="[0-9]{10}" inputmode="numeric">
+                       inputmode="numeric"
+                       value="{{ form.get('alternate_mobile', '') }}"
+                       class="{{ cls('alternate_mobile') }}">
+                {{ err('alternate_mobile') }}
             </label>
             <label>WhatsApp Number <span class="opt-tag">optional</span>
                 <input type="tel" name="whatsapp" maxlength="10"
-                       pattern="[0-9]{10}" inputmode="numeric">
+                       inputmode="numeric"
+                       value="{{ form.get('whatsapp', '') }}"
+                       class="{{ cls('whatsapp') }}">
+                {{ err('whatsapp') }}
             </label>
         </div>
 
         <label>Full Address
             <textarea name="address" rows="2" maxlength="300"
-                      placeholder="House no, street, area"></textarea>
+                      placeholder="House no, street, area">{{ form.get('address', '') }}</textarea>
         </label>
 
         <div class="form-row-3col">
             <label>City
-                <input type="text" name="city" maxlength="60" placeholder="City">
+                <input type="text" name="city" maxlength="60"
+                       value="{{ form.get('city', '') }}">
             </label>
             <label>State
-                <input type="text" name="state" maxlength="60" placeholder="State">
+                <input type="text" name="state" maxlength="60"
+                       value="{{ form.get('state', '') }}">
             </label>
             <label>Pincode
-                <input type="text" name="pincode" maxlength="6" pattern="[0-9]{6}"
-                       inputmode="numeric" placeholder="6-digit">
+                <input type="text" name="pincode" maxlength="6"
+                       inputmode="numeric"
+                       value="{{ form.get('pincode', '') }}"
+                       class="{{ cls('pincode') }}" placeholder="6-digit">
+                {{ err('pincode') }}
             </label>
         </div>
 
@@ -231,12 +284,13 @@
         <div class="photo-box">
             <img id="photoPreview" class="photo-preview" alt="preview">
             <div id="photoPlaceholder" class="photo-placeholder"><i class="fa-solid fa-user"></i></div>
-            <div>
+            <div style="flex:1;">
                 <label style="margin:0;">Upload Photo
                     <span class="req" id="photoStar" style="display:none;">*</span>
                     <input type="file" name="photo" id="photoInput" accept="image/*">
                     <small class="field-help">JPG / PNG, max 2 MB</small>
                 </label>
+                {{ err('photo') }}
             </div>
         </div>
 
@@ -246,16 +300,17 @@
 
             <div class="form-row-2col">
                 <label>Qualification <span class="req">*</span>
-                    <select name="qualification">
+                    <select name="qualification" class="{{ cls('qualification') }}">
                         <option value="">Select</option>
-                        <option>B.Ed</option><option>M.Ed</option>
-                        <option>Graduate</option><option>Post Graduate</option>
-                        <option>B.Tech / B.E</option><option>M.Tech / M.E</option>
-                        <option>Other</option>
+                        {% for q in ['B.Ed','M.Ed','Graduate','Post Graduate','B.Tech / B.E','M.Tech / M.E','Other'] %}
+                        <option {% if form.get('qualification') == q %}selected{% endif %}>{{ q }}</option>
+                        {% endfor %}
                     </select>
+                    {{ err('qualification') }}
                 </label>
                 <label>Specialization
                     <input type="text" name="specialization" maxlength="100"
+                           value="{{ form.get('specialization', '') }}"
                            placeholder="e.g. Mathematics, Physics">
                 </label>
             </div>
@@ -264,25 +319,29 @@
                 <label>Experience
                     <select name="experience">
                         <option value="">Select</option>
-                        <option>Fresher</option>
-                        <option>1-3 Years</option>
-                        <option>3-5 Years</option>
-                        <option>5+ Years</option>
+                        {% for e in ['Fresher','1-3 Years','3-5 Years','5+ Years'] %}
+                        <option {% if form.get('experience') == e %}selected{% endif %}>{{ e }}</option>
+                        {% endfor %}
                     </select>
                 </label>
                 <label>Primary Subject <span class="req">*</span>
                     <input type="text" name="subject" maxlength="100"
+                           value="{{ form.get('subject', '') }}"
+                           class="{{ cls('subject') }}"
                            placeholder="e.g. Mathematics">
+                    {{ err('subject') }}
                 </label>
             </div>
 
             <div class="form-row-2col">
                 <label>Classes Assigned
                     <input type="text" name="classes_assigned" maxlength="100"
+                           value="{{ form.get('classes_assigned', '') }}"
                            placeholder="e.g. Class 6, 7, 8">
                 </label>
                 <label>Languages Known
                     <input type="text" name="languages" maxlength="100"
+                           value="{{ form.get('languages', '') }}"
                            placeholder="e.g. Hindi, English">
                 </label>
             </div>
@@ -290,25 +349,27 @@
             <div class="form-row-2col">
                 <label>Employee ID
                     <input type="text" name="employee_id" maxlength="30"
+                           value="{{ form.get('employee_id', '') }}"
                            placeholder="Auto-generated if blank">
                 </label>
                 <label>Designation
                     <input type="text" name="designation" maxlength="60"
+                           value="{{ form.get('designation', '') }}"
                            placeholder="e.g. PGT, TGT, PRT">
                 </label>
             </div>
 
             <div class="form-row-2col">
                 <label>Joining Date
-                    <input type="date" name="joining_date">
+                    <input type="date" name="joining_date"
+                           value="{{ form.get('joining_date', '') }}">
                 </label>
                 <label>Employment Type
                     <select name="employment_type">
                         <option value="">Select</option>
-                        <option>Full-Time</option>
-                        <option>Part-Time</option>
-                        <option>Contract</option>
-                        <option>Visiting</option>
+                        {% for et in ['Full-Time','Part-Time','Contract','Visiting'] %}
+                        <option {% if form.get('employment_type') == et %}selected{% endif %}>{{ et }}</option>
+                        {% endfor %}
                     </select>
                 </label>
             </div>
@@ -316,40 +377,44 @@
             <div class="form-row-2col">
                 <label>Total Experience (Years)
                     <input type="number" name="total_experience" min="0" max="60"
-                           placeholder="e.g. 5">
+                           value="{{ form.get('total_experience', '') }}">
                 </label>
                 <label>Previous School / Institute
                     <input type="text" name="previous_school" maxlength="150"
-                           placeholder="Last working place">
+                           value="{{ form.get('previous_school', '') }}">
                 </label>
             </div>
 
             <div class="section-head" style="margin-top:14px;">
-                <i class="fa-solid fa-building-columns"></i> Salary & Bank
+                <i class="fa-solid fa-building-columns"></i> Salary &amp; Bank
             </div>
 
             <div class="form-row-2col">
                 <label>Monthly Salary (₹)
                     <input type="number" name="salary" min="0" step="100"
-                           placeholder="e.g. 35000">
+                           value="{{ form.get('salary', '') }}">
                 </label>
                 <label>Bank Name
                     <input type="text" name="bank_name" maxlength="100"
-                           placeholder="e.g. SBI, HDFC">
+                           value="{{ form.get('bank_name', '') }}">
                 </label>
             </div>
 
             <div class="form-row-2col">
                 <label>Account Number
                     <input type="text" name="account_number" maxlength="20"
-                           inputmode="numeric" pattern="[0-9]{6,20}"
-                           placeholder="Bank account number">
+                           inputmode="numeric"
+                           value="{{ form.get('account_number', '') }}"
+                           class="{{ cls('account_number') }}">
+                    {{ err('account_number') }}
                 </label>
                 <label>IFSC Code
                     <input type="text" name="ifsc" maxlength="11"
-                           pattern="[A-Za-z]{4}0[A-Za-z0-9]{6}"
                            style="text-transform: uppercase;"
+                           value="{{ form.get('ifsc', '') }}"
+                           class="{{ cls('ifsc') }}"
                            placeholder="e.g. SBIN0001234">
+                    {{ err('ifsc') }}
                 </label>
             </div>
 
@@ -359,17 +424,20 @@
 
             <div class="form-row-2col">
                 <label>Emergency Contact Name
-                    <input type="text" name="emergency_name" maxlength="100">
+                    <input type="text" name="emergency_name" maxlength="100"
+                           value="{{ form.get('emergency_name', '') }}">
                 </label>
                 <label>Emergency Contact Mobile
                     <input type="tel" name="emergency_contact" maxlength="10"
-                           pattern="[0-9]{10}" inputmode="numeric">
+                           inputmode="numeric"
+                           value="{{ form.get('emergency_contact', '') }}"
+                           class="{{ cls('emergency_contact') }}">
+                    {{ err('emergency_contact') }}
                 </label>
             </div>
 
             <label>Certifications / Notes
-                <textarea name="notes" rows="2" maxlength="300"
-                          placeholder="Any additional certifications or remarks"></textarea>
+                <textarea name="notes" rows="2" maxlength="300">{{ form.get('notes', '') }}</textarea>
             </label>
         </div>
 
@@ -379,37 +447,33 @@
 
             <div class="form-row-2col">
                 <label>Designation <span class="req">*</span>
-                    <select name="designation">
+                    <select name="designation" class="{{ cls('designation') }}">
                         <option value="">Select</option>
-                        <option>Principal</option>
-                        <option>Vice Principal</option>
-                        <option>Accountant</option>
-                        <option>Office Assistant</option>
-                        <option>HR Manager</option>
-                        <option>IT Admin</option>
-                        <option>Librarian</option>
+                        {% for d in ['Principal','Vice Principal','Accountant','Office Assistant','HR Manager','IT Admin','Librarian'] %}
+                        <option {% if form.get('designation') == d %}selected{% endif %}>{{ d }}</option>
+                        {% endfor %}
                     </select>
+                    {{ err('designation') }}
                 </label>
                 <label>Department <span class="req">*</span>
-                    <select name="department">
+                    <select name="department" class="{{ cls('department') }}">
                         <option value="">Select</option>
-                        <option>Administration</option>
-                        <option>Accounts</option>
-                        <option>HR</option>
-                        <option>Maintenance</option>
-                        <option>IT</option>
-                        <option>Library</option>
+                        {% for d in ['Administration','Accounts','HR','Maintenance','IT','Library'] %}
+                        <option {% if form.get('department') == d %}selected{% endif %}>{{ d }}</option>
+                        {% endfor %}
                     </select>
+                    {{ err('department') }}
                 </label>
             </div>
 
             <div class="form-row-2col">
                 <label>Employee ID
                     <input type="text" name="employee_id" maxlength="30"
-                           placeholder="Auto-generated if blank">
+                           value="{{ form.get('employee_id', '') }}">
                 </label>
                 <label>Joining Date
-                    <input type="date" name="joining_date">
+                    <input type="date" name="joining_date"
+                           value="{{ form.get('joining_date', '') }}">
                 </label>
             </div>
 
@@ -417,39 +481,46 @@
                 <label>Employment Type
                     <select name="employment_type">
                         <option value="">Select</option>
-                        <option>Full-Time</option>
-                        <option>Part-Time</option>
-                        <option>Contract</option>
+                        {% for et in ['Full-Time','Part-Time','Contract'] %}
+                        <option {% if form.get('employment_type') == et %}selected{% endif %}>{{ et }}</option>
+                        {% endfor %}
                     </select>
                 </label>
                 <label>Reporting To
                     <input type="text" name="reporting_to" maxlength="100"
-                           placeholder="e.g. Principal">
+                           value="{{ form.get('reporting_to', '') }}">
                 </label>
             </div>
 
             <div class="section-head" style="margin-top:14px;">
-                <i class="fa-solid fa-building-columns"></i> Salary & Bank
+                <i class="fa-solid fa-building-columns"></i> Salary &amp; Bank
             </div>
 
             <div class="form-row-2col">
                 <label>Monthly Salary (₹)
-                    <input type="number" name="salary" min="0" step="100">
+                    <input type="number" name="salary" min="0" step="100"
+                           value="{{ form.get('salary', '') }}">
                 </label>
                 <label>Bank Name
-                    <input type="text" name="bank_name" maxlength="100">
+                    <input type="text" name="bank_name" maxlength="100"
+                           value="{{ form.get('bank_name', '') }}">
                 </label>
             </div>
 
             <div class="form-row-2col">
                 <label>Account Number
                     <input type="text" name="account_number" maxlength="20"
-                           inputmode="numeric" pattern="[0-9]{6,20}">
+                           inputmode="numeric"
+                           value="{{ form.get('account_number', '') }}"
+                           class="{{ cls('account_number') }}">
+                    {{ err('account_number') }}
                 </label>
                 <label>IFSC Code
                     <input type="text" name="ifsc" maxlength="11"
-                           pattern="[A-Za-z]{4}0[A-Za-z0-9]{6}"
-                           style="text-transform: uppercase;">
+                           style="text-transform: uppercase;"
+                           value="{{ form.get('ifsc', '') }}"
+                           class="{{ cls('ifsc') }}">
+                    {{ err('ifsc') }}
                 </label>
             </div>
 
@@ -459,11 +530,15 @@
 
             <div class="form-row-2col">
                 <label>Emergency Contact Name
-                    <input type="text" name="emergency_name" maxlength="100">
+                    <input type="text" name="emergency_name" maxlength="100"
+                           value="{{ form.get('emergency_name', '') }}">
                 </label>
                 <label>Emergency Contact Mobile
                     <input type="tel" name="emergency_contact" maxlength="10"
-                           pattern="[0-9]{10}" inputmode="numeric">
+                           inputmode="numeric"
+                           value="{{ form.get('emergency_contact', '') }}"
+                           class="{{ cls('emergency_contact') }}">
+                    {{ err('emergency_contact') }}
                 </label>
             </div>
         </div>
@@ -474,53 +549,58 @@
 
             <div class="form-row-2col">
                 <label>Relation with Child <span class="req">*</span>
-                    <select name="relation">
+                    <select name="relation" class="{{ cls('relation') }}">
                         <option value="">Select</option>
-                        <option>Father</option>
-                        <option>Mother</option>
-                        <option>Guardian</option>
+                        {% for r in ['Father','Mother','Guardian'] %}
+                        <option {% if form.get('relation') == r %}selected{% endif %}>{{ r }}</option>
+                        {% endfor %}
                     </select>
+                    {{ err('relation') }}
                 </label>
                 <label>Occupation
                     <input type="text" name="occupation" maxlength="100"
-                           placeholder="e.g. Business, Govt. Job">
+                           value="{{ form.get('occupation', '') }}">
                 </label>
             </div>
 
             <div class="form-row-2col">
                 <label>Education Qualification
                     <input type="text" name="education" maxlength="100"
-                           placeholder="e.g. B.Com, M.A.">
+                           value="{{ form.get('education', '') }}">
                 </label>
                 <label>Annual Income (₹)
                     <input type="text" name="annual_income" maxlength="20"
-                           placeholder="e.g. 5,00,000">
+                           value="{{ form.get('annual_income', '') }}">
                 </label>
             </div>
 
             <div class="form-row-2col">
                 <label>Spouse Name
-                    <input type="text" name="spouse_name" maxlength="100">
+                    <input type="text" name="spouse_name" maxlength="100"
+                           value="{{ form.get('spouse_name', '') }}">
                 </label>
                 <label>Spouse Occupation
-                    <input type="text" name="spouse_occupation" maxlength="100">
+                    <input type="text" name="spouse_occupation" maxlength="100"
+                           value="{{ form.get('spouse_occupation', '') }}">
                 </label>
             </div>
 
             <div class="form-row-2col">
                 <label>Spouse Mobile
                     <input type="tel" name="spouse_mobile" maxlength="10"
-                           pattern="[0-9]{10}" inputmode="numeric">
+                           inputmode="numeric"
+                           value="{{ form.get('spouse_mobile', '') }}"
+                           class="{{ cls('spouse_mobile') }}">
+                    {{ err('spouse_mobile') }}
                 </label>
                 <label>Office Phone
                     <input type="tel" name="office_phone" maxlength="15"
-                           placeholder="e.g. 0120-1234567">
+                           value="{{ form.get('office_phone', '') }}">
                 </label>
             </div>
 
             <label>Office Address
-                <textarea name="office_address" rows="2" maxlength="250"
-                          placeholder="Office / workplace address"></textarea>
+                <textarea name="office_address" rows="2" maxlength="250">{{ form.get('office_address', '') }}</textarea>
             </label>
 
             <div class="section-head" style="margin-top:16px;">
@@ -530,37 +610,37 @@
             <div class="form-row-2col">
                 <label>Child's Name <span class="req">*</span>
                     <input type="text" name="child_name" maxlength="100"
-                           placeholder="Child's full name">
+                           value="{{ form.get('child_name', '') }}"
+                           class="{{ cls('child_name') }}">
+                    {{ err('child_name') }}
                 </label>
                 <label>Child's Admission No
                     <input type="text" name="child_admission_no" maxlength="30"
-                           placeholder="School admission number">
+                           value="{{ form.get('child_admission_no', '') }}">
                 </label>
             </div>
 
             <div class="form-row-3col">
                 <label>Child's Class <span class="req">*</span>
-                    <select name="child_class">
+                    <select name="child_class" class="{{ cls('child_class') }}">
                         <option value="">Select</option>
-                        <option>Pre-Nursery</option><option>Nursery</option>
-                        <option>LKG</option><option>UKG</option>
-                        <option>Class 1</option><option>Class 2</option>
-                        <option>Class 3</option><option>Class 4</option>
-                        <option>Class 5</option><option>Class 6</option>
-                        <option>Class 7</option><option>Class 8</option>
-                        <option>Class 9</option><option>Class 10</option>
-                        <option>Class 11</option><option>Class 12</option>
+                        {% for c in ['Pre-Nursery','Nursery','LKG','UKG','Class 1','Class 2','Class 3','Class 4','Class 5','Class 6','Class 7','Class 8','Class 9','Class 10','Class 11','Class 12'] %}
+                        <option {% if form.get('child_class') == c %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
                     </select>
+                    {{ err('child_class') }}
                 </label>
                 <label>Section
                     <select name="child_section">
                         <option value="">Select</option>
-                        <option>A</option><option>B</option>
-                        <option>C</option><option>D</option>
+                        {% for s in ['A','B','C','D'] %}
+                        <option {% if form.get('child_section') == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
                     </select>
                 </label>
                 <label>Child DOB
-                    <input type="date" name="child_dob">
+                    <input type="date" name="child_dob"
+                           value="{{ form.get('child_dob', '') }}">
                 </label>
             </div>
 
@@ -570,11 +650,15 @@
 
             <div class="form-row-2col">
                 <label>Emergency Contact Name
-                    <input type="text" name="emergency_name" maxlength="100">
+                    <input type="text" name="emergency_name" maxlength="100"
+                           value="{{ form.get('emergency_name', '') }}">
                 </label>
                 <label>Emergency Contact Mobile
                     <input type="tel" name="emergency_contact" maxlength="10"
-                           pattern="[0-9]{10}" inputmode="numeric">
+                           inputmode="numeric"
+                           value="{{ form.get('emergency_contact', '') }}"
+                           class="{{ cls('emergency_contact') }}">
+                    {{ err('emergency_contact') }}
                 </label>
             </div>
         </div>
@@ -586,61 +670,64 @@
             <div class="form-row-2col">
                 <label>Admission Number <span class="req">*</span>
                     <input type="text" name="admission_no" maxlength="30"
+                           value="{{ form.get('admission_no', '') }}"
+                           class="{{ cls('admission_no') }}"
                            placeholder="Auto-generated if blank">
+                    {{ err('admission_no') }}
                 </label>
                 <label>Roll Number
                     <input type="text" name="roll_no" maxlength="20"
-                           placeholder="Class roll number">
+                           value="{{ form.get('roll_no', '') }}">
                 </label>
             </div>
 
             <div class="form-row-2col">
                 <label>Admission Date
-                    <input type="date" name="admission_date">
+                    <input type="date" name="admission_date"
+                           value="{{ form.get('admission_date', '') }}">
                 </label>
                 <label>Class <span class="req">*</span>
-                    <select name="class_name">
+                    <select name="class_name" class="{{ cls('class_name') }}">
                         <option value="">Select</option>
-                        <option>Pre-Nursery</option><option>Nursery</option>
-                        <option>LKG</option><option>UKG</option>
-                        <option>Class 1</option><option>Class 2</option>
-                        <option>Class 3</option><option>Class 4</option>
-                        <option>Class 5</option><option>Class 6</option>
-                        <option>Class 7</option><option>Class 8</option>
-                        <option>Class 9</option><option>Class 10</option>
-                        <option>Class 11</option><option>Class 12</option>
+                        {% for c in ['Pre-Nursery','Nursery','LKG','UKG','Class 1','Class 2','Class 3','Class 4','Class 5','Class 6','Class 7','Class 8','Class 9','Class 10','Class 11','Class 12'] %}
+                        <option {% if form.get('class_name') == c %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
                     </select>
+                    {{ err('class_name') }}
                 </label>
             </div>
 
             <div class="form-row-2col">
                 <label>Section <span class="req">*</span>
-                    <select name="section">
+                    <select name="section" class="{{ cls('section') }}">
                         <option value="">Select</option>
-                        <option>A</option><option>B</option>
-                        <option>C</option><option>D</option>
+                        {% for s in ['A','B','C','D'] %}
+                        <option {% if form.get('section') == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
                     </select>
+                    {{ err('section') }}
                 </label>
                 <label>Previous School
                     <input type="text" name="previous_school" maxlength="150"
-                           placeholder="Last attended school">
+                           value="{{ form.get('previous_school', '') }}">
                 </label>
             </div>
 
             <div class="form-row-3col">
                 <label>Previous Class
-                    <input type="text" name="previous_class" maxlength="20">
+                    <input type="text" name="previous_class" maxlength="20"
+                           value="{{ form.get('previous_class', '') }}">
                 </label>
                 <label>Previous Percentage
                     <input type="text" name="previous_percentage" maxlength="10"
-                           placeholder="e.g. 85%">
+                           value="{{ form.get('previous_percentage', '') }}">
                 </label>
                 <label>Category
                     <select name="category">
                         <option value="">Select</option>
-                        <option>General</option><option>OBC</option>
-                        <option>SC</option><option>ST</option>
-                        <option>EWS</option>
+                        {% for c in ['General','OBC','SC','ST','EWS'] %}
+                        <option {% if form.get('category') == c %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
                     </select>
                 </label>
             </div>
@@ -648,10 +735,11 @@
             <div class="form-row-2col">
                 <label>Religion
                     <input type="text" name="religion" maxlength="50"
-                           placeholder="e.g. Hindu">
+                           value="{{ form.get('religion', '') }}">
                 </label>
                 <label>Nationality
-                    <input type="text" name="nationality" value="Indian" maxlength="50">
+                    <input type="text" name="nationality"
+                           value="{{ form.get('nationality', 'Indian') }}" maxlength="50">
                 </label>
             </div>
 
@@ -661,26 +749,36 @@
 
             <div class="form-row-2col">
                 <label>Father's Name <span class="req">*</span>
-                    <input type="text" name="father_name" maxlength="100">
+                    <input type="text" name="father_name" maxlength="100"
+                           value="{{ form.get('father_name', '') }}"
+                           class="{{ cls('father_name') }}">
+                    {{ err('father_name') }}
                 </label>
                 <label>Father's Occupation
-                    <input type="text" name="father_occupation" maxlength="100">
+                    <input type="text" name="father_occupation" maxlength="100"
+                           value="{{ form.get('father_occupation', '') }}">
                 </label>
             </div>
 
             <div class="form-row-2col">
                 <label>Father's Mobile <span class="req">*</span>
                     <input type="tel" name="father_mobile" maxlength="10"
-                           pattern="[0-9]{10}" inputmode="numeric">
+                           inputmode="numeric"
+                           value="{{ form.get('father_mobile', '') }}"
+                           class="{{ cls('father_mobile') }}">
+                    {{ err('father_mobile') }}
                 </label>
                 <label>Father's Email
-                    <input type="email" name="father_email" maxlength="100">
+                    <input type="email" name="father_email" maxlength="100"
+                           value="{{ form.get('father_email', '') }}"
+                           class="{{ cls('father_email') }}">
+                    {{ err('father_email') }}
                 </label>
             </div>
 
             <label>Father's Education
                 <input type="text" name="father_education" maxlength="100"
-                       placeholder="e.g. B.Com, Graduate">
+                       value="{{ form.get('father_education', '') }}">
             </label>
 
             <div class="section-head" style="margin-top:16px;">
@@ -689,50 +787,67 @@
 
             <div class="form-row-2col">
                 <label>Mother's Name <span class="req">*</span>
-                    <input type="text" name="mother_name" maxlength="100">
+                    <input type="text" name="mother_name" maxlength="100"
+                           value="{{ form.get('mother_name', '') }}"
+                           class="{{ cls('mother_name') }}">
+                    {{ err('mother_name') }}
                 </label>
                 <label>Mother's Occupation
-                    <input type="text" name="mother_occupation" maxlength="100">
+                    <input type="text" name="mother_occupation" maxlength="100"
+                           value="{{ form.get('mother_occupation', '') }}">
                 </label>
             </div>
 
             <div class="form-row-2col">
                 <label>Mother's Mobile
                     <input type="tel" name="mother_mobile" maxlength="10"
-                           pattern="[0-9]{10}" inputmode="numeric">
+                           inputmode="numeric"
+                           value="{{ form.get('mother_mobile', '') }}"
+                           class="{{ cls('mother_mobile') }}">
+                    {{ err('mother_mobile') }}
                 </label>
                 <label>Mother's Email
-                    <input type="email" name="mother_email" maxlength="100">
+                    <input type="email" name="mother_email" maxlength="100"
+                           value="{{ form.get('mother_email', '') }}"
+                           class="{{ cls('mother_email') }}">
+                    {{ err('mother_email') }}
                 </label>
             </div>
 
             <label>Mother's Education
-                <input type="text" name="mother_education" maxlength="100">
+                <input type="text" name="mother_education" maxlength="100"
+                       value="{{ form.get('mother_education', '') }}">
             </label>
 
             <div class="section-head" style="margin-top:16px;">
-                <i class="fa-solid fa-user-shield"></i> Guardian & Emergency Contact
+                <i class="fa-solid fa-user-shield"></i> Guardian &amp; Emergency Contact
             </div>
 
             <div class="form-row-2col">
                 <label>Guardian Name
                     <input type="text" name="guardian_name" maxlength="100"
-                           placeholder="If different from parents">
+                           value="{{ form.get('guardian_name', '') }}">
                 </label>
                 <label>Guardian Relation
                     <input type="text" name="guardian_relation" maxlength="50"
-                           placeholder="e.g. Uncle, Aunt">
+                           value="{{ form.get('guardian_relation', '') }}">
                 </label>
             </div>
 
             <div class="form-row-2col">
                 <label>Guardian Mobile
                     <input type="tel" name="guardian_mobile" maxlength="10"
-                           pattern="[0-9]{10}" inputmode="numeric">
+                           inputmode="numeric"
+                           value="{{ form.get('guardian_mobile', '') }}"
+                           class="{{ cls('guardian_mobile') }}">
+                    {{ err('guardian_mobile') }}
                 </label>
                 <label>Emergency Contact Mobile
                     <input type="tel" name="emergency_contact" maxlength="10"
-                           pattern="[0-9]{10}" inputmode="numeric">
+                           inputmode="numeric"
+                           value="{{ form.get('emergency_contact', '') }}"
+                           class="{{ cls('emergency_contact') }}">
+                    {{ err('emergency_contact') }}
                 </label>
             </div>
 
@@ -743,16 +858,17 @@
             <div class="form-row-2col">
                 <label>Allergies
                     <input type="text" name="allergies" maxlength="150"
-                           placeholder="e.g. Peanuts, Dust">
+                           value="{{ form.get('allergies', '') }}">
                 </label>
                 <label>Medical Conditions
                     <input type="text" name="medical_conditions" maxlength="150"
-                           placeholder="e.g. Asthma">
+                           value="{{ form.get('medical_conditions', '') }}">
                 </label>
             </div>
 
             <label>Disability (if any)
-                <input type="text" name="disability" maxlength="150">
+                <input type="text" name="disability" maxlength="150"
+                       value="{{ form.get('disability', '') }}">
             </label>
 
             <div class="section-head" style="margin-top:16px;">
@@ -762,13 +878,15 @@
             <div class="form-row-3col">
                 <label>Route
                     <input type="text" name="transport_route" maxlength="60"
-                           placeholder="e.g. Route 4">
+                           value="{{ form.get('transport_route', '') }}">
                 </label>
                 <label>Pickup Point
-                    <input type="text" name="pickup_point" maxlength="100">
+                    <input type="text" name="pickup_point" maxlength="100"
+                           value="{{ form.get('pickup_point', '') }}">
                 </label>
                 <label>Vehicle Number
-                    <input type="text" name="vehicle_no" maxlength="20">
+                    <input type="text" name="vehicle_no" maxlength="20"
+                           value="{{ form.get('vehicle_no', '') }}">
                 </label>
             </div>
 
@@ -779,35 +897,42 @@
             <div class="form-row-2col">
                 <label>Account Number
                     <input type="text" name="account_number" maxlength="20"
-                           inputmode="numeric" pattern="[0-9]{6,20}">
+                           inputmode="numeric"
+                           value="{{ form.get('account_number', '') }}"
+                           class="{{ cls('account_number') }}">
+                    {{ err('account_number') }}
                 </label>
                 <label>Bank Name
-                    <input type="text" name="bank_name" maxlength="100">
+                    <input type="text" name="bank_name" maxlength="100"
+                           value="{{ form.get('bank_name', '') }}">
                 </label>
             </div>
 
             <label>IFSC Code
                 <input type="text" name="ifsc" maxlength="11"
-                       pattern="[A-Za-z]{4}0[A-Za-z0-9]{6}"
-                       style="text-transform: uppercase;">
+                       style="text-transform: uppercase;"
+                       value="{{ form.get('ifsc', '') }}"
+                       class="{{ cls('ifsc') }}">
+                {{ err('ifsc') }}
             </label>
 
             <div class="section-head" style="margin-top:16px;">
-                <i class="fa-solid fa-users"></i> Sibling & Other Info
+                <i class="fa-solid fa-users"></i> Sibling &amp; Other Info
             </div>
 
             <div class="form-row-2col">
                 <label>Sibling Name
-                    <input type="text" name="sibling_name" maxlength="100">
+                    <input type="text" name="sibling_name" maxlength="100"
+                           value="{{ form.get('sibling_name', '') }}">
                 </label>
                 <label>Sibling Class
-                    <input type="text" name="sibling_class" maxlength="20">
+                    <input type="text" name="sibling_class" maxlength="20"
+                           value="{{ form.get('sibling_class', '') }}">
                 </label>
             </div>
 
             <label>Hobbies / Interests
-                <textarea name="hobbies" rows="2" maxlength="200"
-                          placeholder="e.g. Cricket, Painting"></textarea>
+                <textarea name="hobbies" rows="2" maxlength="200">{{ form.get('hobbies', '') }}</textarea>
             </label>
         </div>
 
@@ -833,48 +958,202 @@
 </div>
 
 <script>
-    const ROLE_HINTS = {
-        teacher: '📘 Teacher ke liye qualification aur subject mandatory. Salary / bank details optional.',
-        admin:   '🏢 Admin ke liye designation aur department mandatory.',
-        parent:  '👨‍👩‍👧 Parent ke liye relation, child name aur child class mandatory.',
-        student: '🎓 Student ke liye photo, aadhaar, father & mother details, class & section mandatory.'
+/* ============================================================
+   ROLE TOGGLE + REQUIRED HANDLING
+   ============================================================ */
+const ROLE_HINTS = {
+    teacher: '📘 Teacher ke liye qualification aur subject mandatory. Salary / bank details optional.',
+    admin:   '🏢 Admin ke liye designation aur department mandatory.',
+    parent:  '👨‍👩‍👧 Parent ke liye relation, child name aur child class mandatory.',
+    student: '🎓 Student ke liye photo, aadhaar, father & mother details, class & section mandatory.'
+};
+const ALL_ROLES = ['teacher', 'admin', 'parent', 'student'];
+
+function toggleRoleFields() {
+    const role = document.getElementById('roleSelect').value;
+
+    ALL_ROLES.forEach(function (r) {
+        const el = document.getElementById('fields-' + r);
+        if (!el) return;
+        const show = (r === role);
+        el.style.display = show ? 'block' : 'none';
+        el.querySelectorAll('input, select, textarea').forEach(function (inp) {
+            inp.disabled = !show;
+        });
+    });
+
+    const isStudent = (role === 'student');
+    const aadhar = document.getElementById('aadharInput');
+    const photo  = document.getElementById('photoInput');
+    document.getElementById('aadharStar').style.display = isStudent ? 'inline' : 'none';
+    document.getElementById('photoStar').style.display  = isStudent ? 'inline' : 'none';
+    if (isStudent) {
+        aadhar.setAttribute('data-req', '1');
+        photo.setAttribute('data-req', '1');
+    } else {
+        aadhar.removeAttribute('data-req');
+        photo.removeAttribute('data-req');
+    }
+
+    const hint = document.getElementById('roleHint');
+    if (role && ROLE_HINTS[role]) {
+        hint.textContent = ROLE_HINTS[role];
+        hint.style.display = 'block';
+    } else {
+        hint.style.display = 'none';
+    }
+}
+
+/* ============================================================
+   CLIENT-SIDE VALIDATION RULES
+   ============================================================ */
+const CLIENT_RULES = {
+    email:            { required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, msg: 'Enter a valid email (e.g. user@example.com)' },
+    phone:            { required: true, pattern: /^\d{10}$/, msg: 'Must be exactly 10 digits' },
+    alternate_mobile: { pattern: /^\d{10}$/, msg: 'Must be exactly 10 digits' },
+    whatsapp:         { pattern: /^\d{10}$/, msg: 'Must be exactly 10 digits' },
+    emergency_contact:{ pattern: /^\d{10}$/, msg: 'Must be exactly 10 digits' },
+    father_mobile:    { pattern: /^\d{10}$/, msg: 'Must be exactly 10 digits' },
+    mother_mobile:    { pattern: /^\d{10}$/, msg: 'Must be exactly 10 digits' },
+    guardian_mobile:  { pattern: /^\d{10}$/, msg: 'Must be exactly 10 digits' },
+    spouse_mobile:    { pattern: /^\d{10}$/, msg: 'Must be exactly 10 digits' },
+    pincode:          { pattern: /^\d{6}$/,   msg: 'Must be exactly 6 digits' },
+    aadhar:           { pattern: /^\d{12}$/,  msg: 'Must be exactly 12 digits' },
+    pan:              { pattern: /^[A-Za-z]{5}[0-9]{4}[A-Za-z]$/, msg: 'Invalid PAN (e.g. ABCDE1234F)' },
+    ifsc:             { pattern: /^[A-Za-z]{4}0[A-Za-z0-9]{6}$/, msg: 'Invalid IFSC (e.g. SBIN0001234)' },
+    account_number:   { pattern: /^\d{6,20}$/, msg: 'Must be 6-20 digits' },
+    father_email:     { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, msg: 'Enter a valid email' },
+    mother_email:     { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, msg: 'Enter a valid email' },
+};
+
+function errEl(input) {
+    return document.querySelector('.field-error[data-field="' + input.name + '"]');
+}
+
+function showError(input, msg) {
+    input.classList.add('has-error');
+    input.classList.remove('has-success');
+    let e = errEl(input);
+    if (!e) {
+        e = document.createElement('small');
+        e.className = 'field-error';
+        e.dataset.field = input.name;
+        input.parentNode.appendChild(e);
+    }
+    e.textContent = msg;
+    e.classList.add('show');
+}
+
+function clearError(input, success) {
+    input.classList.remove('has-error');
+    if (success) input.classList.add('has-success');
+    else input.classList.remove('has-success');
+    const e = errEl(input);
+    if (e) { e.textContent = ''; e.classList.remove('show'); }
+}
+
+function validateField(input) {
+    const rule = CLIENT_RULES[input.name];
+    const reqByRole = input.getAttribute('data-req') === '1';
+    const val = (input.value || '').trim();
+
+    // required check
+    if ((rule && rule.required) || reqByRole) {
+        if (!val) {
+            showError(input, 'This field is required');
+            return false;
+        }
+    }
+    if (!val) { clearError(input); return true; }  // optional empty OK
+    if (rule && rule.pattern && !rule.pattern.test(val)) {
+        showError(input, rule.msg);
+        return false;
+    }
+    clearError(input, true);
+    return true;
+}
+
+/* ============================================================
+   LIVE EMAIL / PHONE AVAILABILITY (debounced)
+   ============================================================ */
+function debounce(fn, ms) {
+    let t;
+    return function (...args) {
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(this, args), ms);
     };
-    const ALL_ROLES = ['teacher', 'admin', 'parent', 'student'];
+}
 
-    /* Toggle role sections + disable hidden inputs (fix duplicate-name bug) */
-    function toggleRoleFields() {
-        const role = document.getElementById('roleSelect').value;
+async function checkAvailability(input) {
+    const field = input.name;
+    if (field !== 'email' && field !== 'phone') return;
+    const val = (input.value || '').trim();
+    const badge = document.getElementById(field === 'email' ? 'emailAvail' : 'phoneAvail');
+    if (!badge) return;
 
-        ALL_ROLES.forEach(function (r) {
-            const el = document.getElementById('fields-' + r);
-            if (!el) return;
-            const show = (r === role);
-            el.style.display = show ? 'block' : 'none';
-            el.querySelectorAll('input, select, textarea').forEach(function (inp) {
-                inp.disabled = !show;
+    if (!val) { badge.className = 'field-help availability-msg'; badge.textContent = ''; return; }
+
+    const rule = CLIENT_RULES[field];
+    if (rule.pattern && !rule.pattern.test(val)) {
+        badge.className = 'field-help availability-msg';
+        badge.textContent = '';
+        return;
+    }
+
+    badge.className = 'field-help availability-msg checking';
+    badge.textContent = 'Checking availability…';
+
+    try {
+        const r = await fetch(`/api/check-availability?field=${field}&value=${encodeURIComponent(val)}`);
+        const data = await r.json();
+        if (data.available) {
+            badge.className = 'field-help availability-msg ok';
+            badge.textContent = '✓ Available';
+            clearError(input, true);
+        } else {
+            badge.className = 'field-help availability-msg bad';
+            badge.textContent = '✗ ' + (data.error || 'Already registered');
+            showError(input, data.error || 'Already registered');
+        }
+    } catch (e) {
+        badge.className = 'field-help availability-msg';
+        badge.textContent = '';
+    }
+}
+
+const debouncedAvailEmail = debounce(() => checkAvailability(document.getElementById('emailInput')), 500);
+const debouncedAvailPhone = debounce(() => checkAvailability(document.getElementById('phoneInput')), 500);
+
+/* ============================================================
+   ATTACH LISTENERS
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', function () {
+    toggleRoleFields();
+
+    // Per-field: validate on blur + input (after blur)
+    document.querySelectorAll('#createUserForm input, #createUserForm select, #createUserForm textarea')
+        .forEach(function (inp) {
+            if (inp.type === 'file' || inp.type === 'submit' || inp.type === 'button') return;
+
+            inp.addEventListener('blur', function () { validateField(inp); });
+            inp.addEventListener('input', function () {
+                if (inp.classList.contains('has-error')) validateField(inp);
             });
         });
 
-        // Aadhaar & Photo required only for student
-        const isStudent = (role === 'student');
-        const aadhar = document.getElementById('aadharInput');
-        const photo = document.getElementById('photoInput');
-        document.getElementById('aadharStar').style.display = isStudent ? 'inline' : 'none';
-        document.getElementById('photoStar').style.display = isStudent ? 'inline' : 'none';
-        if (isStudent) { aadhar.setAttribute('required', 'required'); photo.setAttribute('required', 'required'); }
-        else { aadhar.removeAttribute('required'); photo.removeAttribute('required'); }
-
-        // Hint
-        const hint = document.getElementById('roleHint');
-        if (role && ROLE_HINTS[role]) {
-            hint.textContent = ROLE_HINTS[role];
-            hint.style.display = 'block';
-        } else {
-            hint.style.display = 'none';
-        }
+    // Live availability
+    const emailInput = document.getElementById('emailInput');
+    const phoneInput = document.getElementById('phoneInput');
+    if (emailInput) {
+        emailInput.addEventListener('input', debouncedAvailEmail);
+        emailInput.addEventListener('blur',   () => checkAvailability(emailInput));
+    }
+    if (phoneInput) {
+        phoneInput.addEventListener('input', debouncedAvailPhone);
+        phoneInput.addEventListener('blur',   () => checkAvailability(phoneInput));
     }
 
-    /* Photo preview + size check */
+    // Photo preview
     document.getElementById('photoInput').addEventListener('change', function (e) {
         const file = e.target.files && e.target.files[0];
         const preview = document.getElementById('photoPreview');
@@ -885,12 +1164,13 @@
             return;
         }
         if (file.size > 2 * 1024 * 1024) {
-            alert('Photo 2 MB se kam honi chahiye.');
+            showError(e.target, 'Photo must be less than 2 MB');
             e.target.value = '';
             preview.style.display = 'none';
             placeholder.style.display = 'flex';
             return;
         }
+        clearError(e.target, true);
         const reader = new FileReader();
         reader.onload = function (ev) {
             preview.src = ev.target.result;
@@ -900,30 +1180,115 @@
         reader.readAsDataURL(file);
     });
 
-    /* Reset */
+    // Reset
     document.getElementById('resetBtn').addEventListener('click', function () {
         if (!confirm('Saara bhar hua data clear kar dena hai?')) return;
         document.getElementById('createUserForm').reset();
+        document.querySelectorAll('.field-error').forEach(el => {
+            el.textContent = '';
+            el.classList.remove('show');
+        });
+        document.querySelectorAll('.has-error, .has-success').forEach(el => {
+            el.classList.remove('has-error', 'has-success');
+        });
+        ['emailAvail','phoneAvail'].forEach(id => {
+            const b = document.getElementById(id);
+            if (b) { b.className = 'field-help availability-msg'; b.textContent = ''; }
+        });
         document.getElementById('photoPreview').style.display = 'none';
         document.getElementById('photoPlaceholder').style.display = 'flex';
         toggleRoleFields();
     });
 
-    /* Auto-uppercase PAN, IFSC */
+    // Auto-uppercase PAN / IFSC
     document.querySelectorAll('input[name="pan"], input[name="ifsc"]').forEach(function (inp) {
         inp.addEventListener('input', function () {
             this.value = this.value.toUpperCase();
         });
     });
 
-    /* Digits-only enforcement for numeric fields */
+    // Digits-only for numeric
     document.querySelectorAll('input[inputmode="numeric"]').forEach(function (inp) {
         inp.addEventListener('input', function () {
             this.value = this.value.replace(/\D/g, '');
         });
     });
+});
 
-    /* Initialise */
-    document.addEventListener('DOMContentLoaded', toggleRoleFields);
+/* ============================================================
+   SUBMIT — full validation gate
+   ============================================================ */
+document.getElementById('createUserForm').addEventListener('submit', function (e) {
+    let ok = true;
+    let firstBad = null;
+    let badCount = 0;
+
+    // Role must be selected
+    const roleSel = document.getElementById('roleSelect');
+    if (!roleSel.value) {
+        showError(roleSel, 'Please select a role');
+        ok = false; badCount++;
+        if (!firstBad) firstBad = roleSel;
+    } else {
+        clearError(roleSel, true);
+    }
+
+    // name required
+    const nameInp = document.querySelector('input[name="name"]');
+    if (!nameInp.value.trim()) {
+        showError(nameInp, 'Full name is required');
+        ok = false; badCount++;
+        if (!firstBad) firstBad = nameInp;
+    }
+
+    // Validate every field with rules or data-req
+    document.querySelectorAll('#createUserForm input, #createUserForm select, #createUserForm textarea')
+        .forEach(function (inp) {
+            if (inp.disabled) return;
+            if (inp.type === 'file' || inp.type === 'submit' || inp.type === 'button') return;
+            if (inp.name === 'role' || inp.name === 'name') return; // already handled
+            const hasRule = CLIENT_RULES[inp.name] || inp.getAttribute('data-req') === '1';
+            if (!hasRule) return;
+            if (!validateField(inp)) {
+                ok = false; badCount++;
+                if (!firstBad) firstBad = inp;
+            }
+        });
+
+    // Photo required for student
+    if (roleSel.value === 'student') {
+        const photoInp = document.getElementById('photoInput');
+        if (!photoInp.files || !photoInp.files.length) {
+            showError(photoInp, 'Profile photo is required for student');
+            ok = false; badCount++;
+            if (!firstBad) firstBad = photoInp;
+        }
+    }
+
+    if (!ok) {
+        e.preventDefault();
+        if (firstBad) firstBad.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        flashTop(`Please fix ${badCount} error${badCount > 1 ? 's' : ''} before submitting.`);
+    }
+});
+
+/* Tiny toast — top me error banner (auto create if missing) */
+function flashTop(msg) {
+    let bar = document.getElementById('liveErrorBar');
+    if (!bar) {
+        bar = document.createElement('div');
+        bar.id = 'liveErrorBar';
+        bar.className = 'form-error-banner';
+        bar.style.position = 'sticky';
+        bar.style.top = '10px';
+        bar.style.zIndex = '9999';
+        bar.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><div></div>';
+        const form = document.getElementById('createUserForm');
+        form.parentNode.insertBefore(bar, form);
+    }
+    bar.querySelector('div').innerHTML = '<strong>' + msg + '</strong>';
+    bar.style.display = 'flex';
+    setTimeout(() => { bar.style.display = 'none'; }, 6000);
+}
 </script>
 {% endblock %}

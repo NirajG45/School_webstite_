@@ -15,6 +15,130 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- =========================================
+         🚀 UI/UX ENHANCEMENTS (SMOOTH HOVER + CLICK)
+         ========================================= -->
+    <style>
+        /* Smooth Scrolling */
+        html { scroll-behavior: smooth; }
+
+        /* 🚀 Button Click & Hover Effects */
+        .btn, .login-btn, .enquire-btn-secondary {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn:hover, .login-btn:hover, .enquire-btn-secondary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        .btn:active, .login-btn:active, .enquire-btn-secondary:active {
+            transform: translateY(0) scale(0.96);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* 🚀 Card Hover Effects */
+        .home-event-card, .testimonial-card, .home-achievement-card, .quick-strip a {
+            transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+            border: 1px solid transparent;
+        }
+        .home-event-card:hover, .testimonial-card:hover, .home-achievement-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 35px rgba(11, 53, 98, 0.08);
+            border-color: rgba(11, 53, 98, 0.1);
+            background: #ffffff;
+        }
+        .quick-strip a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            background: #f8fafc;
+        }
+
+        /* 🚀 Smooth Flash/Toast Messages */
+        .flash {
+            animation: slideDownFade 0.4s ease forwards;
+        }
+        @keyframes slideDownFade {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =========================================
+           🚀 FOOTER ENHANCEMENT (Clean Grid + Hover)
+           ========================================= -->
+        .site-footer {
+            background-color: var(--navy, #0b3562);
+            color: #fff;
+            padding-top: 60px;
+            border-top: 4px solid var(--yellow, #fbbd08);
+        }
+        .footer-inner {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 40px;
+            padding-bottom: 40px;
+        }
+        @media (max-width: 768px) {
+            .footer-inner {
+                grid-template-columns: 1fr;
+                gap: 30px;
+                text-align: center;
+            }
+            .footer-brand { justify-content: center; }
+            .footer-links-col, .footer-contact-col { align-items: center; }
+        }
+        .footer-links-col h4, .footer-contact-col h4 {
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            position: relative;
+        }
+        .footer-links-col h4::after, .footer-contact-col h4::after {
+            content: '';
+            position: absolute;
+            left: 0; bottom: -6px;
+            width: 30px; height: 2px;
+            background: var(--yellow, #fbbd08);
+        }
+        @media (max-width: 768px) {
+            .footer-links-col h4::after, .footer-contact-col h4::after {
+                left: 50%; transform: translateX(-50%);
+            }
+        }
+        .footer-links-col a, .footer-contact-col a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #aebfd0;
+            font-size: 14px;
+            margin-bottom: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .footer-links-col a:hover, .footer-contact-col a:hover {
+            color: var(--yellow, #fbbd08);
+            transform: translateX(5px);
+        }
+        .back-top {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--yellow, #fbbd08) !important;
+            font-weight: 600;
+            padding: 8px 16px;
+            border: 1px solid rgba(251, 189, 8, 0.3);
+            border-radius: 50px;
+            transition: all 0.3s ease !important;
+        }
+        .back-top:hover {
+            background: rgba(251, 189, 8, 0.1);
+            transform: translateY(-3px) !important;
+            padding-left: 20px;
+        }
+    </style>
 </head>
 
 <body>
@@ -37,7 +161,6 @@
                 </span>
             </a>
 
-            <!-- ========== UPDATED DESKTOP NAVIGATION ========== -->
             <nav class="desktop-nav" aria-label="Main navigation">
                 <a class="nav-link active" href="#top"><i class="fa-solid fa-house"></i> Home</a>
                 <a class="nav-link" href="{{ url_for('gallery_page') }}"><i class="fa-regular fa-images"></i> Gallery</a>
@@ -50,9 +173,6 @@
 
             <div class="header-actions">
                 {% if session.get('user_id') %}
-                <!-- =====================================================
-                     UPGRADED USER PROFILE — Hover Expand + Click to Pin
-                     ===================================================== -->
                 <div class="user-profile" id="userProfile">
                     <button type="button" class="user-avatar-btn" id="userMenuBtn"
                             aria-haspopup="true" aria-expanded="false" aria-controls="userDropdown"
@@ -100,9 +220,6 @@
                         </a>
                     </div>
                 </div>
-                <!-- =====================================================
-                     END UPGRADED USER PROFILE
-                     ===================================================== -->
                 {% else %}
                 <a class="login-btn" href="{{ url_for('login_page') }}">
                     <i class="fa-regular fa-user"></i><span>Login</span>
@@ -121,20 +238,18 @@
     <div class="menu-backdrop" id="menuBackdrop" hidden></div>
 
     <!-- =========================================
-         MOBILE MENU (with user info)
+         MOBILE MENU
          ========================================= -->
     <aside class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation" aria-hidden="true" inert>
         <div class="mobile-menu-head">
             <span>Explore School</span>
-            <button type="button" id="menuClose" aria-label="Close navigation menu"><i
-                    class="fa-solid fa-xmark"></i></button>
+            <button type="button" id="menuClose" aria-label="Close navigation menu"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
         {% if session.get('user_id') %}
         <div class="mobile-user-box logged-in">
             <div class="mobile-user-avatar">
-                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if
-                session['user_name'].split()|length > 1 else '' }}
+                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
             </div>
             <div class="mobile-user-text">
                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
@@ -162,7 +277,6 @@
         </div>
         {% endif %}
 
-        <!-- ========== UPDATED MOBILE NAVIGATION ========== -->
         <nav class="mobile-nav">
             <a href="#top"><i class="fa-solid fa-house"></i> Home</a>
             <a href="{{ url_for('gallery_page') }}"><i class="fa-regular fa-images"></i> Photo Gallery</a>
@@ -181,11 +295,9 @@
             <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-user-gear"></i> Admin Panel</a>
             {% endif %}
             <a href="{{ url_for('change_password') }}"><i class="fa-solid fa-key"></i> Change Password</a>
-            <a href="{{ url_for('logout') }}" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i>
-                Logout</a>
+            <a href="{{ url_for('logout') }}" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
             {% else %}
-            <a href="{{ url_for('login_page') }}" class="mobile-login-nav"><i class="fa-solid fa-right-to-bracket"></i>
-                Login</a>
+            <a href="{{ url_for('login_page') }}" class="mobile-login-nav"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
             {% endif %}
         </nav>
         <div class="mobile-menu-foot">Learn <span>•</span> Grow <span>•</span> Succeed</div>
@@ -238,9 +350,7 @@
             <div class="hero-bottom-wave"></div>
         </section>
 
-        <!-- =========================================
-             🚀 NEW: UPCOMING EVENTS (Home Preview)
-             ========================================= -->
+        <!-- UPCOMING EVENTS -->
         {% if upcoming_events %}
         <section class="wrap home-events-section">
             <div class="section-heading-center">
@@ -319,8 +429,7 @@
                         <i class="fa-solid fa-graduation-cap"></i>
                         <span><b>Classes offered</b><br>Pre-Nursery to Class 8</span>
                     </div>
-                    <a class="nav-link" href="{{ url_for('academics_page') }}"><i class="fa-solid fa-book-open"></i>
-                        Academics</a>
+                    <a class="nav-link" href="{{ url_for('academics_page') }}"><i class="fa-solid fa-book-open"></i> Academics</a>
                 </div>
             </article>
 
@@ -371,8 +480,7 @@
                     </article>
                     {% endfor %}
                 </div>
-                <a class="all-notices" href="{{ url_for('notices_page') }}">View All Notices <i
-                        class="fa-solid fa-arrow-right"></i></a>
+                <a class="all-notices" href="{{ url_for('notices_page') }}">View All Notices <i class="fa-solid fa-arrow-right"></i></a>
             </aside>
         </section>
 
@@ -397,9 +505,7 @@
             <p class="stat-footnote">*Replace sample figures with verified school data before publishing.</p>
         </section>
 
-        <!-- =========================================
-             🚀 NEW: TESTIMONIALS (Home)
-             ========================================= -->
+        <!-- TESTIMONIALS -->
         {% if testimonials %}
         <section class="home-testimonials">
             <div class="wrap">
@@ -430,71 +536,25 @@
         </section>
         {% endif %}
 
-        <!-- LOWER GRID -->
+        <!-- LOWER GRID / GALLERY SLIDER -->
         <section class="lower-grid wrap" id="gallery">
             <div class="classes-banner gallery-slider-box">
 
-                <!-- Background Image Slider -->
+                <!-- 🚀 DYNAMIC BACKGROUND IMAGE SLIDER -->
                 <div class="slider-track" id="autoSlider">
-                    <div class="slide">
-                        <img src="{{ url_for('static', filename='images/campus.jpg') }}" alt="School Image 1"
-                            loading="lazy">
-                    </div>
-                    <div class="slide">
-                        <img src="{{ url_for('static', filename='images/head2.jpeg') }}" alt="School Image 2"
-                            loading="lazy">
-                    </div>
-                    <div class="slide">
-                        <img src="{{ url_for('static', filename='images/Niraj.jpeg') }}" alt="School Image 3"
-                            loading="lazy">
-                    </div>
-                    <div class="slide">
-                        <img src="{{ url_for('static', filename='images/all.jpeg') }}" alt="School Image 3"
-                            loading="lazy">
-                    </div>
-                    <div class="slide">
-                        <img src="{{ url_for('static', filename='images/all_starfs.jpeg') }}" alt="School Image 3"
-                            loading="lazy">
-                    </div>
-                    <div class="slide">
-                        <img src="{{ url_for('static', filename='images/Doc.jpeg') }}" alt="School Image 3"
-                            loading="lazy">
-                    </div>
-                    <div class="slide">
-                        <img src="{{ url_for('static', filename='images/head.jpeg') }}" alt="School Image 3"
-                            loading="lazy">
-                    </div>
-                    <div class="slide">
-                        <img src="{{ url_for('static', filename='images/head_maam.jpeg') }}" alt="School Image 3"
-                            loading="lazy">
-                    </div>
-                    <div class="slide">
-                        <img src="{{ url_for('static', filename='images/Radhay_Krishna.jpeg') }}" alt="School Image 3"
-                            loading="lazy">
-                    </div>
-                    <div class="slide">
-                        <img src="{{ url_for('static', filename='images/teachers_day.jpeg') }}" alt="School Image 3"
-                            loading="lazy">
-                    </div>
-                    <div class="slide">
-                        <img src="{{ url_for('static', filename='images/teachers.jpeg') }}" alt="School Image 3"
-                            loading="lazy">
-                    </div>
-                    <div class="slide">
-                        <img src="{{ url_for('static', filename='images/drawings.jpeg') }}" alt="School Image 3"
-                            loading="lazy">
-                    </div>
-                    <div class="slide">
-                        <img src="{{ url_for('static', filename='images/Niraj.jpeg') }}" alt="School Image 3"
-                            loading="lazy">
-                    </div>
-                    <div class="slide">
-                        <img src="{{ url_for('static', filename='images/Niraj.jpeg') }}" alt="School Image 3"
-                            loading="lazy">
-                    </div>
+                    {% if gallery_images %}
+                        {% for img in gallery_images %}
+                        <div class="slide">
+                            <img src="{% if img.image_url.startswith('http') %}{{ img.image_url }}{% else %}{{ url_for('static', filename='images/' + img.image_url) }}{% endif %}" alt="{{ img.title }}" loading="lazy">
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Fallback if no images in Admin Gallery -->
+                        <div class="slide"><img src="{{ url_for('static', filename='images/campus.jpg') }}" alt="Campus" loading="lazy"></div>
+                        <div class="slide"><img src="{{ url_for('static', filename='images/head2.jpeg') }}" alt="School Event" loading="lazy"></div>
+                    {% endif %}
                 </div>
 
-                <!-- Original Content (Text + Pills) Overlay -->
                 <div class="banner-content-overlay">
                     <div>
                         <p class="section-kicker light">LEARN • GROW • SUCCEED</p>
@@ -502,10 +562,8 @@
                         <p>A strong foundation for curious minds and confident learners.</p>
                     </div>
                     <div class="class-pills">
-                        <span>Pre-Nursery</span><span>Nursery</span><span>LKG</span><span>UKG</span><span>Class
-                            1–8</span>
+                        <span>Pre-Nursery</span><span>Nursery</span><span>LKG</span><span>UKG</span><span>Class 1–8</span>
                     </div>
-                    <!-- NEW: View Gallery Button -->
                     <div style="margin-top:20px;">
                         <a href="{{ url_for('gallery_page') }}" class="btn btn-yellow" style="display:inline-flex;">
                             <i class="fa-regular fa-images"></i> View Full Gallery
@@ -559,15 +617,12 @@
                         <textarea name="message" rows="3" maxlength="1000"
                             placeholder="Tell us how we can help"></textarea>
                     </label>
-                    <button class="btn btn-primary" type="submit">Submit enquiry <i
-                            class="fa-solid fa-arrow-right"></i></button>
+                    <button class="btn btn-primary" type="submit">Submit enquiry <i class="fa-solid fa-arrow-right"></i></button>
                 </form>
             </section>
         </section>
 
-        <!-- =========================================
-             🚀 NEW: ACHIEVEMENTS PREVIEW (Home)
-             ========================================= -->
+        <!-- ACHIEVEMENTS PREVIEW -->
         {% if achievements %}
         <section class="wrap home-achievements-section">
             <div class="section-heading-center">
@@ -610,60 +665,67 @@
                     <label class="sr-only" for="contactMessage">Message</label>
                     <textarea id="contactMessage" name="message" required rows="2" maxlength="1000"
                         placeholder="Your message"></textarea>
-                    <button class="btn btn-yellow" type="submit">Send message <i
-                            class="fa-solid fa-paper-plane"></i></button>
+                    <button class="btn btn-yellow" type="submit">Send message <i class="fa-solid fa-paper-plane"></i></button>
                 </form>
             </div>
         </section>
     </main>
 
     <!-- =========================================
-         FOOTER SECTION
+         FOOTER SECTION (Improved Structure)
          ========================================= -->
     <footer class="site-footer">
         <div class="wrap footer-inner">
             <div class="footer-brand-col">
-                <a class="footer-brand" href="#top" aria-label="Residential Shanti Niketan home">
+                <a class="footer-brand" href="#top" aria-label="Residential Shanti Niketan home" style="display:flex; align-items:center; gap:15px; text-decoration:none;">
                     <span class="brand-mark small-mark">
                         <img src="{{ url_for('static', filename='images/school-logo.png') }}"
-                            alt="Residential Shanti Niketan School Logo" class="school-logo" loading="lazy">
+                            alt="School Logo" class="school-logo" loading="lazy" style="width:60px; height:auto;">
                     </span>
-                    <span class="footer-brand-copy">
-                        <strong>Residential Shanti Niketan</strong>
-                        <small>Navinagar, Jamui</small>
-                        <span class="footer-tagline">Education • Values • Excellence</span>
+                    <span class="footer-brand-copy" style="display:flex; flex-direction:column; gap:4px;">
+                        <strong style="font-size:18px; color:#fff;">Residential Shanti Niketan</strong>
+                        <small style="color:#aebfd0; font-size:13px;">Navinagar, Jamui</small>
+                        <span class="footer-tagline" style="color:var(--yellow, #fbbd08); font-size:11px; font-weight:600; letter-spacing:0.5px; margin-top:5px;">EDUCATION • VALUES • EXCELLENCE</span>
                     </span>
                 </a>
+                <p style="color:#aebfd0; font-size:13px; line-height:1.6; margin-top:15px; max-width:300px;">
+                    A home away from home — where every child learns, grows and builds a brighter tomorrow.
+                </p>
             </div>
 
-            <!-- NEW: Quick Links in Footer -->
-            <div class="footer-links-col">
+            <div class="footer-links-col" style="display:flex; flex-direction:column;">
                 <h4>Quick Links</h4>
-                <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
-                    <a href="{{ url_for('gallery_page') }}" style="font-size:12.5px;color:#aebfd0;display:flex;align-items:center;gap:8px;transition:all 0.25s;"><i class="fa-regular fa-images" style="color:var(--yellow);font-size:11px;"></i> Photo Gallery</a>
-                    <a href="{{ url_for('faculty_page') }}" style="font-size:12.5px;color:#aebfd0;display:flex;align-items:center;gap:8px;transition:all 0.25s;"><i class="fa-solid fa-chalkboard-user" style="color:var(--yellow);font-size:11px;"></i> Our Faculty</a>
-                    <a href="{{ url_for('events_page') }}" style="font-size:12.5px;color:#aebfd0;display:flex;align-items:center;gap:8px;transition:all 0.25s;"><i class="fa-regular fa-calendar-days" style="color:var(--yellow);font-size:11px;"></i> Events</a>
-                    <a href="{{ url_for('achievements_page') }}" style="font-size:12.5px;color:#aebfd0;display:flex;align-items:center;gap:8px;transition:all 0.25s;"><i class="fa-solid fa-trophy" style="color:var(--yellow);font-size:11px;"></i> Achievements</a>
-                    <a href="{{ url_for('faq_page') }}" style="font-size:12.5px;color:#aebfd0;display:flex;align-items:center;gap:8px;transition:all 0.25s;"><i class="fa-solid fa-circle-question" style="color:var(--yellow);font-size:11px;"></i> FAQ</a>
-                </div>
+                <a href="{{ url_for('gallery_page') }}"><i class="fa-regular fa-images"></i> Photo Gallery</a>
+                <a href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i> Our Faculty</a>
+                <a href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i> Events & News</a>
+                <a href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i> Achievements</a>
+                <a href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
             </div>
 
-            <div class="footer-contact-col">
+            <div class="footer-contact-col" style="display:flex; flex-direction:column;">
                 <h4>Navigate</h4>
-                <a class="back-top" href="#top">Back to top <i class="fa-solid fa-arrow-up"></i></a>
+                <a href="#about"><i class="fa-solid fa-users"></i> About Us</a>
+                <a href="#academics"><i class="fa-solid fa-book-open"></i> Academics</a>
+                <a href="#contact"><i class="fa-regular fa-envelope"></i> Contact Us</a>
+                
+                <a class="back-top" href="#top" style="margin-top:15px; width:max-content;">
+                    Back to top <i class="fa-solid fa-arrow-up"></i>
+                </a>
             </div>
         </div>
 
-        <div class="footer-bottom">
-            <p class="copyright-text">© <span id="year"></span> Residential Shanti Niketan. Website concept.</p>
-            <div class="developer-credit">
-                <span class="dev-badge">
-                    <i class="fa-solid fa-code"></i>
-                    <span>Developed by <strong>Niraj Kumar</strong></span>
-                    <a href="tel:9155658081" class="dev-contact">
-                        <i class="fa-solid fa-phone"></i> 9155658081
-                    </a>
-                </span>
+        <div class="footer-bottom" style="border-top: 1px solid rgba(255,255,255,0.1); padding: 20px 0;">
+            <div class="wrap" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
+                <p class="copyright-text" style="margin:0; color:#aebfd0; font-size:13px;">© <span id="year"></span> Residential Shanti Niketan. All Rights Reserved.</p>
+                <div class="developer-credit">
+                    <span class="dev-badge" style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.05); padding:8px 16px; border-radius:50px; border:1px solid rgba(255,255,255,0.1);">
+                        <i class="fa-solid fa-code" style="color:var(--yellow, #fbbd08);"></i>
+                        <span style="color:#aebfd0; font-size:12px;">Developed by <strong style="color:#fff;">Niraj Kumar</strong></span>
+                        <a href="tel:9155658081" class="dev-contact" style="display:flex; align-items:center; gap:5px; color:var(--yellow, #fbbd08); text-decoration:none; font-size:12px; font-weight:600; border-left:1px solid rgba(255,255,255,0.2); padding-left:10px; margin-left:5px;">
+                            <i class="fa-solid fa-phone"></i> 9155658081
+                        </a>
+                    </span>
+                </div>
             </div>
         </div>
     </footer>

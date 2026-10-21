@@ -47,13 +47,6 @@ def month_abbr(date_str):
 
 DEFAULT_PASSWORD = 'snv@450'  # Default password for new users
 
-INITIAL_NOTICES = [
-    {'date': '05 Oct 2026', 'title': 'Admissions enquiry open for Session 2026–27', 'tag': 'Admissions', 'desc': 'Admissions are now open for the upcoming academic session.', 'target_role': 'all'},
-    {'date': '28 Sep 2026', 'title': 'Class-wise timetable published', 'tag': 'Academics', 'desc': 'The new timetable is available.', 'target_role': 'all'},
-    {'date': '22 Sep 2026', 'title': 'Annual sports day update', 'tag': 'Activities', 'desc': 'Annual sports day is approaching.', 'target_role': 'all'},
-    {'date': '15 Sep 2026', 'title': 'Parent–teacher meeting', 'tag': 'Notice', 'desc': 'A PTM is scheduled for all classes.', 'target_role': 'all'},
-]
-
 # =========================================
 # 1.5. USER TABLE — EXTRA COLUMNS (MIGRATION)
 # =========================================
@@ -175,7 +168,6 @@ def migrate_faculty_table(db):
     if 'user_id' not in existing:
         db.execute('ALTER TABLE faculty ADD COLUMN user_id INTEGER')
         
-    # One-time sync for existing teachers
     teachers = db.execute("SELECT id, name, subject, qualification, experience, photo_url FROM users WHERE role='teacher'").fetchall()
     for t in teachers:
         if not db.execute("SELECT 1 FROM faculty WHERE user_id = ? OR name = ?", (t['id'], t['name'])).fetchone():
@@ -188,19 +180,16 @@ def init_db():
     with sqlite3.connect(DB_PATH) as db:
         db.row_factory = sqlite3.Row  
         
-        # Enquiries
         db.execute('''CREATE TABLE IF NOT EXISTS enquiries (
             id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL, name TEXT NOT NULL,
             phone TEXT NOT NULL, email TEXT, class_name TEXT, message TEXT,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # Notices (with target_role)
         db.execute('''CREATE TABLE IF NOT EXISTS notices (
             id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, title TEXT NOT NULL,
             tag TEXT NOT NULL, description TEXT, target_role TEXT DEFAULT 'all',
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # Users (with unique_id, force_password_change)
         db.execute('''CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT, unique_id TEXT UNIQUE, role TEXT NOT NULL,
             name TEXT NOT NULL, email TEXT UNIQUE NOT NULL, phone TEXT NOT NULL,
@@ -210,51 +199,42 @@ def init_db():
             child_class TEXT, address TEXT, is_active INTEGER DEFAULT 1,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
 
-        # UPGRADE: add all new columns for teacher/admin/parent/student
         migrate_users_table(db)
         
-        # Leave Requests
         db.execute('''CREATE TABLE IF NOT EXISTS leave_requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL,
             leave_type TEXT NOT NULL, from_date TEXT NOT NULL, to_date TEXT NOT NULL,
             reason TEXT NOT NULL, status TEXT DEFAULT 'pending',
             admin_remarks TEXT, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # Attendance (UPDATED: added subject column)
         db.execute('''CREATE TABLE IF NOT EXISTS attendance (
             id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL,
             date TEXT NOT NULL, status TEXT NOT NULL, subject TEXT DEFAULT 'General', 
             remarks TEXT, marked_by INTEGER, 
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # Call migration for attendance table
         migrate_attendance_table(db)
         
-        # Exam Marks Table
         db.execute('''CREATE TABLE IF NOT EXISTS exam_marks (
             id INTEGER PRIMARY KEY AUTOINCREMENT, student_id INTEGER NOT NULL,
             exam_type TEXT NOT NULL, subject TEXT NOT NULL, 
             marks_obtained REAL NOT NULL, total_marks REAL NOT NULL DEFAULT 100,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # Fee Payments
         db.execute('''CREATE TABLE IF NOT EXISTS fee_payments (
             id INTEGER PRIMARY KEY AUTOINCREMENT, student_id INTEGER NOT NULL,
             amount REAL NOT NULL, payment_date TEXT NOT NULL,
             transaction_id TEXT, status TEXT DEFAULT 'pending',
             remarks TEXT, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # School Settings (for QR code, etc.)
         db.execute('''CREATE TABLE IF NOT EXISTS school_settings (
             key TEXT PRIMARY KEY, value TEXT)''')
         
-        # Messages (admin to users)
         db.execute('''CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT, from_user_id INTEGER NOT NULL,
             to_user_id INTEGER, to_role TEXT, subject TEXT NOT NULL, body TEXT NOT NULL,
             is_read INTEGER DEFAULT 0, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # Events / News Table
         db.execute('''CREATE TABLE IF NOT EXISTS events (
             id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL,
             description TEXT, event_date TEXT NOT NULL, event_time TEXT,
@@ -262,44 +242,37 @@ def init_db():
             is_featured INTEGER DEFAULT 0,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # Faculty Directory Table
         db.execute('''CREATE TABLE IF NOT EXISTS faculty (
             id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, name TEXT NOT NULL,
             subject TEXT NOT NULL, qualification TEXT, experience TEXT,
             photo_url TEXT, bio TEXT, display_order INTEGER DEFAULT 0,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # Call migration for faculty table
         migrate_faculty_table(db)
         
-        # Testimonials Table
         db.execute('''CREATE TABLE IF NOT EXISTS testimonials (
             id INTEGER PRIMARY KEY AUTOINCREMENT, author_name TEXT NOT NULL,
             author_role TEXT DEFAULT 'Parent', message TEXT NOT NULL,
             rating INTEGER DEFAULT 5, is_approved INTEGER DEFAULT 1,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # Achievements Table
         db.execute('''CREATE TABLE IF NOT EXISTS achievements (
             id INTEGER PRIMARY KEY AUTOINCREMENT, student_name TEXT NOT NULL,
             class_name TEXT, achievement TEXT NOT NULL, year TEXT,
             category TEXT DEFAULT 'academic', photo_url TEXT,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # Gallery Images Table
         db.execute('''CREATE TABLE IF NOT EXISTS gallery (
             id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL,
             image_url TEXT NOT NULL, category TEXT DEFAULT 'campus',
             display_order INTEGER DEFAULT 0,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # FAQ Table
         db.execute('''CREATE TABLE IF NOT EXISTS faq (
             id INTEGER PRIMARY KEY AUTOINCREMENT, question TEXT NOT NULL,
             answer TEXT NOT NULL, display_order INTEGER DEFAULT 0,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # HOMEWORK TABLE
         db.execute('''CREATE TABLE IF NOT EXISTS homework (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             class_name TEXT NOT NULL,
@@ -310,7 +283,6 @@ def init_db():
             assigned_by INTEGER,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # === NEW: STUDY MATERIALS TABLE ===
         db.execute('''CREATE TABLE IF NOT EXISTS study_materials (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             class_name TEXT NOT NULL,
@@ -323,134 +295,7 @@ def init_db():
             uploaded_by INTEGER,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-        # =========================================
-        # SEED DATA (Only once per table)
-        # =========================================
-        def _is_seeded(key):
-            r = db.execute("SELECT value FROM school_settings WHERE key = ?", (f'_seed_{key}',)).fetchone()
-            return r and r[0] == '1'
-        
-        def _mark_seeded(key):
-            db.execute("INSERT OR REPLACE INTO school_settings (key, value) VALUES (?, '1')", (f'_seed_{key}',))
-        
-        # Seed Notices
-        if not _is_seeded('notices'):
-            for n in INITIAL_NOTICES:
-                db.execute('INSERT INTO notices (date, title, tag, description, target_role) VALUES (?,?,?,?,?)',
-                           (n['date'], n['title'], n['tag'], n['desc'], n['target_role']))
-            _mark_seeded('notices')
-        
-        # Seed Events
-        if not _is_seeded('events'):
-            events_seed = [
-                ('Annual Sports Day 2026', 'A day full of sports, teamwork and fun for all students.', '2026-12-15', '09:00 AM', 'Main Playground', 'sports', 1),
-                ('Parent-Teacher Meeting', 'PTM for all classes — parents are requested to attend.', '2026-11-20', '10:00 AM', 'School Hall', 'meeting', 1),
-                ('Annual Function 2026', 'Cultural program showcasing student talents.', '2026-12-25', '05:00 PM', 'School Auditorium', 'cultural', 1),
-                ('Winter Vacation Begins', 'School will remain closed for winter vacation.', '2026-12-28', 'All Day', 'School', 'holiday', 0),
-                ('Republic Day Celebration', 'Flag hoisting ceremony followed by cultural program.', '2027-01-26', '08:00 AM', 'School Ground', 'cultural', 0),
-                ('Science Exhibition', 'Students showcase innovative science projects.', '2027-02-10', '10:00 AM', 'Science Lab', 'academic', 0),
-            ]
-            for e in events_seed:
-                db.execute('INSERT INTO events (title, description, event_date, event_time, location, category, is_featured) VALUES (?,?,?,?,?,?,?)', e)
-            _mark_seeded('events')
-        
-        # Seed Faculty
-        if not _is_seeded('faculty'):
-            faculty_seed = [
-                ('Mr. Niraj Kumar', 'Mathematics', 'M.Sc., B.Ed', '8+ Years', 'Passionate about making math fun and accessible for every student.', 1),
-                ('Mrs. Priya Sharma', 'English', 'M.A. English, B.Ed', '10+ Years', 'Believes in developing strong communication skills through literature.', 2),
-                ('Mr. Rajesh Verma', 'Science', 'M.Sc. Physics, B.Ed', '6+ Years', 'Encourages curiosity and hands-on learning in science.', 3),
-                ('Mrs. Anita Kumari', 'Hindi', 'M.A. Hindi, B.Ed', '12+ Years', 'Dedicated to promoting Hindi language and cultural values.', 4),
-                ('Mr. Sanjay Prasad', 'Social Science', 'M.A. History, B.Ed', '5+ Years', 'Makes history come alive with engaging storytelling.', 5),
-                ('Ms. Neha Singh', 'Computer Science', 'MCA', '4+ Years', 'Prepares students for the digital future.', 6),
-            ]
-            for f in faculty_seed:
-                db.execute('INSERT INTO faculty (name, subject, qualification, experience, bio, display_order) VALUES (?,?,?,?,?,?)', f)
-            _mark_seeded('faculty')
-        
-        # Seed Testimonials
-        if not _is_seeded('testimonials'):
-            test_seed = [
-                ('Mrs. Sunita Devi', 'Parent', 'Excellent school with caring teachers. My daughter has grown so much in confidence.', 5),
-                ('Mr. Ramesh Kumar', 'Parent', 'The attention given to each student is remarkable. Highly recommend RSN.', 5),
-                ('Mr. Anil Yadav', 'Parent', 'Best school in Navinagar Jamui. Quality education and strong values.', 5),
-                ('Mrs. Kavita Verma', 'Parent', 'My son loves going to school every day. The teachers are wonderful.', 5),
-                ('Mr. Deepak Singh', 'Parent', 'Great balance of academics and extracurricular activities.', 5),
-            ]
-            for t in test_seed:
-                db.execute('INSERT INTO testimonials (author_name, author_role, message, rating) VALUES (?,?,?,?)', t)
-            _mark_seeded('testimonials')
-        
-        # Seed Achievements
-        if not _is_seeded('achievements'):
-            ach_seed = [
-                ('Aarav Kumar', 'Class 8', '1st Position in District Math Olympiad', '2026', 'academic'),
-                ('Priya Kumari', 'Class 7', 'Gold Medal in State Chess Championship', '2026', 'sports'),
-                ('Rohit Raj', 'Class 6', 'Winner — Inter-School Science Quiz', '2026', 'academic'),
-                ('Ananya Singh', 'Class 5', 'Best Performer in Annual Dance Competition', '2026', 'cultural'),
-                ('Vivaan Sharma', 'Class 4', '1st Place in Drawing Competition', '2026', 'cultural'),
-                ('Aadhya Verma', 'Class 3', 'Best Student Award — Session 2025-26', '2026', 'academic'),
-            ]
-            for a in ach_seed:
-                db.execute('INSERT INTO achievements (student_name, class_name, achievement, year, category) VALUES (?,?,?,?,?)', a)
-            _mark_seeded('achievements')
-        
-        # Seed Gallery
-        if not _is_seeded('gallery'):
-            gallery_seed = [
-                ('School Campus', 'campus.jpg', 'campus', 1),
-                ('Annual Day', 'head2.jpeg', 'events', 2),
-                ('Group Photo', 'all.jpeg', 'events', 3),
-                ('Our Staff', 'all_starfs.jpeg', 'faculty', 4),
-                ('Teachers', 'Doc.jpeg', 'faculty', 5),
-                ('Management', 'head.jpeg', 'faculty', 6),
-                ('Principal Ma\'am', 'head_maam.jpeg', 'faculty', 7),
-                ('Cultural Program', 'Radhay_Krishna.jpeg', 'events', 8),
-                ('Teachers Day', 'teachers_day.jpeg', 'events', 9),
-                ('Teaching Staff', 'teachers.jpeg', 'faculty', 10),
-                ('Student Art', 'drawings.jpeg', 'activities', 11),
-                ('Sports Day', 'Niraj.jpeg', 'sports', 12),
-            ]
-            for g in gallery_seed:
-                db.execute('INSERT INTO gallery (title, image_url, category, display_order) VALUES (?,?,?,?)', g)
-            _mark_seeded('gallery')
-        
-        # Seed FAQ
-        if not _is_seeded('faq'):
-            faq_seed = [
-                ('What classes does the school offer?', 'Residential Shanti Niketan offers education from Pre-Nursery to Class 8, covering Pre-Primary, Primary, and Middle School.', 1),
-                ('How can I apply for admission?', 'You can fill the admission enquiry form on our homepage, or contact the school office directly at 9155658081.', 2),
-                ('How can I pay the school fees?', 'Fees can be paid online through our Parent/Student Portal using UPI (Google Pay, PhonePe, Paytm).', 3),
-                ('How do I get my login credentials?', 'Login credentials are created by the school admin. You will receive your Unique ID and default password.', 4),
-                ('What are the school timings?', 'The school operates from Monday to Saturday, with class timings varying by grade.', 5),
-                ('Is transportation available?', 'Please contact the school office for information about transportation facilities.', 6),
-                ('How can parents track their child\'s attendance?', 'Parents can log into their Parent Dashboard to view their child\'s complete attendance record.', 7),
-                ('Is the school environment safe for children?', 'Absolutely! We prioritize student safety with a caring environment and trained staff.', 8),
-            ]
-            for f in faq_seed:
-                db.execute('INSERT INTO faq (question, answer, display_order) VALUES (?,?,?)', f)
-            _mark_seeded('faq')
-        
-        # Seed Homework
-        if not _is_seeded('homework'):
-            homework_seed = [
-                ('Class 3', 'Mathematics', 'Chapter 5 — Multiplication tables',
-                 'Learn tables 2 to 12 and complete exercises on page 42-45.', '2026-12-10'),
-                ('Class 3', 'English', 'Reading comprehension — Unit 3',
-                 'Read the passage and answer all questions in the workbook.', '2026-12-12'),
-                ('Class 6', 'Science', 'Photosynthesis diagram',
-                 'Draw a well-labelled diagram of photosynthesis in your notebook.', '2026-12-15'),
-                ('Class 6', 'Mathematics', 'Algebra — Linear equations',
-                 'Solve problems 1 to 15 from Chapter 8.', '2026-12-14'),
-                ('Class 8', 'Mathematics', 'Geometry — Triangles',
-                 'Complete all construction problems in Exercise 6.3.', '2026-12-18'),
-            ]
-            for h in homework_seed:
-                db.execute('''INSERT INTO homework (class_name, subject, title, description, due_date)
-                              VALUES (?, ?, ?, ?, ?)''', h)
-            _mark_seeded('homework')
-        
-        # Default school settings
+        # Default school settings (required — not dummy data)
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('fee_qr_url', '')")
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('school_name', 'Residential Shanti Niketan')")
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('upi_link', '')")
@@ -542,6 +387,44 @@ def get_combined_faculty():
 
 
 # =========================================
+# HELPER: Find a parent's child (student) record
+# =========================================
+def get_parent_child(db, parent_user):
+    """
+    Look up a parent's child (student) record.
+
+    Tries in this order:
+      1. child_admission_no → matches student.admission_no
+      2. child_name + child_class → matches student.name + (class_name or child_class)
+
+    Returns the student Row or None.
+    """
+    if not parent_user:
+        return None
+
+    if parent_user['child_admission_no']:
+        row = db.execute(
+            "SELECT * FROM users WHERE role='student' AND admission_no = ? LIMIT 1",
+            (parent_user['child_admission_no'],)
+        ).fetchone()
+        if row:
+            return row
+
+    if parent_user['child_name'] and parent_user['child_class']:
+        return db.execute(
+            "SELECT * FROM users WHERE role='student' "
+            "AND LOWER(name) = LOWER(?) "
+            "AND (class_name = ? OR child_class = ?) "
+            "LIMIT 1",
+            (parent_user['child_name'],
+             parent_user['child_class'],
+             parent_user['child_class'])
+        ).fetchone()
+
+    return None
+
+
+# =========================================
 # 3.1. USER PHOTO + FIELD HELPERS
 # =========================================
 def save_user_photo(file_storage, max_mb=2):
@@ -629,7 +512,6 @@ def inject_admin_sidebar_counts():
             'pending_fees': db.execute(
                 "SELECT COUNT(*) FROM fee_payments WHERE status='pending'"
             ).fetchone()[0],
-            # NEW: total homework + study materials counts
             'total_homework': db.execute(
                 "SELECT COUNT(*) FROM homework"
             ).fetchone()[0],
@@ -882,10 +764,20 @@ def user_dashboard():
     db    = get_db()
     role  = user['role']
 
-    all_attendance = db.execute(
-        'SELECT * FROM attendance WHERE user_id = ? ORDER BY date DESC',
-        (user['id'],)
-    ).fetchall()
+    # For parents, look up the child once and use the child's ID for attendance + fees.
+    # For all other roles, use the user's own ID.
+    parent_child = get_parent_child(db, user) if role == 'parent' else None
+    parent_child_id = parent_child['id'] if parent_child else None
+
+    attendance_user_id = parent_child_id if role == 'parent' else user['id']
+
+    if attendance_user_id:
+        all_attendance = db.execute(
+            'SELECT * FROM attendance WHERE user_id = ? ORDER BY date DESC',
+            (attendance_user_id,)
+        ).fetchall()
+    else:
+        all_attendance = []
 
     attendance = all_attendance[:30]
 
@@ -935,7 +827,6 @@ def user_dashboard():
             (user['id'],)
         ).fetchall()
 
-        # NEW: Homework for student's class (class_name first, then child_class)
         pending_homework = 0
         homework_list = []
         target_class = user['class_name'] or user['child_class']
@@ -963,10 +854,13 @@ def user_dashboard():
 
     # ---------- PARENT ----------
     elif role == 'parent':
-        fees = db.execute(
-            'SELECT * FROM fee_payments WHERE student_id = ? ORDER BY id DESC',
-            (user['id'],)
-        ).fetchall()
+        if parent_child_id:
+            fees = db.execute(
+                'SELECT * FROM fee_payments WHERE student_id = ? ORDER BY id DESC',
+                (parent_child_id,)
+            ).fetchall()
+        else:
+            fees = []
 
         pending_homework = 0
         if user['child_class']:
@@ -989,6 +883,7 @@ def user_dashboard():
                               fee_total=fee_total,
                               fee_paid=fee_paid,
                               fee_pending=fee_pending,
+                              child_linked=bool(parent_child_id),
                               fee_qr=get_setting('fee_qr_url'),
                               upi_link=get_setting('upi_link'))
 
@@ -1040,8 +935,20 @@ def fee_pay():
         return redirect(url_for('user_dashboard'))
     
     db = get_db()
+
+    # For parents, record the payment against the CHILD's ID
+    payer = get_user_by_id(session['user_id'])
+    student_id = session['user_id']  # default (student paying themselves)
+
+    if payer and payer['role'] == 'parent':
+        child = get_parent_child(db, payer)
+        if not child:
+            flash('No linked child found for your account. Please contact the office.', 'error')
+            return redirect(url_for('user_dashboard'))
+        student_id = child['id']
+
     db.execute('INSERT INTO fee_payments (student_id, amount, payment_date, transaction_id, status, remarks) VALUES (?,?,?,?,?,?)',
-               (session['user_id'], amount, datetime.now().strftime('%Y-%m-%d'), txn_id, 'pending', remarks))
+               (student_id, amount, datetime.now().strftime('%Y-%m-%d'), txn_id, 'pending', remarks))
     db.commit()
     flash('Payment submitted. Admin will verify shortly.', 'success')
     return redirect(url_for('user_dashboard'))
@@ -1136,9 +1043,8 @@ def admin_dashboard():
 def admin_users():
     db = get_db()
     role_filter = request.args.get('role', 'all')
-    q = (request.args.get('q') or '').strip()  # NEW: search query
+    q = (request.args.get('q') or '').strip()
 
-    # Build query — role filter preserved, search added only when q is present
     query = 'SELECT * FROM users WHERE 1=1'
     params = []
 
@@ -1146,7 +1052,6 @@ def admin_users():
         query += ' AND role = ?'
         params.append(role_filter)
 
-    # NEW: search across name / email / phone / unique_id
     if q:
         like = f'%{q}%'
         query += ' AND (name LIKE ? OR email LIKE ? OR phone LIKE ? OR unique_id LIKE ?)'
@@ -1176,13 +1081,11 @@ def admin_create_user():
         email = (form.get('email') or '').strip()
         phone = (form.get('phone') or '').strip()
 
-        # ---------- ROLE ----------
         if not role:
             errors['role'] = 'Please select a role'
         elif role not in ('teacher', 'admin', 'parent', 'student'):
             errors['role'] = 'Invalid role selected'
 
-        # ---------- NAME ----------
         if not name:
             errors['name'] = 'Full name is required'
         elif len(name) < 2:
@@ -1190,7 +1093,6 @@ def admin_create_user():
         elif len(name) > 100:
             errors['name'] = 'Name must be at most 100 characters'
 
-        # ---------- EMAIL ----------
         if not email:
             errors['email'] = 'Email is required'
         elif not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
@@ -1199,7 +1101,6 @@ def admin_create_user():
                         (email,)).fetchone():
             errors['email'] = 'This email is already registered'
 
-        # ---------- PHONE ----------
         if not phone:
             errors['phone'] = 'Mobile number is required'
         elif not re.match(r'^[0-9]{10}$', phone):
@@ -1208,7 +1109,6 @@ def admin_create_user():
                         (phone,)).fetchone():
             errors['phone'] = 'This mobile number is already registered'
 
-        # ---------- COMMON FORMAT CHECKS ----------
         pincode = (form.get('pincode') or '').strip()
         if pincode and not re.match(r'^[0-9]{6}$', pincode):
             errors['pincode'] = 'Pincode must be exactly 6 digits'
@@ -1241,7 +1141,6 @@ def admin_create_user():
         if ifsc and not re.match(r'^[A-Za-z]{4}0[A-Za-z0-9]{6}$', ifsc):
             errors['ifsc'] = 'Invalid IFSC code (e.g. SBIN0001234)'
 
-        # ---------- ROLE-SPECIFIC REQUIRED ----------
         if role == 'teacher':
             if not (form.get('qualification') or '').strip():
                 errors['qualification'] = 'Qualification is required'
@@ -1275,14 +1174,12 @@ def admin_create_user():
                 if not (form.get(f) or '').strip():
                     errors[f] = msg
 
-        # ---------- PHOTO (Optional) ----------
         photo_file = request.files.get('photo')
         has_photo = bool(photo_file and photo_file.filename)
 
         if has_photo and not allowed_file(photo_file.filename):
             errors['photo'] = 'Only JPG / PNG / WEBP / GIF allowed'
 
-        # ---------- STOP & RE-RENDER IF ANY ERROR ----------
         if errors:
             flash(f'Please fix {len(errors)} error{"s" if len(errors)>1 else ""} below.', 'error')
             return render_template(
@@ -1291,7 +1188,6 @@ def admin_create_user():
                 active_page='create_user'
             )
 
-        # ---------- SUCCESS: INSERT ----------
         fields = _collect_form_fields(role)
 
         if role == 'student' and fields.get('class_name'):
@@ -1344,7 +1240,6 @@ def admin_create_user():
               f'Default Password: {DEFAULT_PASSWORD}', 'success')
         return redirect(url_for('admin_users'))
 
-    # ---------- GET (with optional ?role= pre-selection) ----------
     pre_role = request.args.get('role', '')
     if pre_role and pre_role in ('teacher', 'admin', 'parent', 'student'):
         initial_form = {'role': pre_role}
@@ -1499,7 +1394,6 @@ def admin_attendance():
     class_filter = request.args.get('class_filter', 'all')
     subject_filter = request.args.get('subject_filter', 'General')
 
-    # ---- Build user list (respect role + optional class filter) ----
     query = "SELECT * FROM users WHERE role = ? AND is_active = 1"
     params = [role]
     if role == 'student' and class_filter != 'all':
@@ -1508,7 +1402,6 @@ def admin_attendance():
     query += " ORDER BY name"
     users = db.execute(query, tuple(params)).fetchall()
 
-    # ---- Class list (for the filter dropdown) ----
     class_list = []
     if role == 'student':
         rows = db.execute(
@@ -1518,14 +1411,12 @@ def admin_attendance():
         ).fetchall()
         class_list = [r['c'] for r in rows if r['c']]
 
-    # ---- Attendance records for this date+subject ----
     records = db.execute(
         "SELECT * FROM attendance WHERE date = ? AND subject = ?",
         (date, subject_filter)
     ).fetchall()
     attendance_map = {r['user_id']: r['status'] for r in records}
 
-    # ---- Live stats for the current filtered view ----
     user_ids = [u['id'] for u in users]
     present_count = absent_count = leave_count = halfday_count = 0
     for uid in user_ids:
@@ -1537,7 +1428,6 @@ def admin_attendance():
     marked     = present_count + absent_count + leave_count + halfday_count
     not_marked = len(user_ids) - marked
 
-    # ---- Today-at-a-glance: role-wise breakdown (all roles) ----
     overall = {}
     for r in ('student', 'teacher', 'parent'):
         role_ids = [row['id'] for row in db.execute(
@@ -1563,7 +1453,6 @@ def admin_attendance():
             'not-marked': len(role_ids) - len(m),
         }
 
-    # ---- Subject list for the filter ----
     subjects = [row['subject'] for row in db.execute(
         "SELECT DISTINCT subject FROM attendance "
         "WHERE subject IS NOT NULL AND subject != '' ORDER BY subject"
@@ -1623,8 +1512,7 @@ def admin_mark_attendance():
         date=date, role=role,
         class_filter=class_filter, subject_filter=subject
     ))
-    
-    
+
 # === LEAVE REQUESTS ===
 @app.route('/admin/leaves')
 @admin_required
@@ -2130,13 +2018,11 @@ def teacher_attendance():
     selected_class = (request.args.get('class_filter')
                       or request.form.get('class_filter') or 'all')
 
-    # Parse assigned classes from teacher's profile
     raw_classes = user['classes_assigned'] or ''
     assigned_classes = [c.strip() for c in raw_classes.split(',') if c.strip()]
 
-    # ---------- POST: save both self + classroom ----------
     if request.method == 'POST':
-        # 1) Teacher self attendance — always stored under 'General'
+        # 1) Self attendance
         self_status = request.form.get('teacher_self_status')
         if self_status in ('present', 'absent', 'leave', 'half-day'):
             existing = db.execute(
@@ -2155,18 +2041,25 @@ def teacher_attendance():
                     (user['id'], date, self_status, user['id'])
                 )
 
-        # 2) Classroom attendance — stored under chosen subject
+        # 2) Classroom attendance — handles empty (reset) status too
         for key, val in request.form.items():
             if key.startswith('status_'):
                 try:
                     uid = int(key.replace('status_', ''))
                 except ValueError:
                     continue
+                val = (val or '').strip()
+
                 existing = db.execute(
                     'SELECT id FROM attendance WHERE user_id=? AND date=? AND subject=?',
                     (uid, date, subject)
                 ).fetchone()
-                if existing:
+
+                if not val:
+                    # RESET — remove existing record if any
+                    if existing:
+                        db.execute('DELETE FROM attendance WHERE id = ?', (existing['id'],))
+                elif existing:
                     db.execute(
                         'UPDATE attendance SET status=?, marked_by=? WHERE id=?',
                         (val, user['id'], existing['id'])
@@ -2184,15 +2077,13 @@ def teacher_attendance():
             date=date, subject=subject, class_filter=selected_class
         ))
 
-    # ---------- GET: build page ----------
-    # Teacher's own attendance today
+    # ---------- GET ----------
     self_rec = db.execute(
         "SELECT status FROM attendance WHERE user_id=? AND date=? AND subject='General'",
         (user['id'], date)
     ).fetchone()
     self_status = self_rec['status'] if self_rec else 'not-marked'
 
-    # Students query
     sq = "SELECT * FROM users WHERE role='student' AND is_active=1"
     sp = []
     if selected_class != 'all':
@@ -2207,7 +2098,6 @@ def teacher_attendance():
     sq += " ORDER BY COALESCE(class_name, child_class), name"
     students = db.execute(sq, tuple(sp)).fetchall()
 
-    # Attendance map for those students
     student_att_map = {}
     if students:
         ids = [s['id'] for s in students]
@@ -2219,7 +2109,6 @@ def teacher_attendance():
         ).fetchall()
         student_att_map = {r['user_id']: r['status'] for r in rows}
 
-    # Class list for the filter
     class_rows = db.execute(
         "SELECT DISTINCT COALESCE(class_name, child_class) AS c FROM users "
         "WHERE role='student' AND COALESCE(class_name, child_class) IS NOT NULL "
@@ -2227,7 +2116,6 @@ def teacher_attendance():
     ).fetchall()
     class_list = [r['c'] for r in class_rows if r['c']]
 
-    # Subjects list — teacher's own subject highlighted first
     subject_rows = [row['subject'] for row in db.execute(
         "SELECT DISTINCT subject FROM attendance "
         "WHERE subject IS NOT NULL AND subject != '' ORDER BY subject"
@@ -2239,13 +2127,6 @@ def teacher_attendance():
     if subject not in subjects:
         subjects.insert(0, subject)
 
-    # Stats
-    present_count = sum(1 for v in student_att_map.values() if v == 'present')
-    absent_count  = sum(1 for v in student_att_map.values() if v == 'absent')
-    leave_count   = sum(1 for v in student_att_map.values() if v == 'leave')
-    halfday_count = sum(1 for v in student_att_map.values() if v == 'half-day')
-    not_marked    = len(students) - len(student_att_map)
-
     return render_template(
         'teacher_attendance.html',
         user=user, date=date, subject=subject,
@@ -2254,15 +2135,11 @@ def teacher_attendance():
         class_list=class_list, subjects=subjects,
         students=students, student_att_map=student_att_map,
         self_status=self_status,
-        present_count=present_count, absent_count=absent_count,
-        leave_count=leave_count, halfday_count=halfday_count,
-        not_marked=not_marked,
         total_students=len(students)
     )
-    
-    
+
 # =========================================
-# 10.7. ADMIN — STUDY MATERIALS (NEW)
+# 10.7. ADMIN — STUDY MATERIALS
 # =========================================
 @app.route('/admin/study-materials')
 @admin_required
@@ -2317,7 +2194,7 @@ def admin_delete_study_material(mid):
 
 
 # =========================================
-# 10.8. STUDENT/PARENT — STUDY MATERIALS (NEW)
+# 10.8. STUDENT/PARENT — STUDY MATERIALS
 # =========================================
 @app.route('/study-materials')
 @login_required
@@ -2351,7 +2228,7 @@ def study_materials_page():
 
 
 # =========================================
-# 10.9. STUDENT/PARENT — RESULTS PAGE (NEW)
+# 10.9. STUDENT/PARENT — RESULTS PAGE
 # =========================================
 @app.route('/results')
 @login_required
@@ -2379,18 +2256,7 @@ def results_page():
     elif role == 'parent':
         student_name = user['child_name']
         student_class = user['child_class']
-        child = None
-        if user['child_admission_no']:
-            child = db.execute(
-                "SELECT id FROM users WHERE role='student' AND admission_no = ?",
-                (user['child_admission_no'],)
-            ).fetchone()
-        if not child and user['child_name'] and user['child_class']:
-            child = db.execute(
-                "SELECT id FROM users WHERE role='student' "
-                "AND name = ? AND (class_name = ? OR child_class = ?)",
-                (user['child_name'], user['child_class'], user['child_class'])
-            ).fetchone()
+        child = get_parent_child(db, user)
         if child:
             exam_marks = db.execute(
                 'SELECT * FROM exam_marks WHERE student_id = ? '
@@ -2413,7 +2279,7 @@ def results_page():
 
 
 # =========================================
-# 10.10. SETTINGS PAGE (NEW)
+# 10.10. SETTINGS PAGE
 # =========================================
 @app.route('/settings')
 @login_required

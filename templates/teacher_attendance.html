@@ -17,22 +17,24 @@
             background: #f4f7fb;
             color: #0a2340;
         }
-        .ta-page { max-width: 1150px; margin: 0 auto; padding: 22px; }
+        .ta-page { max-width: 1180px; margin: 0 auto; padding: 22px; }
 
+        /* === Back === */
         .ta-back {
             display: inline-flex; align-items: center; gap: 8px;
             padding: 9px 14px; background: #fff; border: 1px solid #e1e8f0;
             border-radius: 10px; font-size: 12.5px; font-weight: 700;
             color: #0a2340; text-decoration: none; margin-bottom: 18px;
-            transition: all 0.2s ease;
+            transition: all .2s ease;
         }
         .ta-back:hover { background: #f4f8fc; border-color: #b0c4d8; }
 
+        /* === Banner === */
         .ta-banner {
             background: linear-gradient(135deg, #0a2340 0%, #12406b 60%, #1768a7 100%);
             border-radius: 16px; padding: 24px 28px;
             color: #fff; position: relative; overflow: hidden;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
         .ta-banner::after {
             content: ''; position: absolute;
@@ -58,13 +60,13 @@
         }
         .ta-banner-meta i { color: #ffd447; margin-right: 4px; font-size: 11px; }
 
-        /* Panels */
+        /* === Panels === */
         .ta-panel {
             background: #fff;
             border: 1px solid #e1e8f0;
             border-radius: 14px;
             overflow: hidden;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
         .ta-panel-head {
             padding: 14px 20px;
@@ -81,21 +83,22 @@
         .ta-panel-title i { color: #d71938; font-size: 12px; }
         .ta-panel-body { padding: 18px 20px; }
 
-        /* Self attendance card */
+        /* === Self Attendance === */
         .ta-self-card {
             display: flex; align-items: center; gap: 16px;
-            padding: 18px;
+            padding: 16px 18px;
             background: linear-gradient(135deg, #e6f4ff, #d0ebff);
             border-radius: 12px;
             border: 1px solid #c0dfff;
+            flex-wrap: wrap;
         }
         .ta-self-avatar {
-            width: 56px; height: 56px; border-radius: 50%;
+            width: 52px; height: 52px; border-radius: 50%;
             background: linear-gradient(135deg, #d71938, #b9102c);
             border: 3px solid #fff;
             display: flex; align-items: center; justify-content: center;
-            color: #fff; font-weight: 800; font-size: 18px;
-            flex: 0 0 56px;
+            color: #fff; font-weight: 800; font-size: 17px;
+            flex: 0 0 52px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         .ta-self-info { flex: 1; min-width: 0; }
@@ -106,9 +109,6 @@
         .ta-self-info small {
             display: block; font-size: 11.5px; color: #4a6b8c; font-weight: 600;
         }
-        .ta-self-actions {
-            display: flex; align-items: center; gap: 10px;
-        }
         .ta-self-actions select {
             font: inherit; font-size: 13px; font-weight: 700;
             padding: 9px 14px;
@@ -117,59 +117,66 @@
             cursor: pointer;
         }
 
-        /* Filters */
-        .ta-filters {
+        /* === Filter Bar === */
+        .ta-filter-bar {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
             gap: 12px;
+            padding: 16px 20px;
+            background: #fff;
+            border: 1px solid #e1e8f0;
+            border-radius: 14px;
+            margin-bottom: 16px;
         }
-        .ta-filters label {
+        .ta-filter-bar label {
             display: flex; flex-direction: column; gap: 5px;
-            font-size: 11px; font-weight: 700; color: #0a2340;
-            text-transform: uppercase; letter-spacing: 0.4px;
+            font-size: 10.5px; font-weight: 800; color: #0a2340;
+            text-transform: uppercase; letter-spacing: 0.5px;
         }
-        .ta-filters select, .ta-filters input {
+        .ta-filter-bar select,
+        .ta-filter-bar input[type="date"] {
             font: inherit; font-size: 13px;
-            padding: 8px 12px;
+            padding: 9px 12px;
             border: 1px solid #e1e8f0; border-radius: 8px;
             color: #0a2340; background: #fff; outline: none;
             transition: all .2s;
         }
-        .ta-filters select:focus, .ta-filters input:focus {
+        .ta-filter-bar select:focus,
+        .ta-filter-bar input:focus {
             border-color: #b0c4d8;
             box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
         }
 
-        /* Stat cards */
+        /* === Stats Row === */
         .ta-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
-            margin-bottom: 18px;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
         }
         .ta-stat {
             background: #fff; border: 1px solid #e1e8f0;
-            border-radius: 12px; padding: 14px 16px;
+            border-radius: 12px; padding: 12px 14px;
             position: relative; overflow: hidden;
         }
         .ta-stat::before {
             content: ''; position: absolute; top: 0; left: 0; right: 0;
             height: 3px;
         }
+        .ta-stat.total::before      { background: #0a2340; }
         .ta-stat.present::before    { background: #168254; }
         .ta-stat.absent::before     { background: #d71938; }
         .ta-stat.leave::before      { background: #a86a00; }
         .ta-stat.halfday::before    { background: #7439b2; }
         .ta-stat.not-marked::before { background: #94a3b8; }
-        .ta-stat.total::before      { background: #0a2340; }
 
         .ta-stat-label {
-            font-size: 10.5px; font-weight: 700; color: #65758a;
+            font-size: 10px; font-weight: 800; color: #65758a;
             text-transform: uppercase; letter-spacing: 0.5px;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .ta-stat-value {
-            font-size: 24px; font-weight: 800; color: #0a2340; line-height: 1;
+            font-size: 22px; font-weight: 800; color: #0a2340; line-height: 1;
         }
         .ta-stat.present .ta-stat-value    { color: #168254; }
         .ta-stat.absent .ta-stat-value     { color: #d71938; }
@@ -177,37 +184,184 @@
         .ta-stat.halfday .ta-stat-value    { color: #7439b2; }
         .ta-stat.not-marked .ta-stat-value { color: #64748b; }
 
-        /* Table */
-        .ta-table-wrap { overflow-x: auto; }
-        .ta-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .ta-table th {
-            text-align: left; padding: 10px 16px;
-            font-size: 10px; font-weight: 800; color: #65758a;
-            text-transform: uppercase; letter-spacing: 0.6px;
-            background: #fafcfd;
-            border-bottom: 1px solid #e1e8f0;
+        /* === Bulk + Search Bar === */
+        .ta-bulk-bar {
+            display: flex;
+            gap: 12px;
+            padding: 14px 18px;
+            background: #fff;
+            border: 1px solid #e1e8f0;
+            border-radius: 14px;
+            margin-bottom: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .ta-bulk-actions {
+            display: flex; gap: 8px; flex-wrap: wrap;
+        }
+        .ta-bulk-btn {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 9px 14px;
+            border-radius: 9px;
+            border: 1px solid transparent;
+            font: inherit; font-size: 12.5px; font-weight: 700;
+            cursor: pointer;
+            transition: all .2s ease;
             white-space: nowrap;
         }
-        .ta-table td {
-            padding: 11px 16px;
+        .ta-bulk-btn i { font-size: 11px; }
+        .ta-bulk-btn.present {
+            background: #e3f5eb; color: #168254; border-color: #c8e9d7;
+        }
+        .ta-bulk-btn.present:hover { background: #d0eddb; }
+        .ta-bulk-btn.absent {
+            background: #ffeaee; color: #d71938; border-color: #f8c9d2;
+        }
+        .ta-bulk-btn.absent:hover { background: #ffd9e0; }
+        .ta-bulk-btn.reset {
+            background: #f1f5f9; color: #475569; border-color: #e2e8f0;
+        }
+        .ta-bulk-btn.reset:hover { background: #e2e8f0; }
+
+        .ta-search-wrap {
+            margin-left: auto;
+            display: flex; align-items: center; gap: 10px;
+            flex-wrap: wrap;
+        }
+        .ta-search-input {
+            display: flex; align-items: center; gap: 8px;
+            background: #f1f5f9;
+            border: 1px solid transparent;
+            border-radius: 9px;
+            padding: 0 12px;
+            height: 40px;
+            width: 260px;
+            transition: all .2s;
+        }
+        .ta-search-input:focus-within {
+            background: #fff;
+            border-color: #b0c4d8;
+            box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
+        }
+        .ta-search-input i { color: #65758a; font-size: 12px; }
+        .ta-search-input input {
+            flex: 1; border: 0; outline: 0; background: transparent;
+            font: inherit; font-size: 13px; color: #0a2340;
+        }
+        .ta-search-input input::placeholder { color: #a0aec0; }
+
+        .ta-counter {
+            font-size: 11.5px; font-weight: 700; color: #65758a;
+            white-space: nowrap;
+        }
+        .ta-counter b { color: #0a2340; font-weight: 800; }
+
+        /* === Student Row === */
+        .ta-student-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 11px 18px;
             border-bottom: 1px solid #f1f5f9;
-            vertical-align: middle;
+            transition: all .15s ease;
+            border-left: 4px solid transparent;
         }
-        .ta-table tr:last-child td { border-bottom: 0; }
-        .ta-table tr:hover { background: #fafcfd; }
-        .ta-table .uid-cell {
-            font-family: 'Courier New', monospace;
-            font-size: 11.5px; font-weight: 600; color: #65758a;
+        .ta-student-row:last-child { border-bottom: 0; }
+        .ta-student-row:hover { background: #fafcfd; }
+
+        .ta-student-row.status-present    { background: #f0fdf4; border-left-color: #168254; }
+        .ta-student-row.status-absent     { background: #fef2f2; border-left-color: #d71938; }
+        .ta-student-row.status-leave      { background: #fffbeb; border-left-color: #a86a00; }
+        .ta-student-row.status-half-day   { background: #f5f3ff; border-left-color: #7439b2; }
+
+        .ta-student-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
         }
-        .ta-table select {
-            font: inherit; font-size: 12px; font-weight: 700;
-            padding: 6px 10px;
-            border: 1px solid #e1e8f0; border-radius: 7px;
-            background: #fff; color: #0a2340;
-            cursor: pointer;
-            min-width: 110px;
+        .ta-student-avatar {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: linear-gradient(135deg, #1768a7, #0d4b7a);
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 13px;
+            flex: 0 0 38px;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .ta-student-info strong {
+            display: block; font-size: 13px; font-weight: 700;
+            color: #0a2340; margin-bottom: 2px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .ta-student-info small {
+            display: block; font-size: 11px; color: #65758a; font-weight: 600;
         }
 
+        .ta-quick-toggle {
+            display: flex; gap: 4px;
+        }
+        .ta-toggle-btn {
+            width: 42px; height: 42px;
+            border-radius: 9px;
+            border: 2px solid #e1e8f0;
+            background: #fff;
+            font: inherit;
+            font-weight: 800;
+            font-size: 13px;
+            color: #65758a;
+            cursor: pointer;
+            transition: all .15s ease;
+            padding: 0;
+        }
+        .ta-toggle-btn:hover { transform: translateY(-1px); border-color: #b0c4d8; }
+
+        .ta-toggle-btn.p.active { background: #168254; border-color: #168254; color: #fff; }
+        .ta-toggle-btn.a.active { background: #d71938; border-color: #d71938; color: #fff; }
+        .ta-toggle-btn.l.active { background: #a86a00; border-color: #a86a00; color: #fff; }
+        .ta-toggle-btn.h.active { background: #7439b2; border-color: #7439b2; color: #fff; }
+
+        /* === Save Bar (sticky) === */
+        .ta-save-bar {
+            position: sticky;
+            bottom: 16px;
+            padding: 14px 20px;
+            background: #fff;
+            border: 1px solid #e1e8f0;
+            border-radius: 14px;
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 -4px 20px rgba(9,47,88,0.08);
+            z-index: 100;
+            gap: 12px;
+        }
+        .ta-save-info {
+            font-size: 12.5px; font-weight: 600; color: #65758a;
+        }
+        .ta-save-info strong { color: #0a2340; font-weight: 800; }
+        .ta-save-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 24px;
+            background: #0a2340; color: #fff;
+            border: 1px solid #0a2340;
+            border-radius: 10px;
+            font: inherit; font-size: 13px; font-weight: 700;
+            cursor: pointer;
+            transition: all .2s ease;
+        }
+        .ta-save-btn:hover {
+            background: #061f39;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(9,47,88,0.15);
+        }
+
+        /* === Badge === */
         .ta-badge {
             display: inline-block;
             padding: 3px 9px;
@@ -221,6 +375,7 @@
         .ta-badge.half-day   { background: #f0e7ff; color: #7439b2; }
         .ta-badge.not-marked { background: #f1f5f9; color: #64748b; }
 
+        /* === Empty === */
         .ta-empty {
             padding: 50px 24px; text-align: center;
             color: #65758a; font-size: 13px;
@@ -230,6 +385,7 @@
             margin-bottom: 12px; color: #cbd5e1;
         }
 
+        /* === Hint === */
         .ta-hint {
             padding: 10px 14px;
             background: #fff1d6;
@@ -245,37 +401,22 @@
         }
         .ta-hint i { margin-top: 2px; }
 
-        .ta-save-bar {
-            display: flex;
-            justify-content: flex-end;
-            padding: 18px 20px;
-            border-top: 1px solid #e1e8f0;
-            background: #fafcfd;
+        /* === Responsive === */
+        @media (max-width: 900px) {
+            .ta-stats { grid-template-columns: repeat(3, 1fr); }
+            .ta-search-wrap { width: 100%; margin-left: 0; }
+            .ta-search-input { width: 100%; }
         }
-        .ta-save-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 11px 22px;
-            background: #0a2340; color: #fff;
-            border: 1px solid #0a2340;
-            border-radius: 10px;
-            font: inherit; font-size: 13px; font-weight: 700;
-            cursor: pointer;
-            transition: all .2s ease;
-        }
-        .ta-save-btn:hover {
-            background: #061f39;
-            transform: translateY(-1px);
-            box-shadow: 0 8px 18px rgba(9,47,88,0.15);
-        }
-
         @media (max-width: 640px) {
             .ta-page { padding: 16px; }
             .ta-banner h1 { font-size: 21px; }
+            .ta-stats { grid-template-columns: repeat(2, 1fr); }
             .ta-self-card { flex-direction: column; align-items: flex-start; }
             .ta-self-actions { width: 100%; }
             .ta-self-actions select { width: 100%; }
+            .ta-toggle-btn { width: 38px; height: 38px; font-size: 12px; }
+            .ta-save-bar { flex-direction: column; }
+            .ta-save-btn { width: 100%; justify-content: center; }
         }
     </style>
 </head>
@@ -287,9 +428,10 @@
         <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
     </a>
 
+    <!-- Banner -->
     <section class="ta-banner">
         <h1>Mark Attendance</h1>
-        <p>Record your own attendance and mark your students for today.</p>
+        <p>Fast, subject-wise attendance — mark all present in one click, then fix the few absentees.</p>
         <div class="ta-banner-meta">
             <span><i class="fa-solid fa-id-badge"></i>{{ user.unique_id }}</span>
             <span><i class="fa-solid fa-book"></i>{{ user.subject or 'All Subjects' }}</span>
@@ -299,12 +441,12 @@
         </div>
     </section>
 
-    <form method="POST" action="{{ url_for('teacher_attendance') }}">
+    <form method="POST" action="{{ url_for('teacher_attendance') }}" id="attendanceForm">
         <input type="hidden" name="date" value="{{ date }}">
         <input type="hidden" name="subject" value="{{ subject }}">
         <input type="hidden" name="class_filter" value="{{ selected_class }}">
 
-        <!-- SELF ATTENDANCE -->
+        <!-- Self attendance -->
         <div class="ta-panel">
             <div class="ta-panel-head">
                 <h2 class="ta-panel-title">
@@ -318,7 +460,10 @@
                     </div>
                     <div class="ta-self-info">
                         <strong>{{ user.name }}</strong>
-                        <small>Current status: <span class="ta-badge {{ self_status }}">{{ self_status|replace('-',' ')|title }}</span></small>
+                        <small>
+                            Current status:
+                            <span class="ta-badge {{ self_status }}">{{ self_status|replace('-',' ')|title }}</span>
+                        </small>
                     </div>
                     <div class="ta-self-actions">
                         <select name="teacher_self_status">
@@ -332,65 +477,85 @@
             </div>
         </div>
 
-        <!-- FILTERS -->
-        <div class="ta-panel">
-            <div class="ta-panel-head">
-                <h2 class="ta-panel-title"><i class="fa-solid fa-filter"></i> Filter students</h2>
-            </div>
-            <div class="ta-panel-body">
-                <div class="ta-filters">
-                    <label>Date
-                        <input type="date" name="date_display" value="{{ date }}"
-                               onchange="location.href='{{ url_for('teacher_attendance') }}?date='+this.value+'&subject={{ subject|urlencode }}&class_filter={{ selected_class|urlencode }}'">
-                    </label>
-                    <label>Class
-                        <select onchange="location.href='{{ url_for('teacher_attendance') }}?date={{ date }}&subject={{ subject|urlencode }}&class_filter='+this.value">
-                            <option value="all" {% if selected_class=='all' %}selected{% endif %}>All Students</option>
-                            {% for c in class_list %}
-                            <option value="{{ c }}" {% if c==selected_class %}selected{% endif %}>{{ c }}</option>
-                            {% endfor %}
-                        </select>
-                    </label>
-                    <label>Subject
-                        <select onchange="location.href='{{ url_for('teacher_attendance') }}?date={{ date }}&subject='+this.value+'&class_filter={{ selected_class|urlencode }}'">
-                            {% for s in subjects %}
-                            <option value="{{ s }}" {% if s==subject %}selected{% endif %}>{{ s }}</option>
-                            {% endfor %}
-                        </select>
-                    </label>
-                </div>
-            </div>
+        <!-- Filters -->
+        <div class="ta-filter-bar">
+            <label>Date
+                <input type="date" value="{{ date }}"
+                       onchange="applyFilter('date', this.value)">
+            </label>
+            <label>Subject
+                <select onchange="applyFilter('subject', this.value)">
+                    {% for s in subjects %}
+                    <option value="{{ s }}" {% if s==subject %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Class
+                <select onchange="applyFilter('class_filter', this.value)">
+                    <option value="all" {% if selected_class=='all' %}selected{% endif %}>All Students</option>
+                    {% for c in class_list %}
+                    <option value="{{ c }}" {% if c==selected_class %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </label>
         </div>
 
-        <!-- STATS -->
+        <!-- Live stats -->
         <div class="ta-stats">
             <div class="ta-stat total">
-                <div class="ta-stat-label">Total Students</div>
-                <div class="ta-stat-value">{{ total_students }}</div>
+                <div class="ta-stat-label">Total</div>
+                <div class="ta-stat-value" id="statTotal">{{ students|length }}</div>
             </div>
             <div class="ta-stat present">
                 <div class="ta-stat-label">Present</div>
-                <div class="ta-stat-value">{{ present_count }}</div>
+                <div class="ta-stat-value" id="statPresent">0</div>
             </div>
             <div class="ta-stat absent">
                 <div class="ta-stat-label">Absent</div>
-                <div class="ta-stat-value">{{ absent_count }}</div>
+                <div class="ta-stat-value" id="statAbsent">0</div>
             </div>
             <div class="ta-stat leave">
-                <div class="ta-stat-label">On Leave</div>
-                <div class="ta-stat-value">{{ leave_count }}</div>
+                <div class="ta-stat-label">Leave</div>
+                <div class="ta-stat-value" id="statLeave">0</div>
             </div>
             <div class="ta-stat halfday">
                 <div class="ta-stat-label">Half Day</div>
-                <div class="ta-stat-value">{{ halfday_count }}</div>
+                <div class="ta-stat-value" id="statHalfday">0</div>
             </div>
             <div class="ta-stat not-marked">
                 <div class="ta-stat-label">Not Marked</div>
-                <div class="ta-stat-value">{{ not_marked }}</div>
+                <div class="ta-stat-value" id="statNotMarked">{{ students|length }}</div>
             </div>
         </div>
 
-        <!-- STUDENTS TABLE -->
+        <!-- Bulk actions + search -->
+        <div class="ta-bulk-bar">
+            <div class="ta-bulk-actions">
+                <button type="button" class="ta-bulk-btn present" onclick="markAllVisible('present')">
+                    <i class="fa-solid fa-check-double"></i> Mark All Present
+                </button>
+                <button type="button" class="ta-bulk-btn absent" onclick="markAllVisible('absent')">
+                    <i class="fa-solid fa-xmark"></i> Mark All Absent
+                </button>
+                <button type="button" class="ta-bulk-btn reset" onclick="markAllVisible('')">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+            </div>
+            <div class="ta-search-wrap">
+                <div class="ta-search-input">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="search" id="searchInput"
+                           placeholder="Search by name or ID..."
+                           oninput="filterStudents(this.value)"
+                           autofocus>
+                </div>
+                <span class="ta-counter">
+                    Showing <b id="visibleCount">{{ students|length }}</b> of {{ students|length }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Student list -->
         <div class="ta-panel">
             <div class="ta-panel-head">
                 <h2 class="ta-panel-title">
@@ -398,61 +563,59 @@
                     {{ selected_class if selected_class != 'all' else 'All Students' }}
                     — {{ date }} · {{ subject }}
                 </h2>
+                <span class="ta-counter" style="font-size: 11.5px;">
+                    Tip: press <b>Ctrl + S</b> to save
+                </span>
             </div>
 
-            {% if not assigned_classes and not class_list %}
-            <div class="ta-panel-body">
+            {% if not assigned_classes and selected_class == 'all' %}
+            <div style="padding: 0 20px;">
                 <div class="ta-hint">
                     <i class="fa-solid fa-circle-info"></i>
-                    No students have been added yet. Ask the admin to create student accounts.
-                </div>
-            </div>
-            {% elif not assigned_classes and selected_class == 'all' %}
-            <div class="ta-panel-body">
-                <div class="ta-hint">
-                    <i class="fa-solid fa-circle-info"></i>
-                    Tip: ask the admin to assign classes to your profile — then only those classes will appear here by default.
+                    Tip: ask the admin to assign classes to your profile so only those classes appear here by default.
                 </div>
             </div>
             {% endif %}
 
             {% if students %}
-            <div class="ta-table-wrap">
-                <table class="ta-table">
-                    <thead>
-                        <tr>
-                            <th>Unique ID</th>
-                            <th>Name</th>
-                            <th>Class</th>
-                            <th>Current</th>
-                            <th>Mark As</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for s in students %}
-                        {% set st = student_att_map.get(s.id, 'not-marked') %}
-                        <tr>
-                            <td><span class="uid-cell">{{ s.unique_id }}</span></td>
-                            <td><strong>{{ s.name }}</strong></td>
-                            <td style="font-size:12px; color:#65758a;">{{ s.class_name or s.child_class or '—' }}</td>
-                            <td><span class="ta-badge {{ st }}">{{ st|replace('-',' ')|title }}</span></td>
-                            <td>
-                                <select name="status_{{ s.id }}">
-                                    <option value="present"  {% if st=='present'  %}selected{% endif %}>Present</option>
-                                    <option value="absent"   {% if st=='absent'   %}selected{% endif %}>Absent</option>
-                                    <option value="leave"    {% if st=='leave'    %}selected{% endif %}>On Leave</option>
-                                    <option value="half-day" {% if st=='half-day' %}selected{% endif %}>Half Day</option>
-                                </select>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="ta-save-bar">
-                <button type="submit" class="ta-save-btn">
-                    <i class="fa-solid fa-save"></i> Save All Attendance
-                </button>
+            <div id="studentList">
+                {% for s in students %}
+                {% set st = student_att_map.get(s.id, '') %}
+                <div class="ta-student-row {% if st %}status-{{ st }}{% endif %}"
+                     data-sid="{{ s.id }}"
+                     data-name="{{ s.name|lower }}"
+                     data-uid="{{ s.unique_id|lower }}"
+                     data-status="{{ st }}">
+                    <div class="ta-student-info">
+                        <div class="ta-student-avatar">
+                            {{ s.name.split()[0][0]|upper }}{{ s.name.split()[-1][0]|upper if s.name.split()|length > 1 else '' }}
+                        </div>
+                        <div>
+                            <strong>{{ s.name }}</strong>
+                            <small>{{ s.unique_id }} · {{ s.class_name or s.child_class or '—' }}</small>
+                        </div>
+                    </div>
+                    <div class="ta-quick-toggle">
+                        <input type="hidden" name="status_{{ s.id }}" value="{{ st }}" class="status-input">
+                        <button type="button"
+                                class="ta-toggle-btn p {% if st=='present' %}active{% endif %}"
+                                onclick="setStatus('{{ s.id }}', 'present')"
+                                title="Present">P</button>
+                        <button type="button"
+                                class="ta-toggle-btn a {% if st=='absent' %}active{% endif %}"
+                                onclick="setStatus('{{ s.id }}', 'absent')"
+                                title="Absent">A</button>
+                        <button type="button"
+                                class="ta-toggle-btn l {% if st=='leave' %}active{% endif %}"
+                                onclick="setStatus('{{ s.id }}', 'leave')"
+                                title="On Leave">L</button>
+                        <button type="button"
+                                class="ta-toggle-btn h {% if st=='half-day' %}active{% endif %}"
+                                onclick="setStatus('{{ s.id }}', 'half-day')"
+                                title="Half Day">H</button>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
             {% else %}
             <div class="ta-empty">
@@ -462,9 +625,122 @@
             {% endif %}
         </div>
 
-    </form>
+        <!-- Sticky save bar -->
+        <div class="ta-save-bar">
+            <div class="ta-save-info">
+                <strong id="saveCounter">0</strong> of {{ students|length }} marked
+            </div>
+            <button type="submit" class="ta-save-btn">
+                <i class="fa-solid fa-save"></i> Save Attendance
+            </button>
+        </div>
 
+    </form>
 </div>
 
+<script>
+(function () {
+    'use strict';
+
+    /* ---- Init ---- */
+    document.addEventListener('DOMContentLoaded', updateCounters);
+
+    /* ---- Set status for a single student (with toggle-off) ---- */
+    window.setStatus = function (sid, status) {
+        const row = document.querySelector('.ta-student-row[data-sid="' + sid + '"]');
+        if (!row) return;
+
+        const input = row.querySelector('.status-input');
+        const current = input.value;
+
+        // Clicking the active status again = clear it
+        const newStatus = (current === status) ? '' : status;
+
+        input.value = newStatus;
+        row.dataset.status = newStatus;
+
+        // Row color
+        row.classList.remove('status-present', 'status-absent', 'status-leave', 'status-half-day');
+        if (newStatus) row.classList.add('status-' + newStatus);
+
+        // Button states
+        row.querySelectorAll('.ta-toggle-btn').forEach(b => b.classList.remove('active'));
+        if (newStatus) {
+            const cls = newStatus === 'present' ? 'p'
+                      : newStatus === 'absent'  ? 'a'
+                      : newStatus === 'leave'   ? 'l'
+                      : 'h';
+            const btn = row.querySelector('.ta-toggle-btn.' + cls);
+            if (btn) btn.classList.add('active');
+        }
+
+        updateCounters();
+    };
+
+    /* ---- Mark all VISIBLE students (respects search filter) ---- */
+    window.markAllVisible = function (status) {
+        document.querySelectorAll('.ta-student-row').forEach(row => {
+            if (row.style.display === 'none') return;
+            setStatus(row.dataset.sid, status);
+        });
+    };
+
+    /* ---- Search filter ---- */
+    window.filterStudents = function (query) {
+        const q = (query || '').toLowerCase().trim();
+        let visible = 0;
+
+        document.querySelectorAll('.ta-student-row').forEach(row => {
+            const match = !q
+                || row.dataset.name.includes(q)
+                || row.dataset.uid.includes(q);
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+
+        document.getElementById('visibleCount').textContent = visible;
+    };
+
+    /* ---- Update all live counters ---- */
+    function updateCounters() {
+        let present = 0, absent = 0, leave = 0, halfday = 0, total = 0;
+
+        document.querySelectorAll('.ta-student-row').forEach(row => {
+            total++;
+            const st = row.dataset.status;
+            if (st === 'present')       present++;
+            else if (st === 'absent')   absent++;
+            else if (st === 'leave')    leave++;
+            else if (st === 'half-day') halfday++;
+        });
+
+        const notMarked = total - (present + absent + leave + halfday);
+
+        document.getElementById('statTotal').textContent     = total;
+        document.getElementById('statPresent').textContent   = present;
+        document.getElementById('statAbsent').textContent    = absent;
+        document.getElementById('statLeave').textContent     = leave;
+        document.getElementById('statHalfday').textContent   = halfday;
+        document.getElementById('statNotMarked').textContent = notMarked;
+
+        document.getElementById('saveCounter').textContent = total - notMarked;
+    }
+
+    /* ---- Filter dropdown → reload page with query params ---- */
+    window.applyFilter = function (key, value) {
+        const url = new URL(window.location.href);
+        url.searchParams.set(key, value);
+        window.location.href = url.toString();
+    };
+
+    /* ---- Ctrl/Cmd + S to save ---- */
+    document.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+            e.preventDefault();
+            document.getElementById('attendanceForm').submit();
+        }
+    });
+})();
+</script>
 </body>
 </html>

@@ -4,6 +4,7 @@
 
 {% block content %}
 <style>
+    /* === Stats === */
     .att-stats {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -56,6 +57,7 @@
     .att-stat-card.halfday .att-stat-value    { color: #7439b2; }
     .att-stat-card.not-marked .att-stat-value { color: #64748b; }
 
+    /* === Overall panel === */
     .att-overall {
         background: #f8fafc;
         border: 1px solid var(--line);
@@ -127,6 +129,7 @@
     .att-overall-pill.halfday    { background: #f0e7ff; color: #7439b2; }
     .att-overall-pill.not-marked { background: #f1f5f9; color: #64748b; }
 
+    /* === Filters === */
     .att-filters {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -159,6 +162,7 @@
         box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
     }
 
+    /* === Refresh note === */
     .att-refresh-note {
         display: flex;
         justify-content: space-between;
@@ -187,6 +191,7 @@
     }
     .att-refresh-btn:hover { background: #f4f8fc; border-color: #b0c4d8; }
 
+    /* === Badges === */
     .att-badge {
         display: inline-block;
         padding: 3px 9px;
@@ -201,33 +206,181 @@
     .att-badge.leave      { background: #fff1d6; color: #a86a00; }
     .att-badge.half-day   { background: #f0e7ff; color: #7439b2; }
     .att-badge.not-marked { background: #f1f5f9; color: #64748b; }
+
+    /* === NEW: Bulk action + search bar === */
+    .att-bulk-bar {
+        display: flex;
+        gap: 12px;
+        padding: 14px 18px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        margin-bottom: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .att-bulk-actions {
+        display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .att-bulk-btn {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 9px 14px;
+        border-radius: 9px;
+        border: 1px solid transparent;
+        font: inherit; font-size: 12.5px; font-weight: 700;
+        cursor: pointer;
+        transition: all .2s ease;
+        white-space: nowrap;
+    }
+    .att-bulk-btn i { font-size: 11px; }
+    .att-bulk-btn.present {
+        background: #e3f5eb; color: #168254; border-color: #c8e9d7;
+    }
+    .att-bulk-btn.present:hover { background: #d0eddb; }
+    .att-bulk-btn.absent {
+        background: #ffeaee; color: #d71938; border-color: #f8c9d2;
+    }
+    .att-bulk-btn.absent:hover { background: #ffd9e0; }
+    .att-bulk-btn.reset {
+        background: #f1f5f9; color: #475569; border-color: #e2e8f0;
+    }
+    .att-bulk-btn.reset:hover { background: #e2e8f0; }
+
+    .att-search-wrap {
+        margin-left: auto;
+        display: flex; align-items: center; gap: 10px;
+        flex-wrap: wrap;
+    }
+    .att-search-input {
+        display: flex; align-items: center; gap: 8px;
+        background: #f1f5f9;
+        border: 1px solid transparent;
+        border-radius: 9px;
+        padding: 0 12px;
+        height: 40px;
+        width: 280px;
+        transition: all .2s;
+    }
+    .att-search-input:focus-within {
+        background: #fff;
+        border-color: #b0c4d8;
+        box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
+    }
+    .att-search-input i { color: #65758a; font-size: 12px; }
+    .att-search-input input {
+        flex: 1; border: 0; outline: 0; background: transparent;
+        font: inherit; font-size: 13px; color: var(--navy);
+    }
+    .att-search-input input::placeholder { color: #a0aec0; }
+    .att-counter {
+        font-size: 11.5px; font-weight: 700; color: var(--muted);
+        white-space: nowrap;
+    }
+    .att-counter b { color: var(--navy); font-weight: 800; }
+
+    /* === NEW: Quick toggle buttons in table === */
+    .att-quick-toggle {
+        display: flex;
+        gap: 4px;
+    }
+    .att-toggle-btn {
+        width: 36px; height: 36px;
+        border-radius: 8px;
+        border: 2px solid var(--line);
+        background: #fff;
+        font: inherit;
+        font-weight: 800;
+        font-size: 12px;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all .15s ease;
+        padding: 0;
+    }
+    .att-toggle-btn:hover { transform: translateY(-1px); border-color: #b0c4d8; }
+    .att-toggle-btn.p.active { background: #168254; border-color: #168254; color: #fff; }
+    .att-toggle-btn.a.active { background: #d71938; border-color: #d71938; color: #fff; }
+    .att-toggle-btn.l.active { background: #a86a00; border-color: #a86a00; color: #fff; }
+    .att-toggle-btn.h.active { background: #7439b2; border-color: #7439b2; color: #fff; }
+
+    /* === NEW: Row highlight === */
+    .att-row-marked-present    { background: #f0fdf4 !important; }
+    .att-row-marked-absent     { background: #fef2f2 !important; }
+    .att-row-marked-leave      { background: #fffbeb !important; }
+    .att-row-marked-half-day   { background: #f5f3ff !important; }
+
+    /* === NEW: Sticky save bar === */
+    .att-save-bar {
+        position: sticky;
+        bottom: 16px;
+        padding: 14px 20px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        margin-top: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 -4px 20px rgba(9,47,88,0.08);
+        z-index: 100;
+        gap: 12px;
+    }
+    .att-save-info {
+        font-size: 12.5px; font-weight: 600; color: var(--muted);
+    }
+    .att-save-info strong { color: var(--navy); font-weight: 800; }
+
+    /* === NEW: Class bulk select (admin-only shortcut) === */
+    .att-class-pills {
+        display: flex; flex-wrap: wrap; gap: 6px;
+        padding: 12px 20px;
+        background: #f8fafc;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+    }
+    .att-class-pill {
+        padding: 5px 11px;
+        border-radius: 6px;
+        background: #fff;
+        border: 1px solid var(--line);
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--navy);
+        cursor: pointer;
+        transition: all .15s;
+    }
+    .att-class-pill:hover { background: #e1f1ff; border-color: #b0c4d8; }
+    .att-class-pill.active {
+        background: var(--navy);
+        color: #fff;
+        border-color: var(--navy);
+    }
 </style>
 
 <!-- Live stats for current view -->
 <div class="att-stats">
     <div class="att-stat-card total">
         <div class="att-stat-label">Total {{ role|capitalize }}s</div>
-        <div class="att-stat-value">{{ users|length }}</div>
+        <div class="att-stat-value" id="statTotal">{{ users|length }}</div>
     </div>
     <div class="att-stat-card present">
         <div class="att-stat-label">Present</div>
-        <div class="att-stat-value">{{ present_count }}</div>
+        <div class="att-stat-value" id="statPresent">{{ present_count }}</div>
     </div>
     <div class="att-stat-card absent">
         <div class="att-stat-label">Absent</div>
-        <div class="att-stat-value">{{ absent_count }}</div>
+        <div class="att-stat-value" id="statAbsent">{{ absent_count }}</div>
     </div>
     <div class="att-stat-card leave">
         <div class="att-stat-label">On Leave</div>
-        <div class="att-stat-value">{{ leave_count }}</div>
+        <div class="att-stat-value" id="statLeave">{{ leave_count }}</div>
     </div>
     <div class="att-stat-card halfday">
         <div class="att-stat-label">Half Day</div>
-        <div class="att-stat-value">{{ halfday_count }}</div>
+        <div class="att-stat-value" id="statHalfday">{{ halfday_count }}</div>
     </div>
     <div class="att-stat-card not-marked">
         <div class="att-stat-label">Not Marked</div>
-        <div class="att-stat-value">{{ not_marked }}</div>
+        <div class="att-stat-value" id="statNotMarked">{{ not_marked }}</div>
     </div>
 </div>
 
@@ -296,15 +449,19 @@
     </form>
 </div>
 
-<!-- Marking table -->
+<!-- Marking table with bulk actions + search -->
 <div class="admin-panel">
     <div class="admin-panel-head">
         <h3>
             <i class="fa-solid fa-users"></i>
             {{ users|length }} {{ role|capitalize }}{{ 's' if users|length != 1 }} — {{ date }} · {{ subject_filter }}
         </h3>
+        <span class="att-counter" style="font-size: 11.5px;">
+            Tip: press <b>Ctrl + S</b> to save
+        </span>
     </div>
-    <form method="POST" action="{{ url_for('admin_mark_attendance') }}">
+
+    <form method="POST" action="{{ url_for('admin_mark_attendance') }}" id="attendanceForm">
         <input type="hidden" name="date" value="{{ date }}">
         <input type="hidden" name="subject" value="{{ subject_filter }}">
         <input type="hidden" name="role" value="{{ role }}">
@@ -313,13 +470,55 @@
         <div class="att-refresh-note">
             <span>
                 <i class="fa-solid fa-clock"></i>
-                Marked {{ marked }} of {{ users|length }} · Live from database
+                Marked <strong id="markedCountInline">{{ marked }}</strong> of <strong>{{ users|length }}</strong> · Live from database
             </span>
             <a href="{{ url_for('admin_attendance', role=role, date=date, subject_filter=subject_filter, class_filter=class_filter) }}"
                class="att-refresh-btn">
                 <i class="fa-solid fa-rotate"></i> Refresh
             </a>
         </div>
+
+        <!-- Bulk actions bar -->
+        <div class="att-bulk-bar">
+            <div class="att-bulk-actions">
+                <button type="button" class="att-bulk-btn present" onclick="markAllVisible('present')">
+                    <i class="fa-solid fa-check-double"></i> Mark All Present
+                </button>
+                <button type="button" class="att-bulk-btn absent" onclick="markAllVisible('absent')">
+                    <i class="fa-solid fa-xmark"></i> Mark All Absent
+                </button>
+                <button type="button" class="att-bulk-btn reset" onclick="markAllVisible('')">
+                    <i class="fa-solid fa-rotate-left"></i> Reset Visible
+                </button>
+            </div>
+            <div class="att-search-wrap">
+                <div class="att-search-input">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="search" id="searchInput"
+                           placeholder="Search by name, ID or class..."
+                           oninput="filterRows(this.value)"
+                           autofocus>
+                </div>
+                <span class="att-counter">
+                    Showing <b id="visibleCount">{{ users|length }}</b> of {{ users|length }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Class quick-pills (only for students — admin shortcut) -->
+        {% if role == 'student' and class_list %}
+        <div class="att-class-pills">
+            <span style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; align-self:center; margin-right:6px;">
+                Quick class filter:
+            </span>
+            <button type="button" class="att-class-pill {% if class_filter=='all' %}active{% endif %}"
+                    onclick="applyClassFilter('all')">All</button>
+            {% for c in class_list %}
+            <button type="button" class="att-class-pill {% if c==class_filter %}active{% endif %}"
+                    onclick="applyClassFilter('{{ c }}')">{{ c }}</button>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         <div class="admin-table-wrap">
             <table class="admin-table">
@@ -332,25 +531,46 @@
                         <th>Mark As</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="attendanceRows">
                     {% for u in users %}
-                    {% set st = attendance_map.get(u.id, 'not-marked') %}
-                    <tr>
+                    {% set st = attendance_map.get(u.id, '') %}
+                    <tr class="att-row-item {% if st %}att-row-marked-{{ st }}{% endif %}"
+                        data-uid="{{ u.id }}"
+                        data-name="{{ u.name|lower }}"
+                        data-userid="{{ u.unique_id|lower }}"
+                        data-class="{{ (u.class_name or u.child_class or '')|lower }}"
+                        data-status="{{ st }}">
+
                         <td><strong>{{ u.unique_id }}</strong></td>
                         <td>{{ u.name }}</td>
                         {% if role == 'student' %}
                         <td>{{ u.class_name or u.child_class or '—' }}</td>
                         {% endif %}
                         <td>
-                            <span class="att-badge {{ st }}">{{ st|replace('-', ' ')|title }}</span>
+                            <span class="att-badge {{ st or 'not-marked' }} current-badge">
+                                {{ (st or 'not-marked')|replace('-', ' ')|title }}
+                            </span>
                         </td>
                         <td>
-                            <select name="status_{{ u.id }}" class="role-select">
-                                <option value="present"  {% if st=='present'  %}selected{% endif %}>Present</option>
-                                <option value="absent"   {% if st=='absent'   %}selected{% endif %}>Absent</option>
-                                <option value="leave"    {% if st=='leave'    %}selected{% endif %}>On Leave</option>
-                                <option value="half-day" {% if st=='half-day' %}selected{% endif %}>Half Day</option>
-                            </select>
+                            <input type="hidden" name="status_{{ u.id }}" value="{{ st }}" class="status-input">
+                            <div class="att-quick-toggle">
+                                <button type="button"
+                                        class="att-toggle-btn p {% if st=='present' %}active{% endif %}"
+                                        onclick="setStatus('{{ u.id }}', 'present')"
+                                        title="Present">P</button>
+                                <button type="button"
+                                        class="att-toggle-btn a {% if st=='absent' %}active{% endif %}"
+                                        onclick="setStatus('{{ u.id }}', 'absent')"
+                                        title="Absent">A</button>
+                                <button type="button"
+                                        class="att-toggle-btn l {% if st=='leave' %}active{% endif %}"
+                                        onclick="setStatus('{{ u.id }}', 'leave')"
+                                        title="On Leave">L</button>
+                                <button type="button"
+                                        class="att-toggle-btn h {% if st=='half-day' %}active{% endif %}"
+                                        onclick="setStatus('{{ u.id }}', 'half-day')"
+                                        title="Half Day">H</button>
+                            </div>
                         </td>
                     </tr>
                     {% else %}
@@ -363,13 +583,134 @@
                 </tbody>
             </table>
         </div>
+
         {% if users %}
-        <div style="padding:20px;">
-            <button type="submit" class="btn-admin-primary">
+        <div class="att-save-bar">
+            <div class="att-save-info">
+                <strong id="saveCounter">{{ marked }}</strong> of {{ users|length }} marked
+            </div>
+            <button type="submit" class="btn-admin-primary" style="padding: 11px 24px;">
                 <i class="fa-solid fa-save"></i> Save Attendance
             </button>
         </div>
         {% endif %}
     </form>
 </div>
+
+<script>
+(function () {
+    'use strict';
+
+    /* ---- Init counters on load ---- */
+    document.addEventListener('DOMContentLoaded', updateCounters);
+
+    /* ---- Set status for a single user (with toggle-off) ---- */
+    window.setStatus = function (uid, status) {
+        const row = document.querySelector('.att-row-item[data-uid="' + uid + '"]');
+        if (!row) return;
+
+        const input = row.querySelector('.status-input');
+        const current = input.value;
+        const newStatus = (current === status) ? '' : status;  // toggle off if same
+
+        input.value = newStatus;
+        row.dataset.status = newStatus;
+
+        // Row highlight
+        row.classList.remove(
+            'att-row-marked-present',
+            'att-row-marked-absent',
+            'att-row-marked-leave',
+            'att-row-marked-half-day'
+        );
+        if (newStatus) row.classList.add('att-row-marked-' + newStatus);
+
+        // Badge
+        const badge = row.querySelector('.current-badge');
+        badge.className = 'att-badge ' + (newStatus || 'not-marked') + ' current-badge';
+        badge.textContent = (newStatus || 'not-marked').replace('-', ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+        // Button active states
+        row.querySelectorAll('.att-toggle-btn').forEach(b => b.classList.remove('active'));
+        if (newStatus) {
+            const cls = newStatus === 'present' ? 'p'
+                      : newStatus === 'absent'  ? 'a'
+                      : newStatus === 'leave'   ? 'l'
+                      : 'h';
+            const btn = row.querySelector('.att-toggle-btn.' + cls);
+            if (btn) btn.classList.add('active');
+        }
+
+        updateCounters();
+    };
+
+    /* ---- Mark all visible rows (respects search filter) ---- */
+    window.markAllVisible = function (status) {
+        document.querySelectorAll('.att-row-item').forEach(row => {
+            if (row.style.display === 'none') return;
+            setStatus(row.dataset.uid, status);
+        });
+    };
+
+    /* ---- Search filter (name, ID, class) ---- */
+    window.filterRows = function (query) {
+        const q = (query || '').toLowerCase().trim();
+        let visible = 0;
+
+        document.querySelectorAll('.att-row-item').forEach(row => {
+            const match = !q
+                || row.dataset.name.includes(q)
+                || row.dataset.userid.includes(q)
+                || row.dataset.class.includes(q);
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+
+        document.getElementById('visibleCount').textContent = visible;
+    };
+
+    /* ---- Class quick-pill filter → reload page ---- */
+    window.applyClassFilter = function (cls) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('class_filter', cls);
+        window.location.href = url.toString();
+    };
+
+    /* ---- Update all live counters ---- */
+    function updateCounters() {
+        let present = 0, absent = 0, leave = 0, halfday = 0, total = 0;
+
+        document.querySelectorAll('.att-row-item').forEach(row => {
+            total++;
+            const st = row.dataset.status;
+            if (st === 'present')       present++;
+            else if (st === 'absent')   absent++;
+            else if (st === 'leave')    leave++;
+            else if (st === 'half-day') halfday++;
+        });
+
+        const notMarked = total - (present + absent + leave + halfday);
+        const marked    = total - notMarked;
+
+        document.getElementById('statTotal').textContent     = total;
+        document.getElementById('statPresent').textContent   = present;
+        document.getElementById('statAbsent').textContent    = absent;
+        document.getElementById('statLeave').textContent     = leave;
+        document.getElementById('statHalfday').textContent   = halfday;
+        document.getElementById('statNotMarked').textContent = notMarked;
+
+        document.getElementById('saveCounter').textContent       = marked;
+        document.getElementById('markedCountInline').textContent = marked;
+    }
+
+    /* ---- Ctrl/Cmd + S to save ---- */
+    document.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+            e.preventDefault();
+            document.getElementById('attendanceForm').submit();
+        }
+    });
+})();
+</script>
+
 {% endblock %}

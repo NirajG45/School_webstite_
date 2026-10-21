@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages | RSN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: #f4f7fb;
+            color: #0a2340;
+        }
+        .ms-page { max-width: 1000px; margin: 0 auto; padding: 22px; }
+
+        .ms-back {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 9px 14px; background: #fff; border: 1px solid #e1e8f0;
+            border-radius: 10px; font-size: 12.5px; font-weight: 700;
+            color: #0a2340; text-decoration: none; margin-bottom: 18px;
+            transition: all .2s ease;
+        }
+        .ms-back:hover { background: #f4f8fc; border-color: #b0c4d8; }
+
+        .ms-banner {
+            background: linear-gradient(135deg, #0a2340 0%, #12406b 60%, #1768a7 100%);
+            border-radius: 16px; padding: 24px 28px;
+            color: #fff; position: relative; overflow: hidden;
+            margin-bottom: 18px;
+            display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+        }
+        .ms-banner::after {
+            content: ''; position: absolute; right: -60px; top: -60px;
+            width: 220px; height: 220px; border-radius: 50%;
+            background: rgba(255,212,71,0.1);
+        }
+        .ms-banner-text { flex: 1; min-width: 200px; position: relative; z-index: 1; }
+        .ms-banner h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 26px; font-weight: 800;
+            margin: 0 0 6px; letter-spacing: -0.4px;
+        }
+        .ms-banner p {
+            margin: 0; font-size: 13px; color: rgba(255,255,255,0.8);
+        }
+        .ms-compose-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 11px 20px;
+            background: #ffd447; color: #0a2340;
+            border-radius: 10px;
+            font-size: 13px; font-weight: 800;
+            text-decoration: none;
+            transition: all .2s ease;
+            position: relative; z-index: 1;
+        }
+        .ms-compose-btn:hover {
+            background: #ffe066;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(255,212,71,0.3);
+        }
+
+        /* Stats */
+        .ms-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .ms-stat {
+            background: #fff;
+            border: 1px solid #e1e8f0;
+            border-radius: 12px;
+            padding: 14px 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .ms-stat::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 3px;
+        }
+        .ms-stat.inbox::before   { background: #1768a7; }
+        .ms-stat.sent::before    { background: #168254; }
+        .ms-stat.unread::before  { background: #d71938; }
+        .ms-stat-label {
+            font-size: 10.5px; font-weight: 800; color: #65758a;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .ms-stat-value {
+            font-size: 22px; font-weight: 800; color: #0a2340; line-height: 1;
+        }
+        .ms-stat.unread .ms-stat-value { color: #d71938; }
+
+        /* Tabs + search */
+        .ms-toolbar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: #fff;
+            border: 1px solid #e1e8f0;
+            border-radius: 12px;
+            padding: 8px 14px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .ms-tabs {
+            display: flex; gap: 4px;
+        }
+        .ms-tab {
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12.5px; font-weight: 700;
+            color: #65758a;
+            text-decoration: none;
+            transition: all .15s ease;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .ms-tab:hover { background: #f1f5f9; color: #0a2340; }
+        .ms-tab.active {
+            background: #0a2340; color: #fff;
+        }
+        .ms-tab .ms-tab-count {
+            font-size: 10.5px;
+            background: rgba(255,255,255,0.18);
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-weight: 800;
+        }
+        .ms-tab.active .ms-tab-count {
+            background: rgba(255,255,255,0.28);
+        }
+
+        .ms-search-wrap {
+            display: flex; align-items: center; gap: 8px;
+            margin-left: auto;
+            background: #f1f5f9;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 0 12px;
+            height: 38px;
+            min-width: 240px;
+            transition: all .2s;
+        }
+        .ms-search-wrap:focus-within {
+            background: #fff;
+            border-color: #b0c4d8;
+            box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
+        }
+        .ms-search-wrap i { color: #65758a; font-size: 12px; }
+        .ms-search-wrap input {
+            flex: 1; border: 0; outline: 0; background: transparent;
+            font: inherit; font-size: 13px; color: #0a2340;
+        }
+
+        /* Message list */
+        .ms-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .ms-row {
+            display: flex;
+            gap: 14px;
+            padding: 14px 18px;
+            background: #fff;
+            border: 1px solid #e1e8f0;
+            border-radius: 12px;
+            text-decoration: none;
+            color: inherit;
+            transition: all .15s ease;
+            position: relative;
+        }
+        .ms-row:hover {
+            border-color: #b0c4d8;
+            box-shadow: 0 4px 14px rgba(9,47,88,0.06);
+            transform: translateY(-1px);
+        }
+        .ms-row.unread {
+            background: #f0f7ff;
+            border-color: #c5e2f8;
+        }
+        .ms-row.unread::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: #1768a7;
+            border-radius: 12px 0 0 12px;
+        }
+
+        .ms-row-avatar {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            flex: 0 0 40px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 13px; color: #fff;
+            background: linear-gradient(135deg, #1768a7, #0d4b7a);
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .ms-row-avatar.teacher { background: linear-gradient(135deg, #168254, #0d5c3d); }
+        .ms-row-avatar.parent  { background: linear-gradient(135deg, #7439b2, #5a2c8c); }
+        .ms-row-avatar.admin   { background: linear-gradient(135deg, #d71938, #b9102c); }
+        .ms-row-avatar.student { background: linear-gradient(135deg, #1768a7, #0d4b7a); }
+
+        .ms-row-body { flex: 1; min-width: 0; }
+        .ms-row-top {
+            display: flex; justify-content: space-between;
+            align-items: baseline; gap: 10px;
+            margin-bottom: 3px;
+        }
+        .ms-row-from {
+            font-size: 13px; font-weight: 800; color: #0a2340;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .ms-row-from small {
+            font-size: 10.5px; font-weight: 600; color: #65758a;
+            margin-left: 6px; text-transform: capitalize;
+        }
+        .ms-row-date {
+            font-size: 10.5px; color: #65758a; font-weight: 600;
+            white-space: nowrap;
+        }
+        .ms-row-subject {
+            font-size: 13px; color: #0a2340;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            margin-bottom: 3px;
+        }
+        .ms-row.unread .ms-row-subject { font-weight: 800; }
+        .ms-row-preview {
+            font-size: 12px; color: #65758a;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .ms-row-tag {
+            display: inline-flex; align-items: center; gap: 3px;
+            font-size: 9.5px; font-weight: 800;
+            padding: 2px 7px; border-radius: 4px;
+            text-transform: uppercase; letter-spacing: 0.3px;
+            margin-left: 6px;
+        }
+        .ms-row-tag.broadcast {
+            background: #fff1d6; color: #a86a00;
+        }
+        .ms-row-tag.to-you {
+            background: #e3f5eb; color: #168254;
+        }
+
+        .ms-empty {
+            padding: 60px 24px;
+            text-align: center;
+            color: #65758a;
+            font-size: 13px;
+            background: #fff;
+            border: 1px solid #e1e8f0;
+            border-radius: 14px;
+        }
+        .ms-empty i {
+            font-size: 40px; display: block;
+            margin-bottom: 12px; color: #cbd5e1;
+        }
+        .ms-empty strong { color: #0a2340; }
+
+        @media (max-width: 640px) {
+            .ms-page { padding: 16px; }
+            .ms-banner h1 { font-size: 21px; }
+            .ms-stats { grid-template-columns: 1fr; }
+            .ms-search-wrap { width: 100%; margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="ms-page">
+
+    <a href="{{ url_for('user_dashboard') if session.get('user_role') != 'admin' else url_for('admin_dashboard') }}"
+       class="ms-back">
+        <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <section class="ms-banner">
+        <div class="ms-banner-text">
+            <h1>Messages</h1>
+            <p>Send, receive, and manage messages with the school community.</p>
+        </div>
+        <a href="{{ url_for('messages_compose') }}" class="ms-compose-btn">
+            <i class="fa-solid fa-pen"></i> New Message
+        </a>
+    </section>
+
+    <div class="ms-stats">
+        <div class="ms-stat inbox">
+            <div class="ms-stat-label">Inbox</div>
+            <div class="ms-stat-value">{{ inbox_count }}</div>
+        </div>
+        <div class="ms-stat sent">
+            <div class="ms-stat-label">Sent</div>
+            <div class="ms-stat-value">{{ sent_count }}</div>
+        </div>
+        <div class="ms-stat unread">
+            <div class="ms-stat-label">Unread</div>
+            <div class="ms-stat-value">{{ unread_count }}</div>
+        </div>
+    </div>
+
+    <form method="GET" action="{{ url_for('messages_inbox') }}" class="ms-toolbar">
+        <input type="hidden" name="view" value="{{ view }}">
+
+        <div class="ms-tabs">
+            <a href="{{ url_for('messages_inbox', view='inbox') }}"
+               class="ms-tab {% if view == 'inbox' %}active{% endif %}">
+                <i class="fa-solid fa-inbox"></i> Inbox
+                <span class="ms-tab-count">{{ inbox_count }}</span>
+            </a>
+            <a href="{{ url_for('messages_inbox', view='sent') }}"
+               class="ms-tab {% if view == 'sent' %}active{% endif %}">
+                <i class="fa-solid fa-paper-plane"></i> Sent
+                <span class="ms-tab-count">{{ sent_count }}</span>
+            </a>
+        </div>
+
+        <div class="ms-search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="search" name="q" value="{{ search_q }}"
+                   placeholder="Search messages..."
+                   oninput="clearTimeout(window._msT); window._msT = setTimeout(() => this.form.submit(), 400)">
+        </div>
+    </form>
+
+    {% if messages %}
+    <div class="ms-list">
+        {% for m in messages %}
+        {% set is_unread = (view == 'inbox' and m['to_user_id'] == user.id and not m['is_read']) %}
+        {% set is_broadcast = (m['to_user_id'] is none and m['to_role']) %}
+        {% if view == 'inbox' %}
+            {% set other_name = m['from_name'] or 'Unknown' %}
+            {% set other_role = m['from_role'] or '' %}
+            {% set other_uid = m['from_uid'] or '' %}
+        {% else %}
+            {% set other_name = m['to_name'] or ('All ' + m['to_role']|capitalize + 's' if is_broadcast else 'Unknown') %}
+            {% set other_role = m['to_role'] or '' %}
+            {% set other_uid = m['to_uid'] or '' %}
+        {% endif %}
+        <a href="{{ url_for('messages_view', msg_id=m['id']) }}"
+           class="ms-row {% if is_unread %}unread{% endif %}">
+            <div class="ms-row-avatar {{ other_role }}"
+                 title="{{ other_role|capitalize if other_role else '' }}">
+                {{ other_name[0]|upper }}{{ other_name.split()[-1][0]|upper if other_name.split()|length > 1 else '' }}
+            </div>
+            <div class="ms-row-body">
+                <div class="ms-row-top">
+                    <div class="ms-row-from">
+                        {% if view == 'inbox' %}From:{% else %}To:{% endif %}
+                        {{ other_name }}
+                        {% if other_role %}
+                        <small>({{ other_role|capitalize }}{% if other_uid %} · {{ other_uid }}{% endif %})</small>
+                        {% endif %}
+                        {% if is_broadcast %}
+                        <span class="ms-row-tag broadcast"><i class="fa-solid fa-bullhorn"></i> Broadcast</span>
+                        {% endif %}
+                    </div>
+                    <div class="ms-row-date">{{ m['created_at'][:16] }}</div>
+                </div>
+                <div class="ms-row-subject">{{ m['subject'] }}</div>
+                <div class="ms-row-preview">{{ m['body'][:120] }}{% if m['body']|length > 120 %}…{% endif %}</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="ms-empty">
+        <i class="fa-solid fa-inbox"></i>
+        <strong>No {{ 'sent ' if view == 'sent' else '' }}messages yet.</strong>
+        <br><br>
+        {% if view == 'sent' %}
+        Click "New Message" to send your first message.
+        {% else %}
+        When someone messages you, it'll appear here.
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>

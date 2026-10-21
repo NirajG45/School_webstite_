@@ -1490,11 +1490,18 @@ def admin_mark_attendance():
                 uid = int(key.replace('status_', ''))
             except ValueError:
                 continue
+            val = (val or '').strip()
+
             existing = db.execute(
                 'SELECT id FROM attendance WHERE user_id = ? AND date = ? AND subject = ?',
                 (uid, date, subject)
             ).fetchone()
-            if existing:
+
+            if not val:
+                # RESET — remove existing record
+                if existing:
+                    db.execute('DELETE FROM attendance WHERE id = ?', (existing['id'],))
+            elif existing:
                 db.execute(
                     'UPDATE attendance SET status = ?, marked_by = ? WHERE id = ?',
                     (val, session['user_id'], existing['id'])
@@ -1505,6 +1512,7 @@ def admin_mark_attendance():
                     'VALUES (?,?,?,?,?)',
                     (uid, date, val, subject, session['user_id'])
                 )
+
     db.commit()
     flash(f'Attendance marked for {date} ({subject}).', 'success')
     return redirect(url_for(
@@ -2076,6 +2084,234 @@ def teacher_attendance():
             'teacher_attendance',
             date=date, subject=subject, class_filter=selected_class
         ))
+
+# =========================================
+# TEACHER — HOMEWORK MANAGEMENT
+# =========================================
+@app.route('/teacher/homework', methods=['GET'])
+@login_required
+def teacher_homework():
+    user = get_user_by_id(session['user_id'])
+    if not user or user['role'] not in ('teacher', 'admin'):
+        flash('Only teachers can access this page.', 'error')
+        return redirect(url_for('user_dashboard'))
+
+    db = get_db()
+
+    # Parse assigned classes
+    raw_classes = user['classes_assigned'] or ''
+    assigned_classes = [c.strip() for c in raw_classes.split(',') if c.strip()]
+
+    # Filters
+    selected_class = request.args.get('class_filter', 'all')
+    search_q = (request.args.get('q') or '').strip().lower()
+
+    # Build query — show homework for teacher's classes OR created by them
+    query = '''
+        SELECT h.*, u.name AS assigned_by_name, u.role AS assigner_role
+        FROM homework h
+        LEFT JOIN users u ON h.assigned_by = u.id
+        WHERE 1=1
+    '''
+    params = []
+
+    if assigned_classes:
+        ors = []
+        for c in assigned_classes:
+            ors.append("h.class_name = ?")
+            params.append(c)
+        query += " AND (" + " OR ".join(ors) + " OR h.assigned_by = ?)"
+        params.append(user['id'])
+    else:
+        query += " AND h.assigned_by = ?"
+        params.append(user['id'])
+
+    if selected_class != 'all':
+        query += " AND h.class_name = ?"
+        params.append(selected_class)
+
+    query += " ORDER BY h.id DESC"
+    all_homework = db.execute(query, tuple(params)).fetchall()
+
+    # Python-side search (title, subject, class, description)
+    if search_q:
+        all_homework = [
+            h for h in all_homework
+            if search_q in (h['title'] or '').lower()
+            or search_q in (h['subject'] or '').lower()
+            or search_q in (h['class_name'] or '').lower()
+            or search_q in (h['description'] or '').lower()
+        ]
+
+    # Class list for filter dropdown
+    class_set = set(assigned_classes)
+    for h in all_homework:
+        if h['class_name']:
+            class_set.add(h['class_name'])
+    class_list = sorted(class_set)
+
+    # Subject suggestions
+    subjects = []
+    if user['subject']:
+        subjects.append(user['subject'])
+    for h in all_homework:
+        if h['subject'] and h['subject'] not in subjects:
+            subjects.append(h['subject'])
+
+    # Stats
+    my_count = sum(1 for h in all_homework if h['assigned_by'] == user['id'])
+    stats = {
+        'total':   len(all_homework),
+        'mine':    my_count,
+        'classes': len(set(h['class_name'] for h in all_homework)),
+    }
+
+    return render_template(
+        'teacher_homework.html',
+        user=user,
+        homework_list=all_homework,
+        assigned_classes=assigned_classes,
+        class_list=class_list,
+        subjects=subjects,
+        selected_class=selected_class,
+        search_q=search_q,
+        stats=stats
+    )
+
+
+@app.route('/teacher/homework/add', methods=['POST'])
+@login_required
+def teacher_add_homework():
+    user = get_user_by_id(session['user_id'])
+    if not user or user['role'] not in ('teacher', 'admin'):
+        flash('Only teachers can access this page.', 'error')
+        return redirect(url_for('user_dashboard'))
+
+    class_name = request.form.get('class_name', '').strip()
+    subject    = request.form.get('subject', '').strip() or (user['subject'] or 'General')
+    title      = request.form.get('title', '').strip()
+    description = request.form.get('description', '').strip()
+    due_date   = request.form.get('due_date', '').strip()
+
+    if not class_name or not title:
+        flash('Class and Title are required.', 'error')
+        return redirect(url_for('teacher_homework'))
+
+    db = get_db()
+    db.execute(
+        '''INSERT INTO homework (class_name, subject, title, description, due_date, assigned_by)
+           VALUES (?, ?, ?, ?, ?, ?)''',
+        (class_name, subject, title, description or None, due_date or None, user['id'])
+    )
+    db.commit()
+    flash(f'Homework "{title}" assigned to {class_name}.', 'success')
+    return redirect(url_for('teacher_homework'))
+
+
+@app.route('/teacher/homework/delete/<int:hid>', methods=['POST'])
+@login_required
+def teacher_delete_homework(hid):
+    user = get_user_by_id(session['user_id'])
+    if not user or user['role'] not in ('teacher', 'admin'):
+        flash('Only teachers can access this page.', 'error')
+        return redirect(url_for('user_dashboard'))
+
+    db = get_db()
+    hw = db.execute('SELECT * FROM homework WHERE id = ?', (hid,)).fetchone()
+
+    if not hw:
+        flash('Homework not found.', 'error')
+        return redirect(url_for('teacher_homework'))
+
+    # Only owner (or admin) can delete
+    if user['role'] != 'admin' and hw['assigned_by'] != user['id']:
+        flash('You can only delete homework you assigned.', 'error')
+        return redirect(url_for('teacher_homework'))
+
+    db.execute('DELETE FROM homework WHERE id = ?', (hid,))
+    db.commit()
+    flash('Homework deleted.', 'success')
+    return redirect(url_for('teacher_homework'))
+
+# =========================================
+# MESSAGING SYSTEM — ROLE-BASED
+# =========================================
+def _allowed_recipients(db, user):
+    """
+    Returns list of dicts {id, name, unique_id, role} this user can message.
+
+    Rules:
+      admin   → everyone (students, teachers, parents, other admins)
+      teacher → admin, teachers, their students, parents of those students
+      parent  → admin, teachers
+      student → admin, teachers
+    """
+    role = user['role']
+    uid = user['id']
+    recipients = []
+
+    if role == 'admin':
+        rows = db.execute(
+            "SELECT id, name, unique_id, role FROM users "
+            "WHERE is_active=1 AND id != ? ORDER BY role, name",
+            (uid,)
+        ).fetchall()
+        recipients = [dict(r) for r in rows]
+
+    elif role == 'teacher':
+        # Admin + other teachers
+        rows = db.execute(
+            "SELECT id, name, unique_id, role FROM users "
+            "WHERE is_active=1 AND role IN ('admin','teacher') AND id != ? "
+            "ORDER BY role, name",
+            (uid,)
+        ).fetchall()
+        recipients.extend([dict(r) for r in rows])
+
+        raw = user['classes_assigned'] or ''
+        teacher_classes = [c.strip() for c in raw.split(',') if c.strip()]
+        if teacher_classes:
+            ph = " OR ".join(["class_name = ? OR child_class = ?"] * len(teacher_classes))
+            params = []
+            for c in teacher_classes:
+                params.extend([c, c])
+
+            # Students in their classes
+            rows = db.execute(
+                f"SELECT id, name, unique_id, role FROM users "
+                f"WHERE is_active=1 AND role='student' AND ({ph}) ORDER BY name",
+                tuple(params)
+            ).fetchall()
+            recipients.extend([dict(r) for r in rows])
+
+            # Parents of those students
+            ph_p = " OR ".join(["child_class = ?"] * len(teacher_classes))
+            rows = db.execute(
+                f"SELECT id, name, unique_id, role FROM users "
+                f"WHERE is_active=1 AND role='parent' AND ({ph_p}) ORDER BY name",
+                tuple(teacher_classes)
+            ).fetchall()
+            recipients.extend([dict(r) for r in rows])
+
+    elif role == 'parent':
+        rows = db.execute(
+            "SELECT id, name, unique_id, role FROM users "
+            "WHERE is_active=1 AND role IN ('admin','teacher') AND id != ? "
+            "ORDER BY role, name",
+            (uid,)
+        ).fetchall()
+        recipients = [dict(r) for r in rows]
+
+    elif role == 'student':
+        rows = db.execute(
+            "SELECT id, name, unique_id, role FROM users "
+            "WHERE is_active=1 AND role IN ('admin','teacher') AND id != ? "
+            "ORDER BY role, name",
+            (uid,)
+        ).fetchall()
+        recipients = [dict(r) for r in rows]
+
+    return recipients
 
     # ---------- GET ----------
     self_rec = db.execute(

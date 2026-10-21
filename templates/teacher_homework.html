@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assign Homework | RSN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: #f4f7fb;
+            color: #0a2340;
+        }
+        .hw-page { max-width: 1200px; margin: 0 auto; padding: 22px; }
+
+        /* === Back === */
+        .hw-back {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 9px 14px; background: #fff; border: 1px solid #e1e8f0;
+            border-radius: 10px; font-size: 12.5px; font-weight: 700;
+            color: #0a2340; text-decoration: none; margin-bottom: 18px;
+            transition: all .2s ease;
+        }
+        .hw-back:hover { background: #f4f8fc; border-color: #b0c4d8; }
+
+        /* === Banner === */
+        .hw-banner {
+            background: linear-gradient(135deg, #0a2340 0%, #12406b 60%, #1768a7 100%);
+            border-radius: 16px; padding: 24px 28px;
+            color: #fff; position: relative; overflow: hidden;
+            margin-bottom: 18px;
+        }
+        .hw-banner::after {
+            content: ''; position: absolute;
+            right: -60px; top: -60px; width: 220px; height: 220px;
+            border-radius: 50%; background: rgba(255,212,71,0.1);
+        }
+        .hw-banner h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 26px; font-weight: 800;
+            margin: 0 0 6px; letter-spacing: -0.4px;
+            position: relative; z-index: 1;
+        }
+        .hw-banner p {
+            margin: 0; font-size: 13px;
+            color: rgba(255,255,255,0.8);
+            position: relative; z-index: 1;
+        }
+        .hw-banner-meta {
+            display: flex; gap: 16px; flex-wrap: wrap;
+            margin-top: 10px; font-size: 12px; font-weight: 600;
+            color: rgba(255,255,255,0.85);
+            position: relative; z-index: 1;
+        }
+        .hw-banner-meta i { color: #ffd447; margin-right: 4px; font-size: 11px; }
+
+        /* === Stats === */
+        .hw-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .hw-stat {
+            background: #fff;
+            border: 1px solid #e1e8f0;
+            border-radius: 12px;
+            padding: 14px 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hw-stat::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 3px;
+        }
+        .hw-stat.total::before { background: #0a2340; }
+        .hw-stat.mine::before  { background: #7c3aed; }
+        .hw-stat.classes::before { background: #168254; }
+
+        .hw-stat-label {
+            font-size: 10.5px; font-weight: 800; color: #65758a;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .hw-stat-value {
+            font-size: 22px; font-weight: 800; color: #0a2340; line-height: 1;
+        }
+        .hw-stat.mine .hw-stat-value  { color: #7c3aed; }
+        .hw-stat.classes .hw-stat-value { color: #168254; }
+
+        /* === Grid === */
+        .hw-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        /* === Panels === */
+        .hw-panel {
+            background: #fff;
+            border: 1px solid #e1e8f0;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .hw-panel-head {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e1e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        .hw-panel-title {
+            margin: 0; font-size: 14px; font-weight: 800; color: #0a2340;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .hw-panel-title i { color: #d71938; font-size: 12px; }
+        .hw-panel-body { padding: 18px 20px; }
+
+        /* === Form === */
+        .hw-form { display: flex; flex-direction: column; gap: 12px; }
+        .hw-form label {
+            display: flex; flex-direction: column; gap: 5px;
+            font-size: 11px; font-weight: 800; color: #0a2340;
+            text-transform: uppercase; letter-spacing: 0.4px;
+        }
+        .hw-form input,
+        .hw-form select,
+        .hw-form textarea {
+            font: inherit; font-size: 13px; font-weight: 500;
+            color: #0a2340; background: #fff;
+            border: 1px solid #e1e8f0; border-radius: 9px;
+            padding: 10px 12px; outline: 0; width: 100%;
+            transition: all .2s;
+        }
+        .hw-form input:focus,
+        .hw-form select:focus,
+        .hw-form textarea:focus {
+            border-color: #b0c4d8;
+            box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
+        }
+        .hw-form textarea { resize: vertical; min-height: 70px; }
+        .hw-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .hw-submit-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 11px 16px;
+            border: 1px solid #0a2340;
+            border-radius: 10px;
+            background: #0a2340; color: #fff;
+            font: inherit; font-size: 13px; font-weight: 700;
+            cursor: pointer;
+            transition: all .2s ease;
+            margin-top: 4px;
+        }
+        .hw-submit-btn:hover {
+            background: #061f39;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(9,47,88,0.15);
+        }
+
+        .hw-hint {
+            padding: 10px 12px;
+            background: #fff1d6;
+            border: 1px solid #f0e0b3;
+            border-radius: 8px;
+            font-size: 11.5px;
+            color: #a86a00;
+            font-weight: 600;
+            display: flex;
+            gap: 6px;
+            align-items: flex-start;
+        }
+        .hw-hint i { margin-top: 2px; font-size: 12px; }
+
+        /* === Filter bar === */
+        .hw-filter-bar {
+            display: flex;
+            gap: 10px;
+            padding: 14px 18px;
+            background: #fff;
+            border: 1px solid #e1e8f0;
+            border-radius: 14px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .hw-filter-bar select,
+        .hw-filter-bar input[type="search"] {
+            font: inherit; font-size: 13px;
+            padding: 9px 12px;
+            border: 1px solid #e1e8f0; border-radius: 8px;
+            color: #0a2340; background: #fff; outline: 0;
+            transition: all .2s;
+        }
+        .hw-filter-bar select:focus,
+        .hw-filter-bar input:focus {
+            border-color: #b0c4d8;
+            box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
+        }
+        .hw-filter-bar input[type="search"] { flex: 1; min-width: 180px; }
+        .hw-counter {
+            font-size: 11.5px; font-weight: 700; color: #65758a;
+            margin-left: auto;
+        }
+
+        /* === Homework cards === */
+        .hw-list { display: flex; flex-direction: column; gap: 12px; }
+
+        .hw-card {
+            display: flex;
+            gap: 14px;
+            padding: 16px 18px;
+            background: #fff;
+            border: 1px solid #e1e8f0;
+            border-radius: 12px;
+            transition: all .2s ease;
+            position: relative;
+        }
+        .hw-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(9,47,88,0.08);
+            border-color: #d5dee8;
+        }
+        .hw-card.is-mine {
+            border-left: 4px solid #7c3aed;
+        }
+
+        .hw-card-icon {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            background: #f0e7ff;
+            color: #7c3aed;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            flex: 0 0 44px;
+        }
+
+        .hw-card-body { flex: 1; min-width: 0; }
+        .hw-card-title {
+            margin: 0 0 4px;
+            font-size: 14px; font-weight: 800; color: #0a2340;
+            line-height: 1.35;
+        }
+        .hw-card-meta {
+            display: flex; gap: 10px; flex-wrap: wrap;
+            font-size: 11px; color: #65758a;
+            margin-bottom: 6px;
+        }
+        .hw-card-meta span { display: inline-flex; align-items: center; gap: 4px; }
+        .hw-card-meta i { font-size: 10px; }
+
+        .hw-card-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 2px 8px; border-radius: 5px;
+            font-size: 10px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .hw-card-badge.class   { background: #e1f1ff; color: #1768a7; }
+        .hw-card-badge.subject { background: #e3f5eb; color: #168254; }
+        .hw-card-badge.mine    { background: #f0e7ff; color: #7c3aed; }
+        .hw-card-badge.due     { background: #fff1d6; color: #a86a00; }
+
+        .hw-card-desc {
+            margin: 6px 0 0;
+            font-size: 12.5px; color: #475569;
+            line-height: 1.5;
+        }
+        .hw-card-desc.clamped {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .hw-card-actions {
+            display: flex; align-items: flex-start; gap: 6px;
+            flex: 0 0 auto;
+        }
+        .hw-delete-btn {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 7px 12px;
+            border: 1px solid #f8c9d2;
+            background: #ffeaee;
+            color: #d71938;
+            border-radius: 8px;
+            font: inherit; font-size: 11.5px; font-weight: 700;
+            cursor: pointer;
+            transition: all .15s ease;
+        }
+        .hw-delete-btn:hover { background: #ffd9e0; }
+        .hw-delete-btn i { font-size: 10px; }
+
+        /* === Empty === */
+        .hw-empty {
+            padding: 50px 24px;
+            text-align: center;
+            color: #65758a;
+            font-size: 13px;
+            background: #fff;
+            border: 1px solid #e1e8f0;
+            border-radius: 14px;
+        }
+        .hw-empty i {
+            font-size: 40px; display: block;
+            margin-bottom: 12px; color: #cbd5e1;
+        }
+        .hw-empty strong { color: #0a2340; }
+
+        /* === Responsive === */
+        @media (max-width: 900px) {
+            .hw-grid { grid-template-columns: 1fr; }
+            .hw-stats { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 640px) {
+            .hw-page { padding: 16px; }
+            .hw-banner h1 { font-size: 21px; }
+            .hw-stats { grid-template-columns: 1fr; }
+            .hw-form-row { grid-template-columns: 1fr; }
+            .hw-card { flex-wrap: wrap; }
+            .hw-card-actions { width: 100%; justify-content: flex-end; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="hw-page">
+
+    <a href="{{ url_for('user_dashboard') }}" class="hw-back">
+        <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <!-- Banner -->
+    <section class="hw-banner">
+        <h1>Assign Homework</h1>
+        <p>Create and manage homework for your assigned classes. Students see it instantly on their dashboard.</p>
+        <div class="hw-banner-meta">
+            <span><i class="fa-solid fa-id-badge"></i>{{ user.unique_id }}</span>
+            <span><i class="fa-solid fa-book"></i>{{ user.subject or 'All Subjects' }}</span>
+            {% if assigned_classes %}
+            <span><i class="fa-solid fa-users"></i>{{ assigned_classes|join(', ') }}</span>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <div class="hw-stats">
+        <div class="hw-stat total">
+            <div class="hw-stat-label">Total Homework</div>
+            <div class="hw-stat-value">{{ stats.total }}</div>
+        </div>
+        <div class="hw-stat mine">
+            <div class="hw-stat-label">Assigned by Me</div>
+            <div class="hw-stat-value">{{ stats.mine }}</div>
+        </div>
+        <div class="hw-stat classes">
+            <div class="hw-stat-label">Active Classes</div>
+            <div class="hw-stat-value">{{ stats.classes }}</div>
+        </div>
+    </div>
+
+    <div class="hw-grid">
+
+        <!-- ========== LEFT: Assign form ========== -->
+        <div class="hw-panel" style="position: sticky; top: 20px;">
+            <div class="hw-panel-head">
+                <h2 class="hw-panel-title">
+                    <i class="fa-solid fa-plus"></i> Assign new homework
+                </h2>
+            </div>
+            <div class="hw-panel-body">
+                {% if not assigned_classes %}
+                <div class="hw-hint" style="margin-bottom: 14px;">
+                    <i class="fa-solid fa-circle-info"></i>
+                    Tip: ask the admin to assign classes to your profile — then only those classes will appear here.
+                </div>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('teacher_add_homework') }}" class="hw-form">
+                    <div class="hw-form-row">
+                        <label>Class
+                            <select name="class_name" required>
+                                <option value="">Select class</option>
+                                {% if assigned_classes %}
+                                    {% for c in assigned_classes %}
+                                    <option value="{{ c }}">{{ c }}</option>
+                                    {% endfor %}
+                                {% else %}
+                                    {% for c in ['Nursery','LKG','UKG','Class 1','Class 2','Class 3','Class 4','Class 5','Class 6','Class 7','Class 8'] %}
+                                    <option value="{{ c }}">{{ c }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </label>
+                        <label>Subject
+                            <input type="text" name="subject"
+                                   value="{{ user.subject or '' }}"
+                                   maxlength="50"
+                                   placeholder="e.g. Mathematics"
+                                   required>
+                        </label>
+                    </div>
+
+                    <label>Title
+                        <input type="text" name="title"
+                               required maxlength="150"
+                               placeholder="e.g. Chapter 5 exercise">
+                    </label>
+
+                    <label>Description (optional)
+                        <textarea name="description" rows="3" maxlength="500"
+                                  placeholder="Add details, page numbers, instructions..."></textarea>
+                    </label>
+
+                    <label>Due date (optional)
+                        <input type="date" name="due_date">
+                    </label>
+
+                    <button type="submit" class="hw-submit-btn">
+                        <i class="fa-solid fa-paper-plane"></i> Assign Homework
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ========== RIGHT: Homework list ========== -->
+        <div>
+            <!-- Filter bar -->
+            <form method="GET" action="{{ url_for('teacher_homework') }}" class="hw-filter-bar">
+                <select name="class_filter" onchange="this.form.submit()">
+                    <option value="all" {% if selected_class == 'all' %}selected{% endif %}>All Classes</option>
+                    {% for c in class_list %}
+                    <option value="{{ c }}" {% if c == selected_class %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+                <input type="search" name="q"
+                       value="{{ search_q }}"
+                       placeholder="Search by title, subject, class..."
+                       oninput="clearTimeout(window._hwT); window._hwT = setTimeout(() => this.form.submit(), 400)">
+                <span class="hw-counter">
+                    <strong>{{ homework_list|length }}</strong> result{{ 's' if homework_list|length != 1 else '' }}
+                </span>
+            </form>
+
+            <!-- List -->
+            {% if homework_list %}
+            <div class="hw-list">
+                {% for h in homework_list %}
+                {% set is_mine = (h.assigned_by == user.id) %}
+                <div class="hw-card {% if is_mine %}is-mine{% endif %}">
+                    <div class="hw-card-icon">
+                        <i class="fa-solid fa-book-open"></i>
+                    </div>
+                    <div class="hw-card-body">
+                        <h3 class="hw-card-title">{{ h.title }}</h3>
+
+                        <div class="hw-card-meta">
+                            <span class="hw-card-badge class">
+                                <i class="fa-solid fa-users"></i> {{ h.class_name }}
+                            </span>
+                            {% if h.subject %}
+                            <span class="hw-card-badge subject">
+                                <i class="fa-solid fa-book"></i> {{ h.subject }}
+                            </span>
+                            {% endif %}
+                            {% if h.due_date %}
+                            <span class="hw-card-badge due">
+                                <i class="fa-regular fa-calendar"></i> Due {{ h.due_date }}
+                            </span>
+                            {% endif %}
+                            {% if is_mine %}
+                            <span class="hw-card-badge mine">
+                                <i class="fa-solid fa-user-check"></i> Assigned by me
+                            </span>
+                            {% elif h.assigned_by_name %}
+                            <span style="font-size:10.5px; color:#65758a;">
+                                <i class="fa-solid fa-user-tie" style="font-size:10px;"></i>
+                                {{ h.assigned_by_name }}
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        {% if h.description %}
+                        <p class="hw-card-desc clamped">{{ h.description }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="hw-card-actions">
+                        {% if is_mine or user.role == 'admin' %}
+                        <form method="POST"
+                              action="{{ url_for('teacher_delete_homework', hid=h.id) }}"
+                              onsubmit="return confirm('Delete this homework? This cannot be undone.');">
+                            <button type="submit" class="hw-delete-btn">
+                                <i class="fa-solid fa-trash"></i> Delete
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="hw-empty">
+                <i class="fa-solid fa-book-open"></i>
+                <strong>No homework yet.</strong>
+                <br><br>
+                Use the form on the left to assign your first homework. Students will see it instantly.
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

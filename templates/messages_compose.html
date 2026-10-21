@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Message | RSN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: #f4f7fb;
+            color: #0a2340;
+        }
+        .cp-page { max-width: 780px; margin: 0 auto; padding: 22px; }
+
+        .cp-back {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 9px 14px; background: #fff; border: 1px solid #e1e8f0;
+            border-radius: 10px; font-size: 12.5px; font-weight: 700;
+            color: #0a2340; text-decoration: none; margin-bottom: 18px;
+            transition: all .2s ease;
+        }
+        .cp-back:hover { background: #f4f8fc; border-color: #b0c4d8; }
+
+        .cp-banner {
+            background: linear-gradient(135deg, #0a2340 0%, #12406b 60%, #1768a7 100%);
+            border-radius: 16px; padding: 24px 28px;
+            color: #fff; position: relative; overflow: hidden;
+            margin-bottom: 18px;
+        }
+        .cp-banner::after {
+            content: ''; position: absolute; right: -60px; top: -60px;
+            width: 220px; height: 220px; border-radius: 50%;
+            background: rgba(255,212,71,0.1);
+        }
+        .cp-banner h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 24px; font-weight: 800;
+            margin: 0 0 6px; letter-spacing: -0.3px;
+            position: relative; z-index: 1;
+        }
+        .cp-banner p {
+            margin: 0; font-size: 13px; color: rgba(255,255,255,0.8);
+            position: relative; z-index: 1;
+        }
+
+        .cp-panel {
+            background: #fff;
+            border: 1px solid #e1e8f0;
+            border-radius: 14px;
+            padding: 24px;
+        }
+
+        .cp-form { display: flex; flex-direction: column; gap: 14px; }
+        .cp-form label {
+            display: flex; flex-direction: column; gap: 6px;
+            font-size: 11px; font-weight: 800; color: #0a2340;
+            text-transform: uppercase; letter-spacing: 0.4px;
+        }
+        .cp-form select,
+        .cp-form input,
+        .cp-form textarea {
+            font: inherit; font-size: 13.5px; font-weight: 500;
+            color: #0a2340; background: #fff;
+            border: 1px solid #e1e8f0; border-radius: 9px;
+            padding: 11px 14px; outline: 0; width: 100%;
+            transition: all .2s;
+        }
+        .cp-form select:focus,
+        .cp-form input:focus,
+        .cp-form textarea:focus {
+            border-color: #b0c4d8;
+            box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
+        }
+        .cp-form textarea {
+            resize: vertical; min-height: 160px;
+            font-family: inherit; line-height: 1.5;
+        }
+
+        .cp-hint {
+            padding: 10px 12px;
+            background: #fff1d6;
+            border: 1px solid #f0e0b3;
+            border-radius: 8px;
+            font-size: 11.5px;
+            color: #a86a00;
+            font-weight: 600;
+            display: flex; gap: 6px; align-items: flex-start;
+        }
+        .cp-hint i { margin-top: 2px; font-size: 12px; }
+
+        .cp-actions {
+            display: flex; gap: 10px; justify-content: flex-end;
+            margin-top: 6px;
+        }
+        .cp-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 11px 22px;
+            border-radius: 10px;
+            font: inherit; font-size: 13px; font-weight: 700;
+            cursor: pointer;
+            transition: all .2s ease;
+        }
+        .cp-btn-cancel {
+            background: #fff; color: #0a2340;
+            border: 1px solid #e1e8f0;
+            text-decoration: none;
+        }
+        .cp-btn-cancel:hover { background: #f4f8fc; border-color: #b0c4d8; }
+        .cp-btn-send {
+            background: #0a2340; color: #fff;
+            border: 1px solid #0a2340;
+        }
+        .cp-btn-send:hover {
+            background: #061f39;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(9,47,88,0.15);
+        }
+
+        .cp-empty-recipients {
+            padding: 40px 20px;
+            text-align: center;
+            color: #65758a;
+            font-size: 13px;
+        }
+        .cp-empty-recipients i {
+            font-size: 36px; display: block;
+            margin-bottom: 10px; color: #cbd5e1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="cp-page">
+
+    <a href="{{ url_for('messages_inbox') }}" class="cp-back">
+        <i class="fa-solid fa-arrow-left"></i> Back to Messages
+    </a>
+
+    <section class="cp-banner">
+        <h1>{% if reply_to %}Reply to Message{% else %}New Message{% endif %}</h1>
+        <p>{% if reply_to %}Your reply will be sent to the original sender.{% else %}Compose and send a message.{% endif %}</p>
+    </section>
+
+    <div class="cp-panel">
+        {% if recipients %}
+        <form method="POST" action="{{ url_for('messages_compose', reply_to=reply_to) if reply_to else url_for('messages_compose') }}"
+              class="cp-form">
+
+            <label>To
+                <select name="to_user_id" required>
+                    <option value="">— Select recipient —</option>
+                    {% set grouped = {} %}
+                    {% for r in recipients %}
+                        {% if r.role not in grouped %}{% set _ = grouped.update({r.role: []}) %}{% endif %}
+                        {% set _ = grouped[r.role].append(r) %}
+                    {% endfor %}
+
+                    {% for role_name in ['admin', 'teacher', 'parent', 'student'] %}
+                        {% if grouped.get(role_name) %}
+                        <optgroup label="{{ role_name|capitalize }}s ({{ grouped[role_name]|length }})">
+                            {% for r in grouped[role_name] %}
+                            <option value="{{ r.id }}"
+                                    {% if pre_to and pre_to == r.id|string %}selected{% endif %}>
+                                {{ r.name }} ({{ r.unique_id }})
+                            </option>
+                            {% endfor %}
+                        </optgroup>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>Subject
+                <input type="text" name="subject"
+                       value="{{ pre_subject }}"
+                       required maxlength="200"
+                       placeholder="e.g. Regarding homework submission">
+            </label>
+
+            <label>Message
+                <textarea name="body" rows="8" required maxlength="3000"
+                          placeholder="Type your message..."></textarea>
+            </label>
+
+            <div class="cp-hint">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>You are signed in as <strong>{{ user.role|capitalize }}</strong>.
+                    {% if user.role == 'teacher' %}
+                        You can message the admin, other teachers, your students, and their parents.
+                    {% elif user.role == 'parent' %}
+                        You can message the admin and teachers.
+                    {% elif user.role == 'student' %}
+                        You can message the admin and teachers.
+                    {% else %}
+                        You can message anyone in the school.
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="cp-actions">
+                <a href="{{ url_for('messages_inbox') }}" class="cp-btn cp-btn-cancel">
+                    Cancel
+                </a>
+                <button type="submit" class="cp-btn cp-btn-send">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    {% if reply_to %}Send Reply{% else %}Send Message{% endif %}
+                </button>
+            </div>
+
+        </form>
+        {% else %}
+        <div class="cp-empty-recipients">
+            <i class="fa-solid fa-users-slash"></i>
+            <strong style="color: #0a2340;">No recipients available.</strong>
+            <br><br>
+            No users match your role-based messaging rules. Contact the school admin.
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+</body>
+</html>

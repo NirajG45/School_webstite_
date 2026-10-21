@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Message | RSN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: #f4f7fb;
+            color: #0a2340;
+        }
+        .vw-page { max-width: 820px; margin: 0 auto; padding: 22px; }
+
+        .vw-back {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 9px 14px; background: #fff; border: 1px solid #e1e8f0;
+            border-radius: 10px; font-size: 12.5px; font-weight: 700;
+            color: #0a2340; text-decoration: none; margin-bottom: 18px;
+            transition: all .2s ease;
+        }
+        .vw-back:hover { background: #f4f8fc; border-color: #b0c4d8; }
+
+        .vw-card {
+            background: #fff;
+            border: 1px solid #e1e8f0;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .vw-head {
+            padding: 20px 24px;
+            background: linear-gradient(135deg, #f0f7ff, #e6f1fb);
+            border-bottom: 1px solid #e1e8f0;
+        }
+        .vw-subject {
+            margin: 0 0 12px;
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 20px; font-weight: 800;
+            color: #0a2340;
+            line-height: 1.35;
+        }
+        .vw-meta {
+            display: flex; gap: 20px; flex-wrap: wrap;
+            font-size: 12px; color: #65758a; font-weight: 600;
+        }
+        .vw-meta-item { display: flex; gap: 6px; align-items: center; }
+        .vw-meta-item i { color: #1768a7; font-size: 12px; }
+        .vw-meta-item strong { color: #0a2340; font-weight: 800; }
+
+        .vw-tag {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 9px; border-radius: 5px;
+            font-size: 10px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .vw-tag.broadcast { background: #fff1d6; color: #a86a00; }
+        .vw-tag.sent      { background: #e3f5eb; color: #168254; }
+        .vw-tag.received  { background: #e1f1ff; color: #1768a7; }
+
+        .vw-body {
+            padding: 24px;
+            font-size: 14px;
+            color: #26445f;
+            line-height: 1.65;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            min-height: 120px;
+        }
+
+        .vw-actions {
+            display: flex;
+            gap: 10px;
+            padding: 16px 24px;
+            background: #fafcfd;
+            border-top: 1px solid #e1e8f0;
+            flex-wrap: wrap;
+        }
+        .vw-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font: inherit; font-size: 13px; font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all .2s ease;
+        }
+        .vw-btn-reply {
+            background: #0a2340; color: #fff;
+            border: 1px solid #0a2340;
+        }
+        .vw-btn-reply:hover {
+            background: #061f39;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(9,47,88,0.15);
+        }
+        .vw-btn-back {
+            background: #fff; color: #0a2340;
+            border: 1px solid #e1e8f0;
+        }
+        .vw-btn-back:hover { background: #f4f8fc; border-color: #b0c4d8; }
+        .vw-btn-delete {
+            background: #ffeaee; color: #d71938;
+            border: 1px solid #f8c9d2;
+            margin-left: auto;
+        }
+        .vw-btn-delete:hover { background: #ffd9e0; }
+
+        .vw-no-access {
+            background: #ffeaee;
+            color: #d71938;
+            padding: 40px 24px;
+            text-align: center;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<div class="vw-page">
+
+    <a href="{{ url_for('messages_inbox') }}" class="vw-back">
+        <i class="fa-solid fa-arrow-left"></i> Back to Messages
+    </a>
+
+    <div class="vw-card">
+
+        <div class="vw-head">
+            <h1 class="vw-subject">{{ msg['subject'] }}</h1>
+            <div class="vw-meta">
+                <div class="vw-meta-item">
+                    <i class="fa-solid fa-user"></i>
+                    From: <strong>{{ msg['from_name'] or 'Unknown' }}</strong>
+                    {% if msg['from_role'] %}({{ msg['from_role']|capitalize }}{% if msg['from_uid'] %} · {{ msg['from_uid'] }}{% endif %}){% endif %}
+                </div>
+                <div class="vw-meta-item">
+                    <i class="fa-solid fa-user-tag"></i>
+                    To:
+                    <strong>
+                        {% if msg['to_user_id'] %}
+                            {{ msg['to_name'] }}{% if msg['to_role'] %} ({{ msg['to_role']|capitalize }}){% endif %}
+                        {% else %}
+                            All {{ msg['to_role']|capitalize }}s
+                        {% endif %}
+                    </strong>
+                </div>
+                <div class="vw-meta-item">
+                    <i class="fa-regular fa-clock"></i>
+                    {{ msg['created_at'][:16] }}
+                </div>
+                {% if is_sender %}
+                <span class="vw-tag sent"><i class="fa-solid fa-paper-plane"></i> Sent by you</span>
+                {% else %}
+                <span class="vw-tag received"><i class="fa-solid fa-inbox"></i> Received</span>
+                {% endif %}
+                {% if is_role_recip %}
+                <span class="vw-tag broadcast"><i class="fa-solid fa-bullhorn"></i> Broadcast</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="vw-body">{{ msg['body'] }}</div>
+
+        <div class="vw-actions">
+            {% if can_reply %}
+            <a href="{{ url_for('messages_compose', reply_to=msg['id']) }}" class="vw-btn vw-btn-reply">
+                <i class="fa-solid fa-reply"></i> Reply
+            </a>
+            {% endif %}
+            <a href="{{ url_for('messages_inbox') }}" class="vw-btn vw-btn-back">
+                <i class="fa-solid fa-arrow-left"></i> Back to Inbox
+            </a>
+            {% if is_sender or user.role == 'admin' %}
+            <form method="POST" action="{{ url_for('messages_delete', msg_id=msg['id']) }}"
+                  onsubmit="return confirm('Delete this message? This cannot be undone.');"
+                  style="display: inline;">
+                <button type="submit" class="vw-btn vw-btn-delete">
+                    <i class="fa-solid fa-trash"></i> Delete
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

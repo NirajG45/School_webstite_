@@ -1,0 +1,171 @@
+{% extends "admin_base.html" %}
+{% block title %}Homework{% endblock %}
+{% block page_title %}Homework{% endblock %}
+
+{% block content %}
+<style>
+    .hw-grid { display: grid; grid-template-columns: 380px 1fr; gap: 20px; align-items: start; }
+    @media (max-width: 900px) { .hw-grid { grid-template-columns: 1fr; } }
+
+    .hw-panel { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    .hw-panel-head { padding: 16px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
+    .hw-panel-head h3 { margin: 0; font-size: 14px; font-weight: 800; color: var(--navy); display: flex; gap: 8px; align-items: center; }
+    .hw-panel-head h3 i { color: var(--red); font-size: 12px; }
+    .hw-panel-body { padding: 20px; }
+
+    .hw-form { display: flex; flex-direction: column; gap: 12px; }
+    .hw-form label {
+        display: flex; flex-direction: column; gap: 5px;
+        font-size: 11.5px; font-weight: 700; color: var(--navy);
+        text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .hw-form input, .hw-form select, .hw-form textarea {
+        font: inherit; font-size: 13px; color: var(--navy);
+        background: #fff; border: 1px solid var(--line); border-radius: 9px;
+        padding: 9px 12px; outline: 0; width: 100%;
+    }
+    .hw-form input:focus, .hw-form select:focus, .hw-form textarea:focus {
+        border-color: #b0c4d8; box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
+    }
+    .hw-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .hw-btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 10px 16px; background: var(--navy); color: #fff;
+        border: 1px solid var(--navy); border-radius: 10px;
+        font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .hw-btn:hover { background: #061f39; transform: translateY(-1px); }
+
+    .hw-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .hw-table th {
+        text-align: left; padding: 10px 16px;
+        font-size: 10px; font-weight: 800; color: var(--muted);
+        text-transform: uppercase; letter-spacing: 0.6px;
+        background: #fafcfd; border-bottom: 1px solid var(--line);
+    }
+    .hw-table td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    .hw-table tr:last-child td { border-bottom: 0; }
+    .hw-table tr:hover { background: #fafcfd; }
+
+    .hw-delete {
+        background: #ffeaee; color: var(--red);
+        border: 1px solid #f8c9d2;
+        padding: 4px 10px; border-radius: 6px;
+        font-size: 11px; font-weight: 700; cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .hw-delete:hover { background: #ffd9e0; }
+
+    .hw-empty { padding: 40px; text-align: center; color: var(--muted); font-size: 12.5px; font-style: italic; }
+    .hw-badge { font-size: 9.5px; font-weight: 800; padding: 3px 8px; border-radius: 5px;
+                background: #e1f1ff; color: #1768a7; text-transform: uppercase; letter-spacing: 0.3px; }
+
+    .hw-count-pill {
+        margin-left: auto; font-size: 11px; font-weight: 700;
+        color: var(--muted);
+        background: #f1f5f9; padding: 3px 10px; border-radius: 10px;
+    }
+</style>
+
+<div class="hw-grid">
+
+    <!-- ADD FORM -->
+    <div class="hw-panel">
+        <div class="hw-panel-head">
+            <h3><i class="fa-solid fa-plus"></i> Assign homework</h3>
+        </div>
+        <div class="hw-panel-body">
+            <form method="POST" action="{{ url_for('admin_add_homework') }}" class="hw-form">
+                <div class="hw-form-row">
+                    <label>Class
+                        <select name="class_name" required>
+                            <option value="">Select</option>
+                            {% for c in ['Nursery','LKG','UKG','Class 1','Class 2','Class 3','Class 4','Class 5','Class 6','Class 7','Class 8'] %}
+                            <option>{{ c }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Subject
+                        <input type="text" name="subject" required maxlength="50" placeholder="e.g. Mathematics">
+                    </label>
+                </div>
+                <label>Title
+                    <input type="text" name="title" required maxlength="150" placeholder="e.g. Chapter 5 exercise">
+                </label>
+                <label>Description (optional)
+                    <textarea name="description" rows="3" maxlength="500" placeholder="Details of the assignment..."></textarea>
+                </label>
+                <label>Due date (optional)
+                    <input type="date" name="due_date">
+                </label>
+                <button type="submit" class="hw-btn">
+                    <i class="fa-solid fa-paper-plane"></i> Assign homework
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- LIST -->
+    <div class="hw-panel">
+        <div class="hw-panel-head">
+            <h3><i class="fa-solid fa-book-open"></i> Assigned homework</h3>
+            <span class="hw-count-pill">{{ homework|length }} total</span>
+        </div>
+
+        {% if homework %}
+        <div style="overflow-x:auto;">
+            <table class="hw-table">
+                <thead>
+                    <tr>
+                        <th>Class</th>
+                        <th>Subject</th>
+                        <th>Title</th>
+                        <th>Due date</th>
+                        <th>Assigned by</th>
+                        <th style="width:100px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in homework %}
+                    <tr>
+                        <td><span class="hw-badge">{{ h.class_name }}</span></td>
+                        <td>{{ h.subject }}</td>
+                        <td>
+                            <strong style="display:block; font-size:12.5px; color:var(--navy);">{{ h.title }}</strong>
+                            {% if h.description %}
+                            <small style="color:var(--muted); font-size:11px; display:block; margin-top:2px;">
+                                {{ h.description[:80] }}{% if h.description|length > 80 %}…{% endif %}
+                            </small>
+                            {% endif %}
+                        </td>
+                        <td style="white-space:nowrap; font-size:12px;">
+                            {{ h.due_date or '—' }}
+                        </td>
+                        <td style="color:var(--muted); font-size:11.5px;">
+                            {{ h.assigned_by_name or 'Admin' }}
+                        </td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin_delete_homework', hid=h.id) }}"
+                                  onsubmit="return confirm('Delete this homework?');">
+                                <button type="submit" class="hw-delete">
+                                    <i class="fa-solid fa-trash"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="hw-empty">
+            <i class="fa-solid fa-book-open" style="font-size:28px; display:block; margin-bottom:8px; color:#cbd5e1;"></i>
+            No homework assigned yet. Use the form on the left to add the first one.
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

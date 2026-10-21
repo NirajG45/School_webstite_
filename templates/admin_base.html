@@ -271,9 +271,26 @@
         .notif-icon.green { background: #e3f5eb; color: #168254; }
         .notif-icon.blue  { background: #e1f1ff; color: #1768a7; }
         .notif-icon.red   { background: #ffeaee; color: var(--red, #d71938); }
+        .notif-icon.purple { background: #f0e7ff; color: #7439b2; }
         .notif-body { flex: 1; min-width: 0; }
         .notif-body strong { display: block; font-size: 12.5px; font-weight: 700; color: #0a2340; margin-bottom: 1px; }
         .notif-body small { display: block; font-size: 10.5px; color: #65758a; line-height: 1.3; }
+        /* NEW: Notif count pill */
+        .notif-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 6px;
+            border-radius: 11px;
+            background: var(--red, #d71938);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .notif-count.zero { background: #cbd5e1; color: #475569; }
         .notif-arrow { color: #b1c2d4; font-size: 10px; transition: all 0.2s ease; }
         .notif-item:hover .notif-arrow { color: var(--red, #d71938); transform: translateX(3px); }
         .notif-footer { padding: 10px 16px; border-top: 1px solid #e4eaf1; background: #fafcff; text-align: center; }
@@ -501,6 +518,13 @@
             <a href="{{ url_for('admin_attendance') }}" class="admin-nav-link {% if active_page == 'attendance' %}active{% endif %}">
                 <i class="fa-solid fa-clipboard-check"></i> Attendance
             </a>
+            <!-- NEW: Homework link (uses admin_homework route from backend) -->
+            <a href="{{ url_for('admin_homework') }}" class="admin-nav-link {% if active_page == 'homework' %}active{% endif %}">
+                <i class="fa-solid fa-book-open"></i> Homework
+                {% if total_homework and total_homework > 0 %}
+                <span class="notif-dot" style="margin-left:auto;"></span>
+                {% endif %}
+            </a>
             <a href="{{ url_for('admin_leaves') }}" class="admin-nav-link {% if active_page == 'leaves' %}active{% endif %}">
                 <i class="fa-solid fa-calendar-minus"></i> Leave Requests
                 {% if pending_leaves and pending_leaves > 0 %}
@@ -566,17 +590,24 @@
 
             <h1 class="admin-page-title">{% block page_title %}Dashboard{% endblock %}</h1>
 
+            <!-- Search bar — backend admin_users now handles ?q= -->
             <form class="admin-search" action="{{ url_for('admin_users') }}" method="get" role="search">
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="search" name="q" placeholder="Search students, teachers, parents..." aria-label="Search">
+                <input type="search" name="q"
+                       value="{{ request.args.get('q', '') }}"
+                       placeholder="Search students, teachers, parents..."
+                       aria-label="Search">
             </form>
 
             <div class="admin-user-info">
-                <!-- NOTIFICATION BELL -->
+                <!-- NOTIFICATION BELL — with real counts -->
                 <div class="admin-topbar-notif" id="adminNotifWrapper">
                     <button type="button" class="admin-topbar-icon admin-notif-btn" id="adminNotifBtn" aria-haspopup="true" aria-expanded="false" aria-controls="adminNotifDropdown" aria-label="Notifications" title="Notifications">
                         <i class="fa-regular fa-bell"></i>
+                        {% set total_notifs = (pending_leaves or 0) + (pending_fees or 0) + (total_homework or 0) %}
+                        {% if total_notifs > 0 %}
                         <span class="notif-dot-badge" aria-hidden="true"></span>
+                        {% endif %}
                     </button>
 
                     <div class="admin-notif-dropdown" id="adminNotifDropdown" role="menu">
@@ -585,12 +616,23 @@
                             <span class="notif-head-tag">Admin</span>
                         </div>
                         <div class="notif-list">
+                            <!-- NEW: Homework count -->
+                            <a href="{{ url_for('admin_homework') }}" class="notif-item" role="menuitem">
+                                <div class="notif-icon purple"><i class="fa-solid fa-book-open"></i></div>
+                                <div class="notif-body">
+                                    <strong>Homework assigned</strong>
+                                    <small>{{ total_homework or 0 }} total assignments</small>
+                                </div>
+                                <span class="notif-count {% if not total_homework %}zero{% endif %}">{{ total_homework or 0 }}</span>
+                                <i class="fa-solid fa-chevron-right notif-arrow"></i>
+                            </a>
                             <a href="{{ url_for('admin_leaves') }}" class="notif-item" role="menuitem">
                                 <div class="notif-icon amber"><i class="fa-solid fa-calendar-minus"></i></div>
                                 <div class="notif-body">
                                     <strong>Leave requests</strong>
                                     <small>Review pending approvals</small>
                                 </div>
+                                <span class="notif-count {% if not pending_leaves %}zero{% endif %}">{{ pending_leaves or 0 }}</span>
                                 <i class="fa-solid fa-chevron-right notif-arrow"></i>
                             </a>
                             <a href="{{ url_for('admin_fees') }}" class="notif-item" role="menuitem">
@@ -599,6 +641,7 @@
                                     <strong>Fee payments</strong>
                                     <small>Verify submitted payments</small>
                                 </div>
+                                <span class="notif-count {% if not pending_fees %}zero{% endif %}">{{ pending_fees or 0 }}</span>
                                 <i class="fa-solid fa-chevron-right notif-arrow"></i>
                             </a>
                             <a href="{{ url_for('admin_enquiries') }}" class="notif-item" role="menuitem">

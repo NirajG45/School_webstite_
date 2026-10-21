@@ -3,12 +3,268 @@
 {% block page_title %}Attendance Management{% endblock %}
 
 {% block content %}
+<style>
+    .att-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    .att-stat-card {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 16px;
+        position: relative;
+        overflow: hidden;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .att-stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(9,47,88,0.06);
+    }
+    .att-stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+    }
+    .att-stat-card.present::before    { background: #168254; }
+    .att-stat-card.absent::before     { background: #d71938; }
+    .att-stat-card.leave::before      { background: #a86a00; }
+    .att-stat-card.halfday::before    { background: #7439b2; }
+    .att-stat-card.not-marked::before { background: #94a3b8; }
+    .att-stat-card.total::before      { background: var(--navy); }
+
+    .att-stat-label {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+    .att-stat-value {
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--navy);
+        line-height: 1;
+    }
+    .att-stat-card.present .att-stat-value    { color: #168254; }
+    .att-stat-card.absent .att-stat-value     { color: #d71938; }
+    .att-stat-card.leave .att-stat-value      { color: #a86a00; }
+    .att-stat-card.halfday .att-stat-value    { color: #7439b2; }
+    .att-stat-card.not-marked .att-stat-value { color: #64748b; }
+
+    .att-overall {
+        background: #f8fafc;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 16px 18px;
+        margin-bottom: 20px;
+    }
+    .att-overall-title {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--navy);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .att-overall-title i { color: var(--red); font-size: 12px; }
+    .att-overall-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+    }
+    .att-overall-role {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px;
+    }
+    .att-overall-role-name {
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--navy);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .att-overall-role-name span {
+        background: #e1f1ff;
+        color: #1768a7;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 800;
+    }
+    .att-overall-pills {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        font-size: 11px;
+    }
+    .att-overall-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 5px;
+        font-weight: 700;
+        font-size: 10.5px;
+    }
+    .att-overall-pill i { font-size: 9px; }
+    .att-overall-pill.present    { background: #e3f5eb; color: #168254; }
+    .att-overall-pill.absent     { background: #ffeaee; color: #d71938; }
+    .att-overall-pill.leave      { background: #fff1d6; color: #a86a00; }
+    .att-overall-pill.halfday    { background: #f0e7ff; color: #7439b2; }
+    .att-overall-pill.not-marked { background: #f1f5f9; color: #64748b; }
+
+    .att-filters {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        padding: 16px 20px;
+    }
+    .att-filters label {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--navy);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .att-filters select, .att-filters input {
+        font: inherit;
+        font-size: 13px;
+        padding: 8px 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        color: var(--navy);
+        background: #fff;
+        outline: none;
+        transition: all .2s;
+    }
+    .att-filters select:focus, .att-filters input:focus {
+        border-color: #b0c4d8;
+        box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
+    }
+
+    .att-refresh-note {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        font-size: 11.5px;
+        color: var(--muted);
+        margin-bottom: 12px;
+        padding: 12px 20px 0;
+        font-weight: 600;
+    }
+    .att-refresh-note i { color: var(--red); margin-right: 4px; font-size: 10px; }
+    .att-refresh-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font-size: 11.5px;
+        font-weight: 700;
+        color: var(--navy);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .att-refresh-btn:hover { background: #f4f8fc; border-color: #b0c4d8; }
+
+    .att-badge {
+        display: inline-block;
+        padding: 3px 9px;
+        border-radius: 5px;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .att-badge.present    { background: #e3f5eb; color: #168254; }
+    .att-badge.absent     { background: #ffeaee; color: #d71938; }
+    .att-badge.leave      { background: #fff1d6; color: #a86a00; }
+    .att-badge.half-day   { background: #f0e7ff; color: #7439b2; }
+    .att-badge.not-marked { background: #f1f5f9; color: #64748b; }
+</style>
+
+<!-- Live stats for current view -->
+<div class="att-stats">
+    <div class="att-stat-card total">
+        <div class="att-stat-label">Total {{ role|capitalize }}s</div>
+        <div class="att-stat-value">{{ users|length }}</div>
+    </div>
+    <div class="att-stat-card present">
+        <div class="att-stat-label">Present</div>
+        <div class="att-stat-value">{{ present_count }}</div>
+    </div>
+    <div class="att-stat-card absent">
+        <div class="att-stat-label">Absent</div>
+        <div class="att-stat-value">{{ absent_count }}</div>
+    </div>
+    <div class="att-stat-card leave">
+        <div class="att-stat-label">On Leave</div>
+        <div class="att-stat-value">{{ leave_count }}</div>
+    </div>
+    <div class="att-stat-card halfday">
+        <div class="att-stat-label">Half Day</div>
+        <div class="att-stat-value">{{ halfday_count }}</div>
+    </div>
+    <div class="att-stat-card not-marked">
+        <div class="att-stat-label">Not Marked</div>
+        <div class="att-stat-value">{{ not_marked }}</div>
+    </div>
+</div>
+
+<!-- Today at a glance across all roles -->
+<div class="att-overall">
+    <div class="att-overall-title">
+        <i class="fa-solid fa-chart-simple"></i>
+        Today at a glance — {{ date }} · {{ subject_filter }}
+    </div>
+    <div class="att-overall-grid">
+        {% for role_name, data in overall.items() %}
+        {% if data.total > 0 %}
+        <div class="att-overall-role">
+            <div class="att-overall-role-name">
+                {{ role_name|capitalize }}s
+                <span>{{ data.total }} total</span>
+            </div>
+            <div class="att-overall-pills">
+                <span class="att-overall-pill present"><i class="fa-solid fa-check"></i> {{ data.present }} present</span>
+                <span class="att-overall-pill absent"><i class="fa-solid fa-xmark"></i> {{ data.absent }} absent</span>
+                {% if data.leave %}<span class="att-overall-pill leave"><i class="fa-solid fa-plane"></i> {{ data.leave }} leave</span>{% endif %}
+                {% if data['half-day'] %}<span class="att-overall-pill halfday"><i class="fa-solid fa-clock"></i> {{ data['half-day'] }} half-day</span>{% endif %}
+                {% if data['not-marked'] %}<span class="att-overall-pill not-marked">{{ data['not-marked'] }} not marked</span>{% endif %}
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Filters -->
 <div class="admin-panel">
     <div class="admin-panel-head">
-        <h3><i class="fa-solid fa-clipboard-check"></i> Mark / View Attendance</h3>
+        <h3><i class="fa-solid fa-filter"></i> Filter View</h3>
     </div>
-    <form method="GET" class="admin-form filter-form">
-        <div class="form-row-2col">
+    <form method="GET" class="admin-form">
+        <div class="att-filters">
             <label>Role
                 <select name="role" onchange="this.form.submit()">
                     <option value="student" {% if role=='student' %}selected{% endif %}>Students</option>
@@ -19,48 +275,99 @@
             <label>Date
                 <input type="date" name="date" value="{{ date }}" onchange="this.form.submit()">
             </label>
+            <label>Subject
+                <select name="subject_filter" onchange="this.form.submit()">
+                    {% for s in subjects %}
+                    <option value="{{ s }}" {% if s==subject_filter %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            {% if role == 'student' %}
+            <label>Class
+                <select name="class_filter" onchange="this.form.submit()">
+                    <option value="all" {% if class_filter=='all' %}selected{% endif %}>All Classes</option>
+                    {% for c in class_list %}
+                    <option value="{{ c }}" {% if c==class_filter %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            {% endif %}
         </div>
     </form>
 </div>
 
+<!-- Marking table -->
 <div class="admin-panel">
     <div class="admin-panel-head">
-        <h3><i class="fa-solid fa-users"></i> {{ users|length }} {{ role|capitalize }}s — {{ date }}</h3>
+        <h3>
+            <i class="fa-solid fa-users"></i>
+            {{ users|length }} {{ role|capitalize }}{{ 's' if users|length != 1 }} — {{ date }} · {{ subject_filter }}
+        </h3>
     </div>
     <form method="POST" action="{{ url_for('admin_mark_attendance') }}">
         <input type="hidden" name="date" value="{{ date }}">
+        <input type="hidden" name="subject" value="{{ subject_filter }}">
+        <input type="hidden" name="role" value="{{ role }}">
+        <input type="hidden" name="class_filter" value="{{ class_filter }}">
+
+        <div class="att-refresh-note">
+            <span>
+                <i class="fa-solid fa-clock"></i>
+                Marked {{ marked }} of {{ users|length }} · Live from database
+            </span>
+            <a href="{{ url_for('admin_attendance', role=role, date=date, subject_filter=subject_filter, class_filter=class_filter) }}"
+               class="att-refresh-btn">
+                <i class="fa-solid fa-rotate"></i> Refresh
+            </a>
+        </div>
+
         <div class="admin-table-wrap">
             <table class="admin-table">
                 <thead>
-                    <tr><th>Unique ID</th><th>Name</th><th>Current Status</th><th>Mark As</th></tr>
+                    <tr>
+                        <th>Unique ID</th>
+                        <th>Name</th>
+                        {% if role == 'student' %}<th>Class</th>{% endif %}
+                        <th>Current Status</th>
+                        <th>Mark As</th>
+                    </tr>
                 </thead>
                 <tbody>
                     {% for u in users %}
+                    {% set st = attendance_map.get(u.id, 'not-marked') %}
                     <tr>
                         <td><strong>{{ u.unique_id }}</strong></td>
                         <td>{{ u.name }}</td>
+                        {% if role == 'student' %}
+                        <td>{{ u.class_name or u.child_class or '—' }}</td>
+                        {% endif %}
                         <td>
-                            {% set st = attendance_map.get(u.id, 'not-marked') %}
-                            <span class="att-badge att-{{ st }}">{{ st|capitalize }}</span>
+                            <span class="att-badge {{ st }}">{{ st|replace('-', ' ')|title }}</span>
                         </td>
                         <td>
                             <select name="status_{{ u.id }}" class="role-select">
-                                <option value="present" {% if attendance_map.get(u.id)=='present' %}selected{% endif %}>Present</option>
-                                <option value="absent" {% if attendance_map.get(u.id)=='absent' %}selected{% endif %}>Absent</option>
-                                <option value="leave" {% if attendance_map.get(u.id)=='leave' %}selected{% endif %}>On Leave</option>
-                                <option value="half-day" {% if attendance_map.get(u.id)=='half-day' %}selected{% endif %}>Half Day</option>
+                                <option value="present"  {% if st=='present'  %}selected{% endif %}>Present</option>
+                                <option value="absent"   {% if st=='absent'   %}selected{% endif %}>Absent</option>
+                                <option value="leave"    {% if st=='leave'    %}selected{% endif %}>On Leave</option>
+                                <option value="half-day" {% if st=='half-day' %}selected{% endif %}>Half Day</option>
                             </select>
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="4" class="empty-row">No users found for this role.</td></tr>
+                    <tr>
+                        <td colspan="{% if role == 'student' %}5{% else %}4{% endif %}" class="empty-row">
+                            No {{ role }}s found for this filter.
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
         {% if users %}
         <div style="padding:20px;">
-            <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-save"></i> Save Attendance</button>
+            <button type="submit" class="btn-admin-primary">
+                <i class="fa-solid fa-save"></i> Save Attendance
+            </button>
         </div>
         {% endif %}
     </form>

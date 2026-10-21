@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark Attendance | RSN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: #f4f7fb;
+            color: #0a2340;
+        }
+        .ta-page { max-width: 1150px; margin: 0 auto; padding: 22px; }
+
+        .ta-back {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 9px 14px; background: #fff; border: 1px solid #e1e8f0;
+            border-radius: 10px; font-size: 12.5px; font-weight: 700;
+            color: #0a2340; text-decoration: none; margin-bottom: 18px;
+            transition: all 0.2s ease;
+        }
+        .ta-back:hover { background: #f4f8fc; border-color: #b0c4d8; }
+
+        .ta-banner {
+            background: linear-gradient(135deg, #0a2340 0%, #12406b 60%, #1768a7 100%);
+            border-radius: 16px; padding: 24px 28px;
+            color: #fff; position: relative; overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .ta-banner::after {
+            content: ''; position: absolute;
+            right: -60px; top: -60px; width: 220px; height: 220px;
+            border-radius: 50%; background: rgba(255,212,71,0.1);
+        }
+        .ta-banner h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 26px; font-weight: 800;
+            margin: 0 0 6px; letter-spacing: -0.4px;
+            position: relative; z-index: 1;
+        }
+        .ta-banner p {
+            margin: 0; font-size: 13px;
+            color: rgba(255,255,255,0.8);
+            position: relative; z-index: 1;
+        }
+        .ta-banner-meta {
+            display: flex; gap: 16px; flex-wrap: wrap;
+            margin-top: 10px; font-size: 12px; font-weight: 600;
+            color: rgba(255,255,255,0.85);
+            position: relative; z-index: 1;
+        }
+        .ta-banner-meta i { color: #ffd447; margin-right: 4px; font-size: 11px; }
+
+        /* Panels */
+        .ta-panel {
+            background: #fff;
+            border: 1px solid #e1e8f0;
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 18px;
+        }
+        .ta-panel-head {
+            padding: 14px 20px;
+            border-bottom: 1px solid #e1e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        .ta-panel-title {
+            margin: 0; font-size: 14px; font-weight: 800; color: #0a2340;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .ta-panel-title i { color: #d71938; font-size: 12px; }
+        .ta-panel-body { padding: 18px 20px; }
+
+        /* Self attendance card */
+        .ta-self-card {
+            display: flex; align-items: center; gap: 16px;
+            padding: 18px;
+            background: linear-gradient(135deg, #e6f4ff, #d0ebff);
+            border-radius: 12px;
+            border: 1px solid #c0dfff;
+        }
+        .ta-self-avatar {
+            width: 56px; height: 56px; border-radius: 50%;
+            background: linear-gradient(135deg, #d71938, #b9102c);
+            border: 3px solid #fff;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 800; font-size: 18px;
+            flex: 0 0 56px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .ta-self-info { flex: 1; min-width: 0; }
+        .ta-self-info strong {
+            display: block; font-size: 14px; font-weight: 800;
+            color: #0a2340; margin-bottom: 3px;
+        }
+        .ta-self-info small {
+            display: block; font-size: 11.5px; color: #4a6b8c; font-weight: 600;
+        }
+        .ta-self-actions {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .ta-self-actions select {
+            font: inherit; font-size: 13px; font-weight: 700;
+            padding: 9px 14px;
+            border: 1px solid #b0c4d8; border-radius: 9px;
+            background: #fff; color: #0a2340;
+            cursor: pointer;
+        }
+
+        /* Filters */
+        .ta-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .ta-filters label {
+            display: flex; flex-direction: column; gap: 5px;
+            font-size: 11px; font-weight: 700; color: #0a2340;
+            text-transform: uppercase; letter-spacing: 0.4px;
+        }
+        .ta-filters select, .ta-filters input {
+            font: inherit; font-size: 13px;
+            padding: 8px 12px;
+            border: 1px solid #e1e8f0; border-radius: 8px;
+            color: #0a2340; background: #fff; outline: none;
+            transition: all .2s;
+        }
+        .ta-filters select:focus, .ta-filters input:focus {
+            border-color: #b0c4d8;
+            box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
+        }
+
+        /* Stat cards */
+        .ta-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .ta-stat {
+            background: #fff; border: 1px solid #e1e8f0;
+            border-radius: 12px; padding: 14px 16px;
+            position: relative; overflow: hidden;
+        }
+        .ta-stat::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 3px;
+        }
+        .ta-stat.present::before    { background: #168254; }
+        .ta-stat.absent::before     { background: #d71938; }
+        .ta-stat.leave::before      { background: #a86a00; }
+        .ta-stat.halfday::before    { background: #7439b2; }
+        .ta-stat.not-marked::before { background: #94a3b8; }
+        .ta-stat.total::before      { background: #0a2340; }
+
+        .ta-stat-label {
+            font-size: 10.5px; font-weight: 700; color: #65758a;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .ta-stat-value {
+            font-size: 24px; font-weight: 800; color: #0a2340; line-height: 1;
+        }
+        .ta-stat.present .ta-stat-value    { color: #168254; }
+        .ta-stat.absent .ta-stat-value     { color: #d71938; }
+        .ta-stat.leave .ta-stat-value      { color: #a86a00; }
+        .ta-stat.halfday .ta-stat-value    { color: #7439b2; }
+        .ta-stat.not-marked .ta-stat-value { color: #64748b; }
+
+        /* Table */
+        .ta-table-wrap { overflow-x: auto; }
+        .ta-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .ta-table th {
+            text-align: left; padding: 10px 16px;
+            font-size: 10px; font-weight: 800; color: #65758a;
+            text-transform: uppercase; letter-spacing: 0.6px;
+            background: #fafcfd;
+            border-bottom: 1px solid #e1e8f0;
+            white-space: nowrap;
+        }
+        .ta-table td {
+            padding: 11px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        .ta-table tr:last-child td { border-bottom: 0; }
+        .ta-table tr:hover { background: #fafcfd; }
+        .ta-table .uid-cell {
+            font-family: 'Courier New', monospace;
+            font-size: 11.5px; font-weight: 600; color: #65758a;
+        }
+        .ta-table select {
+            font: inherit; font-size: 12px; font-weight: 700;
+            padding: 6px 10px;
+            border: 1px solid #e1e8f0; border-radius: 7px;
+            background: #fff; color: #0a2340;
+            cursor: pointer;
+            min-width: 110px;
+        }
+
+        .ta-badge {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 5px;
+            font-size: 10px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .ta-badge.present    { background: #e3f5eb; color: #168254; }
+        .ta-badge.absent     { background: #ffeaee; color: #d71938; }
+        .ta-badge.leave      { background: #fff1d6; color: #a86a00; }
+        .ta-badge.half-day   { background: #f0e7ff; color: #7439b2; }
+        .ta-badge.not-marked { background: #f1f5f9; color: #64748b; }
+
+        .ta-empty {
+            padding: 50px 24px; text-align: center;
+            color: #65758a; font-size: 13px;
+        }
+        .ta-empty i {
+            font-size: 40px; display: block;
+            margin-bottom: 12px; color: #cbd5e1;
+        }
+
+        .ta-hint {
+            padding: 10px 14px;
+            background: #fff1d6;
+            border: 1px solid #f0e0b3;
+            border-radius: 9px;
+            font-size: 12px;
+            color: #a86a00;
+            font-weight: 600;
+            margin-bottom: 14px;
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+        .ta-hint i { margin-top: 2px; }
+
+        .ta-save-bar {
+            display: flex;
+            justify-content: flex-end;
+            padding: 18px 20px;
+            border-top: 1px solid #e1e8f0;
+            background: #fafcfd;
+        }
+        .ta-save-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 22px;
+            background: #0a2340; color: #fff;
+            border: 1px solid #0a2340;
+            border-radius: 10px;
+            font: inherit; font-size: 13px; font-weight: 700;
+            cursor: pointer;
+            transition: all .2s ease;
+        }
+        .ta-save-btn:hover {
+            background: #061f39;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(9,47,88,0.15);
+        }
+
+        @media (max-width: 640px) {
+            .ta-page { padding: 16px; }
+            .ta-banner h1 { font-size: 21px; }
+            .ta-self-card { flex-direction: column; align-items: flex-start; }
+            .ta-self-actions { width: 100%; }
+            .ta-self-actions select { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="ta-page">
+
+    <a href="{{ url_for('user_dashboard') }}" class="ta-back">
+        <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <section class="ta-banner">
+        <h1>Mark Attendance</h1>
+        <p>Record your own attendance and mark your students for today.</p>
+        <div class="ta-banner-meta">
+            <span><i class="fa-solid fa-id-badge"></i>{{ user.unique_id }}</span>
+            <span><i class="fa-solid fa-book"></i>{{ user.subject or 'All Subjects' }}</span>
+            {% if assigned_classes %}
+            <span><i class="fa-solid fa-users"></i>{{ assigned_classes|join(', ') }}</span>
+            {% endif %}
+        </div>
+    </section>
+
+    <form method="POST" action="{{ url_for('teacher_attendance') }}">
+        <input type="hidden" name="date" value="{{ date }}">
+        <input type="hidden" name="subject" value="{{ subject }}">
+        <input type="hidden" name="class_filter" value="{{ selected_class }}">
+
+        <!-- SELF ATTENDANCE -->
+        <div class="ta-panel">
+            <div class="ta-panel-head">
+                <h2 class="ta-panel-title">
+                    <i class="fa-solid fa-user-check"></i> My attendance — {{ date }}
+                </h2>
+            </div>
+            <div class="ta-panel-body">
+                <div class="ta-self-card">
+                    <div class="ta-self-avatar">
+                        {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length > 1 else '' }}
+                    </div>
+                    <div class="ta-self-info">
+                        <strong>{{ user.name }}</strong>
+                        <small>Current status: <span class="ta-badge {{ self_status }}">{{ self_status|replace('-',' ')|title }}</span></small>
+                    </div>
+                    <div class="ta-self-actions">
+                        <select name="teacher_self_status">
+                            <option value="present"  {% if self_status=='present'  %}selected{% endif %}>Present</option>
+                            <option value="absent"   {% if self_status=='absent'   %}selected{% endif %}>Absent</option>
+                            <option value="leave"    {% if self_status=='leave'    %}selected{% endif %}>On Leave</option>
+                            <option value="half-day" {% if self_status=='half-day' %}selected{% endif %}>Half Day</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTERS -->
+        <div class="ta-panel">
+            <div class="ta-panel-head">
+                <h2 class="ta-panel-title"><i class="fa-solid fa-filter"></i> Filter students</h2>
+            </div>
+            <div class="ta-panel-body">
+                <div class="ta-filters">
+                    <label>Date
+                        <input type="date" name="date_display" value="{{ date }}"
+                               onchange="location.href='{{ url_for('teacher_attendance') }}?date='+this.value+'&subject={{ subject|urlencode }}&class_filter={{ selected_class|urlencode }}'">
+                    </label>
+                    <label>Class
+                        <select onchange="location.href='{{ url_for('teacher_attendance') }}?date={{ date }}&subject={{ subject|urlencode }}&class_filter='+this.value">
+                            <option value="all" {% if selected_class=='all' %}selected{% endif %}>All Students</option>
+                            {% for c in class_list %}
+                            <option value="{{ c }}" {% if c==selected_class %}selected{% endif %}>{{ c }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Subject
+                        <select onchange="location.href='{{ url_for('teacher_attendance') }}?date={{ date }}&subject='+this.value+'&class_filter={{ selected_class|urlencode }}'">
+                            {% for s in subjects %}
+                            <option value="{{ s }}" {% if s==subject %}selected{% endif %}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="ta-stats">
+            <div class="ta-stat total">
+                <div class="ta-stat-label">Total Students</div>
+                <div class="ta-stat-value">{{ total_students }}</div>
+            </div>
+            <div class="ta-stat present">
+                <div class="ta-stat-label">Present</div>
+                <div class="ta-stat-value">{{ present_count }}</div>
+            </div>
+            <div class="ta-stat absent">
+                <div class="ta-stat-label">Absent</div>
+                <div class="ta-stat-value">{{ absent_count }}</div>
+            </div>
+            <div class="ta-stat leave">
+                <div class="ta-stat-label">On Leave</div>
+                <div class="ta-stat-value">{{ leave_count }}</div>
+            </div>
+            <div class="ta-stat halfday">
+                <div class="ta-stat-label">Half Day</div>
+                <div class="ta-stat-value">{{ halfday_count }}</div>
+            </div>
+            <div class="ta-stat not-marked">
+                <div class="ta-stat-label">Not Marked</div>
+                <div class="ta-stat-value">{{ not_marked }}</div>
+            </div>
+        </div>
+
+        <!-- STUDENTS TABLE -->
+        <div class="ta-panel">
+            <div class="ta-panel-head">
+                <h2 class="ta-panel-title">
+                    <i class="fa-solid fa-users"></i>
+                    {{ selected_class if selected_class != 'all' else 'All Students' }}
+                    — {{ date }} · {{ subject }}
+                </h2>
+            </div>
+
+            {% if not assigned_classes and not class_list %}
+            <div class="ta-panel-body">
+                <div class="ta-hint">
+                    <i class="fa-solid fa-circle-info"></i>
+                    No students have been added yet. Ask the admin to create student accounts.
+                </div>
+            </div>
+            {% elif not assigned_classes and selected_class == 'all' %}
+            <div class="ta-panel-body">
+                <div class="ta-hint">
+                    <i class="fa-solid fa-circle-info"></i>
+                    Tip: ask the admin to assign classes to your profile — then only those classes will appear here by default.
+                </div>
+            </div>
+            {% endif %}
+
+            {% if students %}
+            <div class="ta-table-wrap">
+                <table class="ta-table">
+                    <thead>
+                        <tr>
+                            <th>Unique ID</th>
+                            <th>Name</th>
+                            <th>Class</th>
+                            <th>Current</th>
+                            <th>Mark As</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in students %}
+                        {% set st = student_att_map.get(s.id, 'not-marked') %}
+                        <tr>
+                            <td><span class="uid-cell">{{ s.unique_id }}</span></td>
+                            <td><strong>{{ s.name }}</strong></td>
+                            <td style="font-size:12px; color:#65758a;">{{ s.class_name or s.child_class or '—' }}</td>
+                            <td><span class="ta-badge {{ st }}">{{ st|replace('-',' ')|title }}</span></td>
+                            <td>
+                                <select name="status_{{ s.id }}">
+                                    <option value="present"  {% if st=='present'  %}selected{% endif %}>Present</option>
+                                    <option value="absent"   {% if st=='absent'   %}selected{% endif %}>Absent</option>
+                                    <option value="leave"    {% if st=='leave'    %}selected{% endif %}>On Leave</option>
+                                    <option value="half-day" {% if st=='half-day' %}selected{% endif %}>Half Day</option>
+                                </select>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="ta-save-bar">
+                <button type="submit" class="ta-save-btn">
+                    <i class="fa-solid fa-save"></i> Save All Attendance
+                </button>
+            </div>
+            {% else %}
+            <div class="ta-empty">
+                <i class="fa-solid fa-users-slash"></i>
+                No students found for the selected filter.
+            </div>
+            {% endif %}
+        </div>
+
+    </form>
+
+</div>
+
+</body>
+</html>

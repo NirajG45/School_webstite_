@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Dashboard | RSN</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         /* ============================================================
-           TEACHER DASHBOARD — SIDEBAR LAYOUT (IMAGE STRUCTURE)
+           TEACHER DASHBOARD — SIDEBAR LAYOUT
            ============================================================ */
         :root {
             --td-navy: var(--navy, #0a2340);
@@ -21,8 +24,15 @@
             --td-muted: var(--muted, #65758a);
             --td-paper: var(--paper, #f4f7fb);
         }
-        * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         .td-body {
             margin: 0;
             font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
@@ -30,12 +40,17 @@
             color: var(--td-navy);
             -webkit-font-smoothing: antialiased;
         }
-        .td-body.td-menu-open { overflow: hidden; }
+
+        .td-body.td-menu-open {
+            overflow: hidden;
+        }
 
         /* ===== SIDEBAR ===== */
         .td-sidebar {
             position: fixed;
-            top: 0; left: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            bottom: 0;
             width: 256px;
             background: linear-gradient(180deg, #0a2340 0%, #06182c 100%);
             display: flex;
@@ -44,28 +59,62 @@
             overflow-y: auto;
             transition: transform 0.3s ease;
         }
-        .td-sidebar::-webkit-scrollbar { width: 6px; }
-        .td-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
-        .td-sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
 
-        .td-sidebar-head { padding: 18px 16px 8px; }
-        .td-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .td-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .td-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+        }
+
+        .td-sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .td-sidebar-head {
+            padding: 18px 16px 8px;
+        }
+
+        .td-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
         .td-logo-img {
-            width: 38px; height: 38px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             background: #fff;
             padding: 3px;
             object-fit: contain;
             flex: 0 0 38px;
         }
-        .td-logo-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
-        .td-logo-text strong {
-            font-size: 13.5px; font-weight: 800; color: #fff;
-            letter-spacing: 0.2px; white-space: nowrap;
+
+        .td-logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.15;
+            min-width: 0;
         }
+
+        .td-logo-text strong {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+        }
+
         .td-logo-text small {
-            font-size: 9.5px; font-weight: 700; color: var(--td-yellow);
-            text-transform: uppercase; letter-spacing: 1.2px;
+            font-size: 9.5px;
+            font-weight: 700;
+            color: var(--td-yellow);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
         }
 
         /* Sidebar user box */
@@ -73,42 +122,74 @@
             margin: 6px 14px 12px;
             padding: 12px 14px;
             border-radius: 12px;
-            background: linear-gradient(135deg, rgba(255,212,71,0.12), rgba(215,25,56,0.12));
-            border: 1px solid rgba(255,212,71,0.28);
+            background: linear-gradient(135deg, rgba(255, 212, 71, 0.12), rgba(215, 25, 56, 0.12));
+            border: 1px solid rgba(255, 212, 71, 0.28);
             display: flex;
             align-items: center;
             gap: 11px;
             position: relative;
             overflow: hidden;
         }
+
         .td-user-box::before {
             content: '';
             position: absolute;
-            left: 0; top: 0; bottom: 0;
+            left: 0;
+            top: 0;
+            bottom: 0;
             width: 3px;
             background: linear-gradient(to bottom, var(--td-yellow), var(--td-red));
         }
+
         .td-user-avatar {
-            width: 40px; height: 40px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             flex: 0 0 40px;
             background: linear-gradient(135deg, var(--td-red), #b9102c);
             color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 13px;
             border: 2px solid var(--td-yellow);
         }
-        .td-user-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+        .td-user-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
         .td-user-info strong {
-            font-size: 13px; font-weight: 800; color: #fff;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            font-size: 13px;
+            font-weight: 800;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+
         .td-user-info small {
-            font-size: 10.5px; color: #b1c2d4; font-weight: 600;
-            display: flex; align-items: center; gap: 5px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            font-size: 10.5px;
+            color: #b1c2d4;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .td-user-info small i { color: var(--td-yellow); font-size: 9px; }
+
+        .td-user-info small i {
+            color: var(--td-yellow);
+            font-size: 9px;
+        }
+
         .td-role-badge {
             display: inline-block;
             background: var(--td-yellow);
@@ -124,54 +205,137 @@
         }
 
         /* Sidebar navigation */
-        .td-nav { padding: 4px 12px 12px; display: flex; flex-direction: column; gap: 2px; }
+        .td-nav {
+            padding: 4px 12px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
         .td-nav-label {
-            font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.38);
-            text-transform: uppercase; letter-spacing: 1.2px;
+            font-size: 9px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.38);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
             padding: 14px 10px 6px;
         }
+
         .td-nav-link {
-            display: flex; align-items: center; gap: 11px;
-            padding: 10px 12px; border-radius: 9px;
-            font-size: 13px; font-weight: 600; color: #b9c8d8;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #b9c8d8;
             text-decoration: none;
             transition: all 0.18s ease;
         }
-        .td-nav-link i { width: 18px; text-align: center; font-size: 14px; color: #7f95ab; transition: color 0.18s; }
-        .td-nav-link:hover { background: rgba(255,255,255,0.06); color: #fff; }
-        .td-nav-link:hover i { color: var(--td-yellow); }
+
+        .td-nav-link i {
+            width: 18px;
+            text-align: center;
+            font-size: 14px;
+            color: #7f95ab;
+            transition: color 0.18s;
+        }
+
+        .td-nav-link:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+        }
+
+        .td-nav-link:hover i {
+            color: var(--td-yellow);
+        }
+
         .td-nav-link.active {
             background: linear-gradient(135deg, var(--td-red), #b9102c);
             color: #fff;
-            box-shadow: 0 6px 16px rgba(215,25,56,0.3);
+            box-shadow: 0 6px 16px rgba(215, 25, 56, 0.3);
         }
-        .td-nav-link.active i { color: #fff; }
-        .td-nav-logout { color: #ff8a9c; }
-        .td-nav-logout:hover { background: rgba(215,25,56,0.15); color: #fff; }
-        .td-nav-logout:hover i { color: #fff; }
+
+        .td-nav-link.active i {
+            color: #fff;
+        }
+
+        .td-nav-logout {
+            color: #ff8a9c;
+        }
+
+        .td-nav-logout:hover {
+            background: rgba(215, 25, 56, 0.15);
+            color: #fff;
+        }
+
+        .td-nav-logout:hover i {
+            color: #fff;
+        }
+
+        /* NEW: pending badge for nav */
+        .td-nav-badge {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 9px;
+            background: var(--td-red);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+        }
 
         .td-sidebar-foot {
             margin: auto 14px 16px;
             margin-top: auto;
             padding: 13px 14px;
             border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.04);
-            display: flex; align-items: center; gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.04);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .td-sidebar-foot i { color: var(--td-yellow); font-size: 18px; }
-        .td-sidebar-foot strong { display: block; font-size: 11.5px; color: #fff; font-weight: 800; }
-        .td-sidebar-foot small { display: block; font-size: 10px; color: #8fa3b8; font-weight: 600; }
+
+        .td-sidebar-foot i {
+            color: var(--td-yellow);
+            font-size: 18px;
+        }
+
+        .td-sidebar-foot strong {
+            display: block;
+            font-size: 11.5px;
+            color: #fff;
+            font-weight: 800;
+        }
+
+        .td-sidebar-foot small {
+            display: block;
+            font-size: 10px;
+            color: #8fa3b8;
+            font-weight: 600;
+        }
 
         /* Backdrop */
         .td-backdrop {
-            position: fixed; inset: 0;
-            background: rgba(6,24,44,0.5);
-            opacity: 0; pointer-events: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 24, 44, 0.5);
+            opacity: 0;
+            pointer-events: none;
             transition: opacity 0.3s ease;
             z-index: 1050;
         }
-        .td-backdrop.open { opacity: 1; pointer-events: auto; }
+
+        .td-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
 
         /* ===== MAIN AREA ===== */
         .td-main {
@@ -187,7 +351,7 @@
             top: 0;
             z-index: 900;
             height: 66px;
-            background: rgba(255,255,255,0.95);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(8px);
             border-bottom: 1px solid var(--td-line);
             display: flex;
@@ -195,16 +359,22 @@
             gap: 14px;
             padding: 0 22px;
         }
+
         .td-menu-toggle {
             display: none;
-            width: 40px; height: 40px;
-            align-items: center; justify-content: center;
+            width: 40px;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
             border: 1px solid var(--td-line);
-            background: #fff; border-radius: 10px;
-            color: var(--td-navy); font-size: 15px;
+            background: #fff;
+            border-radius: 10px;
+            color: var(--td-navy);
+            font-size: 15px;
             cursor: pointer;
             flex: 0 0 40px;
         }
+
         .td-search {
             flex: 1;
             max-width: 460px;
@@ -218,26 +388,46 @@
             padding: 0 14px;
             transition: all 0.2s ease;
         }
+
         .td-search:focus-within {
             background: #fff;
             border-color: #b0c4d8;
-            box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
+            box-shadow: 0 0 0 3px rgba(11, 53, 98, 0.06);
         }
-        .td-search i { color: var(--td-muted); font-size: 13px; }
+
+        .td-search i {
+            color: var(--td-muted);
+            font-size: 13px;
+        }
+
         .td-search input {
             flex: 1;
-            border: 0; outline: 0;
+            border: 0;
+            outline: 0;
             background: transparent;
-            font: inherit; font-size: 13.5px;
+            font: inherit;
+            font-size: 13.5px;
             color: var(--td-navy);
         }
-        .td-search input::placeholder { color: #a0aec0; }
 
-        .td-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+        .td-search input::placeholder {
+            color: #a0aec0;
+        }
+
+        .td-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .td-icon-btn {
             position: relative;
-            width: 40px; height: 40px;
-            display: inline-flex; align-items: center; justify-content: center;
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             background: #fff;
             border: 1px solid var(--td-line);
             border-radius: 10px;
@@ -247,23 +437,44 @@
             transition: all 0.2s ease;
             padding: 0;
         }
-        .td-icon-btn:hover { background: #f4f8fc; border-color: #b0c4d8; transform: translateY(-1px); }
+
+        .td-icon-btn:hover {
+            background: #f4f8fc;
+            border-color: #b0c4d8;
+            transform: translateY(-1px);
+        }
+
         .td-notif-dot {
-            position: absolute; top: 9px; right: 9px;
-            width: 8px; height: 8px;
+            position: absolute;
+            top: 9px;
+            right: 9px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: var(--td-red);
             border: 2px solid #fff;
             animation: tdPulse 2s infinite;
         }
+
         @keyframes tdPulse {
-            0%   { box-shadow: 0 0 0 0 rgba(215,25,56,0.5); }
-            70%  { box-shadow: 0 0 0 6px rgba(215,25,56,0); }
-            100% { box-shadow: 0 0 0 0 rgba(215,25,56,0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(215, 25, 56, 0.5);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(215, 25, 56, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(215, 25, 56, 0);
+            }
         }
 
         /* Notification dropdown */
-        .td-notif { position: relative; }
+        .td-notif {
+            position: relative;
+        }
+
         .td-notif-dropdown {
             position: absolute;
             top: calc(100% + 10px);
@@ -272,62 +483,145 @@
             background: #fff;
             border-radius: 14px;
             border: 1px solid var(--td-line);
-            box-shadow: 0 18px 45px rgba(11,53,98,0.15), 0 4px 12px rgba(11,53,98,0.06);
+            box-shadow: 0 18px 45px rgba(11, 53, 98, 0.15), 0 4px 12px rgba(11, 53, 98, 0.06);
             padding: 0;
             overflow: hidden;
-            opacity: 0; visibility: hidden;
+            opacity: 0;
+            visibility: hidden;
             transform: translateY(-6px) scale(0.97);
             transform-origin: top right;
             pointer-events: none;
             transition: opacity 0.22s, transform 0.22s, visibility 0.22s;
             z-index: 1300;
         }
+
         .td-notif.open .td-notif-dropdown {
-            opacity: 1; visibility: visible;
+            opacity: 1;
+            visibility: visible;
             transform: translateY(0) scale(1);
             pointer-events: auto;
         }
+
         .td-notif-head {
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: 13px 15px;
             border-bottom: 1px solid var(--td-line);
             background: #fafcff;
         }
-        .td-notif-head strong { font-size: 13px; font-weight: 800; color: var(--td-navy); }
-        .td-notif-tag {
-            font-size: 9.5px; font-weight: 800;
-            background: var(--td-yellow); color: #0a2340;
-            padding: 3px 8px; border-radius: 5px;
-            text-transform: uppercase; letter-spacing: 0.5px;
+
+        .td-notif-head strong {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--td-navy);
         }
-        .td-notif-list { padding: 6px; max-height: 320px; overflow-y: auto; }
+
+        .td-notif-tag {
+            font-size: 9.5px;
+            font-weight: 800;
+            background: var(--td-yellow);
+            color: #0a2340;
+            padding: 3px 8px;
+            border-radius: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .td-notif-list {
+            padding: 6px;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
         .td-notif-item {
-            display: flex; align-items: center; gap: 11px;
-            padding: 10px 11px; border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 11px;
+            border-radius: 10px;
             text-decoration: none;
             transition: background 0.18s, transform 0.18s;
         }
-        .td-notif-item:hover { background: #f0f7ff; transform: translateX(2px); }
+
+        .td-notif-item:hover {
+            background: #f0f7ff;
+            transform: translateX(2px);
+        }
+
         .td-notif-icon {
-            width: 34px; height: 34px; border-radius: 9px;
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
             flex: 0 0 34px;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 13px;
         }
-        .td-notif-icon.amber { background: #fff1d6; color: #a86a00; }
-        .td-notif-icon.blue  { background: #e1f1ff; color: #1768a7; }
-        .td-notif-icon.green { background: #e3f5eb; color: #168254; }
-        .td-notif-icon.red   { background: #ffeaee; color: var(--td-red); }
-        .td-notif-body { flex: 1; min-width: 0; }
-        .td-notif-body strong { display: block; font-size: 12px; font-weight: 700; color: var(--td-navy); margin-bottom: 1px; }
-        .td-notif-body small { display: block; font-size: 10.5px; color: var(--td-muted); }
-        .td-notif-foot { padding: 9px 15px; border-top: 1px solid var(--td-line); background: #fafcff; text-align: center; }
-        .td-notif-foot a { font-size: 11.5px; font-weight: 700; color: var(--td-red); text-decoration: none; }
+
+        .td-notif-icon.amber {
+            background: #fff1d6;
+            color: #a86a00;
+        }
+
+        .td-notif-icon.blue {
+            background: #e1f1ff;
+            color: #1768a7;
+        }
+
+        .td-notif-icon.green {
+            background: #e3f5eb;
+            color: #168254;
+        }
+
+        .td-notif-icon.red {
+            background: #ffeaee;
+            color: var(--td-red);
+        }
+
+        .td-notif-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .td-notif-body strong {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--td-navy);
+            margin-bottom: 1px;
+        }
+
+        .td-notif-body small {
+            display: block;
+            font-size: 10.5px;
+            color: var(--td-muted);
+        }
+
+        .td-notif-foot {
+            padding: 9px 15px;
+            border-top: 1px solid var(--td-line);
+            background: #fafcff;
+            text-align: center;
+        }
+
+        .td-notif-foot a {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--td-red);
+            text-decoration: none;
+        }
 
         /* User profile dropdown */
-        .td-up { position: relative; }
+        .td-up {
+            position: relative;
+        }
+
         .td-up-btn {
-            display: inline-flex; align-items: center; gap: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0;
             padding: 4px;
             border: 2px solid transparent;
             background: transparent;
@@ -335,119 +629,233 @@
             border-radius: 50px;
             max-width: 52px;
             overflow: hidden;
-            transition: max-width 0.4s cubic-bezier(.4,0,.2,1), padding 0.4s, gap 0.4s,
-                        background 0.25s, border-color 0.25s, box-shadow 0.25s;
+            transition: max-width 0.4s cubic-bezier(.4, 0, .2, 1), padding 0.4s, gap 0.4s,
+                background 0.25s, border-color 0.25s, box-shadow 0.25s;
             white-space: nowrap;
-            font: inherit; color: inherit; text-align: left;
+            font: inherit;
+            color: inherit;
+            text-align: left;
         }
-        .td-up-btn:hover, .td-up.open .td-up-btn {
-            max-width: 280px; gap: 10px; padding: 4px 14px 4px 4px;
-            background: rgba(11,53,98,0.06);
-            border-color: rgba(11,53,98,0.12);
-            box-shadow: 0 6px 20px rgba(11,53,98,0.08);
+
+        .td-up-btn:hover,
+        .td-up.open .td-up-btn {
+            max-width: 280px;
+            gap: 10px;
+            padding: 4px 14px 4px 4px;
+            background: rgba(11, 53, 98, 0.06);
+            border-color: rgba(11, 53, 98, 0.12);
+            box-shadow: 0 6px 20px rgba(11, 53, 98, 0.08);
         }
+
         .td-up-avatar {
-            width: 38px; height: 38px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             flex: 0 0 38px;
             background: linear-gradient(135deg, var(--td-red), #b9102c);
             color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 13px; letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 13px;
+            letter-spacing: 0.5px;
             border: 2px solid var(--td-yellow);
         }
+
         .td-up-info {
-            display: flex; flex-direction: column; align-items: flex-start;
-            overflow: hidden; opacity: 0; max-width: 0; line-height: 1.2;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            overflow: hidden;
+            opacity: 0;
+            max-width: 0;
+            line-height: 1.2;
             transition: opacity 0.25s, max-width 0.35s;
             pointer-events: none;
         }
-        .td-up-btn:hover .td-up-info, .td-up.open .td-up-btn .td-up-info {
-            opacity: 1; max-width: 170px; pointer-events: auto;
+
+        .td-up-btn:hover .td-up-info,
+        .td-up.open .td-up-btn .td-up-info {
+            opacity: 1;
+            max-width: 170px;
+            pointer-events: auto;
         }
+
         .td-up-info strong {
-            font-size: 13px; font-weight: 700; color: var(--td-navy);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--td-navy);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 160px;
         }
-        .td-up-info small { font-size: 10.5px; color: var(--td-muted); white-space: nowrap; text-transform: capitalize; }
+
+        .td-up-info small {
+            font-size: 10.5px;
+            color: var(--td-muted);
+            white-space: nowrap;
+            text-transform: capitalize;
+        }
+
         .td-up-chevron {
-            font-size: 10px; color: var(--td-navy);
-            opacity: 0; max-width: 0;
+            font-size: 10px;
+            color: var(--td-navy);
+            opacity: 0;
+            max-width: 0;
             transition: opacity 0.25s, max-width 0.25s, transform 0.3s;
         }
-        .td-up-btn:hover .td-up-chevron, .td-up.open .td-up-btn .td-up-chevron { opacity: 1; max-width: 20px; }
-        .td-up.open .td-up-chevron { transform: rotate(180deg); }
+
+        .td-up-btn:hover .td-up-chevron,
+        .td-up.open .td-up-btn .td-up-chevron {
+            opacity: 1;
+            max-width: 20px;
+        }
+
+        .td-up.open .td-up-chevron {
+            transform: rotate(180deg);
+        }
 
         .td-up-dropdown {
             position: absolute;
-            top: calc(100% + 10px); right: 0;
+            top: calc(100% + 10px);
+            right: 0;
             min-width: 260px;
             background: #fff;
             border-radius: 14px;
             border: 1px solid var(--td-line);
-            box-shadow: 0 18px 50px rgba(11,53,98,0.18), 0 4px 14px rgba(11,53,98,0.08);
+            box-shadow: 0 18px 50px rgba(11, 53, 98, 0.18), 0 4px 14px rgba(11, 53, 98, 0.08);
             padding: 12px;
-            opacity: 0; visibility: hidden;
+            opacity: 0;
+            visibility: hidden;
             transform: translateY(-8px) scale(0.97);
             transform-origin: top right;
             pointer-events: none;
             transition: opacity 0.22s, transform 0.22s, visibility 0.22s;
             z-index: 1300;
         }
+
         .td-up.open .td-up-dropdown {
-            opacity: 1; visibility: visible;
+            opacity: 1;
+            visibility: visible;
             transform: translateY(0) scale(1);
             pointer-events: auto;
         }
+
         .td-up-head {
-            display: flex; align-items: center; gap: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             padding: 12px;
             background: linear-gradient(135deg, #f0f7ff, #e6f1fb);
             border-radius: 12px;
             margin-bottom: 6px;
         }
+
         .td-up-head-avatar {
-            width: 44px; height: 44px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             background: linear-gradient(135deg, #0a2340, #14578b);
             color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 15px;
             flex: 0 0 44px;
             border: 2px solid var(--td-yellow);
         }
-        .td-up-head-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+        .td-up-head-text {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
         .td-up-head-text strong {
-            font-size: 13.5px; color: var(--td-navy); font-weight: 800;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            font-size: 13.5px;
+            color: var(--td-navy);
+            font-weight: 800;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+
         .td-up-head-text small {
-            font-size: 10.5px; color: var(--td-muted); font-weight: 600;
-            display: flex; align-items: center; gap: 4px;
+            font-size: 10.5px;
+            color: var(--td-muted);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
+
         .td-up-role-tag {
             display: inline-block;
-            background: var(--td-yellow); color: #0a2340;
-            padding: 2px 8px; border-radius: 5px;
-            font-size: 9px; font-weight: 800;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            align-self: flex-start; margin-top: 2px;
+            background: var(--td-yellow);
+            color: #0a2340;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            align-self: flex-start;
+            margin-top: 2px;
         }
-        .td-up-divider { border: 0; border-top: 1px solid var(--td-line); margin: 4px 8px 6px; }
-        .td-up-dropdown > a {
-            display: flex; align-items: center; gap: 11px;
-            padding: 10px 14px; border-radius: 9px;
-            color: #26445f; font-size: 13px; font-weight: 700;
+
+        .td-up-divider {
+            border: 0;
+            border-top: 1px solid var(--td-line);
+            margin: 4px 8px 6px;
+        }
+
+        .td-up-dropdown>a {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 14px;
+            border-radius: 9px;
+            color: #26445f;
+            font-size: 13px;
+            font-weight: 700;
             text-decoration: none;
             transition: all 0.18s ease;
             margin-bottom: 2px;
         }
-        .td-up-dropdown > a i { width: 16px; text-align: center; color: var(--td-navy); font-size: 13px; }
-        .td-up-dropdown > a:hover { background: #f0f7ff; color: var(--td-navy); transform: translateX(3px); }
-        .td-up-dropdown > a:hover i { color: var(--td-red); }
-        .td-up-dropdown > a.logout-link { color: var(--td-red); }
-        .td-up-dropdown > a.logout-link i { color: var(--td-red); }
-        .td-up-dropdown > a.logout-link:hover { background: #ffeaee; }
+
+        .td-up-dropdown>a i {
+            width: 16px;
+            text-align: center;
+            color: var(--td-navy);
+            font-size: 13px;
+        }
+
+        .td-up-dropdown>a:hover {
+            background: #f0f7ff;
+            color: var(--td-navy);
+            transform: translateX(3px);
+        }
+
+        .td-up-dropdown>a:hover i {
+            color: var(--td-red);
+        }
+
+        .td-up-dropdown>a.logout-link {
+            color: var(--td-red);
+        }
+
+        .td-up-dropdown>a.logout-link i {
+            color: var(--td-red);
+        }
+
+        .td-up-dropdown>a.logout-link:hover {
+            background: #ffeaee;
+        }
 
         /* ===== CONTENT ===== */
         .td-content {
@@ -457,19 +865,48 @@
             flex-direction: column;
             gap: 18px;
         }
-        .td-flash-stack { display: flex; flex-direction: column; gap: 8px; }
+
+        .td-flash-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
         .td-flash {
-            display: flex; justify-content: space-between; align-items: center; gap: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
             padding: 12px 16px;
             border-radius: 10px;
-            font-size: 13px; font-weight: 600;
-            background: #e1f1ff; color: #1768a7;
+            font-size: 13px;
+            font-weight: 600;
+            background: #e1f1ff;
+            color: #1768a7;
             border: 1px solid #c5e2f8;
             transition: opacity 0.25s;
         }
-        .td-flash.success { background: #e3f5eb; color: #168254; border-color: #c8e9d7; }
-        .td-flash.error { background: #ffeaee; color: var(--td-red); border-color: #f8c9d2; }
-        .td-flash button { background: none; border: 0; font-size: 16px; cursor: pointer; color: inherit; padding: 0 2px; }
+
+        .td-flash.success {
+            background: #e3f5eb;
+            color: #168254;
+            border-color: #c8e9d7;
+        }
+
+        .td-flash.error {
+            background: #ffeaee;
+            color: var(--td-red);
+            border-color: #f8c9d2;
+        }
+
+        .td-flash button {
+            background: none;
+            border: 0;
+            font-size: 16px;
+            cursor: pointer;
+            color: inherit;
+            padding: 0 2px;
+        }
 
         /* Grid */
         .td-grid {
@@ -478,8 +915,20 @@
             gap: 18px;
             align-items: start;
         }
-        .td-col-main { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-        .td-col-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+        .td-col-main {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            min-width: 0;
+        }
+
+        .td-col-side {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 0;
+        }
 
         /* Welcome banner */
         .td-welcome {
@@ -494,25 +943,41 @@
             overflow: hidden;
             scroll-margin-top: 86px;
         }
+
         .td-welcome::after {
             content: '';
             position: absolute;
-            right: -60px; top: -60px;
-            width: 220px; height: 220px;
+            right: -60px;
+            top: -60px;
+            width: 220px;
+            height: 220px;
             border-radius: 50%;
-            background: rgba(255,212,71,0.08);
+            background: rgba(255, 212, 71, 0.08);
         }
+
         .td-welcome-avatar {
-            width: 64px; height: 64px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--td-red), #b9102c);
             border: 3px solid var(--td-yellow);
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 20px; color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 20px;
+            color: #fff;
             flex: 0 0 64px;
-            position: relative; z-index: 1;
+            position: relative;
+            z-index: 1;
         }
-        .td-welcome-text { position: relative; z-index: 1; min-width: 0; }
+
+        .td-welcome-text {
+            position: relative;
+            z-index: 1;
+            min-width: 0;
+        }
+
         .td-welcome h1 {
             font-family: 'Playfair Display', Georgia, serif;
             font-size: 24px;
@@ -520,17 +985,36 @@
             font-weight: 800;
             letter-spacing: -0.3px;
         }
-        .td-welcome p { margin: 0; font-size: 13px; color: rgba(255,255,255,0.8); }
-        .td-welcome-meta {
-            display: flex; gap: 14px; flex-wrap: wrap;
-            margin-top: 8px;
-            font-size: 12px; font-weight: 600;
-            color: rgba(255,255,255,0.85);
+
+        .td-welcome p {
+            margin: 0;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
         }
-        .td-welcome-meta i { color: var(--td-yellow); margin-right: 4px; font-size: 11px; }
+
+        .td-welcome-meta {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .td-welcome-meta i {
+            color: var(--td-yellow);
+            margin-right: 4px;
+            font-size: 11px;
+        }
 
         /* Stat cards */
-        .td-stat-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+        .td-stat-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+
         .td-stat {
             background: #fff;
             border: 1px solid var(--td-line);
@@ -542,29 +1026,66 @@
             min-width: 0;
             transition: all 0.2s ease;
         }
-        .td-stat:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(9,47,88,0.07); border-color: #d5dee8; }
+
+        .td-stat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(9, 47, 88, 0.07);
+            border-color: #d5dee8;
+        }
+
         .td-stat-icon {
-            width: 44px; height: 44px;
+            width: 44px;
+            height: 44px;
             border-radius: 12px;
             flex: 0 0 44px;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 17px;
         }
-        .td-stat-icon.green  { background: #e8f8ec; color: #168254; }
-        .td-stat-icon.purple { background: #f3e8ff; color: #7c3aed; }
-        .td-stat-icon.amber  { background: #fff6e6; color: #b7791f; }
-        .td-stat-icon.red    { background: #ffe8eb; color: var(--td-red); }
-        .td-stat-text { min-width: 0; }
+
+        .td-stat-icon.green {
+            background: #e8f8ec;
+            color: #168254;
+        }
+
+        .td-stat-icon.purple {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .td-stat-icon.amber {
+            background: #fff6e6;
+            color: #b7791f;
+        }
+
+        .td-stat-icon.red {
+            background: #ffe8eb;
+            color: var(--td-red);
+        }
+
+        .td-stat-text {
+            min-width: 0;
+        }
+
         .td-stat-text strong {
             display: block;
-            font-size: 20px; font-weight: 800; color: var(--td-navy);
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--td-navy);
             line-height: 1.15;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+
         .td-stat-text small {
             display: block;
-            font-size: 10.5px; color: var(--td-muted);
-            text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700;
+            font-size: 10.5px;
+            color: var(--td-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-weight: 700;
             margin-top: 2px;
         }
 
@@ -578,100 +1099,254 @@
             flex-direction: column;
             scroll-margin-top: 86px;
         }
+
         .td-panel-head {
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: 14px 18px;
             border-bottom: 1px solid var(--td-line);
             gap: 10px;
         }
+
         .td-panel-title {
             margin: 0;
-            font-size: 14px; font-weight: 800; color: var(--td-navy);
-            display: flex; align-items: center; gap: 8px;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--td-navy);
+            display: flex;
+            align-items: center;
+            gap: 8px;
             letter-spacing: -0.2px;
         }
-        .td-panel-title i { color: var(--td-red); font-size: 12px; }
-        .td-panel-link {
-            font-size: 11.5px; font-weight: 700; color: var(--td-red);
-            text-decoration: none;
-            display: inline-flex; align-items: center; gap: 5px;
-            transition: gap 0.2s; white-space: nowrap;
+
+        .td-panel-title i {
+            color: var(--td-red);
+            font-size: 12px;
         }
-        .td-panel-link:hover { gap: 9px; color: #b9102c; }
-        .td-panel-body { padding: 16px 18px; flex: 1; }
-        .td-panel-body.flush { padding: 0; overflow-x: auto; }
+
+        .td-panel-link {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--td-red);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: gap 0.2s;
+            white-space: nowrap;
+        }
+
+        .td-panel-link:hover {
+            gap: 9px;
+            color: #b9102c;
+        }
+
+        .td-panel-body {
+            padding: 16px 18px;
+            flex: 1;
+        }
+
+        .td-panel-body.flush {
+            padding: 0;
+            overflow-x: auto;
+        }
 
         /* Rows */
-        .td-row-2 { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; }
-        .td-row-2.even { grid-template-columns: 1fr 1fr; }
+        .td-row-2 {
+            display: grid;
+            grid-template-columns: 1.35fr 1fr;
+            gap: 16px;
+        }
+
+        .td-row-2.even {
+            grid-template-columns: 1fr 1fr;
+        }
 
         /* Tables */
-        .td-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+        .td-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+        }
+
         .td-table th {
             text-align: left;
             padding: 10px 16px;
-            font-size: 10px; font-weight: 800;
-            text-transform: uppercase; letter-spacing: 0.6px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
             color: var(--td-muted);
             background: #fafcfd;
             border-bottom: 1px solid var(--td-line);
             white-space: nowrap;
         }
+
         .td-table td {
             padding: 11px 16px;
             border-bottom: 1px solid #f1f5f9;
             vertical-align: middle;
         }
-        .td-table tr:last-child td { border-bottom: 0; }
-        .td-table tr:hover { background: #fafcfd; }
+
+        .td-table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .td-table tr:hover {
+            background: #fafcfd;
+        }
 
         .td-pill {
             display: inline-block;
-            font-size: 9.5px; font-weight: 800;
-            padding: 3px 9px; border-radius: 5px;
-            text-transform: uppercase; letter-spacing: 0.3px;
+            font-size: 9.5px;
+            font-weight: 800;
+            padding: 3px 9px;
+            border-radius: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
             white-space: nowrap;
         }
-        .td-pill.present  { background: #e3f5eb; color: #168254; }
-        .td-pill.absent   { background: #ffeaee; color: var(--td-red); }
-        .td-pill.pending  { background: #fff1d6; color: #a86a00; }
-        .td-pill.approved { background: #e3f5eb; color: #168254; }
-        .td-pill.rejected { background: #ffeaee; color: var(--td-red); }
-        .td-pill.late     { background: #fff1d6; color: #a86a00; }
+
+        .td-pill.present {
+            background: #e3f5eb;
+            color: #168254;
+        }
+
+        .td-pill.absent {
+            background: #ffeaee;
+            color: var(--td-red);
+        }
+
+        .td-pill.pending {
+            background: #fff1d6;
+            color: #a86a00;
+        }
+
+        .td-pill.approved {
+            background: #e3f5eb;
+            color: #168254;
+        }
+
+        .td-pill.rejected {
+            background: #ffeaee;
+            color: var(--td-red);
+        }
+
+        .td-pill.late {
+            background: #fff1d6;
+            color: #a86a00;
+        }
 
         /* Donut */
-        .td-donut-wrap { display: flex; align-items: center; gap: 18px; padding: 6px 0; }
+        .td-donut-wrap {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 6px 0;
+        }
+
         .td-donut {
-            width: 132px; height: 132px;
+            width: 132px;
+            height: 132px;
             border-radius: 50%;
             position: relative;
             flex: 0 0 132px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 16px rgba(9,47,88,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(9, 47, 88, 0.08);
         }
-        .td-donut::before { content: ''; position: absolute; inset: 20px; background: #fff; border-radius: 50%; }
-        .td-donut-center { position: relative; z-index: 1; text-align: center; }
-        .td-donut-center strong { display: block; font-size: 22px; font-weight: 800; color: var(--td-navy); line-height: 1; }
+
+        .td-donut::before {
+            content: '';
+            position: absolute;
+            inset: 20px;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        .td-donut-center {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .td-donut-center strong {
+            display: block;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--td-navy);
+            line-height: 1;
+        }
+
         .td-donut-center small {
-            display: block; font-size: 9px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.6px;
-            color: var(--td-muted); margin-top: 2px;
+            display: block;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--td-muted);
+            margin-top: 2px;
         }
-        .td-donut-legend { display: flex; flex-direction: column; gap: 10px; flex: 1; }
-        .td-legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
-        .td-legend-dot { width: 9px; height: 9px; border-radius: 3px; flex: 0 0 9px; }
-        .td-legend-item span { flex: 1; color: var(--td-muted); font-weight: 600; }
-        .td-legend-item strong { color: var(--td-navy); font-weight: 800; font-size: 12.5px; }
+
+        .td-donut-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .td-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .td-legend-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 3px;
+            flex: 0 0 9px;
+        }
+
+        .td-legend-item span {
+            flex: 1;
+            color: var(--td-muted);
+            font-weight: 600;
+        }
+
+        .td-legend-item strong {
+            color: var(--td-navy);
+            font-weight: 800;
+            font-size: 12.5px;
+        }
 
         /* Forms */
-        .td-form { display: flex; flex-direction: column; gap: 12px; }
-        .td-form label {
-            display: flex; flex-direction: column; gap: 5px;
-            font-size: 11.5px; font-weight: 700; color: var(--td-navy);
-            text-transform: uppercase; letter-spacing: 0.4px;
+        .td-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
-        .td-form input, .td-form select, .td-form textarea {
-            font: inherit; font-size: 13px; font-weight: 500;
+
+        .td-form label {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--td-navy);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .td-form input,
+        .td-form select,
+        .td-form textarea {
+            font: inherit;
+            font-size: 13px;
+            font-weight: 500;
             color: var(--td-navy);
             background: #fff;
             border: 1px solid var(--td-line);
@@ -681,28 +1356,46 @@
             width: 100%;
             transition: all 0.2s ease;
         }
-        .td-form input:focus, .td-form select:focus, .td-form textarea:focus {
+
+        .td-form input:focus,
+        .td-form select:focus,
+        .td-form textarea:focus {
             border-color: #b0c4d8;
-            box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
+            box-shadow: 0 0 0 3px rgba(11, 53, 98, 0.06);
         }
-        .td-form textarea { resize: vertical; min-height: 60px; }
-        .td-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .td-form textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .td-form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
 
         .td-btn-primary {
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             padding: 10px 16px;
             border: 1px solid var(--td-navy);
             border-radius: 10px;
             background: var(--td-navy);
             color: #fff;
-            font: inherit; font-size: 13px; font-weight: 700;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
         }
+
         .td-btn-primary:hover {
             background: #061f39;
             transform: translateY(-1px);
-            box-shadow: 0 8px 18px rgba(9,47,88,0.15);
+            box-shadow: 0 8px 18px rgba(9, 47, 88, 0.15);
         }
 
         /* Notices / messages list */
@@ -712,24 +1405,42 @@
             padding: 9px 0;
             border-bottom: 1px solid #f1f5f9;
         }
-        .td-notice:last-child { border-bottom: 0; }
+
+        .td-notice:last-child {
+            border-bottom: 0;
+        }
+
         .td-notice-icon {
-            width: 30px; height: 30px;
+            width: 30px;
+            height: 30px;
             border-radius: 8px;
-            background: #eef4fb; color: #1768a7;
-            display: flex; align-items: center; justify-content: center;
+            background: #eef4fb;
+            color: #1768a7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 12px;
             flex: 0 0 30px;
         }
-        .td-notice-body { flex: 1; min-width: 0; }
+
+        .td-notice-body {
+            flex: 1;
+            min-width: 0;
+        }
+
         .td-notice-body small {
             display: block;
-            font-size: 10px; color: var(--td-muted); font-weight: 600;
+            font-size: 10px;
+            color: var(--td-muted);
+            font-weight: 600;
             margin-bottom: 2px;
         }
+
         .td-notice-body p {
             margin: 0;
-            font-size: 12.5px; font-weight: 600; color: var(--td-navy);
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--td-navy);
             line-height: 1.35;
         }
 
@@ -742,9 +1453,16 @@
         }
 
         /* Quick actions (side) */
-        .td-qa-grid { display: flex; flex-direction: column; gap: 8px; }
+        .td-qa-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
         .td-qa-link {
-            display: flex; align-items: center; gap: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             padding: 11px 12px;
             border-radius: 10px;
             background: #f7fafc;
@@ -752,87 +1470,281 @@
             text-decoration: none;
             transition: all 0.2s ease;
         }
+
         .td-qa-link:hover {
             background: #fff;
             border-color: var(--td-line);
             transform: translateY(-1px);
-            box-shadow: 0 6px 14px rgba(9,47,88,0.06);
+            box-shadow: 0 6px 14px rgba(9, 47, 88, 0.06);
         }
+
         .td-qa-icon {
-            width: 34px; height: 34px;
+            width: 34px;
+            height: 34px;
             border-radius: 9px;
             flex: 0 0 34px;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 13px;
         }
-        .td-qa-icon.blue   { background: #e1f1ff; color: #1768a7; }
-        .td-qa-icon.green  { background: #e3f5eb; color: #168254; }
-        .td-qa-icon.amber  { background: #fff1d6; color: #a86a00; }
-        .td-qa-icon.purple { background: #f0e7ff; color: #7439b2; }
-        .td-qa-icon.red    { background: #ffeaee; color: var(--td-red); }
-        .td-qa-text { flex: 1; min-width: 0; }
-        .td-qa-text strong { display: block; font-size: 12.5px; font-weight: 700; color: var(--td-navy); }
-        .td-qa-arrow { color: #b1c2d4; font-size: 10px; }
+
+        .td-qa-icon.blue {
+            background: #e1f1ff;
+            color: #1768a7;
+        }
+
+        .td-qa-icon.green {
+            background: #e3f5eb;
+            color: #168254;
+        }
+
+        .td-qa-icon.amber {
+            background: #fff1d6;
+            color: #a86a00;
+        }
+
+        .td-qa-icon.purple {
+            background: #f0e7ff;
+            color: #7439b2;
+        }
+
+        .td-qa-icon.red {
+            background: #ffeaee;
+            color: var(--td-red);
+        }
+
+        .td-qa-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .td-qa-text strong {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--td-navy);
+        }
+
+        .td-qa-arrow {
+            color: #b1c2d4;
+            font-size: 10px;
+        }
 
         /* Profile rows (side) */
-        .td-profile-rows { display: flex; flex-direction: column; }
+        .td-profile-rows {
+            display: flex;
+            flex-direction: column;
+        }
+
         .td-profile-row {
-            display: flex; justify-content: space-between; gap: 10px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
             padding: 8px 0;
             border-bottom: 1px dashed #eef2f7;
             font-size: 12px;
         }
-        .td-profile-row:last-child { border-bottom: 0; }
-        .td-profile-row span { color: var(--td-muted); font-weight: 600; white-space: nowrap; }
+
+        .td-profile-row:last-child {
+            border-bottom: 0;
+        }
+
+        .td-profile-row span {
+            color: var(--td-muted);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
         .td-profile-row strong {
-            color: var(--td-navy); font-weight: 700; text-align: right;
-            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            color: var(--td-navy);
+            font-weight: 700;
+            text-align: right;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* NEW: Upcoming events list (side) */
+        .td-event-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .td-event-item {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px;
+            border-radius: 10px;
+            background: var(--td-paper);
+            transition: all 0.2s ease;
+        }
+
+        .td-event-item:hover {
+            background: #f0f7ff;
+            transform: translateX(2px);
+        }
+
+        .td-event-date {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 9px;
+            background: var(--td-navy);
+            color: #fff;
+            flex: 0 0 42px;
+        }
+
+        .td-event-date strong {
+            font-size: 15px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .td-event-date small {
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.85;
+        }
+
+        .td-event-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .td-event-info strong {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--td-navy);
+            margin-bottom: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .td-event-info small {
+            display: block;
+            font-size: 10.5px;
+            color: var(--td-muted);
         }
 
         /* Footer strip */
         .td-footer {
-            display: flex; justify-content: space-between; align-items: center; gap: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
             flex-wrap: wrap;
             padding: 14px 4px 4px;
             border-top: 1px solid var(--td-line);
-            font-size: 11.5px; color: var(--td-muted);
+            font-size: 11.5px;
+            color: var(--td-muted);
         }
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 1200px) {
-            .td-grid { grid-template-columns: 1fr; }
-            .td-col-side { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+            .td-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .td-col-side {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+            }
         }
+
         @media (max-width: 1024px) {
-            .td-sidebar { transform: translateX(-100%); }
-            .td-sidebar.open { transform: translateX(0); }
-            .td-main { margin-left: 0; }
-            .td-menu-toggle { display: inline-flex; }
+            .td-sidebar {
+                transform: translateX(-100%);
+            }
+
+            .td-sidebar.open {
+                transform: translateX(0);
+            }
+
+            .td-main {
+                margin-left: 0;
+            }
+
+            .td-menu-toggle {
+                display: inline-flex;
+            }
         }
+
         @media (max-width: 900px) {
-            .td-stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .td-row-2, .td-row-2.even { grid-template-columns: 1fr; }
-            .td-col-side { grid-template-columns: 1fr; }
+            .td-stat-row {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .td-row-2,
+            .td-row-2.even {
+                grid-template-columns: 1fr;
+            }
+
+            .td-col-side {
+                grid-template-columns: 1fr;
+            }
         }
+
         @media (max-width: 640px) {
-            .td-content { padding: 16px; }
-            .td-search { display: none; }
-            .td-stat-row { grid-template-columns: 1fr; }
-            .td-welcome { flex-direction: column; align-items: flex-start; }
-            .td-donut-wrap { flex-direction: column; text-align: center; }
-            .td-donut-legend { width: 100%; max-width: 220px; }
-            .td-topbar { padding: 0 16px; }
+            .td-content {
+                padding: 16px;
+            }
+
+            .td-search {
+                display: none;
+            }
+
+            .td-stat-row {
+                grid-template-columns: 1fr;
+            }
+
+            .td-welcome {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .td-donut-wrap {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .td-donut-legend {
+                width: 100%;
+                max-width: 220px;
+            }
+
+            .td-topbar {
+                padding: 0 16px;
+            }
         }
     </style>
 </head>
 
 <body class="td-body">
 
+    {% set total_att = attendance|length %}
+    {% set present_att = attendance|selectattr('status','equalto','present')|list|length %}
+    {% set absent_att = attendance|selectattr('status','equalto','absent')|list|length %}
+    {% set att_pct = ((present_att / total_att) * 100)|round|int if total_att > 0 else 0 %}
+    {% set att_deg = (att_pct * 3.6)|round|int %}
+    {% set pending_leaves = leaves|selectattr('status','equalto','pending')|list|length %}
+
     <!-- ==================== SIDEBAR ==================== -->
     <aside class="td-sidebar" id="tdSidebar" aria-label="Teacher sidebar">
         <div class="td-sidebar-head">
             <a href="{{ url_for('home') }}" class="td-logo">
-                <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="School Logo" class="td-logo-img">
+                <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="School Logo"
+                    class="td-logo-img">
                 <div class="td-logo-text">
                     <strong>Shanti Niketan</strong>
                     <small>Teacher Portal</small>
@@ -843,7 +1755,8 @@
         {% if session.get('user_id') %}
         <div class="td-user-box">
             <div class="td-user-avatar">
-                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if
+                session['user_name'].split()|length > 1 else '' }}
             </div>
             <div class="td-user-info">
                 <strong>{{ session['user_name'].split()[0] }}</strong>
@@ -856,20 +1769,33 @@
         <nav class="td-nav">
             <a href="#dashboard" class="td-nav-link active"><i class="fa-solid fa-gauge"></i> Dashboard</a>
             <a href="#profile" class="td-nav-link"><i class="fa-regular fa-user"></i> My Profile</a>
-            <a href="#attendance" class="td-nav-link"><i class="fa-solid fa-clipboard-check"></i> Attendance</a>
+            <a href="{{ url_for('teacher_attendance') }}" class="td-nav-link">
+                <i class="fa-solid fa-clipboard-user"></i> Mark Attendance
+            </a>
 
             <div class="td-nav-label">Leave</div>
-            <a href="#leave" class="td-nav-link"><i class="fa-solid fa-calendar-plus"></i> Apply for Leave</a>
-            <a href="#history" class="td-nav-link"><i class="fa-solid fa-clock-rotate-left"></i> Leave History</a>
+            <a href="#leave" class="td-nav-link">
+                <i class="fa-solid fa-calendar-plus"></i> Apply for Leave
+            </a>
+            <a href="#history" class="td-nav-link">
+                <i class="fa-solid fa-clock-rotate-left"></i> Leave History
+                {% if pending_leaves > 0 %}
+                <span class="td-nav-badge">{{ pending_leaves }}</span>
+                {% endif %}
+            </a>
 
             <div class="td-nav-label">Communication</div>
             <a href="#notices" class="td-nav-link"><i class="fa-regular fa-bell"></i> Notices</a>
             <a href="#messages" class="td-nav-link"><i class="fa-regular fa-comments"></i> Messages</a>
+            <!-- NEW: Events link -->
+            <a href="#events" class="td-nav-link"><i class="fa-regular fa-calendar-days"></i> Events</a>
 
             <div class="td-nav-label">System</div>
             <a href="{{ url_for('home') }}" class="td-nav-link"><i class="fa-solid fa-globe"></i> View Website</a>
-            <a href="{{ url_for('change_password') }}" class="td-nav-link"><i class="fa-solid fa-key"></i> Change Password</a>
-            <a href="{{ url_for('logout') }}" class="td-nav-link td-nav-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            <a href="{{ url_for('change_password') }}" class="td-nav-link"><i class="fa-solid fa-key"></i> Change
+                Password</a>
+            <a href="{{ url_for('logout') }}" class="td-nav-link td-nav-logout"><i
+                    class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </nav>
 
         <div class="td-sidebar-foot">
@@ -888,7 +1814,8 @@
 
         <!-- TOPBAR -->
         <header class="td-topbar">
-            <button class="td-menu-toggle" id="tdMenuToggle" type="button" aria-label="Open navigation" aria-controls="tdSidebar" aria-expanded="false">
+            <button class="td-menu-toggle" id="tdMenuToggle" type="button" aria-label="Open navigation"
+                aria-controls="tdSidebar" aria-expanded="false">
                 <i class="fa-solid fa-bars"></i>
             </button>
 
@@ -900,9 +1827,12 @@
             <div class="td-actions">
                 <!-- Notification bell -->
                 <div class="td-notif" id="tdNotif">
-                    <button type="button" class="td-icon-btn" id="tdNotifBtn" aria-haspopup="true" aria-expanded="false" aria-controls="tdNotifDropdown" aria-label="Notifications">
+                    <button type="button" class="td-icon-btn" id="tdNotifBtn" aria-haspopup="true" aria-expanded="false"
+                        aria-controls="tdNotifDropdown" aria-label="Notifications">
                         <i class="fa-regular fa-bell"></i>
+                        {% if (messages|length) > 0 or pending_leaves > 0 %}
                         <span class="td-notif-dot"></span>
+                        {% endif %}
                     </button>
                     <div class="td-notif-dropdown" id="tdNotifDropdown" role="menu">
                         <div class="td-notif-head">
@@ -914,7 +1844,7 @@
                                 <div class="td-notif-icon amber"><i class="fa-solid fa-calendar-minus"></i></div>
                                 <div class="td-notif-body">
                                     <strong>Leave request updates</strong>
-                                    <small>Check your approval status</small>
+                                    <small>{{ pending_leaves }} pending approval</small>
                                 </div>
                             </a>
                             <a href="#messages" class="td-notif-item" role="menuitem">
@@ -928,14 +1858,14 @@
                                 <div class="td-notif-icon blue"><i class="fa-regular fa-bell"></i></div>
                                 <div class="td-notif-body">
                                     <strong>Notices for teachers</strong>
-                                    <small>Latest announcements</small>
+                                    <small>{{ notices|length }} announcements</small>
                                 </div>
                             </a>
                             <a href="#attendance" class="td-notif-item" role="menuitem">
                                 <div class="td-notif-icon green"><i class="fa-solid fa-clipboard-check"></i></div>
                                 <div class="td-notif-body">
                                     <strong>Attendance summary</strong>
-                                    <small>Your recent records</small>
+                                    <small>{{ total_att }} records · {{ att_pct }}% present</small>
                                 </div>
                             </a>
                         </div>
@@ -948,11 +1878,11 @@
                 <!-- User profile -->
                 {% if session.get('user_id') %}
                 <div class="td-up" id="tdUserProfile">
-                    <button type="button" class="td-up-btn" id="tdUserBtn"
-                            aria-haspopup="true" aria-expanded="false" aria-controls="tdUserDropdown"
-                            title="{{ session['user_name'] }} — click to open menu">
+                    <button type="button" class="td-up-btn" id="tdUserBtn" aria-haspopup="true" aria-expanded="false"
+                        aria-controls="tdUserDropdown" title="{{ session['user_name'] }} — click to open menu">
                         <div class="td-up-avatar">
-                            {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                            {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
+                            upper if session['user_name'].split()|length > 1 else '' }}
                         </div>
                         <div class="td-up-info">
                             <strong>{{ session['user_name'].split()[0] }}</strong>
@@ -964,22 +1894,28 @@
                     <div class="td-up-dropdown" id="tdUserDropdown" role="menu">
                         <div class="td-up-head">
                             <div class="td-up-head-avatar">
-                                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
+                                upper if session['user_name'].split()|length > 1 else '' }}
                             </div>
                             <div class="td-up-head-text">
                                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
-                                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
+                                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A')
+                                    }}</small>
                                 <span class="td-up-role-tag">{{ session.get('user_role', 'Teacher')|capitalize }}</span>
                             </div>
                         </div>
                         <hr class="td-up-divider">
                         <a href="#dashboard" role="menuitem"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
                         {% if session.get('user_role') == 'admin' %}
-                        <a href="{{ url_for('admin_dashboard') }}" role="menuitem"><i class="fa-solid fa-user-gear"></i> Admin Panel</a>
+                        <a href="{{ url_for('admin_dashboard') }}" role="menuitem"><i class="fa-solid fa-user-gear"></i>
+                            Admin Panel</a>
                         {% endif %}
-                        <a href="{{ url_for('home') }}" role="menuitem"><i class="fa-solid fa-globe"></i> View Website</a>
-                        <a href="{{ url_for('change_password') }}" role="menuitem"><i class="fa-solid fa-key"></i> Change Password</a>
-                        <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                        <a href="{{ url_for('home') }}" role="menuitem"><i class="fa-solid fa-globe"></i> View
+                            Website</a>
+                        <a href="{{ url_for('change_password') }}" role="menuitem"><i class="fa-solid fa-key"></i>
+                            Change Password</a>
+                        <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem"><i
+                                class="fa-solid fa-right-from-bracket"></i> Logout</a>
                     </div>
                 </div>
                 {% endif %}
@@ -990,23 +1926,17 @@
         <main class="td-content">
 
             {% with messages_flash = get_flashed_messages(with_categories=true) %}
-                {% if messages_flash %}
-                <div class="td-flash-stack">
-                    {% for cat, msg in messages_flash %}
-                    <div class="td-flash {{ cat }}">
-                        <span>{{ msg }}</span>
-                        <button type="button" aria-label="Dismiss">×</button>
-                    </div>
-                    {% endfor %}
+            {% if messages_flash %}
+            <div class="td-flash-stack">
+                {% for cat, msg in messages_flash %}
+                <div class="td-flash {{ cat }}">
+                    <span>{{ msg }}</span>
+                    <button type="button" aria-label="Dismiss">×</button>
                 </div>
-                {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
             {% endwith %}
-
-            {% set total_att = attendance|length %}
-            {% set present_att = attendance|selectattr('status','equalto','present')|list|length %}
-            {% set absent_att = attendance|selectattr('status','equalto','absent')|list|length %}
-            {% set att_pct = ((present_att / total_att) * 100)|round|int if total_att > 0 else 0 %}
-            {% set att_deg = (att_pct * 3.6)|round|int %}
 
             <div class="td-grid">
 
@@ -1016,7 +1946,8 @@
                     <!-- Welcome banner -->
                     <section class="td-welcome" id="dashboard">
                         <div class="td-welcome-avatar">
-                            {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length > 1 else '' }}
+                            {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if
+                            user.name.split()|length > 1 else '' }}
                         </div>
                         <div class="td-welcome-text">
                             <h1>Hello, {{ user.name.split()[0] }}! 👋</h1>
@@ -1029,7 +1960,7 @@
                         </div>
                     </section>
 
-                    <!-- Stat cards -->
+                    <!-- Stat cards — real data -->
                     <div class="td-stat-row">
                         <div class="td-stat">
                             <div class="td-stat-icon green"><i class="fa-solid fa-percent"></i></div>
@@ -1065,7 +1996,8 @@
                     <div class="td-row-2">
                         <section class="td-panel" id="attendance">
                             <div class="td-panel-head">
-                                <h2 class="td-panel-title"><i class="fa-solid fa-clipboard-check"></i> Recent attendance</h2>
+                                <h2 class="td-panel-title"><i class="fa-solid fa-clipboard-check"></i> Recent attendance
+                                </h2>
                                 <span class="td-panel-link">Last 10 records</span>
                             </div>
                             <div class="td-panel-body flush">
@@ -1080,10 +2012,13 @@
                                         {% for a in attendance[:10] %}
                                         <tr>
                                             <td><strong style="font-size:12px;">{{ a.date }}</strong></td>
-                                            <td><span class="td-pill {{ a.status }}">{{ a.status|capitalize }}</span></td>
+                                            <td><span class="td-pill {{ a.status }}">{{ a.status|capitalize }}</span>
+                                            </td>
                                         </tr>
                                         {% else %}
-                                        <tr><td colspan="2" class="td-empty">No attendance records yet.</td></tr>
+                                        <tr>
+                                            <td colspan="2" class="td-empty">No attendance records yet.</td>
+                                        </tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -1092,12 +2027,14 @@
 
                         <section class="td-panel">
                             <div class="td-panel-head">
-                                <h2 class="td-panel-title"><i class="fa-solid fa-chart-pie"></i> Attendance overview</h2>
+                                <h2 class="td-panel-title"><i class="fa-solid fa-chart-pie"></i> Attendance overview
+                                </h2>
                             </div>
                             <div class="td-panel-body">
                                 {% if total_att > 0 %}
                                 <div class="td-donut-wrap">
-                                    <div class="td-donut" style="background: conic-gradient(#168254 0deg {{ att_deg }}deg, #d71938 {{ att_deg }}deg 360deg);">
+                                    <div class="td-donut"
+                                        style="background: conic-gradient(#168254 0deg {{ att_deg }}deg, #d71938 {{ att_deg }}deg 360deg);">
                                         <div class="td-donut-center">
                                             <strong>{{ att_pct }}%</strong>
                                             <small>Present</small>
@@ -1123,7 +2060,8 @@
                                 </div>
                                 {% else %}
                                 <div class="td-empty">
-                                    <i class="fa-solid fa-chart-pie" style="font-size:28px; display:block; margin-bottom:8px; color:#cbd5e1;"></i>
+                                    <i class="fa-solid fa-chart-pie"
+                                        style="font-size:28px; display:block; margin-bottom:8px; color:#cbd5e1;"></i>
                                     No attendance records yet.
                                 </div>
                                 {% endif %}
@@ -1135,7 +2073,8 @@
                     <div class="td-row-2 even">
                         <section class="td-panel" id="leave">
                             <div class="td-panel-head">
-                                <h2 class="td-panel-title"><i class="fa-solid fa-calendar-plus"></i> Apply for leave</h2>
+                                <h2 class="td-panel-title"><i class="fa-solid fa-calendar-plus"></i> Apply for leave
+                                </h2>
                             </div>
                             <div class="td-panel-body">
                                 <form method="POST" action="{{ url_for('leave_request') }}" class="td-form">
@@ -1153,7 +2092,8 @@
                                         <label>To <input type="date" name="to_date" required></label>
                                     </div>
                                     <label>Reason
-                                        <textarea name="reason" rows="3" required maxlength="500" placeholder="Brief reason for leave"></textarea>
+                                        <textarea name="reason" rows="3" required maxlength="500"
+                                            placeholder="Brief reason for leave"></textarea>
                                     </label>
                                     <button type="submit" class="td-btn-primary">
                                         <i class="fa-solid fa-paper-plane"></i> Submit request
@@ -1164,7 +2104,9 @@
 
                         <section class="td-panel" id="history">
                             <div class="td-panel-head">
-                                <h2 class="td-panel-title"><i class="fa-solid fa-clock-rotate-left"></i> Leave history</h2>
+                                <h2 class="td-panel-title"><i class="fa-solid fa-clock-rotate-left"></i> Leave history
+                                </h2>
+                                <span class="td-panel-link">{{ leaves|length }} total</span>
                             </div>
                             <div class="td-panel-body flush">
                                 <table class="td-table">
@@ -1180,13 +2122,17 @@
                                         <tr>
                                             <td>
                                                 <strong style="font-size:11.5px;">{{ l.from_date }}</strong><br>
-                                                <small style="color:var(--td-muted); font-size:10.5px;">to {{ l.to_date }}</small>
+                                                <small style="color:var(--td-muted); font-size:10.5px;">to {{ l.to_date
+                                                    }}</small>
                                             </td>
                                             <td style="font-size:12px; color:var(--td-muted);">{{ l.leave_type }}</td>
-                                            <td><span class="td-pill {{ l.status }}">{{ l.status|capitalize }}</span></td>
+                                            <td><span class="td-pill {{ l.status }}">{{ l.status|capitalize }}</span>
+                                            </td>
                                         </tr>
                                         {% else %}
-                                        <tr><td colspan="3" class="td-empty">No leave requests yet.</td></tr>
+                                        <tr>
+                                            <td colspan="3" class="td-empty">No leave requests yet.</td>
+                                        </tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -1205,7 +2151,8 @@
                                 <div class="td-notice">
                                     <div class="td-notice-icon"><i class="fa-regular fa-file-lines"></i></div>
                                     <div class="td-notice-body">
-                                        <small>{{ n.date }}{% if n.tag %} · <b style="color:var(--td-red);">{{ n.tag }}</b>{% endif %}</small>
+                                        <small>{{ n.date }}{% if n.tag %} · <b style="color:var(--td-red);">{{ n.tag
+                                                }}</b>{% endif %}</small>
                                         <p>{{ n.title }}</p>
                                     </div>
                                 </div>
@@ -1217,7 +2164,8 @@
 
                         <section class="td-panel" id="messages">
                             <div class="td-panel-head">
-                                <h2 class="td-panel-title"><i class="fa-regular fa-comments"></i> Messages from principal</h2>
+                                <h2 class="td-panel-title"><i class="fa-regular fa-comments"></i> Messages from
+                                    principal</h2>
                             </div>
                             <div class="td-panel-body">
                                 {% for m in messages[:4] %}
@@ -1249,36 +2197,89 @@
                         </div>
                         <div class="td-panel-body">
                             <div class="td-qa-grid">
-                                <a href="#profile" class="td-qa-link">
+
+                                <!-- 1. View my profile — dynamic route -->
+                                <a href="{{ url_for('settings_page') }}" class="td-qa-link">
                                     <div class="td-qa-icon blue"><i class="fa-regular fa-user"></i></div>
                                     <div class="td-qa-text"><strong>View my profile</strong></div>
                                     <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
                                 </a>
+
+                                <!-- 2. My attendance summary — scroll to dashboard section -->
                                 <a href="#attendance" class="td-qa-link">
                                     <div class="td-qa-icon green"><i class="fa-solid fa-clipboard-check"></i></div>
-                                    <div class="td-qa-text"><strong>Check attendance</strong></div>
+                                    <div class="td-qa-text"><strong>My attendance summary</strong></div>
                                     <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
                                 </a>
+
+                                <!-- 3. NEW: Mark attendance — dynamic route to dedicated page -->
+                                <a href="{{ url_for('teacher_attendance') }}" class="td-qa-link">
+                                    <div class="td-qa-icon green" style="background:#d4f0dc; color:#0d5c3d;">
+                                        <i class="fa-solid fa-clipboard-user"></i>
+                                    </div>
+                                    <div class="td-qa-text"><strong>Mark attendance</strong></div>
+                                    <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
+                                </a>
+
+                                <!-- 4. Apply for leave — dashboard form -->
                                 <a href="#leave" class="td-qa-link">
                                     <div class="td-qa-icon amber"><i class="fa-solid fa-calendar-plus"></i></div>
                                     <div class="td-qa-text"><strong>Apply for leave</strong></div>
                                     <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
                                 </a>
+
+                                <!-- 5. Leave history — dashboard section -->
                                 <a href="#history" class="td-qa-link">
                                     <div class="td-qa-icon purple"><i class="fa-solid fa-clock-rotate-left"></i></div>
                                     <div class="td-qa-text"><strong>Leave history</strong></div>
                                     <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
                                 </a>
-                                <a href="#notices" class="td-qa-link">
-                                    <div class="td-qa-icon blue"><i class="fa-regular fa-bell"></i></div>
-                                    <div class="td-qa-text"><strong>View notices</strong></div>
+
+                                <!-- 6. Upcoming events — dynamic route to public events page -->
+                                <a href="{{ url_for('events_page') }}" class="td-qa-link">
+                                    <div class="td-qa-icon blue"><i class="fa-regular fa-calendar-days"></i></div>
+                                    <div class="td-qa-text"><strong>Upcoming events</strong></div>
                                     <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
                                 </a>
+
+                                <!-- 7. Check messages — dashboard section -->
                                 <a href="#messages" class="td-qa-link">
                                     <div class="td-qa-icon red"><i class="fa-regular fa-comments"></i></div>
                                     <div class="td-qa-text"><strong>Check messages</strong></div>
                                     <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
                                 </a>
+
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- NEW: Upcoming events (uses backend `upcoming_events`) -->
+                    <section class="td-panel" id="events">
+                        <div class="td-panel-head">
+                            <h2 class="td-panel-title"><i class="fa-regular fa-calendar-days"></i> Upcoming events</h2>
+                            <a href="{{ url_for('events_page') }}" class="td-panel-link" target="_blank" rel="noopener">
+                                View all <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </div>
+                        <div class="td-panel-body">
+                            <div class="td-event-list">
+                                {% for e in upcoming_events %}
+                                <div class="td-event-item">
+                                    <div class="td-event-date">
+                                        <strong>{{ e.event_date[8:10] }}</strong>
+                                        <small>{{ e.event_date|month_abbr }}</small>
+                                    </div>
+                                    <div class="td-event-info">
+                                        <strong title="{{ e.title }}">{{ e.title }}</strong>
+                                        <small>
+                                            {{ e.event_time or 'All day' }}
+                                            {% if e.location %} · {{ e.location }}{% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="td-empty">No upcoming events.</div>
+                                {% endfor %}
                             </div>
                         </div>
                     </section>
@@ -1290,21 +2291,26 @@
                         </div>
                         <div class="td-panel-body">
                             <div class="td-profile-rows">
-                                <div class="td-profile-row"><span>Teacher ID</span><strong>{{ user.unique_id }}</strong></div>
+                                <div class="td-profile-row"><span>Teacher ID</span><strong>{{ user.unique_id }}</strong>
+                                </div>
                                 <div class="td-profile-row"><span>Name</span><strong>{{ user.name }}</strong></div>
                                 <div class="td-profile-row"><span>Email</span><strong>{{ user.email }}</strong></div>
                                 <div class="td-profile-row"><span>Mobile</span><strong>{{ user.phone }}</strong></div>
                                 {% if user.qualification %}
-                                <div class="td-profile-row"><span>Qualification</span><strong>{{ user.qualification }}</strong></div>
+                                <div class="td-profile-row"><span>Qualification</span><strong>{{ user.qualification
+                                        }}</strong></div>
                                 {% endif %}
                                 {% if user.subject %}
-                                <div class="td-profile-row"><span>Subject</span><strong>{{ user.subject }}</strong></div>
+                                <div class="td-profile-row"><span>Subject</span><strong>{{ user.subject }}</strong>
+                                </div>
                                 {% endif %}
                                 {% if user.experience %}
-                                <div class="td-profile-row"><span>Experience</span><strong>{{ user.experience }}</strong></div>
+                                <div class="td-profile-row"><span>Experience</span><strong>{{ user.experience
+                                        }}</strong></div>
                                 {% endif %}
                             </div>
-                            <a href="{{ url_for('change_password') }}" class="td-btn-primary" style="width:100%; margin-top:12px; justify-content:center;">
+                            <a href="{{ url_for('change_password') }}" class="td-btn-primary"
+                                style="width:100%; margin-top:12px; justify-content:center;">
                                 <i class="fa-solid fa-key"></i> Change password
                             </a>
                         </div>
@@ -1324,121 +2330,122 @@
 
     <!-- ==================== JAVASCRIPT ==================== -->
     <script>
-    (function () {
-        'use strict';
+        (function () {
+            'use strict';
 
-        const sidebar   = document.getElementById('tdSidebar');
-        const backdrop  = document.getElementById('tdBackdrop');
-        const menuToggle = document.getElementById('tdMenuToggle');
+            const sidebar = document.getElementById('tdSidebar');
+            const backdrop = document.getElementById('tdBackdrop');
+            const menuToggle = document.getElementById('tdMenuToggle');
 
-        function openSidebar() {
-            sidebar.classList.add('open');
-            backdrop.classList.add('open');
-            menuToggle.setAttribute('aria-expanded', 'true');
-            document.body.classList.add('td-menu-open');
-        }
-        function closeSidebar() {
-            sidebar.classList.remove('open');
-            backdrop.classList.remove('open');
-            menuToggle.setAttribute('aria-expanded', 'false');
-            document.body.classList.remove('td-menu-open');
-        }
-        menuToggle.addEventListener('click', function () {
-            sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
-        });
-        backdrop.addEventListener('click', closeSidebar);
-
-        /* Sidebar nav active state + close on click (mobile) */
-        document.querySelectorAll('.td-nav-link').forEach(function (link) {
-            link.addEventListener('click', function () {
-                const href = this.getAttribute('href') || '';
-                if (href.charAt(0) === '#') {
-                    document.querySelectorAll('.td-nav-link').forEach(function (l) { l.classList.remove('active'); });
-                    this.classList.add('active');
-                }
-                if (window.innerWidth <= 1024) closeSidebar();
+            function openSidebar() {
+                sidebar.classList.add('open');
+                backdrop.classList.add('open');
+                menuToggle.setAttribute('aria-expanded', 'true');
+                document.body.classList.add('td-menu-open');
+            }
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                backdrop.classList.remove('open');
+                menuToggle.setAttribute('aria-expanded', 'false');
+                document.body.classList.remove('td-menu-open');
+            }
+            menuToggle.addEventListener('click', function () {
+                sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
             });
-        });
+            backdrop.addEventListener('click', closeSidebar);
 
-        /* User profile dropdown */
-        const up     = document.getElementById('tdUserProfile');
-        const upBtn  = document.getElementById('tdUserBtn');
-        const upDrop = document.getElementById('tdUserDropdown');
-
-        function closeUp() {
-            if (!up) return;
-            up.classList.remove('open');
-            if (upBtn) upBtn.setAttribute('aria-expanded', 'false');
-        }
-        if (upBtn && up) {
-            upBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const isOpen = up.classList.contains('open');
-                closeNotif();
-                if (!isOpen) {
-                    up.classList.add('open');
-                    upBtn.setAttribute('aria-expanded', 'true');
-                } else {
-                    closeUp();
-                }
-            });
-            if (upDrop) upDrop.addEventListener('click', function (e) { e.stopPropagation(); });
-        }
-
-        /* Notification dropdown */
-        const notif     = document.getElementById('tdNotif');
-        const notifBtn  = document.getElementById('tdNotifBtn');
-        const notifDrop = document.getElementById('tdNotifDropdown');
-
-        function closeNotif() {
-            if (!notif) return;
-            notif.classList.remove('open');
-            if (notifBtn) notifBtn.setAttribute('aria-expanded', 'false');
-        }
-        if (notifBtn && notif) {
-            notifBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const isOpen = notif.classList.contains('open');
-                closeUp();
-                if (!isOpen) {
-                    notif.classList.add('open');
-                    notifBtn.setAttribute('aria-expanded', 'true');
-                } else {
-                    closeNotif();
-                }
-            });
-            if (notifDrop) {
-                notifDrop.addEventListener('click', function (e) { e.stopPropagation(); });
-                notifDrop.querySelectorAll('a').forEach(function (a) {
-                    a.addEventListener('click', closeNotif);
+            /* Sidebar nav active state + close on click (mobile) */
+            document.querySelectorAll('.td-nav-link').forEach(function (link) {
+                link.addEventListener('click', function () {
+                    const href = this.getAttribute('href') || '';
+                    if (href.charAt(0) === '#') {
+                        document.querySelectorAll('.td-nav-link').forEach(function (l) { l.classList.remove('active'); });
+                        this.classList.add('active');
+                    }
+                    if (window.innerWidth <= 1024) closeSidebar();
                 });
-            }
-        }
-
-        document.addEventListener('click', function (e) {
-            if (up && !up.contains(e.target)) closeUp();
-            if (notif && !notif.contains(e.target)) closeNotif();
-        });
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                closeUp();
-                closeNotif();
-                if (window.innerWidth <= 1024) closeSidebar();
-            }
-        });
-
-        /* Flash close */
-        document.querySelectorAll('.td-flash button').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                const f = btn.closest('.td-flash');
-                if (!f) return;
-                f.style.opacity = '0';
-                setTimeout(function () { f.remove(); }, 250);
             });
-        });
-    })();
+
+            /* User profile dropdown */
+            const up = document.getElementById('tdUserProfile');
+            const upBtn = document.getElementById('tdUserBtn');
+            const upDrop = document.getElementById('tdUserDropdown');
+
+            function closeUp() {
+                if (!up) return;
+                up.classList.remove('open');
+                if (upBtn) upBtn.setAttribute('aria-expanded', 'false');
+            }
+            if (upBtn && up) {
+                upBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isOpen = up.classList.contains('open');
+                    closeNotif();
+                    if (!isOpen) {
+                        up.classList.add('open');
+                        upBtn.setAttribute('aria-expanded', 'true');
+                    } else {
+                        closeUp();
+                    }
+                });
+                if (upDrop) upDrop.addEventListener('click', function (e) { e.stopPropagation(); });
+            }
+
+            /* Notification dropdown */
+            const notif = document.getElementById('tdNotif');
+            const notifBtn = document.getElementById('tdNotifBtn');
+            const notifDrop = document.getElementById('tdNotifDropdown');
+
+            function closeNotif() {
+                if (!notif) return;
+                notif.classList.remove('open');
+                if (notifBtn) notifBtn.setAttribute('aria-expanded', 'false');
+            }
+            if (notifBtn && notif) {
+                notifBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isOpen = notif.classList.contains('open');
+                    closeUp();
+                    if (!isOpen) {
+                        notif.classList.add('open');
+                        notifBtn.setAttribute('aria-expanded', 'true');
+                    } else {
+                        closeNotif();
+                    }
+                });
+                if (notifDrop) {
+                    notifDrop.addEventListener('click', function (e) { e.stopPropagation(); });
+                    notifDrop.querySelectorAll('a').forEach(function (a) {
+                        a.addEventListener('click', closeNotif);
+                    });
+                }
+            }
+
+            document.addEventListener('click', function (e) {
+                if (up && !up.contains(e.target)) closeUp();
+                if (notif && !notif.contains(e.target)) closeNotif();
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeUp();
+                    closeNotif();
+                    if (window.innerWidth <= 1024) closeSidebar();
+                }
+            });
+
+            /* Flash close */
+            document.querySelectorAll('.td-flash button').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const f = btn.closest('.td-flash');
+                    if (!f) return;
+                    f.style.opacity = '0';
+                    setTimeout(function () { f.remove(); }, 250);
+                });
+            });
+        })();
     </script>
 </body>
+
 </html>

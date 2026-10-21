@@ -94,7 +94,7 @@
             .dq-stat small { font-size: 10px; }
         }
 
-        /* ===== NEW: DASHBOARD TABLES & TABS ===== */
+        /* ===== DASHBOARD TABLES & TABS ===== */
         .dash-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
         .dash-table th { background: #f8fafc; color: #475569; font-weight: 700; padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0; }
         .dash-table td { padding: 10px; border-bottom: 1px solid #e2e8f0; color: #1e293b; }
@@ -105,6 +105,88 @@
         .exam-select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 15px; font-family: inherit; }
         .attendance-split-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         @media (max-width: 768px) { .attendance-split-layout { grid-template-columns: 1fr; } }
+
+        /* ===== NEW: HOMEWORK PANEL ===== */
+        .hw-list { display: flex; flex-direction: column; gap: 10px; }
+        .hw-item {
+            display: flex; gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            background: #f8fafc;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .hw-item:hover {
+            background: #fff;
+            border-color: #e2e8f0;
+            box-shadow: 0 4px 12px rgba(11,53,98,0.05);
+        }
+        .hw-icon {
+            width: 36px; height: 36px;
+            border-radius: 9px;
+            background: #e1f1ff; color: #1768a7;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+            flex: 0 0 36px;
+        }
+        .hw-info { flex: 1; min-width: 0; }
+        .hw-info strong {
+            display: block;
+            font-size: 13px; font-weight: 700; color: #0b3562;
+            margin-bottom: 3px;
+            overflow: hidden; text-overflow: ellipsis;
+        }
+        .hw-info small { display: block; font-size: 11px; color: #65758a; line-height: 1.35; }
+        .hw-info .hw-desc {
+            display: block;
+            font-size: 10.5px; color: #94a3b8;
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+        .hw-meta {
+            display: flex; gap: 10px; flex-wrap: wrap;
+            margin-top: 4px;
+            font-size: 10.5px; color: #65758a;
+        }
+        .hw-meta span { display: inline-flex; align-items: center; gap: 4px; }
+        .hw-meta i { font-size: 9px; color: #94a3b8; }
+
+        /* ===== NEW: UPCOMING EVENTS PANEL ===== */
+        .event-mini-list { display: flex; flex-direction: column; gap: 10px; }
+        .event-mini-item {
+            display: flex; gap: 12px;
+            padding: 10px;
+            border-radius: 10px;
+            background: #f8fafc;
+            transition: all 0.2s ease;
+        }
+        .event-mini-item:hover {
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(11,53,98,0.05);
+        }
+        .event-mini-date {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            width: 44px; height: 44px;
+            border-radius: 9px;
+            background: #0b3562;
+            color: #fff;
+            flex: 0 0 44px;
+        }
+        .event-mini-date strong { font-size: 16px; font-weight: 800; line-height: 1; }
+        .event-mini-date small {
+            font-size: 8px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            opacity: 0.85;
+        }
+        .event-mini-info { flex: 1; min-width: 0; }
+        .event-mini-info strong {
+            display: block;
+            font-size: 12.5px; font-weight: 700; color: #0b3562;
+            margin-bottom: 2px;
+            overflow: hidden; text-overflow: ellipsis;
+        }
+        .event-mini-info small { display: block; font-size: 10.5px; color: #65758a; line-height: 1.35; }
     </style>
 </head>
 
@@ -238,7 +320,10 @@
                 <div class="welcome-text">
                     <p class="section-kicker light"><i class="fa-solid fa-graduation-cap"></i> STUDENT PORTAL</p>
                     <h1>Hello, {{ user.name.split()[0] }}! 🎓</h1>
-                    <p>Student ID: <strong>{{ user.unique_id }}</strong> • Class: <strong>{{ user.child_class or 'N/A' }}</strong></p>
+                    <p>
+                        Student ID: <strong>{{ user.unique_id }}</strong> •
+                        Class: <strong>{{ user.class_name or user.child_class or 'N/A' }}</strong>
+                    </p>
                 </div>
                 <div class="welcome-avatar">
                     <div class="big-avatar student-avatar">
@@ -248,14 +333,14 @@
             </div>
         </section>
 
-        <!-- NEW: Quick Stats -->
+        <!-- Quick Stats — real backend data -->
         <section class="dashboard-quick-stats">
             <div class="dq-stat">
                 <div class="dq-stat-icon" style="background:#e6f4ff; color:#1768a7;">
                     <i class="fa-solid fa-book"></i>
                 </div>
                 <div>
-                    <strong>{{ user.child_class or 'N/A' }}</strong>
+                    <strong>{{ user.class_name or user.child_class or 'N/A' }}</strong>
                     <small>Class</small>
                 </div>
             </div>
@@ -267,6 +352,16 @@
                     {% set present_count = attendance|selectattr('status','equalto','present')|list|length %}
                     <strong>{{ ((present_count / (attendance|length or 1)) * 100)|round|int }}%</strong>
                     <small>Attendance</small>
+                </div>
+            </div>
+            <!-- NEW: Pending Homework — real data -->
+            <div class="dq-stat">
+                <div class="dq-stat-icon" style="background:#f3e8ff; color:#7c3aed;">
+                    <i class="fa-solid fa-book-open"></i>
+                </div>
+                <div>
+                    <strong>{{ pending_homework or 0 }}</strong>
+                    <small>Pending Homework</small>
                 </div>
             </div>
             <div class="dq-stat">
@@ -290,6 +385,7 @@
         </section>
 
         <section class="wrap dashboard-grid">
+
             <!-- PROFILE -->
             <div class="panel">
                 <div class="panel-title">
@@ -305,10 +401,22 @@
                         <span class="profile-label"><i class="fa-regular fa-user"></i> Name</span>
                         <span class="profile-value">{{ user.name }}</span>
                     </div>
-                    {% if user.child_class %}
+                    {% if user.class_name or user.child_class %}
                     <div class="profile-row">
                         <span class="profile-label"><i class="fa-solid fa-book"></i> Class</span>
-                        <span class="profile-value">{{ user.child_class }}</span>
+                        <span class="profile-value">{{ user.class_name or user.child_class }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.section %}
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-solid fa-layer-group"></i> Section</span>
+                        <span class="profile-value">{{ user.section }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.roll_no %}
+                    <div class="profile-row">
+                        <span class="profile-label"><i class="fa-solid fa-hashtag"></i> Roll No.</span>
+                        <span class="profile-value">{{ user.roll_no }}</span>
                     </div>
                     {% endif %}
                     <div class="profile-row">
@@ -331,15 +439,45 @@
                 </div>
             </div>
 
-            <!-- ATTENDANCE (UPGRADED) -->
+            <!-- NEW: UPCOMING EVENTS (real backend data) -->
+            <div class="panel" id="events">
+                <div class="panel-title">
+                    <span class="panel-title-icon student-icon" style="background:#e1f1ff; color:#1768a7;">
+                        <i class="fa-regular fa-calendar-days"></i>
+                    </span>
+                    <h2>Upcoming Events</h2>
+                </div>
+                <div style="padding: 15px 20px;">
+                    <div class="event-mini-list">
+                        {% for e in upcoming_events %}
+                        <div class="event-mini-item">
+                            <div class="event-mini-date">
+                                <strong>{{ e.event_date[8:10] }}</strong>
+                                <small>{{ e.event_date|month_abbr }}</small>
+                            </div>
+                            <div class="event-mini-info">
+                                <strong title="{{ e.title }}">{{ e.title }}</strong>
+                                <small>
+                                    {{ e.event_time or 'All day' }}
+                                    {% if e.location %} · {{ e.location }}{% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="empty-row" style="padding:10px 0;">No upcoming events.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ATTENDANCE (full width) -->
             <div class="panel" style="grid-column: 1 / -1;">
                 <div class="panel-title">
                     <span class="panel-title-icon student-icon"><i class="fa-solid fa-clipboard-check"></i></span>
                     <h2>My Attendance</h2>
                 </div>
-                
+
                 <div style="padding: 20px;">
-                    <!-- OVERALL STATS -->
                     {% set present = attendance|selectattr('status','equalto','present')|list|length %}
                     {% set absent = attendance|selectattr('status','equalto','absent')|list|length %}
                     <div class="attendance-summary" style="margin-bottom: 20px;">
@@ -406,7 +544,45 @@
                 </div>
             </div>
 
-            <!-- NEW: EXAM RESULTS -->
+            <!-- NEW: MY HOMEWORK (real backend data) -->
+            <div class="panel" id="homework">
+                <div class="panel-title">
+                    <span class="panel-title-icon student-icon" style="background:#f3e8ff; color:#7c3aed;">
+                        <i class="fa-solid fa-book-open"></i>
+                    </span>
+                    <h2>My Homework</h2>
+                    <span style="margin-left:auto; font-size:11.5px; color:#65758a; font-weight:700;">
+                        {{ pending_homework or 0 }} pending / {{ homework_list|length }} total
+                    </span>
+                </div>
+                <div style="padding: 15px 20px;">
+                    <div class="hw-list">
+                        {% for h in homework_list[:6] %}
+                        <div class="hw-item">
+                            <div class="hw-icon"><i class="fa-solid fa-book"></i></div>
+                            <div class="hw-info">
+                                <strong title="{{ h.title }}">{{ h.title }}</strong>
+                                <div class="hw-meta">
+                                    <span><i class="fa-solid fa-book"></i>{{ h.subject }}</span>
+                                    {% if h.due_date %}
+                                    <span><i class="fa-regular fa-calendar"></i>Due {{ h.due_date }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if h.description %}
+                                <span class="hw-desc">
+                                    {{ h.description[:90] }}{% if h.description|length > 90 %}…{% endif %}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="empty-row">No homework assigned yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXAM RESULTS -->
             <div class="panel">
                 <div class="panel-title">
                     <span class="panel-title-icon" style="background:#fef3c7; color:#b45309;"><i class="fa-solid fa-file-pen"></i></span>
@@ -415,8 +591,10 @@
                 <div style="padding: 20px;">
                     <select class="exam-select" id="examTypeFilter" onchange="filterExams()">
                         <option value="all">All Exams</option>
-                        <option value="Half Yearly">Half Yearly</option>
-                        <option value="Final">Final</option>
+                        {% set exam_types = exam_marks|map(attribute='exam_type')|unique|list %}
+                        {% for t in exam_types %}
+                        <option value="{{ t }}">{{ t }}</option>
+                        {% endfor %}
                     </select>
 
                     <table class="dash-table" id="examTable">
@@ -657,15 +835,14 @@
             })();
         });
 
-        // ===== NEW: Filter Attendance by Date (Today, Yesterday, All) =====
+        /* Filter Attendance by Date (Today, Yesterday, All) */
         window.filterDates = function(type) {
             const rows = document.querySelectorAll('#attendanceLogs .att-row');
             const today = new Date().toISOString().split('T')[0];
             const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
-            // Update active button class
             document.querySelectorAll('.date-btn').forEach(btn => btn.classList.remove('active'));
-            if(event && event.target) event.target.classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
 
             rows.forEach(row => {
                 const rowDate = row.getAttribute('data-date');
@@ -681,7 +858,7 @@
             });
         };
 
-        // ===== NEW: Filter Exams (Half Yearly, Final, All) =====
+        /* Filter Exams (Half Yearly, Final, All, etc.) */
         window.filterExams = function() {
             const filter = document.getElementById('examTypeFilter').value;
             const rows = document.querySelectorAll('.exam-row');

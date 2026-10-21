@@ -1,0 +1,190 @@
+{% extends "admin_base.html" %}
+{% block title %}Study Materials{% endblock %}
+{% block page_title %}Study Materials{% endblock %}
+
+{% block content %}
+<style>
+    .sm-grid { display: grid; grid-template-columns: 380px 1fr; gap: 20px; align-items: start; }
+    @media (max-width: 900px) { .sm-grid { grid-template-columns: 1fr; } }
+
+    .sm-panel { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    .sm-panel-head { padding: 16px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
+    .sm-panel-head h3 { margin: 0; font-size: 14px; font-weight: 800; color: var(--navy); display: flex; gap: 8px; align-items: center; }
+    .sm-panel-head h3 i { color: var(--red); font-size: 12px; }
+    .sm-panel-body { padding: 20px; }
+
+    .sm-form { display: flex; flex-direction: column; gap: 12px; }
+    .sm-form label {
+        display: flex; flex-direction: column; gap: 5px;
+        font-size: 11.5px; font-weight: 700; color: var(--navy);
+        text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .sm-form input, .sm-form select, .sm-form textarea {
+        font: inherit; font-size: 13px; color: var(--navy);
+        background: #fff; border: 1px solid var(--line); border-radius: 9px;
+        padding: 9px 12px; outline: 0; width: 100%;
+    }
+    .sm-form input:focus, .sm-form select:focus, .sm-form textarea:focus {
+        border-color: #b0c4d8; box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
+    }
+    .sm-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .sm-btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 10px 16px; background: var(--navy); color: #fff;
+        border: 1px solid var(--navy); border-radius: 10px;
+        font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .sm-btn:hover { background: #061f39; transform: translateY(-1px); }
+
+    .sm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .sm-table th {
+        text-align: left; padding: 10px 16px;
+        font-size: 10px; font-weight: 800; color: var(--muted);
+        text-transform: uppercase; letter-spacing: 0.6px;
+        background: #fafcfd; border-bottom: 1px solid var(--line);
+    }
+    .sm-table td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    .sm-table tr:last-child td { border-bottom: 0; }
+    .sm-table tr:hover { background: #fafcfd; }
+
+    .sm-badge {
+        font-size: 9.5px; font-weight: 800; padding: 3px 8px; border-radius: 5px;
+        background: #e1f1ff; color: #1768a7; text-transform: uppercase; letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+    .sm-type {
+        font-size: 9.5px; font-weight: 800; padding: 3px 8px; border-radius: 5px;
+        background: #f0e7ff; color: #7439b2; text-transform: uppercase; letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+    .sm-delete {
+        background: #ffeaee; color: var(--red);
+        border: 1px solid #f8c9d2;
+        padding: 4px 10px; border-radius: 6px;
+        font-size: 11px; font-weight: 700; cursor: pointer;
+    }
+    .sm-delete:hover { background: #ffd9e0; }
+    .sm-link {
+        font-size: 11px; font-weight: 700; color: #1768a7;
+        text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
+        margin-top: 4px;
+    }
+    .sm-link:hover { text-decoration: underline; }
+    .sm-empty { padding: 40px; text-align: center; color: var(--muted); font-size: 12.5px; font-style: italic; }
+    .sm-count-pill { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--muted); background: #f1f5f9; padding: 3px 10px; border-radius: 10px; }
+</style>
+
+<div class="sm-grid">
+
+    <!-- ADD FORM -->
+    <div class="sm-panel">
+        <div class="sm-panel-head">
+            <h3><i class="fa-solid fa-upload"></i> Add study material</h3>
+        </div>
+        <div class="sm-panel-body">
+            <form method="POST" action="{{ url_for('admin_add_study_material') }}" class="sm-form">
+                <div class="sm-form-row">
+                    <label>Class
+                        <select name="class_name" required>
+                            <option value="">Select</option>
+                            {% for c in ['Nursery','LKG','UKG','Class 1','Class 2','Class 3','Class 4','Class 5','Class 6','Class 7','Class 8'] %}
+                            <option>{{ c }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Subject
+                        <input type="text" name="subject" maxlength="50" placeholder="e.g. Mathematics">
+                    </label>
+                </div>
+                <label>Title
+                    <input type="text" name="title" required maxlength="150" placeholder="e.g. Chapter 3 — Algebra notes">
+                </label>
+                <label>Type
+                    <select name="material_type">
+                        <option value="notes">Notes</option>
+                        <option value="pdf">PDF</option>
+                        <option value="video">Video</option>
+                        <option value="link">External link</option>
+                        <option value="other">Other</option>
+                    </select>
+                </label>
+                <label>Description (optional)
+                    <textarea name="description" rows="2" maxlength="300" placeholder="Short description..."></textarea>
+                </label>
+                <label>External link / file URL (optional)
+                    <input type="url" name="external_link" placeholder="https://...">
+                </label>
+                <button type="submit" class="sm-btn">
+                    <i class="fa-solid fa-plus"></i> Add material
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- LIST -->
+    <div class="sm-panel">
+        <div class="sm-panel-head">
+            <h3><i class="fa-solid fa-file-lines"></i> All study materials</h3>
+            <span class="sm-count-pill">{{ materials|length }} total</span>
+        </div>
+
+        {% if materials %}
+        <div style="overflow-x:auto;">
+            <table class="sm-table">
+                <thead>
+                    <tr>
+                        <th>Class</th>
+                        <th>Subject</th>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Added by</th>
+                        <th style="width:90px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in materials %}
+                    <tr>
+                        <td><span class="sm-badge">{{ m.class_name }}</span></td>
+                        <td style="font-size:12px; color:var(--muted);">{{ m.subject or '—' }}</td>
+                        <td>
+                            <strong style="display:block; font-size:12.5px; color:var(--navy);">{{ m.title }}</strong>
+                            {% if m.description %}
+                            <small style="color:var(--muted); font-size:11px; display:block; margin-top:2px;">
+                                {{ m.description[:80] }}{% if m.description|length > 80 %}…{% endif %}
+                            </small>
+                            {% endif %}
+                            {% if m.external_link %}
+                            <a href="{{ m.external_link }}" target="_blank" rel="noopener" class="sm-link">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Open resource
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td><span class="sm-type">{{ m.material_type|capitalize }}</span></td>
+                        <td style="color:var(--muted); font-size:11.5px;">
+                            {{ m.uploaded_by_name or 'Admin' }}
+                        </td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin_delete_study_material', mid=m.id) }}"
+                                  onsubmit="return confirm('Delete this material?');">
+                                <button type="submit" class="sm-delete">
+                                    <i class="fa-solid fa-trash"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="sm-empty">
+            <i class="fa-solid fa-file-lines" style="font-size:28px; display:block; margin-bottom:8px; color:#cbd5e1;"></i>
+            No study materials uploaded yet.
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

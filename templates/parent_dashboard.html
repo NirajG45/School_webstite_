@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         /* ============================================================
-           PARENT DASHBOARD — SIDEBAR LAYOUT (IMAGE STRUCTURE)
+           PARENT DASHBOARD — SIDEBAR LAYOUT
            ============================================================ */
         :root {
             --pd-navy: var(--navy, #0a2340);
@@ -149,6 +149,21 @@
         .pd-nav-logout { color: #ff8a9c; }
         .pd-nav-logout:hover { background: rgba(215,25,56,0.15); color: #fff; }
         .pd-nav-logout:hover i { color: #fff; }
+        /* NEW: count badge for nav */
+        .pd-nav-badge {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 9px;
+            background: var(--pd-red);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+        }
 
         .pd-sidebar-foot {
             margin: auto 14px 16px;
@@ -318,6 +333,7 @@
         .pd-notif-icon.blue  { background: #e1f1ff; color: #1768a7; }
         .pd-notif-icon.green { background: #e3f5eb; color: #168254; }
         .pd-notif-icon.red   { background: #ffeaee; color: var(--pd-red); }
+        .pd-notif-icon.purple{ background: #f0e7ff; color: #7439b2; }
         .pd-notif-body { flex: 1; min-width: 0; }
         .pd-notif-body strong { display: block; font-size: 12px; font-weight: 700; color: var(--pd-navy); margin-bottom: 1px; }
         .pd-notif-body small { display: block; font-size: 10.5px; color: var(--pd-muted); }
@@ -865,10 +881,15 @@
             <a href="#dashboard" class="pd-nav-link active"><i class="fa-solid fa-gauge"></i> Dashboard</a>
             <a href="#children" class="pd-nav-link"><i class="fa-solid fa-users"></i> My Children</a>
             <a href="#attendance" class="pd-nav-link"><i class="fa-solid fa-clipboard-check"></i> Attendance</a>
-            
+
             <div class="pd-nav-label">Academics</div>
             <a href="#fees" class="pd-nav-link"><i class="fa-solid fa-receipt"></i> Fee Details</a>
-            <a href="#homework" class="pd-nav-link"><i class="fa-solid fa-book"></i> Homework</a>
+            <a href="#homework" class="pd-nav-link">
+                <i class="fa-solid fa-book"></i> Homework
+                {% if pending_homework and pending_homework > 0 %}
+                <span class="pd-nav-badge">{{ pending_homework }}</span>
+                {% endif %}
+            </a>
             <a href="#materials" class="pd-nav-link"><i class="fa-solid fa-book-open"></i> Study Materials</a>
             <a href="#exams" class="pd-nav-link"><i class="fa-solid fa-file-lines"></i> Examinations & Results</a>
 
@@ -878,7 +899,7 @@
             <a href="#events" class="pd-nav-link"><i class="fa-regular fa-calendar-days"></i> Calendar & Events</a>
 
             <div class="pd-nav-label">System</div>
-            <a href="#" class="pd-nav-link"><i class="fa-solid fa-circle-question"></i> Help & Support</a>
+            <a href="{{ url_for('faq_page') }}" class="pd-nav-link"><i class="fa-solid fa-circle-question"></i> Help & Support</a>
             <a href="#" class="pd-nav-link"><i class="fa-solid fa-gear"></i> Settings</a>
             <a href="{{ url_for('logout') }}" class="pd-nav-link pd-nav-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </nav>
@@ -913,7 +934,9 @@
                 <div class="pd-notif" id="pdNotif">
                     <button type="button" class="pd-icon-btn" id="pdNotifBtn" aria-haspopup="true" aria-expanded="false" aria-controls="pdNotifDropdown" aria-label="Notifications">
                         <i class="fa-regular fa-bell"></i>
+                        {% if (messages|length) > 0 or (pending_homework and pending_homework > 0) %}
                         <span class="pd-notif-dot"></span>
+                        {% endif %}
                     </button>
                     <div class="pd-notif-dropdown" id="pdNotifDropdown" role="menu">
                         <div class="pd-notif-head">
@@ -925,7 +948,14 @@
                                 <div class="pd-notif-icon amber"><i class="fa-solid fa-bullhorn"></i></div>
                                 <div class="pd-notif-body">
                                     <strong>New school notice</strong>
-                                    <small>Check the latest announcements</small>
+                                    <small>{{ notices|length }} announcement(s)</small>
+                                </div>
+                            </a>
+                            <a href="#homework" class="pd-notif-item" role="menuitem">
+                                <div class="pd-notif-icon purple"><i class="fa-solid fa-book"></i></div>
+                                <div class="pd-notif-body">
+                                    <strong>Pending homework</strong>
+                                    <small>{{ pending_homework or 0 }} assignment(s)</small>
                                 </div>
                             </a>
                             <a href="#fees" class="pd-notif-item" role="menuitem">
@@ -1011,7 +1041,7 @@
             {% set absent_att = attendance|selectattr('status','equalto','absent')|list|length %}
             {% set att_pct = ((present_att / total_att) * 100)|round|int if total_att > 0 else 0 %}
             {% set att_deg = (att_pct * 3.6)|round|int %}
-            
+
             {% set pending_fee = fees|selectattr('status', 'equalto', 'pending')|map(attribute='amount')|sum %}
             {% set paid_fee = fees|selectattr('status', 'equalto', 'verified')|map(attribute='amount')|sum %}
             {% set total_fee = pending_fee + paid_fee %}
@@ -1039,8 +1069,8 @@
                         </div>
                     </section>
 
-                    <!-- Stat cards -->
-                    <div class="pd-stat-row">
+                    <!-- Stat cards — real backend values -->
+                    <div class="pd-stat-row" id="homework">
                         <div class="pd-stat">
                             <div class="pd-stat-icon blue"><i class="fa-solid fa-users"></i></div>
                             <div class="pd-stat-text">
@@ -1058,7 +1088,8 @@
                         <div class="pd-stat">
                             <div class="pd-stat-icon purple"><i class="fa-solid fa-book"></i></div>
                             <div class="pd-stat-text">
-                                <strong>0</strong>
+                                <!-- FIXED: now uses real pending_homework from backend -->
+                                <strong>{{ pending_homework or 0 }}</strong>
                                 <small>Pending Homework</small>
                             </div>
                         </div>
@@ -1076,7 +1107,7 @@
                         <section class="pd-panel" id="children">
                             <div class="pd-panel-head">
                                 <h2 class="pd-panel-title"><i class="fa-solid fa-users"></i> My Children</h2>
-                                <a href="#" class="pd-panel-link">View all <i class="fa-solid fa-arrow-right"></i></a>
+                                <a href="#attendance" class="pd-panel-link">View attendance <i class="fa-solid fa-arrow-right"></i></a>
                             </div>
                             <div class="pd-panel-body">
                                 {% if user.child_name %}
@@ -1102,7 +1133,7 @@
                         <section class="pd-panel" id="attendance">
                             <div class="pd-panel-head">
                                 <h2 class="pd-panel-title"><i class="fa-solid fa-chart-pie"></i> Attendance Overview</h2>
-                                <span class="pd-panel-link">View details</span>
+                                <span class="pd-panel-link">{{ total_att }} days</span>
                             </div>
                             <div class="pd-panel-body">
                                 {% if total_att > 0 %}
@@ -1146,7 +1177,7 @@
                         <section class="pd-panel" id="fees">
                             <div class="pd-panel-head">
                                 <h2 class="pd-panel-title"><i class="fa-solid fa-receipt"></i> Fee Status</h2>
-                                <a href="#" class="pd-panel-link">View details <i class="fa-solid fa-arrow-right"></i></a>
+                                <span class="pd-panel-link">{{ fees|length }} record(s)</span>
                             </div>
                             <div class="pd-panel-body">
                                 {% if pending_fee == 0 and paid_fee > 0 %}
@@ -1187,7 +1218,7 @@
                         <section class="pd-panel" id="notices">
                             <div class="pd-panel-head">
                                 <h2 class="pd-panel-title"><i class="fa-regular fa-bell"></i> Recent Notices</h2>
-                                <a href="#" class="pd-panel-link">View all <i class="fa-solid fa-arrow-right"></i></a>
+                                <span class="pd-panel-link">{{ notices|length }} total</span>
                             </div>
                             <div class="pd-panel-body">
                                 {% for n in notices[:4] %}
@@ -1210,65 +1241,66 @@
                 <!-- ============ SIDE COLUMN ============ -->
                 <aside class="pd-col-side">
 
-                    <!-- Upcoming Events -->
+                    <!-- Upcoming Events — from backend `upcoming_events` -->
                     <section class="pd-panel" id="events">
                         <div class="pd-panel-head">
                             <h2 class="pd-panel-title"><i class="fa-regular fa-calendar-days"></i> Upcoming Events</h2>
-                            <a href="#" class="pd-panel-link">View calendar <i class="fa-solid fa-arrow-right"></i></a>
+                            <a href="{{ url_for('events_page') }}" class="pd-panel-link" target="_blank" rel="noopener">
+                                View all <i class="fa-solid fa-arrow-right"></i>
+                            </a>
                         </div>
                         <div class="pd-panel-body">
                             <div class="pd-event-list">
+                                {% for e in upcoming_events %}
                                 <div class="pd-event-item">
-                                    <div class="pd-event-date"><strong>25</strong><small>OCT</small></div>
+                                    <div class="pd-event-date">
+                                        <strong>{{ e.event_date[8:10] }}</strong>
+                                        <small>{{ e.event_date|month_abbr }}</small>
+                                    </div>
                                     <div class="pd-event-info">
-                                        <strong>Sports Day</strong>
-                                        <small>(Next Saturday)</small>
+                                        <strong title="{{ e.title }}">{{ e.title }}</strong>
+                                        <small>
+                                            {{ e.event_time or 'All day' }}
+                                            {% if e.location %} · {{ e.location }}{% endif %}
+                                        </small>
                                     </div>
                                 </div>
-                                <div class="pd-event-item">
-                                    <div class="pd-event-date"><strong>30</strong><small>OCT</small></div>
-                                    <div class="pd-event-info">
-                                        <strong>PTM Meeting</strong>
-                                        <small>(Thursday)</small>
-                                    </div>
+                                {% else %}
+                                <div class="pd-empty" style="padding:16px 4px;">
+                                    <i class="fa-regular fa-calendar-xmark" style="font-size:22px; display:block; margin-bottom:6px; color:#cbd5e1;"></i>
+                                    No upcoming events.
                                 </div>
-                                <div class="pd-event-item">
-                                    <div class="pd-event-date"><strong>05</strong><small>NOV</small></div>
-                                    <div class="pd-event-info">
-                                        <strong>Annual Function</strong>
-                                        <small>(Wednesday)</small>
-                                    </div>
-                                </div>
+                                {% endfor %}
                             </div>
                         </div>
                     </section>
 
-                    <!-- Quick Links -->
-                    <section class="pd-panel">
+                    <!-- Quick Links — real destinations -->
+                    <section class="pd-panel" id="materials">
                         <div class="pd-panel-head">
                             <h2 class="pd-panel-title"><i class="fa-solid fa-link"></i> Quick Links</h2>
                         </div>
                         <div class="pd-panel-body">
                             <div class="pd-ql-grid">
-                                <a href="#" class="pd-ql">
+                                <a href="#homework" class="pd-ql">
                                     <i class="fa-solid fa-book"></i>
                                     <span>Homework</span>
                                 </a>
-                                <a href="#" class="pd-ql">
+                                <a href="{{ url_for('faq_page') }}" class="pd-ql">
                                     <i class="fa-solid fa-download"></i>
                                     <span>Study Materials</span>
                                 </a>
-                                <a href="#" class="pd-ql">
+                                <a href="#attendance" class="pd-ql">
                                     <i class="fa-solid fa-chart-simple"></i>
                                     <span>Results</span>
                                 </a>
-                                <a href="#" class="pd-ql">
+                                <a href="#events" class="pd-ql">
                                     <i class="fa-regular fa-calendar"></i>
                                     <span>Timetable</span>
                                 </a>
-                                <a href="#" class="pd-ql">
+                                <a href="{{ url_for('faq_page') }}" class="pd-ql">
                                     <i class="fa-solid fa-circle-question"></i>
-                                    <span>Help & Support</span>
+                                    <span>Help &amp; Support</span>
                                 </a>
                                 <a href="#messages" class="pd-ql">
                                     <i class="fa-regular fa-comments"></i>
@@ -1282,6 +1314,7 @@
                     <section class="pd-panel" id="messages">
                         <div class="pd-panel-head">
                             <h2 class="pd-panel-title"><i class="fa-regular fa-envelope"></i> Messages</h2>
+                            <span class="pd-panel-link">{{ messages|length }}</span>
                         </div>
                         <div class="pd-panel-body">
                             {% for m in messages[:3] %}

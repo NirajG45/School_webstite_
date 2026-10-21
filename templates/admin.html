@@ -5,7 +5,7 @@
 {% block content %}
 <style>
     /* ============================================================
-       NEW ADMIN DASHBOARD — TWO COLUMN LAYOUT (IMAGE STYLE)
+       ADMIN DASHBOARD — TWO COLUMN LAYOUT (IMAGE STYLE)
        ============================================================ */
     .dash-layout {
         display: grid;
@@ -245,6 +245,8 @@
     .status-pill.pending  { background: #fff1d6; color: #a86a00; }
     .status-pill.approved { background: #e3f5eb; color: #168254; }
     .status-pill.rejected { background: #ffeaee; color: var(--red); }
+    .status-pill.active   { background: #e3f5eb; color: #168254; }
+    .status-pill.inactive { background: #f1f5f9; color: #65758a; }
     .uid-cell { color: var(--muted); font-family: 'Courier New', monospace; font-size: 11px; font-weight: 600; }
     .empty-state-cell { text-align: center; padding: 30px 16px !important; color: var(--muted); font-size: 12px; font-style: italic; }
     .table-action-link { font-size: 11px; font-weight: 700; color: var(--red); text-decoration: none; margin-right: 8px; }
@@ -270,10 +272,11 @@
     .event-date small { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85; }
     .event-info strong { display: block; font-size: 12.5px; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
     .event-info small { display: block; font-size: 10.5px; color: var(--muted); }
+    .empty-events { padding: 20px; text-align: center; color: var(--muted); font-size: 12px; font-style: italic; }
 
     /* Sidebar notifications */
     .notif-list-compact { display: flex; flex-direction: column; gap: 10px; }
-    .notif-item-compact { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 9px; transition: background 0.2s; }
+    .notif-item-compact { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 9px; transition: background 0.2s; text-decoration: none; }
     .notif-item-compact:hover { background: #f0f7ff; }
     .notif-icon {
         width: 32px;
@@ -289,9 +292,24 @@
     .notif-icon.green { background: #e3f5eb; color: #168254; }
     .notif-icon.blue  { background: #e1f1ff; color: #1768a7; }
     .notif-icon.red   { background: #ffeaee; color: var(--red); }
+    .notif-icon.purple{ background: #f0e7ff; color: #7439b2; }
     .notif-body-compact { flex: 1; min-width: 0; }
     .notif-body-compact strong { display: block; font-size: 11.5px; font-weight: 700; color: var(--navy); margin-bottom: 1px; }
     .notif-body-compact small { display: block; font-size: 10px; color: var(--muted); line-height: 1.3; }
+    .notif-badge-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px;
+        border-radius: 10px;
+        background: var(--red);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 800;
+    }
+    .notif-badge-count.zero { background: #cbd5e1; color: #475569; }
 
     /* Quick actions side */
     .qa-grid-side { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -317,7 +335,7 @@
     .fin-row span { color: var(--muted); font-weight: 600; }
     .fin-row strong { color: var(--navy); font-weight: 800; }
     .fin-progress { height: 6px; background: #eef2f7; border-radius: 4px; margin-top: 10px; overflow: hidden; }
-    .fin-progress-bar { height: 100%; background: #168254; border-radius: 4px; }
+    .fin-progress-bar { height: 100%; background: #168254; border-radius: 4px; transition: width 0.4s ease; }
     .fin-progress-label { display: block; font-size: 10px; color: var(--muted); margin-top: 4px; font-weight: 600; }
 
     /* Useful links */
@@ -385,7 +403,7 @@
             </div>
         </div>
 
-        <!-- Stat cards -->
+        <!-- Stat cards — real numbers from backend -->
         <div class="stat-row">
             <div class="stat-tile stat-blue">
                 <div class="stat-tile-top">
@@ -393,7 +411,10 @@
                 </div>
                 <div class="stat-tile-label">Total Students</div>
                 <div class="stat-tile-value">{{ stats.total_students or '0' }}</div>
-                <div class="stat-tile-sub"><i class="fa-solid fa-arrow-trend-up" style="color:#168254;"></i> +12 this month</div>
+                <div class="stat-tile-sub">
+                    <i class="fa-solid fa-circle" style="color:#1768a7;"></i>
+                    Active enrollment
+                </div>
             </div>
 
             <div class="stat-tile stat-green">
@@ -402,7 +423,10 @@
                 </div>
                 <div class="stat-tile-label">Total Teachers</div>
                 <div class="stat-tile-value">{{ stats.total_teachers or '0' }}</div>
-                <div class="stat-tile-sub"><i class="fa-solid fa-arrow-trend-up" style="color:#168254;"></i> +2 this month</div>
+                <div class="stat-tile-sub">
+                    <i class="fa-solid fa-circle" style="color:#168254;"></i>
+                    All departments
+                </div>
             </div>
 
             <div class="stat-tile stat-purple">
@@ -411,7 +435,10 @@
                 </div>
                 <div class="stat-tile-label">Total Parents</div>
                 <div class="stat-tile-value">{{ stats.total_parents or '0' }}</div>
-                <div class="stat-tile-sub"><i class="fa-solid fa-arrow-trend-up" style="color:#168254;"></i> +15 this month</div>
+                <div class="stat-tile-sub">
+                    <i class="fa-solid fa-circle" style="color:#7439b2;"></i>
+                    Registered accounts
+                </div>
             </div>
 
             <div class="stat-tile stat-amber">
@@ -420,69 +447,37 @@
                 </div>
                 <div class="stat-tile-label">Total Classes</div>
                 <div class="stat-tile-value">{{ stats.total_classes or '0' }}</div>
-                <div class="stat-tile-sub"><i class="fa-solid fa-circle" style="color:#a86a00;"></i> Pre-Nursery – 8th</div>
+                <div class="stat-tile-sub">
+                    <i class="fa-solid fa-circle" style="color:#a86a00;"></i>
+                    Pre-Nursery – 8th
+                </div>
             </div>
         </div>
 
         <!-- Charts -->
         <div class="charts-row">
-            <!-- Bar chart -->
+            <!-- Bar chart — driven by admission_trend from backend -->
             <div class="dash-panel">
                 <div class="dash-panel-header">
                     <h3 class="dash-panel-title"><i class="fa-solid fa-chart-column"></i> Student admission trend</h3>
-                    <span class="dash-panel-link">View all</span>
+                    <a href="{{ url_for('admin_users', role='student') }}" class="dash-panel-link">
+                        View all <i class="fa-solid fa-arrow-right"></i>
+                    </a>
                 </div>
                 <div class="dash-panel-body">
                     <div class="bar-chart">
-                        <div class="bar-group">
+                        {% for item in admission_trend %}
+                        {% set h = ((item.count / max_trend) * 100)|round|int if max_trend else 0 %}
+                        <div class="bar-group" title="{{ item.label }}: {{ item.count }} new admissions">
                             <div class="bar-wrap">
-                                <div class="bar bar-navy" style="height:60%"></div>
-                                <div class="bar bar-red" style="height:40%"></div>
+                                <div class="bar bar-navy" style="height: {{ h }}%;"></div>
+                                <div class="bar bar-red" style="height: {{ (h * 0.6)|round|int }}%;"></div>
                             </div>
-                            <span>Apr</span>
+                            <span>{{ item.label }}</span>
                         </div>
-                        <div class="bar-group">
-                            <div class="bar-wrap">
-                                <div class="bar bar-navy" style="height:55%"></div>
-                                <div class="bar bar-red" style="height:45%"></div>
-                            </div>
-                            <span>May</span>
-                        </div>
-                        <div class="bar-group">
-                            <div class="bar-wrap">
-                                <div class="bar bar-navy" style="height:70%"></div>
-                                <div class="bar bar-red" style="height:50%"></div>
-                            </div>
-                            <span>Jun</span>
-                        </div>
-                        <div class="bar-group">
-                            <div class="bar-wrap">
-                                <div class="bar bar-navy" style="height:65%"></div>
-                                <div class="bar bar-red" style="height:55%"></div>
-                            </div>
-                            <span>Jul</span>
-                        </div>
-                        <div class="bar-group">
-                            <div class="bar-wrap">
-                                <div class="bar bar-navy" style="height:75%"></div>
-                                <div class="bar bar-red" style="height:60%"></div>
-                            </div>
-                            <span>Aug</span>
-                        </div>
-                        <div class="bar-group">
-                            <div class="bar-wrap">
-                                <div class="bar bar-navy" style="height:68%"></div>
-                                <div class="bar bar-red" style="height:52%"></div>
-                            </div>
-                            <span>Sep</span>
-                        </div>
-                        <div class="bar-group">
-                            <div class="bar-wrap">
-                                <div class="bar bar-navy" style="height:80%"></div>
-                                <div class="bar bar-red" style="height:65%"></div>
-                            </div>
-                            <span>Oct</span>
-                        </div>
+                        {% else %}
+                        <div class="empty-state-cell" style="width:100%;">No admission data yet.</div>
+                        {% endfor %}
                     </div>
                     <div class="chart-legend">
                         <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--navy);"></span> New admissions</div>
@@ -491,16 +486,16 @@
                 </div>
             </div>
 
-            <!-- Donut -->
+            <!-- Donut — real percentages from stats -->
             <div class="dash-panel">
                 <div class="dash-panel-header">
                     <h3 class="dash-panel-title"><i class="fa-solid fa-chart-pie"></i> Fee collection status</h3>
                 </div>
                 <div class="dash-panel-body">
-                    {% set paid = 68 %}
-                    {% set partial = 12 %}
-                    {% set pending = 20 %}
-                    {% set paid_end = paid * 3.6 %}
+                    {% set paid    = stats.paid_pct or 0 %}
+                    {% set partial = stats.partial_pct or 0 %}
+                    {% set pending = stats.pending_pct or 0 %}
+                    {% set paid_end    = paid * 3.6 %}
                     {% set partial_end = (paid + partial) * 3.6 %}
                     <div class="donut-wrap">
                         <div class="donut" style="background: conic-gradient(
@@ -537,11 +532,11 @@
 
         <!-- Recent students + Events -->
         <div class="bottom-row">
-            <!-- Recent students -->
+            <!-- Recent students — from recent_students -->
             <div class="dash-panel">
                 <div class="dash-panel-header">
                     <h3 class="dash-panel-title"><i class="fa-solid fa-user-graduate"></i> Recent students</h3>
-                    <a href="{{ url_for('admin_users') }}" class="dash-panel-link">View all <i class="fa-solid fa-arrow-right"></i></a>
+                    <a href="{{ url_for('admin_users', role='student') }}" class="dash-panel-link">View all <i class="fa-solid fa-arrow-right"></i></a>
                 </div>
                 <div class="dash-table-wrap">
                     <table class="dash-table">
@@ -556,17 +551,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% set display_users = [] %}
-                            {% for u in recent_users %}
-                                {% if u.role == 'student' %}
-                                    {% set _ = display_users.append(u) %}
-                                {% endif %}
-                            {% endfor %}
-                            {% if not display_users %}
-                                {% set display_users = recent_users %}
-                            {% endif %}
-
-                            {% for u in display_users[:5] %}
+                            {% for u in recent_students %}
                             <tr>
                                 <td>{{ loop.index }}</td>
                                 <td>
@@ -582,21 +567,26 @@
                                 </td>
                                 <td><span class="role-pill role-{{ u.role }}">{{ u.role|capitalize }}</span></td>
                                 <td class="uid-cell">{{ u.unique_id or '—' }}</td>
-                                <td><span class="status-pill approved">Active</span></td>
                                 <td>
-                                    <a href="#" class="table-action-link">View</a>
-                                    <a href="#" class="table-action-link">Edit</a>
+                                    {% if u.is_active %}
+                                    <span class="status-pill active">Active</span>
+                                    {% else %}
+                                    <span class="status-pill inactive">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin_users', role='student', q=u.unique_id) }}" class="table-action-link">View</a>
                                 </td>
                             </tr>
                             {% else %}
-                            <tr><td colspan="6" class="empty-state-cell">No students yet.</td></tr>
+                            <tr><td colspan="6" class="empty-state-cell">No students yet. <a href="{{ url_for('admin_create_user') }}" style="color:var(--red); font-weight:700;">Add one</a>.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Events -->
+            <!-- Events — from upcoming_events -->
             <div class="dash-panel">
                 <div class="dash-panel-header">
                     <h3 class="dash-panel-title"><i class="fa-regular fa-calendar-days"></i> Events &amp; calendar</h3>
@@ -604,34 +594,23 @@
                 </div>
                 <div class="dash-panel-body">
                     <div class="event-list">
+                        {% for e in upcoming_events %}
                         <div class="event-item">
-                            <div class="event-date"><strong>20</strong><small>OCT</small></div>
+                            <div class="event-date">
+                                <strong>{{ e.event_date[8:10] }}</strong>
+                                <small>{{ e.event_date|month_abbr }}</small>
+                            </div>
                             <div class="event-info">
-                                <strong>Parent-Teacher Meeting</strong>
-                                <small>10:00 AM – 12:00 PM</small>
+                                <strong>{{ e.title }}</strong>
+                                <small>{{ e.event_time or 'All day' }}{% if e.location %} · {{ e.location }}{% endif %}</small>
                             </div>
                         </div>
-                        <div class="event-item">
-                            <div class="event-date"><strong>25</strong><small>OCT</small></div>
-                            <div class="event-info">
-                                <strong>Half Yearly Exam</strong>
-                                <small>All Classes</small>
-                            </div>
+                        {% else %}
+                        <div class="empty-events">
+                            <i class="fa-regular fa-calendar-xmark" style="font-size:24px; display:block; margin-bottom:6px; color:#cbd5e1;"></i>
+                            No upcoming events.
                         </div>
-                        <div class="event-item">
-                            <div class="event-date"><strong>28</strong><small>OCT</small></div>
-                            <div class="event-info">
-                                <strong>School Picnic</strong>
-                                <small>8:00 AM – 4:00 PM</small>
-                            </div>
-                        </div>
-                        <div class="event-item">
-                            <div class="event-date"><strong>05</strong><small>NOV</small></div>
-                            <div class="event-info">
-                                <strong>Sports Day</strong>
-                                <small>9:00 AM – 2:00 PM</small>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -642,75 +621,91 @@
     <!-- ==================== SIDEBAR COLUMN ==================== -->
     <div class="dash-side">
 
-        <!-- Notifications -->
+        <!-- Notifications — real counts -->
         <div class="dash-panel">
             <div class="dash-panel-header">
                 <h3 class="dash-panel-title"><i class="fa-regular fa-bell"></i> Notifications &amp; alerts</h3>
-                <a href="#" class="dash-panel-link">View all</a>
+                <a href="{{ url_for('admin_messages') }}" class="dash-panel-link">View all</a>
             </div>
             <div class="dash-panel-body">
                 <div class="notif-list-compact">
-                    <div class="notif-item-compact">
+                    <!-- Fee payments -->
+                    <a href="{{ url_for('admin_fees') }}" class="notif-item-compact">
                         <div class="notif-icon green"><i class="fa-solid fa-indian-rupee-sign"></i></div>
                         <div class="notif-body-compact">
-                            <strong>Fee payment received</strong>
-                            <small>From Riya Sharma · 2 hours ago</small>
+                            <strong>Fee payments</strong>
+                            <small>{{ pending_fees or 0 }} pending verification</small>
                         </div>
-                    </div>
-                    <div class="notif-item-compact">
-                        <div class="notif-icon blue"><i class="fa-solid fa-user-plus"></i></div>
-                        <div class="notif-body-compact">
-                            <strong>New student registration</strong>
-                            <small>Class 5 · 4 hours ago</small>
-                        </div>
-                    </div>
-                    <div class="notif-item-compact">
+                        <span class="notif-badge-count {% if not pending_fees %}zero{% endif %}">{{ pending_fees or 0 }}</span>
+                    </a>
+
+                    <!-- Leave requests -->
+                    <a href="{{ url_for('admin_leaves') }}" class="notif-item-compact">
                         <div class="notif-icon amber"><i class="fa-solid fa-calendar-minus"></i></div>
                         <div class="notif-body-compact">
-                            <strong>Teacher leave request</strong>
-                            <small>Mrs. Gupta · 6 hours ago</small>
+                            <strong>Leave requests</strong>
+                            <small>{{ pending_leaves or 0 }} awaiting approval</small>
                         </div>
-                    </div>
-                    <div class="notif-item-compact">
-                        <div class="notif-icon purple"><i class="fa-regular fa-calendar-days"></i></div>
+                        <span class="notif-badge-count {% if not pending_leaves %}zero{% endif %}">{{ pending_leaves or 0 }}</span>
+                    </a>
+
+                    <!-- Homework -->
+                    <a href="{{ url_for('admin_homework') }}" class="notif-item-compact">
+                        <div class="notif-icon purple"><i class="fa-solid fa-book-open"></i></div>
                         <div class="notif-body-compact">
-                            <strong>Exam schedule updated</strong>
-                            <small>1 day ago</small>
+                            <strong>Homework assignments</strong>
+                            <small>{{ total_homework or 0 }} total assigned</small>
                         </div>
-                    </div>
-                    <div class="notif-item-compact">
+                        <span class="notif-badge-count {% if not total_homework %}zero{% endif %}">{{ total_homework or 0 }}</span>
+                    </a>
+
+                    <!-- Enquiries -->
+                    <a href="{{ url_for('admin_enquiries') }}" class="notif-item-compact">
+                        <div class="notif-icon blue"><i class="fa-solid fa-envelope"></i></div>
+                        <div class="notif-body-compact">
+                            <strong>Enquiries received</strong>
+                            <small>{{ stats.total_enquiries or 0 }} admission &amp; contact</small>
+                        </div>
+                        <span class="notif-badge-count {% if not stats.total_enquiries %}zero{% endif %}">{{ stats.total_enquiries or 0 }}</span>
+                    </a>
+
+                    <!-- Recent leaves list -->
+                    {% if recent_leaves %}
+                    <a href="{{ url_for('admin_leaves') }}" class="notif-item-compact">
                         <div class="notif-icon red"><i class="fa-solid fa-comment-dots"></i></div>
                         <div class="notif-body-compact">
-                            <strong>New message from parent</strong>
-                            <small>1 day ago</small>
+                            <strong>{{ recent_leaves[0].user_name }}</strong>
+                            <small>Recently requested {{ recent_leaves[0].leave_type }}</small>
                         </div>
-                    </div>
+                        <i class="fa-solid fa-chevron-right" style="color:#b1c2d4; font-size:10px;"></i>
+                    </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Quick Actions -->
+        <!-- Quick Actions — real links -->
         <div class="dash-panel">
             <div class="dash-panel-header">
                 <h3 class="dash-panel-title"><i class="fa-solid fa-bolt"></i> Quick actions</h3>
             </div>
             <div class="dash-panel-body">
                 <div class="qa-grid-side">
-                    <a href="{{ url_for('admin_create_user') }}" class="qa-tile-side">
+                    <a href="{{ url_for('admin_create_user') }}?role=student" class="qa-tile-side">
                         <div class="qa-tile-icon blue"><i class="fa-solid fa-user-plus"></i></div>
                         <span>Add Student</span>
                     </a>
-                    <a href="{{ url_for('admin_create_user') }}" class="qa-tile-side">
+                    <a href="{{ url_for('admin_create_user') }}?role=teacher" class="qa-tile-side">
                         <div class="qa-tile-icon green"><i class="fa-solid fa-chalkboard-user"></i></div>
                         <span>Add Teacher</span>
                     </a>
-                    <a href="{{ url_for('admin_create_user') }}" class="qa-tile-side">
+                    <a href="{{ url_for('admin_create_user') }}?role=parent" class="qa-tile-side">
                         <div class="qa-tile-icon purple"><i class="fa-solid fa-users"></i></div>
                         <span>Add Parent</span>
                     </a>
-                    <a href="{{ url_for('admin_dashboard') }}" class="qa-tile-side">
-                        <div class="qa-tile-icon amber"><i class="fa-solid fa-chart-line"></i></div>
-                        <span>Generate Report</span>
+                    <a href="{{ url_for('admin_homework') }}" class="qa-tile-side">
+                        <div class="qa-tile-icon purple"><i class="fa-solid fa-book-open"></i></div>
+                        <span>Assign Homework</span>
                     </a>
                     <a href="{{ url_for('admin_notices') }}" class="qa-tile-side">
                         <div class="qa-tile-icon red"><i class="fa-solid fa-bullhorn"></i></div>
@@ -724,20 +719,29 @@
             </div>
         </div>
 
-        <!-- Financial Summary -->
+        <!-- Financial Summary — real numbers -->
         <div class="dash-panel">
             <div class="dash-panel-header">
                 <h3 class="dash-panel-title"><i class="fa-solid fa-chart-simple"></i> Financial summary</h3>
-                <span class="dash-panel-link">This month</span>
+                <span class="dash-panel-link">All time</span>
             </div>
             <div class="dash-panel-body">
-                <div class="fin-row"><span>Expected fees</span><strong>₹2,45,000</strong></div>
-                <div class="fin-row"><span>Collected fees</span><strong>₹1,67,800</strong></div>
-                <div class="fin-row"><span>Pending fees</span><strong style="color:var(--red);">₹77,200</strong></div>
-                <div class="fin-progress">
-                    <div class="fin-progress-bar" style="width:68%;"></div>
+                <div class="fin-row">
+                    <span>Expected fees</span>
+                    <strong>₹{{ '{:,.0f}'.format(stats.expected_fees) }}</strong>
                 </div>
-                <small class="fin-progress-label">68% collected</small>
+                <div class="fin-row">
+                    <span>Collected fees</span>
+                    <strong style="color:#168254;">₹{{ '{:,.0f}'.format(stats.collected_fees) }}</strong>
+                </div>
+                <div class="fin-row">
+                    <span>Pending fees</span>
+                    <strong style="color:var(--red);">₹{{ '{:,.0f}'.format(stats.pending_amount) }}</strong>
+                </div>
+                <div class="fin-progress">
+                    <div class="fin-progress-bar" style="width:{{ stats.collected_pct }}%;"></div>
+                </div>
+                <small class="fin-progress-label">{{ stats.collected_pct }}% collected</small>
             </div>
         </div>
 
@@ -748,21 +752,21 @@
             </div>
             <div class="dash-panel-body">
                 <div class="useful-links-grid">
-                    <a href="{{ url_for('home') }}" class="useful-link">
+                    <a href="{{ url_for('home') }}" target="_blank" rel="noopener" class="useful-link">
                         <i class="fa-solid fa-globe"></i>
                         <span>Website</span>
                     </a>
-                    <a href="#" class="useful-link">
+                    <a href="{{ url_for('admin_users', role='student') }}" class="useful-link">
                         <i class="fa-solid fa-user-graduate"></i>
-                        <span>Student Portal</span>
+                        <span>Students</span>
                     </a>
-                    <a href="#" class="useful-link">
-                        <i class="fa-solid fa-file-lines"></i>
-                        <span>Result Portal</span>
+                    <a href="{{ url_for('admin_users', role='teacher') }}" class="useful-link">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                        <span>Teachers</span>
                     </a>
-                    <a href="#" class="useful-link">
-                        <i class="fa-solid fa-circle-question"></i>
-                        <span>Help &amp; Support</span>
+                    <a href="{{ url_for('admin_users', role='parent') }}" class="useful-link">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Parents</span>
                     </a>
                 </div>
             </div>

@@ -10,583 +10,1425 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        /* ===== UPGRADED USER PROFILE BUTTON ===== */
-        .user-profile { position: relative; display: inline-block; }
-        .user-avatar-btn {
-            display: inline-flex; align-items: center; gap: 0;
-            padding: 4px; border: 2px solid transparent; background: transparent;
-            cursor: pointer; border-radius: 50px; max-width: 52px; overflow: hidden;
-            transition: max-width .4s cubic-bezier(.4,0,.2,1), padding .4s cubic-bezier(.4,0,.2,1),
-                        gap .4s cubic-bezier(.4,0,.2,1), background .25s, border-color .25s, box-shadow .25s;
-            white-space: nowrap; font: inherit; color: inherit; text-align: left;
+        /* ============================================================
+           PARENT DASHBOARD — SIDEBAR LAYOUT (IMAGE STRUCTURE)
+           ============================================================ */
+        :root {
+            --pd-navy: var(--navy, #0a2340);
+            --pd-red: var(--red, #d71938);
+            --pd-yellow: var(--yellow, #ffd447);
+            --pd-line: var(--line, #e1e8f0);
+            --pd-muted: var(--muted, #65758a);
+            --pd-paper: var(--paper, #f4f7fb);
         }
-        .user-avatar-btn:hover,
-        .user-profile.dropdown-open .user-avatar-btn,
-        .user-profile:hover .user-avatar-btn {
-            max-width: 280px; gap: 10px; padding: 4px 14px 4px 4px;
-            background: rgba(11,53,98,0.06); border-color: rgba(11,53,98,0.12);
-            box-shadow: 0 6px 20px rgba(11,53,98,0.08);
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        .pd-body {
+            margin: 0;
+            font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+            background: #f4f7fb;
+            color: var(--pd-navy);
+            -webkit-font-smoothing: antialiased;
         }
-        .user-avatar-info {
-            display: flex; flex-direction: column; align-items: flex-start;
-            overflow: hidden; opacity: 0; max-width: 0; line-height: 1.2;
-            transition: opacity .25s, max-width .35s; pointer-events: none;
+        .pd-body.pd-menu-open { overflow: hidden; }
+
+        /* ===== SIDEBAR ===== */
+        .pd-sidebar {
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            width: 256px;
+            background: linear-gradient(180deg, #0a2340 0%, #06182c 100%);
+            display: flex;
+            flex-direction: column;
+            z-index: 1100;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
         }
-        .user-avatar-btn:hover .user-avatar-info,
-        .user-profile.dropdown-open .user-avatar-btn .user-avatar-info,
-        .user-profile:hover .user-avatar-btn .user-avatar-info {
-            opacity: 1; max-width: 170px; pointer-events: auto;
+        .pd-sidebar::-webkit-scrollbar { width: 6px; }
+        .pd-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
+        .pd-sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+        .pd-sidebar-head { padding: 18px 16px 8px; }
+        .pd-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .pd-logo-img {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            background: #fff;
+            padding: 3px;
+            object-fit: contain;
+            flex: 0 0 38px;
         }
-        .user-avatar-info strong {
-            font-size: 13px; font-weight: 700; color: #0b3562;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;
+        .pd-logo-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+        .pd-logo-text strong {
+            font-size: 13.5px; font-weight: 800; color: #fff;
+            letter-spacing: 0.2px; white-space: nowrap;
         }
-        .user-avatar-info small { font-size: 10.5px; color: #5a7a99; text-transform: capitalize; white-space: nowrap; }
-        .user-chevron {
-            font-size: 10px; color: #0b3562; opacity: 0; max-width: 0;
-            transition: opacity .25s, max-width .25s, transform .3s;
-        }
-        .user-avatar-btn:hover .user-chevron,
-        .user-profile.dropdown-open .user-avatar-btn .user-chevron,
-        .user-profile:hover .user-avatar-btn .user-chevron { opacity: 1; max-width: 20px; }
-        .user-profile.dropdown-open .user-chevron { transform: rotate(180deg); }
-        .user-dropdown {
-            position: absolute; top: calc(100% + 10px); right: 0; min-width: 260px;
-            background: #fff; border-radius: 14px;
-            box-shadow: 0 18px 50px rgba(11,53,98,0.18), 0 4px 14px rgba(11,53,98,0.08);
-            padding: 14px; opacity: 0; visibility: hidden;
-            transform: translateY(-8px) scale(0.97); transform-origin: top right;
-            pointer-events: none; transition: opacity .22s, transform .22s, visibility .22s;
-            z-index: 1000;
-        }
-        .user-profile:hover .user-dropdown,
-        .user-profile.dropdown-open .user-dropdown {
-            opacity: 1; visibility: visible;
-            transform: translateY(0) scale(1); pointer-events: auto;
+        .pd-logo-text small {
+            font-size: 9.5px; font-weight: 700; color: var(--pd-yellow);
+            text-transform: uppercase; letter-spacing: 1.2px;
         }
 
-        /* ===== DASHBOARD QUICK STATS ===== */
-        .dashboard-quick-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 14px;
-            margin: -34px auto 26px;
-            padding: 0 20px;
+        /* Sidebar user box */
+        .pd-user-box {
+            margin: 6px 14px 12px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255,212,71,0.12), rgba(215,25,56,0.12));
+            border: 1px solid rgba(255,212,71,0.28);
+            display: flex;
+            align-items: center;
+            gap: 11px;
             position: relative;
-            z-index: 2;
-            max-width: 1240px;
+            overflow: hidden;
         }
-        .dq-stat {
-            background: #fff; border-radius: 14px; padding: 16px 18px;
-            display: flex; align-items: center; gap: 12px;
-            box-shadow: 0 4px 16px rgba(11,53,98,0.08);
-            border: 1px solid rgba(11,53,98,0.06);
-            transition: transform .25s ease, box-shadow .25s ease;
+        .pd-user-box::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: linear-gradient(to bottom, var(--pd-yellow), var(--pd-red));
         }
-        .dq-stat:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(11,53,98,0.12); }
-        .dq-stat-icon {
-            width: 44px; height: 44px; border-radius: 12px;
+        .pd-user-avatar {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            flex: 0 0 40px;
+            background: linear-gradient(135deg, var(--pd-red), #b9102c);
+            color: #fff;
             display: flex; align-items: center; justify-content: center;
-            font-size: 18px; flex-shrink: 0;
+            font-weight: 800; font-size: 13px;
+            border: 2px solid var(--pd-yellow);
         }
-        .dq-stat strong {
-            font-size: 19px; font-weight: 800; color: #0b3562;
-            display: block; line-height: 1.15;
+        .pd-user-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .pd-user-info strong {
+            font-size: 13px; font-weight: 800; color: #fff;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .dq-stat small {
-            font-size: 11px; color: #65758a; text-transform: uppercase;
-            letter-spacing: 0.6px; font-weight: 600;
+        .pd-user-info small {
+            font-size: 10.5px; color: #b1c2d4; font-weight: 600;
+            display: flex; align-items: center; gap: 5px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .pd-user-info small i { color: var(--pd-yellow); font-size: 9px; }
+        .pd-role-badge {
+            display: inline-block;
+            background: var(--pd-yellow);
+            color: #0a2340;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            align-self: flex-start;
+            margin-top: 2px;
+        }
+
+        /* Sidebar navigation */
+        .pd-nav { padding: 4px 12px 12px; display: flex; flex-direction: column; gap: 2px; }
+        .pd-nav-label {
+            font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.38);
+            text-transform: uppercase; letter-spacing: 1.2px;
+            padding: 14px 10px 6px;
+        }
+        .pd-nav-link {
+            display: flex; align-items: center; gap: 11px;
+            padding: 10px 12px; border-radius: 9px;
+            font-size: 13px; font-weight: 600; color: #b9c8d8;
+            text-decoration: none;
+            transition: all 0.18s ease;
+        }
+        .pd-nav-link i { width: 18px; text-align: center; font-size: 14px; color: #7f95ab; transition: color 0.18s; }
+        .pd-nav-link:hover { background: rgba(255,255,255,0.06); color: #fff; }
+        .pd-nav-link:hover i { color: var(--pd-yellow); }
+        .pd-nav-link.active {
+            background: linear-gradient(135deg, var(--pd-red), #b9102c);
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(215,25,56,0.3);
+        }
+        .pd-nav-link.active i { color: #fff; }
+        .pd-nav-logout { color: #ff8a9c; }
+        .pd-nav-logout:hover { background: rgba(215,25,56,0.15); color: #fff; }
+        .pd-nav-logout:hover i { color: #fff; }
+
+        .pd-sidebar-foot {
+            margin: auto 14px 16px;
+            margin-top: auto;
+            padding: 13px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.04);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .pd-sidebar-foot i { color: var(--pd-yellow); font-size: 18px; }
+        .pd-sidebar-foot strong { display: block; font-size: 11.5px; color: #fff; font-weight: 800; }
+        .pd-sidebar-foot small { display: block; font-size: 10px; color: #8fa3b8; font-weight: 600; }
+
+        /* Backdrop */
+        .pd-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(6,24,44,0.5);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 1050;
+        }
+        .pd-backdrop.open { opacity: 1; pointer-events: auto; }
+
+        /* ===== MAIN AREA ===== */
+        .pd-main {
+            margin-left: 256px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Topbar */
+        .pd-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            height: 66px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--pd-line);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 0 22px;
+        }
+        .pd-menu-toggle {
+            display: none;
+            width: 40px; height: 40px;
+            align-items: center; justify-content: center;
+            border: 1px solid var(--pd-line);
+            background: #fff; border-radius: 10px;
+            color: var(--pd-navy); font-size: 15px;
+            cursor: pointer;
+            flex: 0 0 40px;
+        }
+        .pd-search {
+            flex: 1;
+            max-width: 460px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f1f5f9;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            height: 40px;
+            padding: 0 14px;
+            transition: all 0.2s ease;
+        }
+        .pd-search:focus-within {
+            background: #fff;
+            border-color: #b0c4d8;
+            box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
+        }
+        .pd-search i { color: var(--pd-muted); font-size: 13px; }
+        .pd-search input {
+            flex: 1;
+            border: 0; outline: 0;
+            background: transparent;
+            font: inherit; font-size: 13.5px;
+            color: var(--pd-navy);
+        }
+        .pd-search input::placeholder { color: #a0aec0; }
+
+        .pd-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+        .pd-icon-btn {
+            position: relative;
+            width: 40px; height: 40px;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: #fff;
+            border: 1px solid var(--pd-line);
+            border-radius: 10px;
+            color: var(--pd-navy);
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+        .pd-icon-btn:hover { background: #f4f8fc; border-color: #b0c4d8; transform: translateY(-1px); }
+        .pd-notif-dot {
+            position: absolute; top: 9px; right: 9px;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--pd-red);
+            border: 2px solid #fff;
+            animation: pdPulse 2s infinite;
+        }
+        @keyframes pdPulse {
+            0%   { box-shadow: 0 0 0 0 rgba(215,25,56,0.5); }
+            70%  { box-shadow: 0 0 0 6px rgba(215,25,56,0); }
+            100% { box-shadow: 0 0 0 0 rgba(215,25,56,0); }
+        }
+
+        /* Notification dropdown */
+        .pd-notif { position: relative; }
+        .pd-notif-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 300px;
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid var(--pd-line);
+            box-shadow: 0 18px 45px rgba(11,53,98,0.15), 0 4px 12px rgba(11,53,98,0.06);
+            padding: 0;
+            overflow: hidden;
+            opacity: 0; visibility: hidden;
+            transform: translateY(-6px) scale(0.97);
+            transform-origin: top right;
+            pointer-events: none;
+            transition: opacity 0.22s, transform 0.22s, visibility 0.22s;
+            z-index: 1300;
+        }
+        .pd-notif.open .pd-notif-dropdown {
+            opacity: 1; visibility: visible;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .pd-notif-head {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 13px 15px;
+            border-bottom: 1px solid var(--pd-line);
+            background: #fafcff;
+        }
+        .pd-notif-head strong { font-size: 13px; font-weight: 800; color: var(--pd-navy); }
+        .pd-notif-tag {
+            font-size: 9.5px; font-weight: 800;
+            background: var(--pd-yellow); color: #0a2340;
+            padding: 3px 8px; border-radius: 5px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .pd-notif-list { padding: 6px; max-height: 320px; overflow-y: auto; }
+        .pd-notif-item {
+            display: flex; align-items: center; gap: 11px;
+            padding: 10px 11px; border-radius: 10px;
+            text-decoration: none;
+            transition: background 0.18s, transform 0.18s;
+        }
+        .pd-notif-item:hover { background: #f0f7ff; transform: translateX(2px); }
+        .pd-notif-icon {
+            width: 34px; height: 34px; border-radius: 9px;
+            flex: 0 0 34px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+        }
+        .pd-notif-icon.amber { background: #fff1d6; color: #a86a00; }
+        .pd-notif-icon.blue  { background: #e1f1ff; color: #1768a7; }
+        .pd-notif-icon.green { background: #e3f5eb; color: #168254; }
+        .pd-notif-icon.red   { background: #ffeaee; color: var(--pd-red); }
+        .pd-notif-body { flex: 1; min-width: 0; }
+        .pd-notif-body strong { display: block; font-size: 12px; font-weight: 700; color: var(--pd-navy); margin-bottom: 1px; }
+        .pd-notif-body small { display: block; font-size: 10.5px; color: var(--pd-muted); }
+        .pd-notif-foot { padding: 9px 15px; border-top: 1px solid var(--pd-line); background: #fafcff; text-align: center; }
+        .pd-notif-foot a { font-size: 11.5px; font-weight: 700; color: var(--pd-red); text-decoration: none; }
+
+        /* User profile dropdown */
+        .pd-up { position: relative; }
+        .pd-up-btn {
+            display: inline-flex; align-items: center; gap: 0;
+            padding: 4px;
+            border: 2px solid transparent;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 50px;
+            max-width: 52px;
+            overflow: hidden;
+            transition: max-width 0.4s cubic-bezier(.4,0,.2,1), padding 0.4s, gap 0.4s,
+                        background 0.25s, border-color 0.25s, box-shadow 0.25s;
+            white-space: nowrap;
+            font: inherit; color: inherit; text-align: left;
+        }
+        .pd-up-btn:hover, .pd-up.open .pd-up-btn {
+            max-width: 280px; gap: 10px; padding: 4px 14px 4px 4px;
+            background: rgba(11,53,98,0.06);
+            border-color: rgba(11,53,98,0.12);
+            box-shadow: 0 6px 20px rgba(11,53,98,0.08);
+        }
+        .pd-up-avatar {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            flex: 0 0 38px;
+            background: linear-gradient(135deg, var(--pd-red), #b9102c);
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 13px; letter-spacing: 0.5px;
+            border: 2px solid var(--pd-yellow);
+        }
+        .pd-up-info {
+            display: flex; flex-direction: column; align-items: flex-start;
+            overflow: hidden; opacity: 0; max-width: 0; line-height: 1.2;
+            transition: opacity 0.25s, max-width 0.35s;
+            pointer-events: none;
+        }
+        .pd-up-btn:hover .pd-up-info, .pd-up.open .pd-up-btn .pd-up-info {
+            opacity: 1; max-width: 170px; pointer-events: auto;
+        }
+        .pd-up-info strong {
+            font-size: 13px; font-weight: 700; color: var(--pd-navy);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;
+        }
+        .pd-up-info small { font-size: 10.5px; color: var(--pd-muted); white-space: nowrap; text-transform: capitalize; }
+        .pd-up-chevron {
+            font-size: 10px; color: var(--pd-navy);
+            opacity: 0; max-width: 0;
+            transition: opacity 0.25s, max-width 0.25s, transform 0.3s;
+        }
+        .pd-up-btn:hover .pd-up-chevron, .pd-up.open .pd-up-btn .pd-up-chevron { opacity: 1; max-width: 20px; }
+        .pd-up.open .pd-up-chevron { transform: rotate(180deg); }
+
+        .pd-up-dropdown {
+            position: absolute;
+            top: calc(100% + 10px); right: 0;
+            min-width: 260px;
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid var(--pd-line);
+            box-shadow: 0 18px 50px rgba(11,53,98,0.18), 0 4px 14px rgba(11,53,98,0.08);
+            padding: 12px;
+            opacity: 0; visibility: hidden;
+            transform: translateY(-8px) scale(0.97);
+            transform-origin: top right;
+            pointer-events: none;
+            transition: opacity 0.22s, transform 0.22s, visibility 0.22s;
+            z-index: 1300;
+        }
+        .pd-up.open .pd-up-dropdown {
+            opacity: 1; visibility: visible;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .pd-up-head {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px;
+            background: linear-gradient(135deg, #f0f7ff, #e6f1fb);
+            border-radius: 12px;
+            margin-bottom: 6px;
+        }
+        .pd-up-head-avatar {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0a2340, #14578b);
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 15px;
+            flex: 0 0 44px;
+            border: 2px solid var(--pd-yellow);
+        }
+        .pd-up-head-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .pd-up-head-text strong {
+            font-size: 13.5px; color: var(--pd-navy); font-weight: 800;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .pd-up-head-text small {
+            font-size: 10.5px; color: var(--pd-muted); font-weight: 600;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .pd-up-role-tag {
+            display: inline-block;
+            background: var(--pd-yellow); color: #0a2340;
+            padding: 2px 8px; border-radius: 5px;
+            font-size: 9px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            align-self: flex-start; margin-top: 2px;
+        }
+        .pd-up-divider { border: 0; border-top: 1px solid var(--pd-line); margin: 4px 8px 6px; }
+        .pd-up-dropdown > a {
+            display: flex; align-items: center; gap: 11px;
+            padding: 10px 14px; border-radius: 9px;
+            color: #26445f; font-size: 13px; font-weight: 700;
+            text-decoration: none;
+            transition: all 0.18s ease;
+            margin-bottom: 2px;
+        }
+        .pd-up-dropdown > a i { width: 16px; text-align: center; color: var(--pd-navy); font-size: 13px; }
+        .pd-up-dropdown > a:hover { background: #f0f7ff; color: var(--pd-navy); transform: translateX(3px); }
+        .pd-up-dropdown > a:hover i { color: var(--pd-red); }
+        .pd-up-dropdown > a.logout-link { color: var(--pd-red); }
+        .pd-up-dropdown > a.logout-link i { color: var(--pd-red); }
+        .pd-up-dropdown > a.logout-link:hover { background: #ffeaee; }
+
+        /* ===== CONTENT ===== */
+        .pd-content {
+            flex: 1;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .pd-flash-stack { display: flex; flex-direction: column; gap: 8px; }
+        .pd-flash {
+            display: flex; justify-content: space-between; align-items: center; gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 13px; font-weight: 600;
+            background: #e1f1ff; color: #1768a7;
+            border: 1px solid #c5e2f8;
+            transition: opacity 0.25s;
+        }
+        .pd-flash.success { background: #e3f5eb; color: #168254; border-color: #c8e9d7; }
+        .pd-flash.error { background: #ffeaee; color: var(--pd-red); border-color: #f8c9d2; }
+        .pd-flash button { background: none; border: 0; font-size: 16px; cursor: pointer; color: inherit; padding: 0 2px; }
+
+        /* Grid */
+        .pd-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: 18px;
+            align-items: start;
+        }
+        .pd-col-main { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .pd-col-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+        /* Welcome banner */
+        .pd-welcome {
+            background: linear-gradient(135deg, #e6f4ff 0%, #d0ebff 100%);
+            border-radius: 16px;
+            padding: 22px 26px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            color: var(--pd-navy);
+            position: relative;
+            overflow: hidden;
+            scroll-margin-top: 86px;
+            border: 1px solid #c0dfff;
+        }
+        .pd-welcome::after {
+            content: '';
+            position: absolute;
+            right: -60px; top: -60px;
+            width: 220px; height: 220px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+        }
+        .pd-welcome-avatar {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--pd-red), #b9102c);
+            border: 3px solid #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 20px; color: #fff;
+            flex: 0 0 64px;
+            position: relative; z-index: 1;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .pd-welcome-text { position: relative; z-index: 1; min-width: 0; }
+        .pd-welcome h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 24px;
+            margin: 0 0 4px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            color: var(--pd-navy);
+        }
+        .pd-welcome p { margin: 0; font-size: 13px; color: #4a6b8c; }
+        .pd-welcome-meta {
+            display: flex; gap: 14px; flex-wrap: wrap;
+            margin-top: 8px;
+            font-size: 12px; font-weight: 600;
+            color: #4a6b8c;
+        }
+        .pd-welcome-meta i { color: var(--pd-red); margin-right: 4px; font-size: 11px; }
+
+        /* Stat cards */
+        .pd-stat-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+        .pd-stat {
+            background: #fff;
+            border: 1px solid var(--pd-line);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            transition: all 0.2s ease;
+        }
+        .pd-stat:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(9,47,88,0.07); border-color: #d5dee8; }
+        .pd-stat-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            flex: 0 0 44px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px;
+        }
+        .pd-stat-icon.blue   { background: #e6f4ff; color: #1768a7; }
+        .pd-stat-icon.green  { background: #e8f8ec; color: #168254; }
+        .pd-stat-icon.purple { background: #f3e8ff; color: #7c3aed; }
+        .pd-stat-icon.amber  { background: #fff6e6; color: #b7791f; }
+        .pd-stat-text { min-width: 0; }
+        .pd-stat-text strong {
+            display: block;
+            font-size: 20px; font-weight: 800; color: var(--pd-navy);
+            line-height: 1.15;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .pd-stat-text small {
+            display: block;
+            font-size: 10.5px; color: var(--pd-muted);
+            text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700;
+            margin-top: 2px;
+        }
+
+        /* Panels */
+        .pd-panel {
+            background: #fff;
+            border: 1px solid var(--pd-line);
+            border-radius: 14px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            scroll-margin-top: 86px;
+        }
+        .pd-panel-head {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--pd-line);
+            gap: 10px;
+        }
+        .pd-panel-title {
+            margin: 0;
+            font-size: 14px; font-weight: 800; color: var(--pd-navy);
+            display: flex; align-items: center; gap: 8px;
+            letter-spacing: -0.2px;
+        }
+        .pd-panel-title i { color: var(--pd-red); font-size: 12px; }
+        .pd-panel-link {
+            font-size: 11.5px; font-weight: 700; color: var(--pd-red);
+            text-decoration: none;
+            display: inline-flex; align-items: center; gap: 5px;
+            transition: gap 0.2s; white-space: nowrap;
+        }
+        .pd-panel-link:hover { gap: 9px; color: #b9102c; }
+        .pd-panel-body { padding: 16px 18px; flex: 1; }
+        .pd-panel-body.flush { padding: 0; overflow-x: auto; }
+
+        /* Rows */
+        .pd-row-2 { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; }
+        .pd-row-2.even { grid-template-columns: 1fr 1fr; }
+
+        /* Children List */
+        .pd-child-list { display: flex; flex-direction: column; gap: 12px; }
+        .pd-child-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            background: var(--pd-paper);
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .pd-child-item:hover {
+            background: #fff;
+            border-color: var(--pd-line);
+            box-shadow: 0 4px 12px rgba(9,47,88,0.05);
+        }
+        .pd-child-avatar {
+            width: 42px; height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1768a7, #0d4b7a);
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 15px;
+            flex: 0 0 42px;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .pd-child-info { flex: 1; min-width: 0; }
+        .pd-child-info strong { display: block; font-size: 13px; font-weight: 700; color: var(--pd-navy); margin-bottom: 2px; }
+        .pd-child-info small { display: block; font-size: 11px; color: var(--pd-muted); font-weight: 600; }
+        .pd-badge-active {
+            font-size: 9.5px; font-weight: 800;
+            background: #e3f5eb; color: #168254;
+            padding: 3px 8px; border-radius: 5px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        /* Donut */
+        .pd-donut-wrap { display: flex; align-items: center; gap: 18px; padding: 6px 0; }
+        .pd-donut {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            position: relative;
+            flex: 0 0 120px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 16px rgba(9,47,88,0.08);
+        }
+        .pd-donut::before { content: ''; position: absolute; inset: 18px; background: #fff; border-radius: 50%; }
+        .pd-donut-center { position: relative; z-index: 1; text-align: center; }
+        .pd-donut-center strong { display: block; font-size: 20px; font-weight: 800; color: var(--pd-navy); line-height: 1; }
+        .pd-donut-center small {
+            display: block; font-size: 9px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.6px;
+            color: var(--pd-muted); margin-top: 2px;
+        }
+        .pd-donut-legend { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+        .pd-legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+        .pd-legend-dot { width: 9px; height: 9px; border-radius: 3px; flex: 0 0 9px; }
+        .pd-legend-item span { flex: 1; color: var(--pd-muted); font-weight: 600; }
+        .pd-legend-item strong { color: var(--pd-navy); font-weight: 800; font-size: 12.5px; }
+
+        /* Fee Status */
+        .pd-fee-status {
+            display: flex; flex-direction: column; gap: 8px;
+            padding: 16px 18px;
+        }
+        .pd-fee-row { display: flex; justify-content: space-between; font-size: 12.5px; }
+        .pd-fee-row span { color: var(--pd-muted); font-weight: 600; }
+        .pd-fee-row strong { color: var(--pd-navy); font-weight: 800; }
+        .pd-fee-banner {
+            display: flex; align-items: center; gap: 10px;
+            background: #e8f8ec; color: #168254;
+            padding: 12px 14px; border-radius: 10px;
+            font-size: 12.5px; font-weight: 700;
+            border: 1px solid #c8e9d7;
+            margin-bottom: 8px;
+        }
+        .pd-fee-banner i { font-size: 18px; }
+
+        /* Notices */
+        .pd-notice { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f1f5f9; }
+        .pd-notice:last-child { border-bottom: 0; }
+        .pd-notice-icon {
+            width: 30px; height: 30px;
+            border-radius: 8px;
+            background: #eef4fb; color: #1768a7;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px;
+            flex: 0 0 30px;
+        }
+        .pd-notice-body { flex: 1; min-width: 0; }
+        .pd-notice-body small { display: block; font-size: 10px; color: var(--pd-muted); font-weight: 600; margin-bottom: 2px; }
+        .pd-notice-body p { margin: 0; font-size: 12.5px; font-weight: 600; color: var(--pd-navy); line-height: 1.35; }
+
+        /* Events */
+        .pd-event-list { display: flex; flex-direction: column; gap: 12px; }
+        .pd-event-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px;
+            border-radius: 10px;
+            background: var(--pd-paper);
+            transition: all 0.2s;
+        }
+        .pd-event-item:hover { background: #f0f7ff; }
+        .pd-event-date {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 44px; height: 44px;
+            border-radius: 9px;
+            background: var(--pd-navy);
+            color: #fff;
+            flex: 0 0 44px;
+        }
+        .pd-event-date strong { font-size: 16px; font-weight: 800; line-height: 1; }
+        .pd-event-date small { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85; }
+        .pd-event-info strong { display: block; font-size: 12.5px; font-weight: 700; color: var(--pd-navy); margin-bottom: 2px; }
+        .pd-event-info small { display: block; font-size: 10.5px; color: var(--pd-muted); }
+
+        /* Quick Links */
+        .pd-ql-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .pd-ql {
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            padding: 12px 8px; border-radius: 10px;
+            background: var(--pd-paper);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        .pd-ql:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 6px 14px rgba(9,47,88,0.06); }
+        .pd-ql i { font-size: 16px; color: var(--pd-navy); }
+        .pd-ql span { font-size: 10px; font-weight: 700; color: var(--pd-navy); line-height: 1.2; }
+
+        /* Forms */
+        .pd-form { display: flex; flex-direction: column; gap: 12px; }
+        .pd-form label {
+            display: flex; flex-direction: column; gap: 5px;
+            font-size: 11.5px; font-weight: 700; color: var(--pd-navy);
+            text-transform: uppercase; letter-spacing: 0.4px;
+        }
+        .pd-form input, .pd-form select, .pd-form textarea {
+            font: inherit; font-size: 13px; font-weight: 500;
+            color: var(--pd-navy);
+            background: #fff;
+            border: 1px solid var(--pd-line);
+            border-radius: 9px;
+            padding: 9px 12px;
+            outline: none;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+        .pd-form input:focus, .pd-form select:focus, .pd-form textarea:focus {
+            border-color: #b0c4d8;
+            box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
+        }
+        .pd-form textarea { resize: vertical; min-height: 60px; }
+        .pd-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .pd-btn-primary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 10px 16px;
+            border: 1px solid var(--pd-navy);
+            border-radius: 10px;
+            background: var(--pd-navy);
+            color: #fff;
+            font: inherit; font-size: 13px; font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .pd-btn-primary:hover {
+            background: #061f39;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(9,47,88,0.15);
+        }
+
+        /* Fee QR / UPI */
+        .pd-fee-box { display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; margin-bottom: 14px; }
+        .pd-fee-qr { width: 120px; height: 120px; object-fit: contain; border-radius: 8px; border: 1px solid var(--pd-line); padding: 4px; }
+        .pd-upi-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 16px;
+            background: #e8f8ec; color: #168254;
+            border: 1px solid #c8e9d7;
+            border-radius: 8px;
+            font-size: 12px; font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .pd-upi-btn:hover { background: #d4f0dc; }
+
+        .pd-empty { padding: 24px 16px; text-align: center; color: var(--pd-muted); font-size: 12px; font-style: italic; }
+
+        /* Footer strip */
+        .pd-footer {
+            display: flex; justify-content: space-between; align-items: center; gap: 12px;
+            flex-wrap: wrap;
+            padding: 14px 4px 4px;
+            border-top: 1px solid var(--pd-line);
+            font-size: 11.5px; color: var(--pd-muted);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1200px) {
+            .pd-grid { grid-template-columns: 1fr; }
+            .pd-col-side { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        }
+        @media (max-width: 1024px) {
+            .pd-sidebar { transform: translateX(-100%); }
+            .pd-sidebar.open { transform: translateX(0); }
+            .pd-main { margin-left: 0; }
+            .pd-menu-toggle { display: inline-flex; }
+        }
+        @media (max-width: 900px) {
+            .pd-stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .pd-row-2, .pd-row-2.even { grid-template-columns: 1fr; }
+            .pd-col-side { grid-template-columns: 1fr; }
         }
         @media (max-width: 640px) {
-            .dashboard-quick-stats { margin-top: -22px; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-            .dq-stat { padding: 12px 14px; }
-            .dq-stat-icon { width: 36px; height: 36px; font-size: 15px; }
-            .dq-stat strong { font-size: 16px; }
-            .dq-stat small { font-size: 10px; }
+            .pd-content { padding: 16px; }
+            .pd-search { display: none; }
+            .pd-stat-row { grid-template-columns: 1fr; }
+            .pd-welcome { flex-direction: column; align-items: flex-start; }
+            .pd-donut-wrap { flex-direction: column; text-align: center; }
+            .pd-donut-legend { width: 100%; max-width: 220px; }
+            .pd-topbar { padding: 0 16px; }
         }
     </style>
 </head>
 
-<body>
-    <a class="skip-link" href="#main">Skip to content</a>
+<body class="pd-body">
 
-    <header class="site-header" id="top">
-        <div class="header-inner">
-            <a class="brand" href="{{ url_for('home') }}">
-                <a href="{{ url_for('home') }}" class="brand-mark">
-                    <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="Logo" class="school-logo">
-                </a>
-                <span class="brand-copy">
-                    <strong>RESIDENTIAL SHANTI NIKETAN</strong>
-                    <b>NAVINAGAR JAMUI</b>
-                    <small>Pre-Nursery to Class 8 <i>•</i> शिक्षा • संस्कार • उज्ज्वल भविष्य</small>
-                </span>
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside class="pd-sidebar" id="pdSidebar" aria-label="Parent sidebar">
+        <div class="pd-sidebar-head">
+            <a href="{{ url_for('home') }}" class="pd-logo">
+                <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="School Logo" class="pd-logo-img">
+                <div class="pd-logo-text">
+                    <strong>Shanti Niketan</strong>
+                    <small>Parent Portal</small>
+                </div>
             </a>
+        </div>
 
-            <!-- ========== UPGRADED DESKTOP NAVIGATION ========== -->
-            <nav class="desktop-nav" aria-label="Main navigation">
-                <a class="nav-link" href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
-                <a class="nav-link active" href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
-                <a class="nav-link" href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i> Faculty</a>
-                <a class="nav-link" href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i> Events</a>
-                <a class="nav-link" href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i> Achievements</a>
-                <a class="nav-link" href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
-                <a class="nav-link" href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i> Contact</a>
-            </nav>
+        {% if session.get('user_id') %}
+        <div class="pd-user-box">
+            <div class="pd-user-avatar">
+                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+            </div>
+            <div class="pd-user-info">
+                <strong>{{ session['user_name'].split()[0] }}</strong>
+                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
+                <span class="pd-role-badge">{{ session.get('user_role', 'Parent')|capitalize }}</span>
+            </div>
+        </div>
+        {% endif %}
 
-            <div class="header-actions">
+        <nav class="pd-nav">
+            <a href="#dashboard" class="pd-nav-link active"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+            <a href="#children" class="pd-nav-link"><i class="fa-solid fa-users"></i> My Children</a>
+            <a href="#attendance" class="pd-nav-link"><i class="fa-solid fa-clipboard-check"></i> Attendance</a>
+            
+            <div class="pd-nav-label">Academics</div>
+            <a href="#fees" class="pd-nav-link"><i class="fa-solid fa-receipt"></i> Fee Details</a>
+            <a href="#homework" class="pd-nav-link"><i class="fa-solid fa-book"></i> Homework</a>
+            <a href="#materials" class="pd-nav-link"><i class="fa-solid fa-book-open"></i> Study Materials</a>
+            <a href="#exams" class="pd-nav-link"><i class="fa-solid fa-file-lines"></i> Examinations & Results</a>
+
+            <div class="pd-nav-label">Communication</div>
+            <a href="#notices" class="pd-nav-link"><i class="fa-solid fa-bullhorn"></i> Notices & Announcements</a>
+            <a href="#messages" class="pd-nav-link"><i class="fa-regular fa-comments"></i> Messages</a>
+            <a href="#events" class="pd-nav-link"><i class="fa-regular fa-calendar-days"></i> Calendar & Events</a>
+
+            <div class="pd-nav-label">System</div>
+            <a href="#" class="pd-nav-link"><i class="fa-solid fa-circle-question"></i> Help & Support</a>
+            <a href="#" class="pd-nav-link"><i class="fa-solid fa-gear"></i> Settings</a>
+            <a href="{{ url_for('logout') }}" class="pd-nav-link pd-nav-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </nav>
+
+        <div class="pd-sidebar-foot">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <div>
+                <strong>Learn Today</strong>
+                <small>Build a Better Tomorrow</small>
+            </div>
+        </div>
+    </aside>
+
+    <div class="pd-backdrop" id="pdBackdrop"></div>
+
+    <!-- ==================== MAIN AREA ==================== -->
+    <div class="pd-main">
+
+        <!-- TOPBAR -->
+        <header class="pd-topbar">
+            <button class="pd-menu-toggle" id="pdMenuToggle" type="button" aria-label="Open navigation" aria-controls="pdSidebar" aria-expanded="false">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <div class="pd-search" role="search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" placeholder="Search anything... (Student, Notice, etc.)" aria-label="Search">
+            </div>
+
+            <div class="pd-actions">
+                <!-- Notification bell -->
+                <div class="pd-notif" id="pdNotif">
+                    <button type="button" class="pd-icon-btn" id="pdNotifBtn" aria-haspopup="true" aria-expanded="false" aria-controls="pdNotifDropdown" aria-label="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="pd-notif-dot"></span>
+                    </button>
+                    <div class="pd-notif-dropdown" id="pdNotifDropdown" role="menu">
+                        <div class="pd-notif-head">
+                            <strong>Notifications</strong>
+                            <span class="pd-notif-tag">New</span>
+                        </div>
+                        <div class="pd-notif-list">
+                            <a href="#notices" class="pd-notif-item" role="menuitem">
+                                <div class="pd-notif-icon amber"><i class="fa-solid fa-bullhorn"></i></div>
+                                <div class="pd-notif-body">
+                                    <strong>New school notice</strong>
+                                    <small>Check the latest announcements</small>
+                                </div>
+                            </a>
+                            <a href="#fees" class="pd-notif-item" role="menuitem">
+                                <div class="pd-notif-icon green"><i class="fa-solid fa-receipt"></i></div>
+                                <div class="pd-notif-body">
+                                    <strong>Fee status update</strong>
+                                    <small>Review pending payments</small>
+                                </div>
+                            </a>
+                            <a href="#messages" class="pd-notif-item" role="menuitem">
+                                <div class="pd-notif-icon red"><i class="fa-regular fa-comments"></i></div>
+                                <div class="pd-notif-body">
+                                    <strong>Message from school</strong>
+                                    <small>{{ messages|length }} new message(s)</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="pd-notif-foot">
+                            <a href="#dashboard">Go to dashboard <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User profile -->
                 {% if session.get('user_id') %}
-                <!-- ========== UPGRADED USER PROFILE ========== -->
-                <div class="user-profile" id="userProfile">
-                    <button type="button" class="user-avatar-btn" id="userMenuBtn"
-                            aria-haspopup="true" aria-expanded="false" aria-controls="userDropdown"
+                <div class="pd-up" id="pdUserProfile">
+                    <button type="button" class="pd-up-btn" id="pdUserBtn"
+                            aria-haspopup="true" aria-expanded="false" aria-controls="pdUserDropdown"
                             title="{{ session['user_name'] }} — click to open menu">
-                        <div class="user-avatar">
+                        <div class="pd-up-avatar">
                             {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
                         </div>
-                        <div class="user-avatar-info">
+                        <div class="pd-up-info">
                             <strong>{{ session['user_name'].split()[0] }}</strong>
-                            <small>{{ session.get('user_role', 'Parent')|capitalize }} • {{ session.get('unique_id', '') }}</small>
+                            <small>{{ session.get('user_role', 'Parent')|capitalize }}</small>
                         </div>
-                        <i class="fa-solid fa-chevron-down user-chevron"></i>
+                        <i class="fa-solid fa-chevron-down pd-up-chevron"></i>
                     </button>
-                    <div class="user-dropdown" id="userDropdown" role="menu">
-                        <div class="user-info-head">
-                            <div class="user-info-avatar">
+
+                    <div class="pd-up-dropdown" id="pdUserDropdown" role="menu">
+                        <div class="pd-up-head">
+                            <div class="pd-up-head-avatar">
                                 {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
                             </div>
-                            <div class="user-info-text">
+                            <div class="pd-up-head-text">
                                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
                                 <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
-                                <span class="user-role-tag">{{ session.get('user_role', 'Parent')|capitalize }}</span>
+                                <span class="pd-up-role-tag">{{ session.get('user_role', 'Parent')|capitalize }}</span>
                             </div>
                         </div>
-                        <hr class="user-divider">
-                        <a href="{{ url_for('user_dashboard') }}" role="menuitem"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+                        <hr class="pd-up-divider">
+                        <a href="#dashboard" role="menuitem"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
                         {% if session.get('user_role') == 'admin' %}
                         <a href="{{ url_for('admin_dashboard') }}" role="menuitem"><i class="fa-solid fa-user-gear"></i> Admin Panel</a>
                         {% endif %}
+                        <a href="{{ url_for('home') }}" role="menuitem"><i class="fa-solid fa-globe"></i> View Website</a>
                         <a href="{{ url_for('change_password') }}" role="menuitem"><i class="fa-solid fa-key"></i> Change Password</a>
                         <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
                     </div>
                 </div>
-                {% else %}
-                <a class="login-btn" href="{{ url_for('login_page') }}">
-                    <i class="fa-regular fa-user"></i><span>Login</span>
-                </a>
                 {% endif %}
-                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-controls="mobileMenu" aria-expanded="false">
-                    <span></span><span></span><span></span>
-                </button>
             </div>
-        </div>
-    </header>
+        </header>
 
-    <div class="menu-backdrop" id="menuBackdrop" hidden></div>
+        <!-- CONTENT -->
+        <main class="pd-content">
 
-    <aside class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation" aria-hidden="true" inert>
-        <div class="mobile-menu-head">
-            <span>Menu</span>
-            <button type="button" id="menuClose" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-
-        {% if session.get('user_id') %}
-        <div class="mobile-user-box logged-in">
-            <div class="mobile-user-avatar">
-                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
-            </div>
-            <div class="mobile-user-text">
-                <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
-                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
-                <span class="mobile-role-badge">{{ session.get('user_role', 'User')|capitalize }}</span>
-            </div>
-        </div>
-        <div class="mobile-quick-links">
-            <a href="{{ url_for('user_dashboard') }}" class="mobile-dash-btn">
-                <i class="fa-solid fa-gauge"></i> Open My Dashboard
-            </a>
-            {% if session.get('user_role') == 'admin' %}
-            <a href="{{ url_for('admin_dashboard') }}" class="mobile-dash-btn" style="margin-top:6px;">
-                <i class="fa-solid fa-user-gear"></i> Admin Panel
-            </a>
-            {% endif %}
-        </div>
-        {% endif %}
-
-        <nav class="mobile-nav">
-            <a href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
-            <a href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
-            <a href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i> Our Faculty</a>
-            <a href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i> Events & News</a>
-            <a href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i> Achievements</a>
-            <a href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
-            <a href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i> Contact Us</a>
-            <a href="{{ url_for('change_password') }}"><i class="fa-solid fa-key"></i> Change Password</a>
-            <a href="{{ url_for('logout') }}" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
-        </nav>
-        <div class="mobile-menu-foot">Learn <span>•</span> Grow <span>•</span> Succeed</div>
-    </aside>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}
-    <div class="flash-stack">{% for cat, msg in messages %}
-        <div class="flash {{ cat }}"><span>{{ msg }}</span><button class="flash-close">×</button></div>
-    {% endfor %}</div>
-    {% endif %}{% endwith %}
-
-    <main id="main">
-        <section class="user-welcome-banner parent-banner">
-            <div class="wrap welcome-inner">
-                <div class="welcome-text">
-                    <p class="section-kicker light"><i class="fa-solid fa-users"></i> PARENT PORTAL</p>
-                    <h1>Welcome, {{ user.name.split()[0] }}! 👨‍👩‍👧</h1>
-                    <p>Parent ID: <strong>{{ user.unique_id }}</strong>{% if user.child_name %} • Child: <strong>{{ user.child_name }}</strong>{% endif %}</p>
-                </div>
-                <div class="welcome-avatar">
-                    <div class="big-avatar parent-avatar">
-                        {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length > 1 else '' }}
+            {% with messages_flash = get_flashed_messages(with_categories=true) %}
+                {% if messages_flash %}
+                <div class="pd-flash-stack">
+                    {% for cat, msg in messages_flash %}
+                    <div class="pd-flash {{ cat }}">
+                        <span>{{ msg }}</span>
+                        <button type="button" aria-label="Dismiss">×</button>
                     </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- NEW: Quick Stats Overview -->
-        <section class="dashboard-quick-stats">
-            <div class="dq-stat">
-                <div class="dq-stat-icon" style="background:#e6f4ff; color:#1768a7;">
-                    <i class="fa-solid fa-child"></i>
-                </div>
-                <div>
-                    <strong>{{ user.child_class or 'N/A' }}</strong>
-                    <small>Child's Class</small>
-                </div>
-            </div>
-            <div class="dq-stat">
-                <div class="dq-stat-icon" style="background:#e8f8ec; color:#168254;">
-                    <i class="fa-solid fa-percent"></i>
-                </div>
-                <div>
-                    {% set present_count = attendance|selectattr('status','equalto','present')|list|length %}
-                    <strong>{{ ((present_count / (attendance|length or 1)) * 100)|round|int }}%</strong>
-                    <small>Attendance</small>
-                </div>
-            </div>
-            <div class="dq-stat">
-                <div class="dq-stat-icon" style="background:#fff6e6; color:#b7791f;">
-                    <i class="fa-solid fa-receipt"></i>
-                </div>
-                <div>
-                    <strong>{{ fees|length }}</strong>
-                    <small>Payments</small>
-                </div>
-            </div>
-            <div class="dq-stat">
-                <div class="dq-stat-icon" style="background:#ffe8eb; color:#d71938;">
-                    <i class="fa-solid fa-envelope"></i>
-                </div>
-                <div>
-                    <strong>{{ messages|length }}</strong>
-                    <small>Messages</small>
-                </div>
-            </div>
-        </section>
-
-        <section class="wrap dashboard-grid">
-            <!-- PROFILE -->
-            <div class="panel">
-                <div class="panel-title">
-                    <span class="panel-title-icon parent-icon"><i class="fa-solid fa-id-card"></i></span>
-                    <h2>My Profile</h2>
-                </div>
-                <div class="profile-body">
-                    <div class="profile-row">
-                        <span class="profile-label"><i class="fa-solid fa-id-badge"></i> Parent ID</span>
-                        <span class="profile-value"><strong>{{ user.unique_id }}</strong></span>
-                    </div>
-                    <div class="profile-row">
-                        <span class="profile-label"><i class="fa-regular fa-user"></i> Name</span>
-                        <span class="profile-value">{{ user.name }}</span>
-                    </div>
-                    <div class="profile-row">
-                        <span class="profile-label"><i class="fa-regular fa-envelope"></i> Email</span>
-                        <span class="profile-value">{{ user.email }}</span>
-                    </div>
-                    <div class="profile-row">
-                        <span class="profile-label"><i class="fa-solid fa-phone"></i> Mobile</span>
-                        <span class="profile-value">{{ user.phone }}</span>
-                    </div>
-                    {% if user.relation %}
-                    <div class="profile-row">
-                        <span class="profile-label"><i class="fa-solid fa-people-roof"></i> Relation</span>
-                        <span class="profile-value">{{ user.relation }}</span>
-                    </div>
-                    {% endif %}
-                    <a href="{{ url_for('change_password') }}" class="btn-admin-primary" style="margin-top:15px; display:inline-flex;">
-                        <i class="fa-solid fa-key"></i> Change Password
-                    </a>
-                </div>
-            </div>
-
-            <!-- CHILD INFO -->
-            <div class="panel">
-                <div class="panel-title">
-                    <span class="panel-title-icon parent-icon"><i class="fa-solid fa-child"></i></span>
-                    <h2>My Child</h2>
-                </div>
-                <div class="profile-body">
-                    {% if user.child_name %}
-                    <div class="profile-row">
-                        <span class="profile-label"><i class="fa-solid fa-user"></i> Child's Name</span>
-                        <span class="profile-value"><strong>{{ user.child_name }}</strong></span>
-                    </div>
-                    <div class="profile-row">
-                        <span class="profile-label"><i class="fa-solid fa-book"></i> Class</span>
-                        <span class="profile-value">{{ user.child_class or 'N/A' }}</span>
-                    </div>
-                    <div class="profile-row">
-                        <span class="profile-label"><i class="fa-solid fa-venus-mars"></i> Gender</span>
-                        <span class="profile-value">{{ user.gender or 'N/A' }}</span>
-                    </div>
-                    <div class="profile-row">
-                        <span class="profile-label"><i class="fa-regular fa-calendar"></i> Date of Birth</span>
-                        <span class="profile-value">{{ user.dob or 'N/A' }}</span>
-                    </div>
-                    {% else %}
-                    <p class="empty-row">No child information linked.</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- CHILD'S ATTENDANCE -->
-            <div class="panel">
-                <div class="panel-title">
-                    <span class="panel-title-icon parent-icon"><i class="fa-solid fa-clipboard-check"></i></span>
-                    <h2>Child's Attendance</h2>
-                </div>
-                <div class="attendance-summary">
-                    {% set present = attendance|selectattr('status','equalto','present')|list|length %}
-                    {% set absent = attendance|selectattr('status','equalto','absent')|list|length %}
-                    <div class="att-stat"><strong style="color:#168254;">{{ present }}</strong><small>Present</small></div>
-                    <div class="att-stat"><strong style="color:#d71938;">{{ absent }}</strong><small>Absent</small></div>
-                    <div class="att-stat"><strong>{{ attendance|length }}</strong><small>Total</small></div>
-                </div>
-                <div class="att-list">
-                    {% for a in attendance[:10] %}
-                    <div class="att-row">
-                        <span>{{ a.date }}</span>
-                        <span class="att-badge att-{{ a.status }}">{{ a.status|capitalize }}</span>
-                    </div>
-                    {% else %}
-                    <p class="empty-row">No attendance yet.</p>
                     {% endfor %}
                 </div>
-            </div>
+                {% endif %}
+            {% endwith %}
 
-            <!-- FEE PAYMENT -->
-            <div class="panel">
-                <div class="panel-title">
-                    <span class="panel-title-icon parent-icon"><i class="fa-solid fa-indian-rupee-sign"></i></span>
-                    <h2>Pay Child's Fees</h2>
-                </div>
-                <div style="padding:20px;">
-                    {% if fee_qr or upi_link %}
-                    <div class="fee-payment-box">
-                        <p class="fee-payment-title"><i class="fa-solid fa-qrcode"></i> Online Payment</p>
-                        {% if fee_qr %}
-                        <div class="fee-qr-wrap">
-                            <p class="fee-qr-label">Scan QR with UPI app</p>
-                            <img src="{{ fee_qr }}" alt="QR" class="fee-qr-img">
+            {% set total_att = attendance|length %}
+            {% set present_att = attendance|selectattr('status','equalto','present')|list|length %}
+            {% set absent_att = attendance|selectattr('status','equalto','absent')|list|length %}
+            {% set att_pct = ((present_att / total_att) * 100)|round|int if total_att > 0 else 0 %}
+            {% set att_deg = (att_pct * 3.6)|round|int %}
+            
+            {% set pending_fee = fees|selectattr('status', 'equalto', 'pending')|map(attribute='amount')|sum %}
+            {% set paid_fee = fees|selectattr('status', 'equalto', 'verified')|map(attribute='amount')|sum %}
+            {% set total_fee = pending_fee + paid_fee %}
+
+            <div class="pd-grid">
+
+                <!-- ============ MAIN COLUMN ============ -->
+                <div class="pd-col-main">
+
+                    <!-- Welcome banner -->
+                    <section class="pd-welcome" id="dashboard">
+                        <div class="pd-welcome-avatar">
+                            {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length > 1 else '' }}
                         </div>
-                        {% endif %}
-                        {% if upi_link %}
-                        <a href="{{ upi_link }}" class="upi-pay-btn">
-                            <i class="fa-solid fa-mobile-screen-button"></i> Pay via UPI App
-                        </a>
-                        {% endif %}
-                    </div>
-                    {% else %}
-                    <div class="fee-not-set">
-                        <i class="fa-solid fa-circle-info"></i>
-                        <p>Payment options not set. Contact office.</p>
-                    </div>
-                    {% endif %}
-
-                    <form method="POST" action="{{ url_for('fee_pay') }}" class="admin-form">
-                        <label>Amount (₹) <input type="number" name="amount" step="0.01" required placeholder="5000"></label>
-                        <label>Transaction ID <input type="text" name="transaction_id" placeholder="UPI txn ID"></label>
-                        <label>Remarks <input type="text" name="remarks" placeholder="Optional"></label>
-                        <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-check"></i> Submit Payment</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- FEE HISTORY -->
-            <div class="panel">
-                <div class="panel-title">
-                    <span class="panel-title-icon parent-icon"><i class="fa-solid fa-receipt"></i></span>
-                    <h2>Fee Payment History</h2>
-                </div>
-                <div class="notice-list" style="padding:15px 20px;">
-                    {% for f in fees %}
-                    <div class="att-row">
-                        <div>
-                            <strong style="color:var(--navy);">₹{{ f.amount }}</strong>
-                            <small style="display:block;color:#65758a;font-size:11px;">{{ f.payment_date }}{% if f.transaction_id %} • {{ f.transaction_id }}{% endif %}</small>
+                        <div class="pd-welcome-text">
+                            <h1>Welcome, {{ user.name.split()[0] }}! 👋</h1>
+                            <p>Stay connected with your child's learning journey...</p>
+                            <div class="pd-welcome-meta">
+                                <span><i class="fa-solid fa-id-badge"></i>{{ user.unique_id }}</span>
+                                {% if user.child_name %}
+                                <span><i class="fa-solid fa-child"></i>{{ user.child_name }}</span>
+                                {% endif %}
+                                <span><i class="fa-solid fa-user-tie"></i>Parent</span>
+                            </div>
                         </div>
-                        <span class="kind-badge kind-{{ 'admission' if f.status=='verified' else 'contact' if f.status=='rejected' else 'notice' }}">{{ f.status|capitalize }}</span>
+                    </section>
+
+                    <!-- Stat cards -->
+                    <div class="pd-stat-row">
+                        <div class="pd-stat">
+                            <div class="pd-stat-icon blue"><i class="fa-solid fa-users"></i></div>
+                            <div class="pd-stat-text">
+                                <strong>{% if user.child_name %}1{% else %}0{% endif %}</strong>
+                                <small>My Children</small>
+                            </div>
+                        </div>
+                        <div class="pd-stat">
+                            <div class="pd-stat-icon green"><i class="fa-solid fa-calendar-check"></i></div>
+                            <div class="pd-stat-text">
+                                <strong>{{ att_pct }}%</strong>
+                                <small>Attendance</small>
+                            </div>
+                        </div>
+                        <div class="pd-stat">
+                            <div class="pd-stat-icon purple"><i class="fa-solid fa-book"></i></div>
+                            <div class="pd-stat-text">
+                                <strong>0</strong>
+                                <small>Pending Homework</small>
+                            </div>
+                        </div>
+                        <div class="pd-stat">
+                            <div class="pd-stat-icon amber"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                            <div class="pd-stat-text">
+                                <strong>₹{{ pending_fee if pending_fee > 0 else '0' }}</strong>
+                                <small>Pending Fee</small>
+                            </div>
+                        </div>
                     </div>
-                    {% else %}
-                    <p class="empty-row">No payments yet.</p>
-                    {% endfor %}
+
+                    <!-- Children + Attendance -->
+                    <div class="pd-row-2">
+                        <section class="pd-panel" id="children">
+                            <div class="pd-panel-head">
+                                <h2 class="pd-panel-title"><i class="fa-solid fa-users"></i> My Children</h2>
+                                <a href="#" class="pd-panel-link">View all <i class="fa-solid fa-arrow-right"></i></a>
+                            </div>
+                            <div class="pd-panel-body">
+                                {% if user.child_name %}
+                                <div class="pd-child-list">
+                                    <div class="pd-child-item">
+                                        <div class="pd-child-avatar">
+                                            {{ user.child_name.split()[0][0]|upper }}{{ user.child_name.split()[-1][0]|upper if user.child_name.split()|length > 1 else '' }}
+                                        </div>
+                                        <div class="pd-child-info">
+                                            <strong>{{ user.child_name }}</strong>
+                                            <small>{{ user.child_class or 'N/A' }}</small>
+                                        </div>
+                                        <span class="pd-badge-active">Active</span>
+                                        <i class="fa-solid fa-chevron-right" style="color:var(--pd-muted); font-size:10px; margin-left:8px;"></i>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="pd-empty">No child information linked.</div>
+                                {% endif %}
+                            </div>
+                        </section>
+
+                        <section class="pd-panel" id="attendance">
+                            <div class="pd-panel-head">
+                                <h2 class="pd-panel-title"><i class="fa-solid fa-chart-pie"></i> Attendance Overview</h2>
+                                <span class="pd-panel-link">View details</span>
+                            </div>
+                            <div class="pd-panel-body">
+                                {% if total_att > 0 %}
+                                <div class="pd-donut-wrap">
+                                    <div class="pd-donut" style="background: conic-gradient(#168254 0deg {{ att_deg }}deg, #d71938 {{ att_deg }}deg 360deg);">
+                                        <div class="pd-donut-center">
+                                            <strong>{{ att_pct }}%</strong>
+                                            <small>Present</small>
+                                        </div>
+                                    </div>
+                                    <div class="pd-donut-legend">
+                                        <div class="pd-legend-item">
+                                            <span class="pd-legend-dot" style="background:#168254;"></span>
+                                            <span>Present</span>
+                                            <strong>{{ present_att }}</strong>
+                                        </div>
+                                        <div class="pd-legend-item">
+                                            <span class="pd-legend-dot" style="background:#d71938;"></span>
+                                            <span>Absent</span>
+                                            <strong>{{ absent_att }}</strong>
+                                        </div>
+                                        <div class="pd-legend-item">
+                                            <span class="pd-legend-dot" style="background:#cbd5e1;"></span>
+                                            <span>Total days</span>
+                                            <strong>{{ total_att }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="pd-empty">
+                                    <i class="fa-solid fa-chart-pie" style="font-size:28px; display:block; margin-bottom:8px; color:#cbd5e1;"></i>
+                                    No attendance records yet.
+                                </div>
+                                {% endif %}
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Fee Status + Notices -->
+                    <div class="pd-row-2 even">
+                        <section class="pd-panel" id="fees">
+                            <div class="pd-panel-head">
+                                <h2 class="pd-panel-title"><i class="fa-solid fa-receipt"></i> Fee Status</h2>
+                                <a href="#" class="pd-panel-link">View details <i class="fa-solid fa-arrow-right"></i></a>
+                            </div>
+                            <div class="pd-panel-body">
+                                {% if pending_fee == 0 and paid_fee > 0 %}
+                                <div class="pd-fee-banner">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    Fee is up to date!
+                                </div>
+                                {% endif %}
+                                <div class="pd-fee-status">
+                                    <div class="pd-fee-row"><span>Total Fee</span><strong>₹{{ total_fee if total_fee > 0 else '0' }}</strong></div>
+                                    <div class="pd-fee-row"><span>Paid</span><strong style="color:#168254;">₹{{ paid_fee if paid_fee > 0 else '0' }}</strong></div>
+                                    <div class="pd-fee-row"><span>Pending</span><strong style="color:var(--pd-red);">₹{{ pending_fee if pending_fee > 0 else '0' }}</strong></div>
+                                </div>
+                                {% if pending_fee > 0 %}
+                                <div style="margin-top:12px;">
+                                    {% if fee_qr or upi_link %}
+                                    <div class="pd-fee-box">
+                                        {% if fee_qr %}
+                                        <img src="{{ fee_qr }}" alt="QR" class="pd-fee-qr">
+                                        {% endif %}
+                                        {% if upi_link %}
+                                        <a href="{{ upi_link }}" class="pd-upi-btn">
+                                            <i class="fa-solid fa-mobile-screen-button"></i> Pay via UPI
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    <form method="POST" action="{{ url_for('fee_pay') }}" class="pd-form" style="gap:10px;">
+                                        <label>Amount (₹) <input type="number" name="amount" step="0.01" required placeholder="5000"></label>
+                                        <label>Transaction ID <input type="text" name="transaction_id" placeholder="UPI txn ID"></label>
+                                        <button type="submit" class="pd-btn-primary"><i class="fa-solid fa-check"></i> Submit Payment</button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </section>
+
+                        <section class="pd-panel" id="notices">
+                            <div class="pd-panel-head">
+                                <h2 class="pd-panel-title"><i class="fa-regular fa-bell"></i> Recent Notices</h2>
+                                <a href="#" class="pd-panel-link">View all <i class="fa-solid fa-arrow-right"></i></a>
+                            </div>
+                            <div class="pd-panel-body">
+                                {% for n in notices[:4] %}
+                                <div class="pd-notice">
+                                    <div class="pd-notice-icon"><i class="fa-regular fa-file-lines"></i></div>
+                                    <div class="pd-notice-body">
+                                        <small>{{ n.date }}{% if n.tag %} · <b style="color:var(--pd-red);">{{ n.tag }}</b>{% endif %}</small>
+                                        <p>{{ n.title }}</p>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="pd-empty">No notices yet.</div>
+                                {% endfor %}
+                            </div>
+                        </section>
+                    </div>
+
                 </div>
+
+                <!-- ============ SIDE COLUMN ============ -->
+                <aside class="pd-col-side">
+
+                    <!-- Upcoming Events -->
+                    <section class="pd-panel" id="events">
+                        <div class="pd-panel-head">
+                            <h2 class="pd-panel-title"><i class="fa-regular fa-calendar-days"></i> Upcoming Events</h2>
+                            <a href="#" class="pd-panel-link">View calendar <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pd-panel-body">
+                            <div class="pd-event-list">
+                                <div class="pd-event-item">
+                                    <div class="pd-event-date"><strong>25</strong><small>OCT</small></div>
+                                    <div class="pd-event-info">
+                                        <strong>Sports Day</strong>
+                                        <small>(Next Saturday)</small>
+                                    </div>
+                                </div>
+                                <div class="pd-event-item">
+                                    <div class="pd-event-date"><strong>30</strong><small>OCT</small></div>
+                                    <div class="pd-event-info">
+                                        <strong>PTM Meeting</strong>
+                                        <small>(Thursday)</small>
+                                    </div>
+                                </div>
+                                <div class="pd-event-item">
+                                    <div class="pd-event-date"><strong>05</strong><small>NOV</small></div>
+                                    <div class="pd-event-info">
+                                        <strong>Annual Function</strong>
+                                        <small>(Wednesday)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Quick Links -->
+                    <section class="pd-panel">
+                        <div class="pd-panel-head">
+                            <h2 class="pd-panel-title"><i class="fa-solid fa-link"></i> Quick Links</h2>
+                        </div>
+                        <div class="pd-panel-body">
+                            <div class="pd-ql-grid">
+                                <a href="#" class="pd-ql">
+                                    <i class="fa-solid fa-book"></i>
+                                    <span>Homework</span>
+                                </a>
+                                <a href="#" class="pd-ql">
+                                    <i class="fa-solid fa-download"></i>
+                                    <span>Study Materials</span>
+                                </a>
+                                <a href="#" class="pd-ql">
+                                    <i class="fa-solid fa-chart-simple"></i>
+                                    <span>Results</span>
+                                </a>
+                                <a href="#" class="pd-ql">
+                                    <i class="fa-regular fa-calendar"></i>
+                                    <span>Timetable</span>
+                                </a>
+                                <a href="#" class="pd-ql">
+                                    <i class="fa-solid fa-circle-question"></i>
+                                    <span>Help & Support</span>
+                                </a>
+                                <a href="#messages" class="pd-ql">
+                                    <i class="fa-regular fa-comments"></i>
+                                    <span>Messages</span>
+                                </a>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Messages from School (Compact) -->
+                    <section class="pd-panel" id="messages">
+                        <div class="pd-panel-head">
+                            <h2 class="pd-panel-title"><i class="fa-regular fa-envelope"></i> Messages</h2>
+                        </div>
+                        <div class="pd-panel-body">
+                            {% for m in messages[:3] %}
+                            <div class="pd-notice">
+                                <div class="pd-notice-icon" style="background:#ffeaee; color:var(--pd-red);">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </div>
+                                <div class="pd-notice-body">
+                                    <small>{{ m.created_at[:10] }}</small>
+                                    <p>{{ m.subject }}</p>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="pd-empty">No messages yet.</div>
+                            {% endfor %}
+                        </div>
+                    </section>
+
+                </aside>
             </div>
 
-            <!-- NOTICES -->
-            <div class="panel">
-                <div class="panel-title notice-title">
-                    <span class="panel-title-icon"><i class="fa-solid fa-bell"></i></span>
-                    <h2>Notices for Parents</h2>
-                    <span class="live-dot"></span>
-                </div>
-                <div class="notice-list">
-                    {% for n in notices[:6] %}
-                    <article class="notice">
-                        <span class="notice-file"><i class="fa-regular fa-file-lines"></i></span>
-                        <div><small>{{ n.date }} <b>{{ n.tag }}</b></small><p>{{ n.title }}</p></div>
-                    </article>
-                    {% else %}
-                    <p class="empty-row" style="padding:20px;">No notices yet.</p>
-                    {% endfor %}
-                </div>
-            </div>
+            <!-- Footer strip -->
+            <footer class="pd-footer">
+                <span>Residential Shanti Niketan · Parent Portal</span>
+                <span>Stay Connected · Be Supportive · Encourage Your Child ♥</span>
+            </footer>
 
-            <!-- MESSAGES -->
-            <div class="panel">
-                <div class="panel-title">
-                    <span class="panel-title-icon parent-icon"><i class="fa-solid fa-comments"></i></span>
-                    <h2>Messages from School</h2>
-                </div>
-                <div class="notice-list">
-                    {% for m in messages[:5] %}
-                    <article class="notice">
-                        <span class="notice-file"><i class="fa-solid fa-envelope"></i></span>
-                        <div><small>{{ m.created_at[:10] }}</small><p><strong>{{ m.subject }}</strong></p><small style="color:#65758a;">{{ m.body[:100] }}...</small></div>
-                    </article>
-                    {% else %}
-                    <p class="empty-row" style="padding:20px;">No messages yet.</p>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
-    </main>
+        </main>
+    </div>
 
-    <footer class="site-footer">
-        <div class="wrap footer-inner">
-            <div class="footer-brand-col">
-                <a class="footer-brand" href="{{ url_for('home') }}">
-                    <span class="brand-mark small-mark"><img src="{{ url_for('static', filename='images/school-logo.png') }}" class="school-logo" alt="Logo"></span>
-                    <span class="footer-brand-copy">
-                        <strong>Residential Shanti Niketan</strong>
-                        <small>Navinagar, Jamui</small>
-                        <span class="footer-tagline">Education • Values • Excellence</span>
-                    </span>
-                </a>
-            </div>
-            <div class="footer-links-col">
-                <h4>About School</h4>
-                <p style="font-size:12.5px;color:#aebfd0;margin:0;">Education • Values • A brighter future</p>
-            </div>
-            <div class="footer-contact-col">
-                <h4>Navigate</h4><a class="back-top" href="#top">Back to top <i class="fa-solid fa-arrow-up"></i></a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p class="copyright-text">© <span id="year"></span> Residential Shanti Niketan.</p>
-            <div class="developer-credit"><span class="dev-badge"><i class="fa-solid fa-code"></i> Developed by <strong>Niraj Kumar</strong> <a href="tel:9155658081" class="dev-contact"><i class="fa-solid fa-phone"></i> 9155658081</a></span></div>
-        </div>
-    </footer>
-
+    <!-- ==================== JAVASCRIPT ==================== -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const menuToggle = document.getElementById('menuToggle');
-            const mobileMenu = document.getElementById('mobileMenu');
-            const menuBackdrop = document.getElementById('menuBackdrop');
-            const menuClose = document.getElementById('menuClose');
+    (function () {
+        'use strict';
 
-            if (!menuToggle || !mobileMenu || !menuBackdrop) return;
+        const sidebar   = document.getElementById('pdSidebar');
+        const backdrop  = document.getElementById('pdBackdrop');
+        const menuToggle = document.getElementById('pdMenuToggle');
 
-            function openMenu() {
-                mobileMenu.classList.add('is-open');
-                mobileMenu.removeAttribute('inert');
-                mobileMenu.setAttribute('aria-hidden', 'false');
-                menuToggle.setAttribute('aria-expanded', 'true');
-                menuBackdrop.hidden = false;
-                setTimeout(() => menuBackdrop.classList.add('is-open'), 10);
-                document.body.classList.add('menu-open');
-            }
-
-            function closeMenu() {
-                mobileMenu.classList.remove('is-open');
-                mobileMenu.setAttribute('inert', '');
-                mobileMenu.setAttribute('aria-hidden', 'true');
-                menuToggle.setAttribute('aria-expanded', 'false');
-                menuBackdrop.classList.remove('is-open');
-                setTimeout(() => { menuBackdrop.hidden = true; }, 300);
-                document.body.classList.remove('menu-open');
-            }
-
-            menuToggle.addEventListener('click', () => {
-                menuToggle.getAttribute('aria-expanded') === 'true' ? closeMenu() : openMenu();
-            });
-            if (menuClose) menuClose.addEventListener('click', closeMenu);
-            menuBackdrop.addEventListener('click', closeMenu);
-            mobileMenu.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
-
-            const yearEl = document.getElementById('year');
-            if (yearEl) yearEl.textContent = new Date().getFullYear();
-
-            document.querySelectorAll('.flash-close').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const flash = btn.closest('.flash');
-                    flash.style.opacity = '0';
-                    flash.style.transform = 'translateX(100%)';
-                    setTimeout(() => flash.remove(), 300);
-                });
-            });
-
-            /* ===== NEW: USER PROFILE DROPDOWN ===== */
-            (function initUserDropdown() {
-                const userProfile = document.getElementById('userProfile');
-                const userMenuBtn = document.getElementById('userMenuBtn');
-                const userDropdown = document.getElementById('userDropdown');
-                if (!userProfile || !userMenuBtn || !userDropdown) return;
-
-                function openMenu() {
-                    userProfile.classList.add('dropdown-open');
-                    userMenuBtn.setAttribute('aria-expanded', 'true');
-                }
-                function closeMenu() {
-                    userProfile.classList.remove('dropdown-open');
-                    userMenuBtn.setAttribute('aria-expanded', 'false');
-                }
-                function toggleMenu(e) {
-                    e.preventDefault(); e.stopPropagation();
-                    userProfile.classList.contains('dropdown-open') ? closeMenu() : openMenu();
-                }
-                userMenuBtn.addEventListener('click', toggleMenu);
-                userDropdown.addEventListener('click', e => e.stopPropagation());
-                document.addEventListener('click', e => {
-                    if (userProfile.classList.contains('dropdown-open') && !userProfile.contains(e.target)) closeMenu();
-                });
-                document.addEventListener('keydown', e => {
-                    if (e.key === 'Escape' && userProfile.classList.contains('dropdown-open')) {
-                        closeMenu(); userMenuBtn.focus();
-                    }
-                });
-                document.addEventListener('touchstart', e => {
-                    if (userProfile.classList.contains('dropdown-open') && !userProfile.contains(e.target)) closeMenu();
-                }, { passive: true });
-            })();
+        function openSidebar() {
+            sidebar.classList.add('open');
+            backdrop.classList.add('open');
+            menuToggle.setAttribute('aria-expanded', 'true');
+            document.body.classList.add('pd-menu-open');
+        }
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            backdrop.classList.remove('open');
+            menuToggle.setAttribute('aria-expanded', 'false');
+            document.body.classList.remove('pd-menu-open');
+        }
+        menuToggle.addEventListener('click', function () {
+            sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
         });
+        backdrop.addEventListener('click', closeSidebar);
+
+        /* Sidebar nav active state + close on click (mobile) */
+        document.querySelectorAll('.pd-nav-link').forEach(function (link) {
+            link.addEventListener('click', function () {
+                const href = this.getAttribute('href') || '';
+                if (href.charAt(0) === '#') {
+                    document.querySelectorAll('.pd-nav-link').forEach(function (l) { l.classList.remove('active'); });
+                    this.classList.add('active');
+                }
+                if (window.innerWidth <= 1024) closeSidebar();
+            });
+        });
+
+        /* User profile dropdown */
+        const up     = document.getElementById('pdUserProfile');
+        const upBtn  = document.getElementById('pdUserBtn');
+        const upDrop = document.getElementById('pdUserDropdown');
+
+        function closeUp() {
+            if (!up) return;
+            up.classList.remove('open');
+            if (upBtn) upBtn.setAttribute('aria-expanded', 'false');
+        }
+        if (upBtn && up) {
+            upBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const isOpen = up.classList.contains('open');
+                closeNotif();
+                if (!isOpen) {
+                    up.classList.add('open');
+                    upBtn.setAttribute('aria-expanded', 'true');
+                } else {
+                    closeUp();
+                }
+            });
+            if (upDrop) upDrop.addEventListener('click', function (e) { e.stopPropagation(); });
+        }
+
+        /* Notification dropdown */
+        const notif     = document.getElementById('pdNotif');
+        const notifBtn  = document.getElementById('pdNotifBtn');
+        const notifDrop = document.getElementById('pdNotifDropdown');
+
+        function closeNotif() {
+            if (!notif) return;
+            notif.classList.remove('open');
+            if (notifBtn) notifBtn.setAttribute('aria-expanded', 'false');
+        }
+        if (notifBtn && notif) {
+            notifBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const isOpen = notif.classList.contains('open');
+                closeUp();
+                if (!isOpen) {
+                    notif.classList.add('open');
+                    notifBtn.setAttribute('aria-expanded', 'true');
+                } else {
+                    closeNotif();
+                }
+            });
+            if (notifDrop) {
+                notifDrop.addEventListener('click', function (e) { e.stopPropagation(); });
+                notifDrop.querySelectorAll('a').forEach(function (a) {
+                    a.addEventListener('click', closeNotif);
+                });
+            }
+        }
+
+        document.addEventListener('click', function (e) {
+            if (up && !up.contains(e.target)) closeUp();
+            if (notif && !notif.contains(e.target)) closeNotif();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeUp();
+                closeNotif();
+                if (window.innerWidth <= 1024) closeSidebar();
+            }
+        });
+
+        /* Flash close */
+        document.querySelectorAll('.pd-flash button').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const f = btn.closest('.pd-flash');
+                if (!f) return;
+                f.style.opacity = '0';
+                setTimeout(function () { f.remove(); }, 250);
+            });
+        });
+    })();
     </script>
 </body>
 </html>

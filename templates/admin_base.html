@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Admin{% endblock %} — Residential Shanti Niketan</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
@@ -27,13 +30,17 @@
             position: relative;
             overflow: hidden;
         }
+
         .admin-user-box::before {
             content: '';
             position: absolute;
-            left: 0; top: 0; bottom: 0;
+            left: 0;
+            top: 0;
+            bottom: 0;
             width: 3px;
             background: linear-gradient(to bottom, var(--yellow, #ffd447), var(--red, #d71938));
         }
+
         .admin-user-avatar {
             flex: 0 0 42px;
             width: 42px;
@@ -51,6 +58,7 @@
             position: relative;
             z-index: 1;
         }
+
         .admin-user-text {
             flex: 1;
             min-width: 0;
@@ -60,6 +68,7 @@
             position: relative;
             z-index: 1;
         }
+
         .admin-user-text strong {
             font-size: 13.5px;
             font-weight: 800;
@@ -69,6 +78,7 @@
             text-overflow: ellipsis;
             line-height: 1.2;
         }
+
         .admin-user-text small {
             font-size: 11px;
             color: #b1c2d4;
@@ -80,10 +90,12 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
         .admin-user-text small i {
             color: var(--yellow, #ffd447);
             font-size: 10px;
         }
+
         .admin-role-badge {
             display: inline-block;
             background: var(--yellow, #ffd447);
@@ -101,10 +113,22 @@
         /* ============================================================
            2. CUSTOM SLIM SCROLLBAR
            ============================================================ */
-        .admin-sidebar::-webkit-scrollbar { width: 6px; }
-        .admin-sidebar::-webkit-scrollbar-track { background: transparent; }
-        .admin-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
-        .admin-sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+        .admin-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .admin-sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .admin-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+        }
+
+        .admin-sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
 
         /* ============================================================
            3. TOPBAR — SEARCH + NOTIFICATION BELL + USER BUTTON
@@ -114,10 +138,12 @@
             align-items: center;
             gap: 16px;
         }
+
         .admin-page-title {
             flex-shrink: 0;
             margin: 0;
         }
+
         .admin-search {
             flex: 1;
             max-width: 420px;
@@ -132,7 +158,12 @@
             transition: all 0.2s ease;
             margin: 0 16px;
         }
-        .admin-search i { color: #65758a; font-size: 14px; }
+
+        .admin-search i {
+            color: #65758a;
+            font-size: 14px;
+        }
+
         .admin-search input {
             border: none;
             outline: none;
@@ -142,7 +173,11 @@
             color: #0a2340;
             width: 100%;
         }
-        .admin-search input::placeholder { color: #a0aec0; }
+
+        .admin-search input::placeholder {
+            color: #a0aec0;
+        }
+
         .admin-search:focus-within {
             border-color: #b0c4d8;
             box-shadow: 0 0 0 3px rgba(11, 53, 98, 0.06);
@@ -165,11 +200,13 @@
             flex: 0 0 auto;
             padding: 0;
         }
+
         .admin-topbar-icon:hover {
             background: #f4f8fc;
             border-color: #b0c4d8;
             transform: translateY(-1px);
         }
+
         .notif-dot-badge {
             position: absolute;
             top: 8px;
@@ -182,14 +219,27 @@
             box-shadow: 0 0 0 0 rgba(215, 25, 56, 0.4);
             animation: notifBellPulse 2s infinite;
         }
+
         @keyframes notifBellPulse {
-            0%   { box-shadow: 0 0 0 0 rgba(215, 25, 56, 0.5); }
-            70%  { box-shadow: 0 0 0 6px rgba(215, 25, 56, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(215, 25, 56, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(215, 25, 56, 0.5);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(215, 25, 56, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(215, 25, 56, 0);
+            }
         }
 
         /* Notification dropdown */
-        .admin-topbar-notif { position: relative; display: inline-block; }
+        .admin-topbar-notif {
+            position: relative;
+            display: inline-block;
+        }
+
         .admin-notif-dropdown {
             position: absolute;
             top: calc(100% + 10px);
@@ -209,6 +259,7 @@
             z-index: 1300;
             overflow: hidden;
         }
+
         .admin-notif-dropdown::before {
             content: '';
             position: absolute;
@@ -221,12 +272,14 @@
             border-radius: 2px;
             box-shadow: -2px -2px 6px rgba(11, 53, 98, 0.04);
         }
+
         .admin-topbar-notif.dropdown-open .admin-notif-dropdown {
             opacity: 1;
             visibility: visible;
             transform: translateY(0) scale(1);
             pointer-events: auto;
         }
+
         .notif-head {
             display: flex;
             justify-content: space-between;
@@ -235,7 +288,13 @@
             border-bottom: 1px solid #e4eaf1;
             background: #fafcff;
         }
-        .notif-head strong { font-size: 13px; font-weight: 800; color: #0a2340; }
+
+        .notif-head strong {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0a2340;
+        }
+
         .notif-head-tag {
             font-size: 9.5px;
             font-weight: 800;
@@ -246,7 +305,13 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .notif-list { padding: 6px; max-height: 340px; overflow-y: auto; }
+
+        .notif-list {
+            padding: 6px;
+            max-height: 340px;
+            overflow-y: auto;
+        }
+
         .notif-item {
             display: flex;
             align-items: center;
@@ -256,7 +321,12 @@
             text-decoration: none;
             transition: all 0.18s ease;
         }
-        .notif-item:hover { background: #f0f7ff; transform: translateX(2px); }
+
+        .notif-item:hover {
+            background: #f0f7ff;
+            transform: translateX(2px);
+        }
+
         .notif-icon {
             width: 36px;
             height: 36px;
@@ -267,15 +337,53 @@
             font-size: 14px;
             flex: 0 0 36px;
         }
-        .notif-icon.amber { background: #fff1d6; color: #a86a00; }
-        .notif-icon.green { background: #e3f5eb; color: #168254; }
-        .notif-icon.blue  { background: #e1f1ff; color: #1768a7; }
-        .notif-icon.red   { background: #ffeaee; color: var(--red, #d71938); }
-        .notif-icon.purple { background: #f0e7ff; color: #7439b2; }
-        .notif-body { flex: 1; min-width: 0; }
-        .notif-body strong { display: block; font-size: 12.5px; font-weight: 700; color: #0a2340; margin-bottom: 1px; }
-        .notif-body small { display: block; font-size: 10.5px; color: #65758a; line-height: 1.3; }
-        /* NEW: Notif count pill */
+
+        .notif-icon.amber {
+            background: #fff1d6;
+            color: #a86a00;
+        }
+
+        .notif-icon.green {
+            background: #e3f5eb;
+            color: #168254;
+        }
+
+        .notif-icon.blue {
+            background: #e1f1ff;
+            color: #1768a7;
+        }
+
+        .notif-icon.red {
+            background: #ffeaee;
+            color: var(--red, #d71938);
+        }
+
+        .notif-icon.purple {
+            background: #f0e7ff;
+            color: #7439b2;
+        }
+
+        .notif-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notif-body strong {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0a2340;
+            margin-bottom: 1px;
+        }
+
+        .notif-body small {
+            display: block;
+            font-size: 10.5px;
+            color: #65758a;
+            line-height: 1.3;
+        }
+
+        /* Notif count pill */
         .notif-count {
             display: inline-flex;
             align-items: center;
@@ -290,15 +398,52 @@
             font-weight: 800;
             line-height: 1;
         }
-        .notif-count.zero { background: #cbd5e1; color: #475569; }
-        .notif-arrow { color: #b1c2d4; font-size: 10px; transition: all 0.2s ease; }
-        .notif-item:hover .notif-arrow { color: var(--red, #d71938); transform: translateX(3px); }
-        .notif-footer { padding: 10px 16px; border-top: 1px solid #e4eaf1; background: #fafcff; text-align: center; }
-        .notif-footer a { font-size: 11.5px; font-weight: 700; color: var(--red, #d71938); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: gap 0.2s ease; }
-        .notif-footer a:hover { gap: 10px; }
+
+        .notif-count.zero {
+            background: #cbd5e1;
+            color: #475569;
+        }
+
+        .notif-arrow {
+            color: #b1c2d4;
+            font-size: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .notif-item:hover .notif-arrow {
+            color: var(--red, #d71938);
+            transform: translateX(3px);
+        }
+
+        .notif-footer {
+            padding: 10px 16px;
+            border-top: 1px solid #e4eaf1;
+            background: #fafcff;
+            text-align: center;
+        }
+
+        .notif-footer a {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--red, #d71938);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: gap 0.2s ease;
+        }
+
+        .notif-footer a:hover {
+            gap: 10px;
+        }
 
         /* User profile button */
-        .admin-user-profile { position: relative; display: inline-block; z-index: 1200; }
+        .admin-user-profile {
+            position: relative;
+            display: inline-block;
+            z-index: 1200;
+        }
+
         .admin-user-btn {
             display: inline-flex;
             align-items: center;
@@ -315,6 +460,7 @@
             overflow: hidden;
             white-space: nowrap;
         }
+
         .admin-user-btn:hover,
         .admin-user-profile.dropdown-open .admin-user-btn {
             max-width: 280px;
@@ -324,12 +470,14 @@
             border-color: rgba(11, 53, 98, 0.12);
             box-shadow: 0 6px 20px rgba(11, 53, 98, 0.08);
         }
+
         .admin-user-btn .admin-user-avatar {
             width: 38px;
             height: 38px;
             font-size: 13px;
             flex: 0 0 38px;
         }
+
         .admin-user-btn-info {
             display: flex;
             flex-direction: column;
@@ -341,12 +489,14 @@
             transition: opacity 0.25s ease 0.05s, max-width 0.35s ease;
             pointer-events: none;
         }
+
         .admin-user-btn:hover .admin-user-btn-info,
         .admin-user-profile.dropdown-open .admin-user-btn .admin-user-btn-info {
             opacity: 1;
             max-width: 170px;
             pointer-events: auto;
         }
+
         .admin-user-btn-info strong {
             font-size: 13px;
             font-weight: 700;
@@ -356,11 +506,31 @@
             text-overflow: ellipsis;
             max-width: 160px;
         }
-        .admin-user-btn-info small { font-size: 10.5px; color: #65758a; white-space: nowrap; text-transform: capitalize; }
-        .admin-user-chevron { font-size: 10px; color: #0a2340; opacity: 0; max-width: 0; transition: opacity 0.25s, max-width 0.25s, transform 0.3s; }
+
+        .admin-user-btn-info small {
+            font-size: 10.5px;
+            color: #65758a;
+            white-space: nowrap;
+            text-transform: capitalize;
+        }
+
+        .admin-user-chevron {
+            font-size: 10px;
+            color: #0a2340;
+            opacity: 0;
+            max-width: 0;
+            transition: opacity 0.25s, max-width 0.25s, transform 0.3s;
+        }
+
         .admin-user-btn:hover .admin-user-chevron,
-        .admin-user-profile.dropdown-open .admin-user-btn .admin-user-chevron { opacity: 1; max-width: 20px; }
-        .admin-user-profile.dropdown-open .admin-user-chevron { transform: rotate(180deg); }
+        .admin-user-profile.dropdown-open .admin-user-btn .admin-user-chevron {
+            opacity: 1;
+            max-width: 20px;
+        }
+
+        .admin-user-profile.dropdown-open .admin-user-chevron {
+            transform: rotate(180deg);
+        }
 
         /* User dropdown */
         .admin-user-dropdown {
@@ -381,6 +551,7 @@
             transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s;
             z-index: 1300;
         }
+
         .admin-user-dropdown::before {
             content: '';
             position: absolute;
@@ -393,12 +564,14 @@
             border-radius: 2px;
             box-shadow: -2px -2px 6px rgba(11, 53, 98, 0.06);
         }
+
         .admin-user-profile.dropdown-open .admin-user-dropdown {
             opacity: 1;
             visibility: visible;
             transform: translateY(0) scale(1);
             pointer-events: auto;
         }
+
         .admin-user-head {
             display: flex;
             align-items: center;
@@ -408,39 +581,135 @@
             border-radius: 12px;
             margin-bottom: 6px;
         }
+
         .admin-user-head-avatar {
-            width: 44px; height: 44px; border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
             background: linear-gradient(135deg, #0a2340, #14578b);
-            color: #fff; display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 15px; flex: 0 0 44px;
-            border: 2px solid var(--yellow, #ffd447); letter-spacing: 1px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 15px;
+            flex: 0 0 44px;
+            border: 2px solid var(--yellow, #ffd447);
+            letter-spacing: 1px;
         }
-        .admin-user-head-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-        .admin-user-head-text strong { font-size: 13.5px; color: #0a2340; font-weight: 800; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .admin-user-head-text small { font-size: 10.5px; color: #65758a; font-weight: 600; display: flex; align-items: center; gap: 4px; }
-        .admin-user-head-text small i { color: var(--red, #d71938); font-size: 9px; }
-        .admin-user-role-tag { display: inline-block; background: var(--yellow, #ffd447); color: #0a2340; padding: 2px 8px; border-radius: 5px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; align-self: flex-start; margin-top: 2px; }
-        .admin-user-divider { border: 0; border-top: 1px solid #e4eaf1; margin: 4px 8px 6px; }
-        .admin-user-dropdown > a { display: flex; align-items: center; gap: 11px; padding: 10px 14px; border-radius: 9px; color: #26445f; font-size: 13px; font-weight: 700; text-decoration: none; transition: all 0.18s ease; margin-bottom: 2px; }
-        .admin-user-dropdown > a i { width: 16px; text-align: center; color: #0a2340; font-size: 13px; transition: all 0.18s ease; }
-        .admin-user-dropdown > a:hover { background: #f0f7ff; color: #0a2340; transform: translateX(3px); }
-        .admin-user-dropdown > a:hover i { color: var(--red, #d71938); transform: scale(1.1); }
-        .admin-user-dropdown > a.admin-logout-link { color: var(--red, #d71938); }
-        .admin-user-dropdown > a.admin-logout-link i { color: var(--red, #d71938); }
-        .admin-user-dropdown > a.admin-logout-link:hover { background: #ffeaee; }
+
+        .admin-user-head-text {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .admin-user-head-text strong {
+            font-size: 13.5px;
+            color: #0a2340;
+            font-weight: 800;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .admin-user-head-text small {
+            font-size: 10.5px;
+            color: #65758a;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .admin-user-head-text small i {
+            color: var(--red, #d71938);
+            font-size: 9px;
+        }
+
+        .admin-user-role-tag {
+            display: inline-block;
+            background: var(--yellow, #ffd447);
+            color: #0a2340;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            align-self: flex-start;
+            margin-top: 2px;
+        }
+
+        .admin-user-divider {
+            border: 0;
+            border-top: 1px solid #e4eaf1;
+            margin: 4px 8px 6px;
+        }
+
+        .admin-user-dropdown>a {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 14px;
+            border-radius: 9px;
+            color: #26445f;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.18s ease;
+            margin-bottom: 2px;
+        }
+
+        .admin-user-dropdown>a i {
+            width: 16px;
+            text-align: center;
+            color: #0a2340;
+            font-size: 13px;
+            transition: all 0.18s ease;
+        }
+
+        .admin-user-dropdown>a:hover {
+            background: #f0f7ff;
+            color: #0a2340;
+            transform: translateX(3px);
+        }
+
+        .admin-user-dropdown>a:hover i {
+            color: var(--red, #d71938);
+            transform: scale(1.1);
+        }
+
+        .admin-user-dropdown>a.admin-logout-link {
+            color: var(--red, #d71938);
+        }
+
+        .admin-user-dropdown>a.admin-logout-link i {
+            color: var(--red, #d71938);
+        }
+
+        .admin-user-dropdown>a.admin-logout-link:hover {
+            background: #ffeaee;
+        }
 
         /* Sidebar active nav */
         .admin-nav-link.active {
             background: linear-gradient(135deg, var(--red, #d71938), #b9102c) !important;
             color: #fff !important;
         }
-        .admin-nav-link.active i { color: #fff !important; }
+
+        .admin-nav-link.active i {
+            color: #fff !important;
+        }
 
         /* Sidebar group labels */
         .admin-nav-group-label {
             font-size: 9px;
             font-weight: 800;
-            color: rgba(255,255,255,0.4);
+            color: rgba(255, 255, 255, 0.4);
             text-transform: uppercase;
             letter-spacing: 1.2px;
             padding: 14px 18px 6px;
@@ -450,24 +719,57 @@
         /* Flash stack */
         .admin-content .flash-stack {
             position: fixed;
-            top: 82px; right: 18px; z-index: 1500;
-            display: grid; gap: 8px; width: min(420px, calc(100% - 36px));
+            top: 82px;
+            right: 18px;
+            z-index: 1500;
+            display: grid;
+            gap: 8px;
+            width: min(420px, calc(100% - 36px));
         }
 
         /* Responsive */
         @media (max-width: 900px) {
-            .admin-topbar-icon { width: 38px; height: 38px; font-size: 14px; }
-            .admin-user-btn { max-width: 44px; }
-            .admin-user-btn:hover, .admin-user-profile.dropdown-open .admin-user-btn { max-width: 220px; }
-            .admin-notif-dropdown { width: 280px; right: -8px; }
-            .admin-user-dropdown { min-width: 240px; right: -8px; }
-            .admin-search { display: none; }
+            .admin-topbar-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 14px;
+            }
+
+            .admin-user-btn {
+                max-width: 44px;
+            }
+
+            .admin-user-btn:hover,
+            .admin-user-profile.dropdown-open .admin-user-btn {
+                max-width: 220px;
+            }
+
+            .admin-notif-dropdown {
+                width: 280px;
+                right: -8px;
+            }
+
+            .admin-user-dropdown {
+                min-width: 240px;
+                right: -8px;
+            }
+
+            .admin-search {
+                display: none;
+            }
         }
+
         @media (max-width: 640px) {
-            .admin-notif-dropdown { width: 260px; }
+            .admin-notif-dropdown {
+                width: 260px;
+            }
         }
+
         @media (max-width: 400px) {
-            .admin-notif-dropdown { width: calc(100vw - 32px); right: -8px; }
+            .admin-notif-dropdown {
+                width: calc(100vw - 32px);
+                right: -8px;
+            }
         }
     </style>
 
@@ -480,7 +782,8 @@
     <aside class="admin-sidebar" id="adminSidebar" aria-label="Admin sidebar">
         <div class="admin-sidebar-head">
             <a href="{{ url_for('admin_dashboard') }}" class="admin-logo" aria-label="Admin home">
-                <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="School Logo" class="school-logo">
+                <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="School Logo"
+                    class="school-logo">
                 <div>
                     <strong>Shanti Niketan</strong>
                     <small>Admin Panel</small>
@@ -491,7 +794,8 @@
         {% if session.get('user_id') %}
         <div class="admin-user-box">
             <div class="admin-user-avatar">
-                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if
+                session['user_name'].split()|length > 1 else '' }}
             </div>
             <div class="admin-user-text">
                 <strong>{{ session['user_name'].split()[0] }}</strong>
@@ -504,65 +808,79 @@
         <!-- Navigation (grouped like image) -->
         <nav class="admin-nav">
             <div class="admin-nav-group-label">Main</div>
-            <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link {% if active_page == 'dashboard' %}active{% endif %}">
+            <a href="{{ url_for('admin_dashboard') }}"
+                class="admin-nav-link {% if active_page == 'dashboard' %}active{% endif %}">
                 <i class="fa-solid fa-gauge"></i> Dashboard
             </a>
-            <a href="{{ url_for('admin_users') }}" class="admin-nav-link {% if active_page == 'users' %}active{% endif %}">
+            <a href="{{ url_for('admin_users') }}"
+                class="admin-nav-link {% if active_page == 'users' %}active{% endif %}">
                 <i class="fa-solid fa-users"></i> All Users
             </a>
-            <a href="{{ url_for('admin_create_user') }}" class="admin-nav-link {% if active_page == 'create_user' %}active{% endif %}">
+            <a href="{{ url_for('admin_create_user') }}"
+                class="admin-nav-link {% if active_page == 'create_user' %}active{% endif %}">
                 <i class="fa-solid fa-user-plus"></i> Create User
             </a>
 
             <div class="admin-nav-group-label">Academics</div>
-            <a href="{{ url_for('admin_attendance') }}" class="admin-nav-link {% if active_page == 'attendance' %}active{% endif %}">
+            <a href="{{ url_for('admin_attendance') }}"
+                class="admin-nav-link {% if active_page == 'attendance' %}active{% endif %}">
                 <i class="fa-solid fa-clipboard-check"></i> Attendance
             </a>
-            <!-- NEW: Homework link (uses admin_homework route from backend) -->
-            <a href="{{ url_for('admin_homework') }}" class="admin-nav-link {% if active_page == 'homework' %}active{% endif %}">
+            <a href="{{ url_for('admin_homework') }}"
+                class="admin-nav-link {% if active_page == 'homework' %}active{% endif %}">
                 <i class="fa-solid fa-book-open"></i> Homework
                 {% if total_homework and total_homework > 0 %}
                 <span class="notif-dot" style="margin-left:auto;"></span>
                 {% endif %}
             </a>
-            <a href="{{ url_for('admin_leaves') }}" class="admin-nav-link {% if active_page == 'leaves' %}active{% endif %}">
+            <a href="{{ url_for('admin_leaves') }}"
+                class="admin-nav-link {% if active_page == 'leaves' %}active{% endif %}">
                 <i class="fa-solid fa-calendar-minus"></i> Leave Requests
                 {% if pending_leaves and pending_leaves > 0 %}
                 <span class="notif-dot" style="margin-left:auto;"></span>
                 {% endif %}
             </a>
-            <a href="{{ url_for('admin_fees') }}" class="admin-nav-link {% if active_page == 'fees' %}active{% endif %}">
+            <a href="{{ url_for('admin_fees') }}"
+                class="admin-nav-link {% if active_page == 'fees' %}active{% endif %}">
                 <i class="fa-solid fa-indian-rupee-sign"></i> Fee Payments
                 {% if pending_fees and pending_fees > 0 %}
                 <span class="notif-dot" style="margin-left:auto;"></span>
                 {% endif %}
             </a>
 
+            <!-- FIXED: Communication group — clean sidebar links only -->
             <div class="admin-nav-group-label">Communication</div>
-            <a href="{{ url_for('admin_notices') }}" class="admin-nav-link {% if active_page == 'notices' %}active{% endif %}">
-                <i class="fa-solid fa-bullhorn"></i> Notices
+            <a href="{{ url_for('messages_inbox') }}" class="admin-nav-link">
+                <i class="fa-solid fa-inbox"></i> Inbox
             </a>
-            <a href="{{ url_for('admin_messages') }}" class="admin-nav-link {% if active_page == 'messages' %}active{% endif %}">
-                <i class="fa-solid fa-comments"></i> Messages
+            <a href="{{ url_for('admin_messages') }}"
+                class="admin-nav-link {% if active_page == 'messages' %}active{% endif %}">
+                <i class="fa-solid fa-paper-plane"></i> Send / Broadcast
             </a>
-            <a href="{{ url_for('admin_enquiries') }}" class="admin-nav-link {% if active_page == 'enquiries' %}active{% endif %}">
+            <a href="{{ url_for('admin_enquiries') }}"
+                class="admin-nav-link {% if active_page == 'enquiries' %}active{% endif %}">
                 <i class="fa-solid fa-envelope"></i> Enquiries
             </a>
 
             <div class="admin-nav-group-label">Content</div>
-            <a href="{{ url_for('admin_faculty') }}" class="admin-nav-link {% if active_page == 'faculty' %}active{% endif %}">
+            <a href="{{ url_for('admin_faculty') }}"
+                class="admin-nav-link {% if active_page == 'faculty' %}active{% endif %}">
                 <i class="fa-solid fa-chalkboard-user"></i> Faculty
             </a>
-            <a href="{{ url_for('admin_events') }}" class="admin-nav-link {% if active_page == 'events' %}active{% endif %}">
+            <a href="{{ url_for('admin_events') }}"
+                class="admin-nav-link {% if active_page == 'events' %}active{% endif %}">
                 <i class="fa-regular fa-calendar-days"></i> Events
             </a>
-            <a href="{{ url_for('admin_gallery') }}" class="admin-nav-link {% if active_page == 'gallery' %}active{% endif %}">
+            <a href="{{ url_for('admin_gallery') }}"
+                class="admin-nav-link {% if active_page == 'gallery' %}active{% endif %}">
                 <i class="fa-regular fa-images"></i> Gallery
             </a>
-            <a href="{{ url_for('admin_achievements') }}" class="admin-nav-link {% if active_page == 'achievements' %}active{% endif %}">
+            <a href="{{ url_for('admin_achievements') }}"
+                class="admin-nav-link {% if active_page == 'achievements' %}active{% endif %}">
                 <i class="fa-solid fa-trophy"></i> Achievements
             </a>
-            <a href="{{ url_for('admin_testimonials') }}" class="admin-nav-link {% if active_page == 'testimonials' %}active{% endif %}">
+            <a href="{{ url_for('admin_testimonials') }}"
+                class="admin-nav-link {% if active_page == 'testimonials' %}active{% endif %}">
                 <i class="fa-solid fa-quote-left"></i> Testimonials
             </a>
             <a href="{{ url_for('admin_faq') }}" class="admin-nav-link {% if active_page == 'faq' %}active{% endif %}">
@@ -584,7 +902,8 @@
     <!-- MAIN AREA -->
     <div class="admin-main">
         <header class="admin-topbar">
-            <button class="admin-menu-toggle" id="adminMenuToggle" type="button" aria-label="Open navigation menu" aria-controls="adminSidebar" aria-expanded="false">
+            <button class="admin-menu-toggle" id="adminMenuToggle" type="button" aria-label="Open navigation menu"
+                aria-controls="adminSidebar" aria-expanded="false">
                 <i class="fa-solid fa-bars"></i>
             </button>
 
@@ -593,16 +912,16 @@
             <!-- Search bar — backend admin_users now handles ?q= -->
             <form class="admin-search" action="{{ url_for('admin_users') }}" method="get" role="search">
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="search" name="q"
-                       value="{{ request.args.get('q', '') }}"
-                       placeholder="Search students, teachers, parents..."
-                       aria-label="Search">
+                <input type="search" name="q" value="{{ request.args.get('q', '') }}"
+                    placeholder="Search students, teachers, parents..." aria-label="Search">
             </form>
 
             <div class="admin-user-info">
                 <!-- NOTIFICATION BELL — with real counts -->
                 <div class="admin-topbar-notif" id="adminNotifWrapper">
-                    <button type="button" class="admin-topbar-icon admin-notif-btn" id="adminNotifBtn" aria-haspopup="true" aria-expanded="false" aria-controls="adminNotifDropdown" aria-label="Notifications" title="Notifications">
+                    <button type="button" class="admin-topbar-icon admin-notif-btn" id="adminNotifBtn"
+                        aria-haspopup="true" aria-expanded="false" aria-controls="adminNotifDropdown"
+                        aria-label="Notifications" title="Notifications">
                         <i class="fa-regular fa-bell"></i>
                         {% set total_notifs = (pending_leaves or 0) + (pending_fees or 0) + (total_homework or 0) %}
                         {% if total_notifs > 0 %}
@@ -616,14 +935,14 @@
                             <span class="notif-head-tag">Admin</span>
                         </div>
                         <div class="notif-list">
-                            <!-- NEW: Homework count -->
                             <a href="{{ url_for('admin_homework') }}" class="notif-item" role="menuitem">
                                 <div class="notif-icon purple"><i class="fa-solid fa-book-open"></i></div>
                                 <div class="notif-body">
                                     <strong>Homework assigned</strong>
                                     <small>{{ total_homework or 0 }} total assignments</small>
                                 </div>
-                                <span class="notif-count {% if not total_homework %}zero{% endif %}">{{ total_homework or 0 }}</span>
+                                <span class="notif-count {% if not total_homework %}zero{% endif %}">{{ total_homework
+                                    or 0 }}</span>
                                 <i class="fa-solid fa-chevron-right notif-arrow"></i>
                             </a>
                             <a href="{{ url_for('admin_leaves') }}" class="notif-item" role="menuitem">
@@ -632,7 +951,8 @@
                                     <strong>Leave requests</strong>
                                     <small>Review pending approvals</small>
                                 </div>
-                                <span class="notif-count {% if not pending_leaves %}zero{% endif %}">{{ pending_leaves or 0 }}</span>
+                                <span class="notif-count {% if not pending_leaves %}zero{% endif %}">{{ pending_leaves
+                                    or 0 }}</span>
                                 <i class="fa-solid fa-chevron-right notif-arrow"></i>
                             </a>
                             <a href="{{ url_for('admin_fees') }}" class="notif-item" role="menuitem">
@@ -641,7 +961,8 @@
                                     <strong>Fee payments</strong>
                                     <small>Verify submitted payments</small>
                                 </div>
-                                <span class="notif-count {% if not pending_fees %}zero{% endif %}">{{ pending_fees or 0 }}</span>
+                                <span class="notif-count {% if not pending_fees %}zero{% endif %}">{{ pending_fees or 0
+                                    }}</span>
                                 <i class="fa-solid fa-chevron-right notif-arrow"></i>
                             </a>
                             <a href="{{ url_for('admin_enquiries') }}" class="notif-item" role="menuitem">
@@ -652,11 +973,12 @@
                                 </div>
                                 <i class="fa-solid fa-chevron-right notif-arrow"></i>
                             </a>
-                            <a href="{{ url_for('admin_messages') }}" class="notif-item" role="menuitem">
-                                <div class="notif-icon red"><i class="fa-solid fa-comment-dots"></i></div>
+                            <!-- FIXED: Messages now opens real inbox, not the send tool -->
+                            <a href="{{ url_for('messages_inbox') }}" class="notif-item" role="menuitem">
+                                <div class="notif-icon red"><i class="fa-solid fa-inbox"></i></div>
                                 <div class="notif-body">
                                     <strong>Messages</strong>
-                                    <small>Send or read school messages</small>
+                                    <small>Open your inbox</small>
                                 </div>
                                 <i class="fa-solid fa-chevron-right notif-arrow"></i>
                             </a>
@@ -671,9 +993,12 @@
 
                 <!-- USER BUTTON -->
                 <div class="admin-user-profile" id="adminUserProfile">
-                    <button type="button" class="admin-user-btn" id="adminUserBtn" aria-haspopup="true" aria-expanded="false" aria-controls="adminUserDropdown" title="{{ session['user_name'] }} — click to open menu">
+                    <button type="button" class="admin-user-btn" id="adminUserBtn" aria-haspopup="true"
+                        aria-expanded="false" aria-controls="adminUserDropdown"
+                        title="{{ session['user_name'] }} — click to open menu">
                         <div class="admin-user-avatar">
-                            {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                            {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
+                            upper if session['user_name'].split()|length > 1 else '' }}
                         </div>
                         <div class="admin-user-btn-info">
                             <strong>{{ session['user_name'].split()[0] }}</strong>
@@ -685,19 +1010,27 @@
                     <div class="admin-user-dropdown" id="adminUserDropdown" role="menu">
                         <div class="admin-user-head">
                             <div class="admin-user-head-avatar">
-                                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
+                                upper if session['user_name'].split()|length > 1 else '' }}
                             </div>
                             <div class="admin-user-head-text">
                                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
-                                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
+                                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A')
+                                    }}</small>
                                 <span class="admin-user-role-tag">Administrator</span>
                             </div>
                         </div>
                         <hr class="admin-user-divider">
-                        <a href="{{ url_for('admin_dashboard') }}" role="menuitem"><i class="fa-solid fa-gauge"></i> Dashboard</a>
-                        <a href="{{ url_for('home') }}" target="_blank" rel="noopener" role="menuitem"><i class="fa-solid fa-globe"></i> View Website</a>
-                        <a href="{{ url_for('change_password') }}" role="menuitem"><i class="fa-solid fa-key"></i> Change Password</a>
-                        <a href="{{ url_for('logout') }}" class="admin-logout-link" role="menuitem"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                        <a href="{{ url_for('admin_dashboard') }}" role="menuitem"><i class="fa-solid fa-gauge"></i>
+                            Dashboard</a>
+                        <a href="{{ url_for('messages_inbox') }}" role="menuitem"><i class="fa-solid fa-inbox"></i>
+                            Inbox</a>
+                        <a href="{{ url_for('home') }}" target="_blank" rel="noopener" role="menuitem"><i
+                                class="fa-solid fa-globe"></i> View Website</a>
+                        <a href="{{ url_for('change_password') }}" role="menuitem"><i class="fa-solid fa-key"></i>
+                            Change Password</a>
+                        <a href="{{ url_for('logout') }}" class="admin-logout-link" role="menuitem"><i
+                                class="fa-solid fa-right-from-bracket"></i> Logout</a>
                     </div>
                 </div>
             </div>
@@ -705,16 +1038,16 @@
 
         <div class="admin-content">
             {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                <div class="flash-stack" role="status" aria-live="polite">
-                    {% for category, message in messages %}
-                    <div class="flash {{ category }}">
-                        <span>{{ message }}</span>
-                        <button type="button" class="flash-close" aria-label="Dismiss message">×</button>
-                    </div>
-                    {% endfor %}
+            {% if messages %}
+            <div class="flash-stack" role="status" aria-live="polite">
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">
+                    <span>{{ message }}</span>
+                    <button type="button" class="flash-close" aria-label="Dismiss message">×</button>
                 </div>
-                {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
             {% endwith %}
 
             {% block content %}{% endblock %}
@@ -723,119 +1056,120 @@
 
     <!-- JAVASCRIPT (unchanged) -->
     <script>
-    (function () {
-        'use strict';
-        const sidebar = document.getElementById('adminSidebar');
-        const menuToggle = document.getElementById('adminMenuToggle');
-        const backdrop = document.getElementById('adminBackdrop');
-        function openSidebar() {
-            if (!sidebar) return;
-            sidebar.classList.add('open');
-            if (backdrop) { backdrop.hidden = false; backdrop.classList.add('open'); }
-            if (menuToggle) menuToggle.setAttribute('aria-expanded', 'true');
-            document.body.classList.add('menu-open');
-        }
-        function closeSidebar() {
-            if (!sidebar) return;
-            sidebar.classList.remove('open');
-            if (backdrop) { backdrop.classList.remove('open'); setTimeout(() => { backdrop.hidden = true; }, 300); }
-            if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
-            document.body.classList.remove('menu-open');
-        }
-        if (menuToggle && sidebar) {
-            menuToggle.addEventListener('click', function (e) {
-                e.preventDefault();
-                sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+        (function () {
+            'use strict';
+            const sidebar = document.getElementById('adminSidebar');
+            const menuToggle = document.getElementById('adminMenuToggle');
+            const backdrop = document.getElementById('adminBackdrop');
+            function openSidebar() {
+                if (!sidebar) return;
+                sidebar.classList.add('open');
+                if (backdrop) { backdrop.hidden = false; backdrop.classList.add('open'); }
+                if (menuToggle) menuToggle.setAttribute('aria-expanded', 'true');
+                document.body.classList.add('menu-open');
+            }
+            function closeSidebar() {
+                if (!sidebar) return;
+                sidebar.classList.remove('open');
+                if (backdrop) { backdrop.classList.remove('open'); setTimeout(() => { backdrop.hidden = true; }, 300); }
+                if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
+                document.body.classList.remove('menu-open');
+            }
+            if (menuToggle && sidebar) {
+                menuToggle.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+                });
+            }
+            if (backdrop) backdrop.addEventListener('click', closeSidebar);
+
+            const notifWrapper = document.getElementById('adminNotifWrapper');
+            const notifBtn = document.getElementById('adminNotifBtn');
+            const notifDropdown = document.getElementById('adminNotifDropdown');
+            const userProfile = document.getElementById('adminUserProfile');
+            const userBtn = document.getElementById('adminUserBtn');
+            const userDropdown = document.getElementById('adminUserDropdown');
+
+            function closeNotif() {
+                if (!notifWrapper) return;
+                notifWrapper.classList.remove('dropdown-open');
+                if (notifBtn) notifBtn.setAttribute('aria-expanded', 'false');
+            }
+            function closeUser() {
+                if (!userProfile) return;
+                userProfile.classList.remove('dropdown-open');
+                if (userBtn) userBtn.setAttribute('aria-expanded', 'false');
+            }
+            function closeBoth() { closeNotif(); closeUser(); }
+
+            if (notifBtn && notifWrapper) {
+                notifBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isOpen = notifWrapper.classList.contains('dropdown-open');
+                    closeUser();
+                    if (!isOpen) {
+                        notifWrapper.classList.add('dropdown-open');
+                        notifBtn.setAttribute('aria-expanded', 'true');
+                    } else { closeNotif(); }
+                });
+                if (notifDropdown) notifDropdown.addEventListener('click', e => e.stopPropagation());
+            }
+
+            if (userBtn && userProfile) {
+                userBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isOpen = userProfile.classList.contains('dropdown-open');
+                    closeNotif();
+                    if (!isOpen) {
+                        userProfile.classList.add('dropdown-open');
+                        userBtn.setAttribute('aria-expanded', 'true');
+                    } else { closeUser(); }
+                });
+                if (userDropdown) userDropdown.addEventListener('click', e => e.stopPropagation());
+            }
+
+            document.addEventListener('click', function (e) {
+                if (notifWrapper && !notifWrapper.contains(e.target)) closeNotif();
+                if (userProfile && !userProfile.contains(e.target)) closeUser();
             });
-        }
-        if (backdrop) backdrop.addEventListener('click', closeSidebar);
 
-        const notifWrapper = document.getElementById('adminNotifWrapper');
-        const notifBtn = document.getElementById('adminNotifBtn');
-        const notifDropdown = document.getElementById('adminNotifDropdown');
-        const userProfile = document.getElementById('adminUserProfile');
-        const userBtn = document.getElementById('adminUserBtn');
-        const userDropdown = document.getElementById('adminUserDropdown');
-
-        function closeNotif() {
-            if (!notifWrapper) return;
-            notifWrapper.classList.remove('dropdown-open');
-            if (notifBtn) notifBtn.setAttribute('aria-expanded', 'false');
-        }
-        function closeUser() {
-            if (!userProfile) return;
-            userProfile.classList.remove('dropdown-open');
-            if (userBtn) userBtn.setAttribute('aria-expanded', 'false');
-        }
-        function closeBoth() { closeNotif(); closeUser(); }
-
-        if (notifBtn && notifWrapper) {
-            notifBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const isOpen = notifWrapper.classList.contains('dropdown-open');
-                closeUser();
-                if (!isOpen) {
-                    notifWrapper.classList.add('dropdown-open');
-                    notifBtn.setAttribute('aria-expanded', 'true');
-                } else { closeNotif(); }
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') { closeBoth(); closeSidebar(); }
             });
-            if (notifDropdown) notifDropdown.addEventListener('click', e => e.stopPropagation());
-        }
 
-        if (userBtn && userProfile) {
-            userBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const isOpen = userProfile.classList.contains('dropdown-open');
-                closeNotif();
-                if (!isOpen) {
-                    userProfile.classList.add('dropdown-open');
-                    userBtn.setAttribute('aria-expanded', 'true');
-                } else { closeUser(); }
+            document.addEventListener('touchstart', function (e) {
+                if (notifWrapper && !notifWrapper.contains(e.target)) closeNotif();
+                if (userProfile && !userProfile.contains(e.target)) closeUser();
+            }, { passive: true });
+
+            document.querySelectorAll('.flash-close').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const flash = btn.closest('.flash');
+                    if (!flash) return;
+                    flash.style.opacity = '0';
+                    flash.style.transform = 'translateX(100%)';
+                    setTimeout(() => flash.remove(), 300);
+                });
             });
-            if (userDropdown) userDropdown.addEventListener('click', e => e.stopPropagation());
-        }
-
-        document.addEventListener('click', function (e) {
-            if (notifWrapper && !notifWrapper.contains(e.target)) closeNotif();
-            if (userProfile && !userProfile.contains(e.target)) closeUser();
-        });
-
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') { closeBoth(); closeSidebar(); }
-        });
-
-        document.addEventListener('touchstart', function (e) {
-            if (notifWrapper && !notifWrapper.contains(e.target)) closeNotif();
-            if (userProfile && !userProfile.contains(e.target)) closeUser();
-        }, { passive: true });
-
-        document.querySelectorAll('.flash-close').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const flash = btn.closest('.flash');
-                if (!flash) return;
-                flash.style.opacity = '0';
-                flash.style.transform = 'translateX(100%)';
-                setTimeout(() => flash.remove(), 300);
+            document.querySelectorAll('.flash').forEach(flash => {
+                setTimeout(() => {
+                    if (!flash.isConnected) return;
+                    flash.style.opacity = '0';
+                    flash.style.transform = 'translateX(100%)';
+                    setTimeout(() => flash.remove(), 300);
+                }, 6000);
             });
-        });
-        document.querySelectorAll('.flash').forEach(flash => {
-            setTimeout(() => {
-                if (!flash.isConnected) return;
-                flash.style.opacity = '0';
-                flash.style.transform = 'translateX(100%)';
-                setTimeout(() => flash.remove(), 300);
-            }, 6000);
-        });
-        document.querySelectorAll('.admin-nav-link').forEach(link => {
-            link.addEventListener('click', function () {
-                if (window.innerWidth <= 900) closeSidebar();
+            document.querySelectorAll('.admin-nav-link').forEach(link => {
+                link.addEventListener('click', function () {
+                    if (window.innerWidth <= 900) closeSidebar();
+                });
             });
-        });
-    })();
+        })();
     </script>
 
     {% block extra_scripts %}{% endblock %}
 </body>
+
 </html>

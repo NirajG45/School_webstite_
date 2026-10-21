@@ -1,192 +1,447 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard | RSN</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         /* ===== UPGRADED USER PROFILE BUTTON (same as parent) ===== */
-        .user-profile { position: relative; display: inline-block; }
-        .user-avatar-btn {
-            display: inline-flex; align-items: center; gap: 0;
-            padding: 4px; border: 2px solid transparent; background: transparent;
-            cursor: pointer; border-radius: 50px; max-width: 52px; overflow: hidden;
-            transition: max-width .4s cubic-bezier(.4,0,.2,1), padding .4s cubic-bezier(.4,0,.2,1),
-                        gap .4s cubic-bezier(.4,0,.2,1), background .25s, border-color .25s, box-shadow .25s;
-            white-space: nowrap; font: inherit; color: inherit; text-align: left;
+        .user-profile {
+            position: relative;
+            display: inline-block;
         }
+
+        .user-avatar-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0;
+            padding: 4px;
+            border: 2px solid transparent;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 50px;
+            max-width: 52px;
+            overflow: hidden;
+            transition: max-width .4s cubic-bezier(.4, 0, .2, 1), padding .4s cubic-bezier(.4, 0, .2, 1),
+                gap .4s cubic-bezier(.4, 0, .2, 1), background .25s, border-color .25s, box-shadow .25s;
+            white-space: nowrap;
+            font: inherit;
+            color: inherit;
+            text-align: left;
+        }
+
         .user-avatar-btn:hover,
         .user-profile.dropdown-open .user-avatar-btn,
         .user-profile:hover .user-avatar-btn {
-            max-width: 280px; gap: 10px; padding: 4px 14px 4px 4px;
-            background: rgba(11,53,98,0.06); border-color: rgba(11,53,98,0.12);
-            box-shadow: 0 6px 20px rgba(11,53,98,0.08);
+            max-width: 280px;
+            gap: 10px;
+            padding: 4px 14px 4px 4px;
+            background: rgba(11, 53, 98, 0.06);
+            border-color: rgba(11, 53, 98, 0.12);
+            box-shadow: 0 6px 20px rgba(11, 53, 98, 0.08);
         }
+
         .user-avatar-info {
-            display: flex; flex-direction: column; align-items: flex-start;
-            overflow: hidden; opacity: 0; max-width: 0; line-height: 1.2;
-            transition: opacity .25s, max-width .35s; pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            overflow: hidden;
+            opacity: 0;
+            max-width: 0;
+            line-height: 1.2;
+            transition: opacity .25s, max-width .35s;
+            pointer-events: none;
         }
+
         .user-avatar-btn:hover .user-avatar-info,
         .user-profile.dropdown-open .user-avatar-btn .user-avatar-info,
         .user-profile:hover .user-avatar-btn .user-avatar-info {
-            opacity: 1; max-width: 170px; pointer-events: auto;
+            opacity: 1;
+            max-width: 170px;
+            pointer-events: auto;
         }
+
         .user-avatar-info strong {
-            font-size: 13px; font-weight: 700; color: #0b3562;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0b3562;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 160px;
         }
-        .user-avatar-info small { font-size: 10.5px; color: #5a7a99; text-transform: capitalize; white-space: nowrap; }
+
+        .user-avatar-info small {
+            font-size: 10.5px;
+            color: #5a7a99;
+            text-transform: capitalize;
+            white-space: nowrap;
+        }
+
         .user-chevron {
-            font-size: 10px; color: #0b3562; opacity: 0; max-width: 0;
+            font-size: 10px;
+            color: #0b3562;
+            opacity: 0;
+            max-width: 0;
             transition: opacity .25s, max-width .25s, transform .3s;
         }
+
         .user-avatar-btn:hover .user-chevron,
         .user-profile.dropdown-open .user-avatar-btn .user-chevron,
-        .user-profile:hover .user-avatar-btn .user-chevron { opacity: 1; max-width: 20px; }
-        .user-profile.dropdown-open .user-chevron { transform: rotate(180deg); }
+        .user-profile:hover .user-avatar-btn .user-chevron {
+            opacity: 1;
+            max-width: 20px;
+        }
+
+        .user-profile.dropdown-open .user-chevron {
+            transform: rotate(180deg);
+        }
+
         .user-dropdown {
-            position: absolute; top: calc(100% + 10px); right: 0; min-width: 260px;
-            background: #fff; border-radius: 14px;
-            box-shadow: 0 18px 50px rgba(11,53,98,0.18), 0 4px 14px rgba(11,53,98,0.08);
-            padding: 14px; opacity: 0; visibility: hidden;
-            transform: translateY(-8px) scale(0.97); transform-origin: top right;
-            pointer-events: none; transition: opacity .22s, transform .22s, visibility .22s;
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            min-width: 260px;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 18px 50px rgba(11, 53, 98, 0.18), 0 4px 14px rgba(11, 53, 98, 0.08);
+            padding: 14px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px) scale(0.97);
+            transform-origin: top right;
+            pointer-events: none;
+            transition: opacity .22s, transform .22s, visibility .22s;
             z-index: 1000;
         }
+
         .user-profile:hover .user-dropdown,
         .user-profile.dropdown-open .user-dropdown {
-            opacity: 1; visibility: visible;
-            transform: translateY(0) scale(1); pointer-events: auto;
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
         }
 
         /* ===== DASHBOARD QUICK STATS ===== */
         .dashboard-quick-stats {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 14px; margin: -34px auto 26px; padding: 0 20px;
-            position: relative; z-index: 2; max-width: 1240px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin: -34px auto 26px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 2;
+            max-width: 1240px;
         }
+
         .dq-stat {
-            background: #fff; border-radius: 14px; padding: 16px 18px;
-            display: flex; align-items: center; gap: 12px;
-            box-shadow: 0 4px 16px rgba(11,53,98,0.08);
-            border: 1px solid rgba(11,53,98,0.06);
+            background: #fff;
+            border-radius: 14px;
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 16px rgba(11, 53, 98, 0.08);
+            border: 1px solid rgba(11, 53, 98, 0.06);
             transition: transform .25s ease, box-shadow .25s ease;
         }
-        .dq-stat:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(11,53,98,0.12); }
-        .dq-stat-icon {
-            width: 44px; height: 44px; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px; flex-shrink: 0;
+
+        .dq-stat:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(11, 53, 98, 0.12);
         }
-        .dq-stat strong { font-size: 19px; font-weight: 800; color: #0b3562; display: block; line-height: 1.15; }
-        .dq-stat small { font-size: 11px; color: #65758a; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600; }
+
+        .dq-stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .dq-stat strong {
+            font-size: 19px;
+            font-weight: 800;
+            color: #0b3562;
+            display: block;
+            line-height: 1.15;
+        }
+
+        .dq-stat small {
+            font-size: 11px;
+            color: #65758a;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-weight: 600;
+        }
+
         @media (max-width: 640px) {
-            .dashboard-quick-stats { margin-top: -22px; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-            .dq-stat { padding: 12px 14px; }
-            .dq-stat-icon { width: 36px; height: 36px; font-size: 15px; }
-            .dq-stat strong { font-size: 16px; }
-            .dq-stat small { font-size: 10px; }
+            .dashboard-quick-stats {
+                margin-top: -22px;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .dq-stat {
+                padding: 12px 14px;
+            }
+
+            .dq-stat-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 15px;
+            }
+
+            .dq-stat strong {
+                font-size: 16px;
+            }
+
+            .dq-stat small {
+                font-size: 10px;
+            }
         }
 
         /* ===== DASHBOARD TABLES & TABS ===== */
-        .dash-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        .dash-table th { background: #f8fafc; color: #475569; font-weight: 700; padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0; }
-        .dash-table td { padding: 10px; border-bottom: 1px solid #e2e8f0; color: #1e293b; }
-        .dash-table tr:hover { background: #f8fafc; }
-        .date-filters { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
-        .date-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; cursor: pointer; font-size: 12px; font-weight: 600; color: #475569; transition: all 0.2s; }
-        .date-btn:hover, .date-btn.active { background: #0b3562; color: #fff; border-color: #0b3562; }
-        .exam-select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 15px; font-family: inherit; }
-        .attendance-split-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        @media (max-width: 768px) { .attendance-split-layout { grid-template-columns: 1fr; } }
+        .dash-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .dash-table th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            padding: 10px;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .dash-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #1e293b;
+        }
+
+        .dash-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .date-filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .date-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            transition: all 0.2s;
+        }
+
+        .date-btn:hover,
+        .date-btn.active {
+            background: #0b3562;
+            color: #fff;
+            border-color: #0b3562;
+        }
+
+        .exam-select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-family: inherit;
+        }
+
+        .attendance-split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .attendance-split-layout {
+                grid-template-columns: 1fr;
+            }
+        }
 
         /* ===== NEW: HOMEWORK PANEL ===== */
-        .hw-list { display: flex; flex-direction: column; gap: 10px; }
+        .hw-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
         .hw-item {
-            display: flex; gap: 12px;
+            display: flex;
+            gap: 12px;
             padding: 12px;
             border-radius: 10px;
             background: #f8fafc;
             border: 1px solid transparent;
             transition: all 0.2s ease;
         }
+
         .hw-item:hover {
             background: #fff;
             border-color: #e2e8f0;
-            box-shadow: 0 4px 12px rgba(11,53,98,0.05);
+            box-shadow: 0 4px 12px rgba(11, 53, 98, 0.05);
         }
+
         .hw-icon {
-            width: 36px; height: 36px;
+            width: 36px;
+            height: 36px;
             border-radius: 9px;
-            background: #e1f1ff; color: #1768a7;
-            display: flex; align-items: center; justify-content: center;
+            background: #e1f1ff;
+            color: #1768a7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 14px;
             flex: 0 0 36px;
         }
-        .hw-info { flex: 1; min-width: 0; }
+
+        .hw-info {
+            flex: 1;
+            min-width: 0;
+        }
+
         .hw-info strong {
             display: block;
-            font-size: 13px; font-weight: 700; color: #0b3562;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0b3562;
             margin-bottom: 3px;
-            overflow: hidden; text-overflow: ellipsis;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .hw-info small { display: block; font-size: 11px; color: #65758a; line-height: 1.35; }
+
+        .hw-info small {
+            display: block;
+            font-size: 11px;
+            color: #65758a;
+            line-height: 1.35;
+        }
+
         .hw-info .hw-desc {
             display: block;
-            font-size: 10.5px; color: #94a3b8;
+            font-size: 10.5px;
+            color: #94a3b8;
             margin-top: 3px;
             line-height: 1.4;
         }
+
         .hw-meta {
-            display: flex; gap: 10px; flex-wrap: wrap;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
             margin-top: 4px;
-            font-size: 10.5px; color: #65758a;
+            font-size: 10.5px;
+            color: #65758a;
         }
-        .hw-meta span { display: inline-flex; align-items: center; gap: 4px; }
-        .hw-meta i { font-size: 9px; color: #94a3b8; }
+
+        .hw-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .hw-meta i {
+            font-size: 9px;
+            color: #94a3b8;
+        }
 
         /* ===== NEW: UPCOMING EVENTS PANEL ===== */
-        .event-mini-list { display: flex; flex-direction: column; gap: 10px; }
+        .event-mini-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
         .event-mini-item {
-            display: flex; gap: 12px;
+            display: flex;
+            gap: 12px;
             padding: 10px;
             border-radius: 10px;
             background: #f8fafc;
             transition: all 0.2s ease;
         }
+
         .event-mini-item:hover {
             background: #fff;
-            box-shadow: 0 4px 12px rgba(11,53,98,0.05);
+            box-shadow: 0 4px 12px rgba(11, 53, 98, 0.05);
         }
+
         .event-mini-date {
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            width: 44px; height: 44px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
             border-radius: 9px;
             background: #0b3562;
             color: #fff;
             flex: 0 0 44px;
         }
-        .event-mini-date strong { font-size: 16px; font-weight: 800; line-height: 1; }
+
+        .event-mini-date strong {
+            font-size: 16px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
         .event-mini-date small {
-            font-size: 8px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.5px;
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             opacity: 0.85;
         }
-        .event-mini-info { flex: 1; min-width: 0; }
+
+        .event-mini-info {
+            flex: 1;
+            min-width: 0;
+        }
+
         .event-mini-info strong {
             display: block;
-            font-size: 12.5px; font-weight: 700; color: #0b3562;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0b3562;
             margin-bottom: 2px;
-            overflow: hidden; text-overflow: ellipsis;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .event-mini-info small { display: block; font-size: 10.5px; color: #65758a; line-height: 1.35; }
+
+        .event-mini-info small {
+            display: block;
+            font-size: 10.5px;
+            color: #65758a;
+            line-height: 1.35;
+        }
     </style>
 </head>
 
@@ -197,7 +452,8 @@
         <div class="header-inner">
             <a class="brand" href="{{ url_for('home') }}">
                 <a href="{{ url_for('home') }}" class="brand-mark">
-                    <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="Logo" class="school-logo">
+                    <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="Logo"
+                        class="school-logo">
                 </a>
                 <span class="brand-copy">
                     <strong>RESIDENTIAL SHANTI NIKETAN</strong>
@@ -208,47 +464,66 @@
 
             <nav class="desktop-nav" aria-label="Main navigation">
                 <a class="nav-link" href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
-                <a class="nav-link active" href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
-                <a class="nav-link" href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i> Faculty</a>
-                <a class="nav-link" href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i> Events</a>
-                <a class="nav-link" href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i> Achievements</a>
+                <a class="nav-link active" href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> My
+                    Dashboard</a>
+                <a class="nav-link" href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i>
+                    Faculty</a>
+                <a class="nav-link" href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i>
+                    Events</a>
+                <a class="nav-link" href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i>
+                    Achievements</a>
                 <a class="nav-link" href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
-                <a class="nav-link" href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i> Contact</a>
+                <a class="nav-link" href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i>
+                    Contact</a>
             </nav>
 
             <div class="header-actions">
                 {% if session.get('user_id') %}
                 <div class="user-profile" id="userProfile">
-                    <button type="button" class="user-avatar-btn" id="userMenuBtn"
-                            aria-haspopup="true" aria-expanded="false" aria-controls="userDropdown"
-                            title="{{ session['user_name'] }} — click to open menu">
+                    <button type="button" class="user-avatar-btn" id="userMenuBtn" aria-haspopup="true"
+                        aria-expanded="false" aria-controls="userDropdown"
+                        title="{{ session['user_name'] }} — click to open menu">
                         <div class="user-avatar">
-                            {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                            {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
+                            upper if session['user_name'].split()|length > 1 else '' }}
                         </div>
                         <div class="user-avatar-info">
                             <strong>{{ session['user_name'].split()[0] }}</strong>
-                            <small>{{ session.get('user_role', 'Student')|capitalize }} • {{ session.get('unique_id', '') }}</small>
+                            <small>{{ session.get('user_role', 'Student')|capitalize }} • {{ session.get('unique_id',
+                                '') }}</small>
                         </div>
                         <i class="fa-solid fa-chevron-down user-chevron"></i>
                     </button>
                     <div class="user-dropdown" id="userDropdown" role="menu">
                         <div class="user-info-head">
                             <div class="user-info-avatar">
-                                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
+                                upper if session['user_name'].split()|length > 1 else '' }}
                             </div>
                             <div class="user-info-text">
                                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
-                                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
+                                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A')
+                                    }}</small>
                                 <span class="user-role-tag">{{ session.get('user_role', 'Student')|capitalize }}</span>
                             </div>
                         </div>
                         <hr class="user-divider">
-                        <a href="{{ url_for('user_dashboard') }}" role="menuitem"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+                        <a href="{{ url_for('user_dashboard') }}" role="menuitem"><i class="fa-solid fa-gauge"></i> My
+                            Dashboard</a>
+                        <a href="{{ url_for('messages_inbox') }}" role="menuitem"><i class="fa-regular fa-comments"></i>
+                            Messages</a>
+                        <a href="{{ url_for('study_materials_page') }}" role="menuitem"><i
+                                class="fa-solid fa-book-open"></i> Study Materials</a>
+                        <a href="{{ url_for('results_page') }}" role="menuitem"><i class="fa-solid fa-file-lines"></i>
+                            My Results</a>
                         {% if session.get('user_role') == 'admin' %}
-                        <a href="{{ url_for('admin_dashboard') }}" role="menuitem"><i class="fa-solid fa-user-gear"></i> Admin Panel</a>
+                        <a href="{{ url_for('admin_dashboard') }}" role="menuitem"><i class="fa-solid fa-user-gear"></i>
+                            Admin Panel</a>
                         {% endif %}
-                        <a href="{{ url_for('change_password') }}" role="menuitem"><i class="fa-solid fa-key"></i> Change Password</a>
-                        <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                        <a href="{{ url_for('change_password') }}" role="menuitem"><i class="fa-solid fa-key"></i>
+                            Change Password</a>
+                        <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem"><i
+                                class="fa-solid fa-right-from-bracket"></i> Logout</a>
                     </div>
                 </div>
                 {% else %}
@@ -256,7 +531,8 @@
                     <i class="fa-regular fa-user"></i><span>Login</span>
                 </a>
                 {% endif %}
-                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-controls="mobileMenu" aria-expanded="false">
+                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu"
+                    aria-controls="mobileMenu" aria-expanded="false">
                     <span></span><span></span><span></span>
                 </button>
             </div>
@@ -274,7 +550,8 @@
         {% if session.get('user_id') %}
         <div class="mobile-user-box logged-in">
             <div class="mobile-user-avatar">
-                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if
+                session['user_name'].split()|length > 1 else '' }}
             </div>
             <div class="mobile-user-text">
                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
@@ -297,13 +574,17 @@
         <nav class="mobile-nav">
             <a href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
             <a href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+            <a href="{{ url_for('messages_inbox') }}"><i class="fa-regular fa-comments"></i> Messages</a>
+            <a href="{{ url_for('study_materials_page') }}"><i class="fa-solid fa-book-open"></i> Study Materials</a>
+            <a href="{{ url_for('results_page') }}"><i class="fa-solid fa-file-lines"></i> My Results</a>
             <a href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i> Our Faculty</a>
             <a href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i> Events & News</a>
             <a href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i> Achievements</a>
             <a href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
             <a href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i> Contact Us</a>
             <a href="{{ url_for('change_password') }}"><i class="fa-solid fa-key"></i> Change Password</a>
-            <a href="{{ url_for('logout') }}" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            <a href="{{ url_for('logout') }}" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i>
+                Logout</a>
         </nav>
         <div class="mobile-menu-foot">Learn <span>•</span> Grow <span>•</span> Succeed</div>
     </aside>
@@ -311,7 +592,8 @@
     {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}
     <div class="flash-stack">{% for cat, msg in messages %}
         <div class="flash {{ cat }}"><span>{{ msg }}</span><button class="flash-close">×</button></div>
-    {% endfor %}</div>
+        {% endfor %}
+    </div>
     {% endif %}{% endwith %}
 
     <main id="main">
@@ -327,7 +609,8 @@
                 </div>
                 <div class="welcome-avatar">
                     <div class="big-avatar student-avatar">
-                        {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length > 1 else '' }}
+                        {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length
+                        > 1 else '' }}
                     </div>
                 </div>
             </div>
@@ -433,7 +716,8 @@
                         <span class="profile-value">{{ user.dob }}</span>
                     </div>
                     {% endif %}
-                    <a href="{{ url_for('change_password') }}" class="btn-admin-primary" style="margin-top:15px; display:inline-flex;">
+                    <a href="{{ url_for('change_password') }}" class="btn-admin-primary"
+                        style="margin-top:15px; display:inline-flex;">
                         <i class="fa-solid fa-key"></i> Change Password
                     </a>
                 </div>
@@ -481,15 +765,18 @@
                     {% set present = attendance|selectattr('status','equalto','present')|list|length %}
                     {% set absent = attendance|selectattr('status','equalto','absent')|list|length %}
                     <div class="attendance-summary" style="margin-bottom: 20px;">
-                        <div class="att-stat"><strong style="color:#168254;">{{ present }}</strong><small>Total Present</small></div>
-                        <div class="att-stat"><strong style="color:#d71938;">{{ absent }}</strong><small>Total Absent</small></div>
+                        <div class="att-stat"><strong style="color:#168254;">{{ present }}</strong><small>Total
+                                Present</small></div>
+                        <div class="att-stat"><strong style="color:#d71938;">{{ absent }}</strong><small>Total
+                                Absent</small></div>
                         <div class="att-stat"><strong>{{ attendance|length }}</strong><small>Total Days</small></div>
                     </div>
 
                     <div class="attendance-split-layout">
                         <!-- SUBJECT WISE TABLE -->
                         <div>
-                            <h3 style="font-size: 14px; margin-bottom: 10px; color: #0b3562;"><i class="fa-solid fa-book"></i> Subject-wise Report</h3>
+                            <h3 style="font-size: 14px; margin-bottom: 10px; color: #0b3562;"><i
+                                    class="fa-solid fa-book"></i> Subject-wise Report</h3>
                             <div class="table-responsive">
                                 <table class="dash-table">
                                     <thead>
@@ -510,11 +797,16 @@
                                             <td>{{ stats.total }}</td>
                                             <td>
                                                 {% set pct = (stats.present / stats.total * 100) | round | int %}
-                                                <span style="font-weight: 700; color: {{ '#168254' if pct >= 75 else '#d71938' }};">{{ pct }}%</span>
+                                                <span
+                                                    style="font-weight: 700; color: {{ '#168254' if pct >= 75 else '#d71938' }};">{{
+                                                    pct }}%</span>
                                             </td>
                                         </tr>
                                         {% else %}
-                                        <tr><td colspan="5" style="text-align: center; color: #64748b; padding: 15px;">No subject-wise data available.</td></tr>
+                                        <tr>
+                                            <td colspan="5" style="text-align: center; color: #64748b; padding: 15px;">
+                                                No subject-wise data available.</td>
+                                        </tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -523,7 +815,8 @@
 
                         <!-- DATE WISE LOGS -->
                         <div>
-                            <h3 style="font-size: 14px; margin-bottom: 10px; color: #0b3562;"><i class="fa-solid fa-calendar-days"></i> Recent Logs</h3>
+                            <h3 style="font-size: 14px; margin-bottom: 10px; color: #0b3562;"><i
+                                    class="fa-solid fa-calendar-days"></i> Recent Logs</h3>
                             <div class="date-filters">
                                 <button class="date-btn active" onclick="filterDates('all')">All</button>
                                 <button class="date-btn" onclick="filterDates('today')">Today</button>
@@ -532,7 +825,8 @@
                             <div class="att-list" id="attendanceLogs" style="max-height: 250px; overflow-y: auto;">
                                 {% for a in attendance[:30] %}
                                 <div class="att-row" data-date="{{ a.date }}">
-                                    <span>{{ a.date }} <small style="color:#64748b;">({{ a.subject or 'General' }})</small></span>
+                                    <span>{{ a.date }} <small style="color:#64748b;">({{ a.subject or 'General'
+                                            }})</small></span>
                                     <span class="att-badge att-{{ a.status }}">{{ a.status|capitalize }}</span>
                                 </div>
                                 {% else %}
@@ -585,7 +879,8 @@
             <!-- EXAM RESULTS -->
             <div class="panel">
                 <div class="panel-title">
-                    <span class="panel-title-icon" style="background:#fef3c7; color:#b45309;"><i class="fa-solid fa-file-pen"></i></span>
+                    <span class="panel-title-icon" style="background:#fef3c7; color:#b45309;"><i
+                            class="fa-solid fa-file-pen"></i></span>
                     <h2>Exam Results</h2>
                 </div>
                 <div style="padding: 20px;">
@@ -617,18 +912,52 @@
                                 <td>{{ m.total_marks }}</td>
                                 <td>
                                     {% set pct = (m.marks_obtained / m.total_marks * 100) | round | int %}
-                                    <span style="font-weight:700; color: {{ '#168254' if pct >= 33 else '#d71938' }};">{{ pct }}%</span>
+                                    <span
+                                        style="font-weight:700; color: {{ '#168254' if pct >= 33 else '#d71938' }};">{{
+                                        pct }}%</span>
                                 </td>
                             </tr>
                             {% else %}
-                            <tr><td colspan="4" style="text-align: center; color: #64748b; padding: 15px;">No exam marks uploaded yet.</td></tr>
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #64748b; padding: 15px;">No exam marks
+                                    uploaded yet.</td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- FEE PAYMENT -->
+            <!-- NEW: QUICK LINKS -->
+            <div class="panel">
+                <div class="panel-title">
+                    <span class="panel-title-icon student-icon" style="background:#e1f1ff; color:#1768a7;">
+                        <i class="fa-solid fa-link"></i>
+                    </span>
+                    <h2>Quick Links</h2>
+                </div>
+                <div style="padding: 15px 20px;">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                        <a href="{{ url_for('messages_inbox') }}"
+                            style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border-radius: 10px; background: #f8fafc; text-decoration: none; text-align: center; transition: all .2s;">
+                            <i class="fa-regular fa-comments" style="font-size: 16px; color: #0b3562;"></i>
+                            <span style="font-size: 10px; font-weight: 700; color: #0b3562;">Messages</span>
+                        </a>
+                        <a href="{{ url_for('study_materials_page') }}"
+                            style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border-radius: 10px; background: #f8fafc; text-decoration: none; text-align: center; transition: all .2s;">
+                            <i class="fa-solid fa-book-open" style="font-size: 16px; color: #0b3562;"></i>
+                            <span style="font-size: 10px; font-weight: 700; color: #0b3562;">Study Materials</span>
+                        </a>
+                        <a href="{{ url_for('results_page') }}"
+                            style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border-radius: 10px; background: #f8fafc; text-decoration: none; text-align: center; transition: all .2s;">
+                            <i class="fa-solid fa-chart-simple" style="font-size: 16px; color: #0b3562;"></i>
+                            <span style="font-size: 10px; font-weight: 700; color: #0b3562;">Results</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FEE PAYMENT (FIXED — form restored, panel properly closed) -->
             <div class="panel">
                 <div class="panel-title">
                     <span class="panel-title-icon student-icon"><i class="fa-solid fa-indian-rupee-sign"></i></span>
@@ -666,7 +995,7 @@
                 </div>
             </div>
 
-            <!-- FEE HISTORY -->
+            <!-- FEE HISTORY (sibling — NOT nested inside Fee Payment) -->
             <div class="panel">
                 <div class="panel-title">
                     <span class="panel-title-icon student-icon"><i class="fa-solid fa-receipt"></i></span>
@@ -677,9 +1006,12 @@
                     <div class="att-row">
                         <div>
                             <strong style="color:var(--navy);">₹{{ f.amount }}</strong>
-                            <small style="display:block;color:#65758a;font-size:11px;">{{ f.payment_date }}{% if f.transaction_id %} • {{ f.transaction_id }}{% endif %}</small>
+                            <small style="display:block;color:#65758a;font-size:11px;">{{ f.payment_date }}{% if
+                                f.transaction_id %} • {{ f.transaction_id }}{% endif %}</small>
                         </div>
-                        <span class="kind-badge kind-{{ 'admission' if f.status=='verified' else 'contact' if f.status=='rejected' else 'notice' }}">{{ f.status|capitalize }}</span>
+                        <span
+                            class="kind-badge kind-{{ 'admission' if f.status=='verified' else 'contact' if f.status=='rejected' else 'notice' }}">{{
+                            f.status|capitalize }}</span>
                     </div>
                     {% else %}
                     <p class="empty-row">No payments yet.</p>
@@ -687,7 +1019,7 @@
                 </div>
             </div>
 
-            <!-- NOTICES -->
+            <!-- NOTICES (sibling) -->
             <div class="panel">
                 <div class="panel-title notice-title">
                     <span class="panel-title-icon"><i class="fa-solid fa-bell"></i></span>
@@ -698,7 +1030,9 @@
                     {% for n in notices[:6] %}
                     <article class="notice">
                         <span class="notice-file"><i class="fa-regular fa-file-lines"></i></span>
-                        <div><small>{{ n.date }} <b>{{ n.tag }}</b></small><p>{{ n.title }}</p></div>
+                        <div><small>{{ n.date }} <b>{{ n.tag }}</b></small>
+                            <p>{{ n.title }}</p>
+                        </div>
                     </article>
                     {% else %}
                     <p class="empty-row" style="padding:20px;">No notices yet.</p>
@@ -706,21 +1040,32 @@
                 </div>
             </div>
 
-            <!-- MESSAGES -->
+            <!-- MESSAGES (sibling — with Open inbox link + Compose button) -->
             <div class="panel">
                 <div class="panel-title">
                     <span class="panel-title-icon student-icon"><i class="fa-solid fa-comments"></i></span>
                     <h2>Messages from School</h2>
+                    <a href="{{ url_for('messages_inbox') }}"
+                        style="margin-left:auto; font-size:11.5px; font-weight:700; color:#d71938; text-decoration:none; display:inline-flex; align-items:center; gap:5px;">
+                        Open inbox <i class="fa-solid fa-arrow-right" style="font-size:10px;"></i>
+                    </a>
                 </div>
                 <div class="notice-list">
                     {% for m in messages[:5] %}
                     <article class="notice">
                         <span class="notice-file"><i class="fa-solid fa-envelope"></i></span>
-                        <div><small>{{ m.created_at[:10] }}</small><p><strong>{{ m.subject }}</strong></p><small style="color:#65758a;">{{ m.body[:100] }}...</small></div>
+                        <div><small>{{ m.created_at[:10] }}</small>
+                            <p><strong>{{ m.subject }}</strong></p>
+                            <small style="color:#65758a;">{{ m.body[:100] }}...</small>
+                        </div>
                     </article>
                     {% else %}
                     <p class="empty-row" style="padding:20px;">No messages yet.</p>
                     {% endfor %}
+                    <a href="{{ url_for('messages_compose') }}"
+                        style="display:inline-flex; align-items:center; gap:6px; margin:12px 20px 20px; padding:8px 14px; background:#0b3562; color:#fff; border-radius:8px; font-size:12px; font-weight:700; text-decoration:none;">
+                        <i class="fa-solid fa-pen"></i> Compose new message
+                    </a>
                 </div>
             </div>
         </section>
@@ -730,7 +1075,9 @@
         <div class="wrap footer-inner">
             <div class="footer-brand-col">
                 <a class="footer-brand" href="{{ url_for('home') }}">
-                    <span class="brand-mark small-mark"><img src="{{ url_for('static', filename='images/school-logo.png') }}" class="school-logo" alt="Logo"></span>
+                    <span class="brand-mark small-mark"><img
+                            src="{{ url_for('static', filename='images/school-logo.png') }}" class="school-logo"
+                            alt="Logo"></span>
                     <span class="footer-brand-copy">
                         <strong>Residential Shanti Niketan</strong>
                         <small>Navinagar, Jamui</small>
@@ -748,7 +1095,9 @@
         </div>
         <div class="footer-bottom">
             <p class="copyright-text">© <span id="year"></span> Residential Shanti Niketan.</p>
-            <div class="developer-credit"><span class="dev-badge"><i class="fa-solid fa-code"></i> Developed by <strong>Niraj Kumar</strong> <a href="tel:9155658081" class="dev-contact"><i class="fa-solid fa-phone"></i> 9155658081</a></span></div>
+            <div class="developer-credit"><span class="dev-badge"><i class="fa-solid fa-code"></i> Developed by
+                    <strong>Niraj Kumar</strong> <a href="tel:9155658081" class="dev-contact"><i
+                            class="fa-solid fa-phone"></i> 9155658081</a></span></div>
         </div>
     </footer>
 
@@ -836,7 +1185,7 @@
         });
 
         /* Filter Attendance by Date (Today, Yesterday, All) */
-        window.filterDates = function(type) {
+        window.filterDates = function (type) {
             const rows = document.querySelectorAll('#attendanceLogs .att-row');
             const today = new Date().toISOString().split('T')[0];
             const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
@@ -859,7 +1208,7 @@
         };
 
         /* Filter Exams (Half Yearly, Final, All, etc.) */
-        window.filterExams = function() {
+        window.filterExams = function () {
             const filter = document.getElementById('examTypeFilter').value;
             const rows = document.querySelectorAll('.exam-row');
 
@@ -873,4 +1222,5 @@
         };
     </script>
 </body>
+
 </html>

@@ -1772,6 +1772,9 @@
             <a href="{{ url_for('teacher_attendance') }}" class="td-nav-link">
                 <i class="fa-solid fa-clipboard-user"></i> Mark Attendance
             </a>
+            <a href="{{ url_for('teacher_homework') }}" class="td-nav-link">
+                <i class="fa-solid fa-book-open"></i> Assign Homework
+            </a>
 
             <div class="td-nav-label">Leave</div>
             <a href="#leave" class="td-nav-link">
@@ -1786,7 +1789,9 @@
 
             <div class="td-nav-label">Communication</div>
             <a href="#notices" class="td-nav-link"><i class="fa-regular fa-bell"></i> Notices</a>
-            <a href="#messages" class="td-nav-link"><i class="fa-regular fa-comments"></i> Messages</a>
+            <a href="{{ url_for('messages_inbox') }}" class="td-nav-link">
+                <i class="fa-regular fa-comments"></i> Messages
+            </a>
             <!-- NEW: Events link -->
             <a href="#events" class="td-nav-link"><i class="fa-regular fa-calendar-days"></i> Events</a>
 
@@ -1847,10 +1852,10 @@
                                     <small>{{ pending_leaves }} pending approval</small>
                                 </div>
                             </a>
-                            <a href="#messages" class="td-notif-item" role="menuitem">
+                            <a href="{{ url_for('messages_inbox') }}" class="td-notif-item" role="menuitem">
                                 <div class="td-notif-icon red"><i class="fa-regular fa-comments"></i></div>
                                 <div class="td-notif-body">
-                                    <strong>Messages from principal</strong>
+                                    <strong>Messages</strong>
                                     <small>{{ messages|length }} message(s)</small>
                                 </div>
                             </a>
@@ -2166,6 +2171,9 @@
                             <div class="td-panel-head">
                                 <h2 class="td-panel-title"><i class="fa-regular fa-comments"></i> Messages from
                                     principal</h2>
+                                <a href="{{ url_for('messages_inbox') }}" class="td-panel-link">
+                                    Open inbox <i class="fa-solid fa-arrow-right"></i>
+                                </a>
                             </div>
                             <div class="td-panel-body">
                                 {% for m in messages[:4] %}
@@ -2181,6 +2189,10 @@
                                 {% else %}
                                 <div class="td-empty">No messages yet.</div>
                                 {% endfor %}
+                                <a href="{{ url_for('messages_compose') }}"
+                                    style="display:inline-flex; align-items:center; gap:6px; margin-top:10px; padding:8px 14px; background:#0a2340; color:#fff; border-radius:8px; font-size:12px; font-weight:700; text-decoration:none;">
+                                    <i class="fa-solid fa-pen"></i> Compose new message
+                                </a>
                             </div>
                         </section>
                     </div>
@@ -2220,6 +2232,12 @@
                                     <div class="td-qa-text"><strong>Mark attendance</strong></div>
                                     <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
                                 </a>
+                                <!-- 3b. NEW: Assign Homework -->
+                                <a href="{{ url_for('teacher_homework') }}" class="td-qa-link">
+                                    <div class="td-qa-icon purple"><i class="fa-solid fa-book-open"></i></div>
+                                    <div class="td-qa-text"><strong>Assign homework</strong></div>
+                                    <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
+                                </a>
 
                                 <!-- 4. Apply for leave — dashboard form -->
                                 <a href="#leave" class="td-qa-link">
@@ -2243,9 +2261,9 @@
                                 </a>
 
                                 <!-- 7. Check messages — dashboard section -->
-                                <a href="#messages" class="td-qa-link">
+                                <a href="{{ url_for('messages_inbox') }}" class="td-qa-link">
                                     <div class="td-qa-icon red"><i class="fa-regular fa-comments"></i></div>
-                                    <div class="td-qa-text"><strong>Check messages</strong></div>
+                                    <div class="td-qa-text"><strong>All messages</strong></div>
                                     <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
                                 </a>
 

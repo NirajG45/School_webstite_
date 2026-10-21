@@ -625,7 +625,10 @@
         <div class="dash-panel">
             <div class="dash-panel-header">
                 <h3 class="dash-panel-title"><i class="fa-regular fa-bell"></i> Notifications &amp; alerts</h3>
-                <a href="{{ url_for('admin_messages') }}" class="dash-panel-link">View all</a>
+                <!-- FIXED: "View all" now opens the real inbox, not the send tool -->
+                <a href="{{ url_for('messages_inbox') }}" class="dash-panel-link">
+                    Inbox <i class="fa-solid fa-arrow-right"></i>
+                </a>
             </div>
             <div class="dash-panel-body">
                 <div class="notif-list-compact">
@@ -715,6 +718,16 @@
                         <div class="qa-tile-icon green"><i class="fa-solid fa-indian-rupee-sign"></i></div>
                         <span>Fee Collection</span>
                     </a>
+                    <!-- NEW: Inbox quick action -->
+                    <a href="{{ url_for('messages_inbox') }}" class="qa-tile-side">
+                        <div class="qa-tile-icon blue"><i class="fa-solid fa-inbox"></i></div>
+                        <span>Inbox</span>
+                    </a>
+                    <!-- NEW: Compose Message quick action -->
+                    <a href="{{ url_for('messages_compose') }}" class="qa-tile-side">
+                        <div class="qa-tile-icon red"><i class="fa-solid fa-pen"></i></div>
+                        <span>Compose Message</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -767,6 +780,16 @@
                     <a href="{{ url_for('admin_users', role='parent') }}" class="useful-link">
                         <i class="fa-solid fa-users"></i>
                         <span>Parents</span>
+                    </a>
+                    <!-- NEW: Inbox useful link -->
+                    <a href="{{ url_for('messages_inbox') }}" class="useful-link">
+                        <i class="fa-solid fa-inbox"></i>
+                        <span>Inbox</span>
+                    </a>
+                    <!-- NEW: Broadcast useful link -->
+                    <a href="{{ url_for('admin_messages') }}" class="useful-link">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Broadcast</span>
                     </a>
                 </div>
             </div>

@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parent Dashboard | RSN</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
@@ -21,8 +24,15 @@
             --pd-muted: var(--muted, #65758a);
             --pd-paper: var(--paper, #f4f7fb);
         }
-        * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         .pd-body {
             margin: 0;
             font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
@@ -30,12 +40,17 @@
             color: var(--pd-navy);
             -webkit-font-smoothing: antialiased;
         }
-        .pd-body.pd-menu-open { overflow: hidden; }
+
+        .pd-body.pd-menu-open {
+            overflow: hidden;
+        }
 
         /* ===== SIDEBAR ===== */
         .pd-sidebar {
             position: fixed;
-            top: 0; left: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            bottom: 0;
             width: 256px;
             background: linear-gradient(180deg, #0a2340 0%, #06182c 100%);
             display: flex;
@@ -44,28 +59,62 @@
             overflow-y: auto;
             transition: transform 0.3s ease;
         }
-        .pd-sidebar::-webkit-scrollbar { width: 6px; }
-        .pd-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
-        .pd-sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
 
-        .pd-sidebar-head { padding: 18px 16px 8px; }
-        .pd-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .pd-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .pd-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+        }
+
+        .pd-sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .pd-sidebar-head {
+            padding: 18px 16px 8px;
+        }
+
+        .pd-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
         .pd-logo-img {
-            width: 38px; height: 38px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             background: #fff;
             padding: 3px;
             object-fit: contain;
             flex: 0 0 38px;
         }
-        .pd-logo-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
-        .pd-logo-text strong {
-            font-size: 13.5px; font-weight: 800; color: #fff;
-            letter-spacing: 0.2px; white-space: nowrap;
+
+        .pd-logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.15;
+            min-width: 0;
         }
+
+        .pd-logo-text strong {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+        }
+
         .pd-logo-text small {
-            font-size: 9.5px; font-weight: 700; color: var(--pd-yellow);
-            text-transform: uppercase; letter-spacing: 1.2px;
+            font-size: 9.5px;
+            font-weight: 700;
+            color: var(--pd-yellow);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
         }
 
         /* Sidebar user box */
@@ -73,42 +122,74 @@
             margin: 6px 14px 12px;
             padding: 12px 14px;
             border-radius: 12px;
-            background: linear-gradient(135deg, rgba(255,212,71,0.12), rgba(215,25,56,0.12));
-            border: 1px solid rgba(255,212,71,0.28);
+            background: linear-gradient(135deg, rgba(255, 212, 71, 0.12), rgba(215, 25, 56, 0.12));
+            border: 1px solid rgba(255, 212, 71, 0.28);
             display: flex;
             align-items: center;
             gap: 11px;
             position: relative;
             overflow: hidden;
         }
+
         .pd-user-box::before {
             content: '';
             position: absolute;
-            left: 0; top: 0; bottom: 0;
+            left: 0;
+            top: 0;
+            bottom: 0;
             width: 3px;
             background: linear-gradient(to bottom, var(--pd-yellow), var(--pd-red));
         }
+
         .pd-user-avatar {
-            width: 40px; height: 40px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             flex: 0 0 40px;
             background: linear-gradient(135deg, var(--pd-red), #b9102c);
             color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 13px;
             border: 2px solid var(--pd-yellow);
         }
-        .pd-user-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+        .pd-user-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
         .pd-user-info strong {
-            font-size: 13px; font-weight: 800; color: #fff;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            font-size: 13px;
+            font-weight: 800;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+
         .pd-user-info small {
-            font-size: 10.5px; color: #b1c2d4; font-weight: 600;
-            display: flex; align-items: center; gap: 5px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            font-size: 10.5px;
+            color: #b1c2d4;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .pd-user-info small i { color: var(--pd-yellow); font-size: 9px; }
+
+        .pd-user-info small i {
+            color: var(--pd-yellow);
+            font-size: 9px;
+        }
+
         .pd-role-badge {
             display: inline-block;
             background: var(--pd-yellow);
@@ -124,31 +205,75 @@
         }
 
         /* Sidebar navigation */
-        .pd-nav { padding: 4px 12px 12px; display: flex; flex-direction: column; gap: 2px; }
+        .pd-nav {
+            padding: 4px 12px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
         .pd-nav-label {
-            font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.38);
-            text-transform: uppercase; letter-spacing: 1.2px;
+            font-size: 9px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.38);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
             padding: 14px 10px 6px;
         }
+
         .pd-nav-link {
-            display: flex; align-items: center; gap: 11px;
-            padding: 10px 12px; border-radius: 9px;
-            font-size: 13px; font-weight: 600; color: #b9c8d8;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #b9c8d8;
             text-decoration: none;
             transition: all 0.18s ease;
         }
-        .pd-nav-link i { width: 18px; text-align: center; font-size: 14px; color: #7f95ab; transition: color 0.18s; }
-        .pd-nav-link:hover { background: rgba(255,255,255,0.06); color: #fff; }
-        .pd-nav-link:hover i { color: var(--pd-yellow); }
+
+        .pd-nav-link i {
+            width: 18px;
+            text-align: center;
+            font-size: 14px;
+            color: #7f95ab;
+            transition: color 0.18s;
+        }
+
+        .pd-nav-link:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+        }
+
+        .pd-nav-link:hover i {
+            color: var(--pd-yellow);
+        }
+
         .pd-nav-link.active {
             background: linear-gradient(135deg, var(--pd-red), #b9102c);
             color: #fff;
-            box-shadow: 0 6px 16px rgba(215,25,56,0.3);
+            box-shadow: 0 6px 16px rgba(215, 25, 56, 0.3);
         }
-        .pd-nav-link.active i { color: #fff; }
-        .pd-nav-logout { color: #ff8a9c; }
-        .pd-nav-logout:hover { background: rgba(215,25,56,0.15); color: #fff; }
-        .pd-nav-logout:hover i { color: #fff; }
+
+        .pd-nav-link.active i {
+            color: #fff;
+        }
+
+        .pd-nav-logout {
+            color: #ff8a9c;
+        }
+
+        .pd-nav-logout:hover {
+            background: rgba(215, 25, 56, 0.15);
+            color: #fff;
+        }
+
+        .pd-nav-logout:hover i {
+            color: #fff;
+        }
+
         /* NEW: count badge for nav */
         .pd-nav-badge {
             margin-left: auto;
@@ -170,23 +295,47 @@
             margin-top: auto;
             padding: 13px 14px;
             border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.04);
-            display: flex; align-items: center; gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.04);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .pd-sidebar-foot i { color: var(--pd-yellow); font-size: 18px; }
-        .pd-sidebar-foot strong { display: block; font-size: 11.5px; color: #fff; font-weight: 800; }
-        .pd-sidebar-foot small { display: block; font-size: 10px; color: #8fa3b8; font-weight: 600; }
+
+        .pd-sidebar-foot i {
+            color: var(--pd-yellow);
+            font-size: 18px;
+        }
+
+        .pd-sidebar-foot strong {
+            display: block;
+            font-size: 11.5px;
+            color: #fff;
+            font-weight: 800;
+        }
+
+        .pd-sidebar-foot small {
+            display: block;
+            font-size: 10px;
+            color: #8fa3b8;
+            font-weight: 600;
+        }
 
         /* Backdrop */
         .pd-backdrop {
-            position: fixed; inset: 0;
-            background: rgba(6,24,44,0.5);
-            opacity: 0; pointer-events: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 24, 44, 0.5);
+            opacity: 0;
+            pointer-events: none;
             transition: opacity 0.3s ease;
             z-index: 1050;
         }
-        .pd-backdrop.open { opacity: 1; pointer-events: auto; }
+
+        .pd-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
 
         /* ===== MAIN AREA ===== */
         .pd-main {
@@ -202,7 +351,7 @@
             top: 0;
             z-index: 900;
             height: 66px;
-            background: rgba(255,255,255,0.95);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(8px);
             border-bottom: 1px solid var(--pd-line);
             display: flex;
@@ -210,16 +359,22 @@
             gap: 14px;
             padding: 0 22px;
         }
+
         .pd-menu-toggle {
             display: none;
-            width: 40px; height: 40px;
-            align-items: center; justify-content: center;
+            width: 40px;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
             border: 1px solid var(--pd-line);
-            background: #fff; border-radius: 10px;
-            color: var(--pd-navy); font-size: 15px;
+            background: #fff;
+            border-radius: 10px;
+            color: var(--pd-navy);
+            font-size: 15px;
             cursor: pointer;
             flex: 0 0 40px;
         }
+
         .pd-search {
             flex: 1;
             max-width: 460px;
@@ -233,26 +388,46 @@
             padding: 0 14px;
             transition: all 0.2s ease;
         }
+
         .pd-search:focus-within {
             background: #fff;
             border-color: #b0c4d8;
-            box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
+            box-shadow: 0 0 0 3px rgba(11, 53, 98, 0.06);
         }
-        .pd-search i { color: var(--pd-muted); font-size: 13px; }
+
+        .pd-search i {
+            color: var(--pd-muted);
+            font-size: 13px;
+        }
+
         .pd-search input {
             flex: 1;
-            border: 0; outline: 0;
+            border: 0;
+            outline: 0;
             background: transparent;
-            font: inherit; font-size: 13.5px;
+            font: inherit;
+            font-size: 13.5px;
             color: var(--pd-navy);
         }
-        .pd-search input::placeholder { color: #a0aec0; }
 
-        .pd-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+        .pd-search input::placeholder {
+            color: #a0aec0;
+        }
+
+        .pd-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .pd-icon-btn {
             position: relative;
-            width: 40px; height: 40px;
-            display: inline-flex; align-items: center; justify-content: center;
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             background: #fff;
             border: 1px solid var(--pd-line);
             border-radius: 10px;
@@ -262,23 +437,44 @@
             transition: all 0.2s ease;
             padding: 0;
         }
-        .pd-icon-btn:hover { background: #f4f8fc; border-color: #b0c4d8; transform: translateY(-1px); }
+
+        .pd-icon-btn:hover {
+            background: #f4f8fc;
+            border-color: #b0c4d8;
+            transform: translateY(-1px);
+        }
+
         .pd-notif-dot {
-            position: absolute; top: 9px; right: 9px;
-            width: 8px; height: 8px;
+            position: absolute;
+            top: 9px;
+            right: 9px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: var(--pd-red);
             border: 2px solid #fff;
             animation: pdPulse 2s infinite;
         }
+
         @keyframes pdPulse {
-            0%   { box-shadow: 0 0 0 0 rgba(215,25,56,0.5); }
-            70%  { box-shadow: 0 0 0 6px rgba(215,25,56,0); }
-            100% { box-shadow: 0 0 0 0 rgba(215,25,56,0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(215, 25, 56, 0.5);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(215, 25, 56, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(215, 25, 56, 0);
+            }
         }
 
         /* Notification dropdown */
-        .pd-notif { position: relative; }
+        .pd-notif {
+            position: relative;
+        }
+
         .pd-notif-dropdown {
             position: absolute;
             top: calc(100% + 10px);
@@ -287,63 +483,150 @@
             background: #fff;
             border-radius: 14px;
             border: 1px solid var(--pd-line);
-            box-shadow: 0 18px 45px rgba(11,53,98,0.15), 0 4px 12px rgba(11,53,98,0.06);
+            box-shadow: 0 18px 45px rgba(11, 53, 98, 0.15), 0 4px 12px rgba(11, 53, 98, 0.06);
             padding: 0;
             overflow: hidden;
-            opacity: 0; visibility: hidden;
+            opacity: 0;
+            visibility: hidden;
             transform: translateY(-6px) scale(0.97);
             transform-origin: top right;
             pointer-events: none;
             transition: opacity 0.22s, transform 0.22s, visibility 0.22s;
             z-index: 1300;
         }
+
         .pd-notif.open .pd-notif-dropdown {
-            opacity: 1; visibility: visible;
+            opacity: 1;
+            visibility: visible;
             transform: translateY(0) scale(1);
             pointer-events: auto;
         }
+
         .pd-notif-head {
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: 13px 15px;
             border-bottom: 1px solid var(--pd-line);
             background: #fafcff;
         }
-        .pd-notif-head strong { font-size: 13px; font-weight: 800; color: var(--pd-navy); }
-        .pd-notif-tag {
-            font-size: 9.5px; font-weight: 800;
-            background: var(--pd-yellow); color: #0a2340;
-            padding: 3px 8px; border-radius: 5px;
-            text-transform: uppercase; letter-spacing: 0.5px;
+
+        .pd-notif-head strong {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--pd-navy);
         }
-        .pd-notif-list { padding: 6px; max-height: 320px; overflow-y: auto; }
+
+        .pd-notif-tag {
+            font-size: 9.5px;
+            font-weight: 800;
+            background: var(--pd-yellow);
+            color: #0a2340;
+            padding: 3px 8px;
+            border-radius: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pd-notif-list {
+            padding: 6px;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
         .pd-notif-item {
-            display: flex; align-items: center; gap: 11px;
-            padding: 10px 11px; border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 11px;
+            border-radius: 10px;
             text-decoration: none;
             transition: background 0.18s, transform 0.18s;
         }
-        .pd-notif-item:hover { background: #f0f7ff; transform: translateX(2px); }
+
+        .pd-notif-item:hover {
+            background: #f0f7ff;
+            transform: translateX(2px);
+        }
+
         .pd-notif-icon {
-            width: 34px; height: 34px; border-radius: 9px;
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
             flex: 0 0 34px;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 13px;
         }
-        .pd-notif-icon.amber { background: #fff1d6; color: #a86a00; }
-        .pd-notif-icon.blue  { background: #e1f1ff; color: #1768a7; }
-        .pd-notif-icon.green { background: #e3f5eb; color: #168254; }
-        .pd-notif-icon.red   { background: #ffeaee; color: var(--pd-red); }
-        .pd-notif-icon.purple{ background: #f0e7ff; color: #7439b2; }
-        .pd-notif-body { flex: 1; min-width: 0; }
-        .pd-notif-body strong { display: block; font-size: 12px; font-weight: 700; color: var(--pd-navy); margin-bottom: 1px; }
-        .pd-notif-body small { display: block; font-size: 10.5px; color: var(--pd-muted); }
-        .pd-notif-foot { padding: 9px 15px; border-top: 1px solid var(--pd-line); background: #fafcff; text-align: center; }
-        .pd-notif-foot a { font-size: 11.5px; font-weight: 700; color: var(--pd-red); text-decoration: none; }
+
+        .pd-notif-icon.amber {
+            background: #fff1d6;
+            color: #a86a00;
+        }
+
+        .pd-notif-icon.blue {
+            background: #e1f1ff;
+            color: #1768a7;
+        }
+
+        .pd-notif-icon.green {
+            background: #e3f5eb;
+            color: #168254;
+        }
+
+        .pd-notif-icon.red {
+            background: #ffeaee;
+            color: var(--pd-red);
+        }
+
+        .pd-notif-icon.purple {
+            background: #f0e7ff;
+            color: #7439b2;
+        }
+
+        .pd-notif-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pd-notif-body strong {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--pd-navy);
+            margin-bottom: 1px;
+        }
+
+        .pd-notif-body small {
+            display: block;
+            font-size: 10.5px;
+            color: var(--pd-muted);
+        }
+
+        .pd-notif-foot {
+            padding: 9px 15px;
+            border-top: 1px solid var(--pd-line);
+            background: #fafcff;
+            text-align: center;
+        }
+
+        .pd-notif-foot a {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--pd-red);
+            text-decoration: none;
+        }
 
         /* User profile dropdown */
-        .pd-up { position: relative; }
+        .pd-up {
+            position: relative;
+        }
+
         .pd-up-btn {
-            display: inline-flex; align-items: center; gap: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0;
             padding: 4px;
             border: 2px solid transparent;
             background: transparent;
@@ -351,119 +634,233 @@
             border-radius: 50px;
             max-width: 52px;
             overflow: hidden;
-            transition: max-width 0.4s cubic-bezier(.4,0,.2,1), padding 0.4s, gap 0.4s,
-                        background 0.25s, border-color 0.25s, box-shadow 0.25s;
+            transition: max-width 0.4s cubic-bezier(.4, 0, .2, 1), padding 0.4s, gap 0.4s,
+                background 0.25s, border-color 0.25s, box-shadow 0.25s;
             white-space: nowrap;
-            font: inherit; color: inherit; text-align: left;
+            font: inherit;
+            color: inherit;
+            text-align: left;
         }
-        .pd-up-btn:hover, .pd-up.open .pd-up-btn {
-            max-width: 280px; gap: 10px; padding: 4px 14px 4px 4px;
-            background: rgba(11,53,98,0.06);
-            border-color: rgba(11,53,98,0.12);
-            box-shadow: 0 6px 20px rgba(11,53,98,0.08);
+
+        .pd-up-btn:hover,
+        .pd-up.open .pd-up-btn {
+            max-width: 280px;
+            gap: 10px;
+            padding: 4px 14px 4px 4px;
+            background: rgba(11, 53, 98, 0.06);
+            border-color: rgba(11, 53, 98, 0.12);
+            box-shadow: 0 6px 20px rgba(11, 53, 98, 0.08);
         }
+
         .pd-up-avatar {
-            width: 38px; height: 38px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             flex: 0 0 38px;
             background: linear-gradient(135deg, var(--pd-red), #b9102c);
             color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 13px; letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 13px;
+            letter-spacing: 0.5px;
             border: 2px solid var(--pd-yellow);
         }
+
         .pd-up-info {
-            display: flex; flex-direction: column; align-items: flex-start;
-            overflow: hidden; opacity: 0; max-width: 0; line-height: 1.2;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            overflow: hidden;
+            opacity: 0;
+            max-width: 0;
+            line-height: 1.2;
             transition: opacity 0.25s, max-width 0.35s;
             pointer-events: none;
         }
-        .pd-up-btn:hover .pd-up-info, .pd-up.open .pd-up-btn .pd-up-info {
-            opacity: 1; max-width: 170px; pointer-events: auto;
+
+        .pd-up-btn:hover .pd-up-info,
+        .pd-up.open .pd-up-btn .pd-up-info {
+            opacity: 1;
+            max-width: 170px;
+            pointer-events: auto;
         }
+
         .pd-up-info strong {
-            font-size: 13px; font-weight: 700; color: var(--pd-navy);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--pd-navy);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 160px;
         }
-        .pd-up-info small { font-size: 10.5px; color: var(--pd-muted); white-space: nowrap; text-transform: capitalize; }
+
+        .pd-up-info small {
+            font-size: 10.5px;
+            color: var(--pd-muted);
+            white-space: nowrap;
+            text-transform: capitalize;
+        }
+
         .pd-up-chevron {
-            font-size: 10px; color: var(--pd-navy);
-            opacity: 0; max-width: 0;
+            font-size: 10px;
+            color: var(--pd-navy);
+            opacity: 0;
+            max-width: 0;
             transition: opacity 0.25s, max-width 0.25s, transform 0.3s;
         }
-        .pd-up-btn:hover .pd-up-chevron, .pd-up.open .pd-up-btn .pd-up-chevron { opacity: 1; max-width: 20px; }
-        .pd-up.open .pd-up-chevron { transform: rotate(180deg); }
+
+        .pd-up-btn:hover .pd-up-chevron,
+        .pd-up.open .pd-up-btn .pd-up-chevron {
+            opacity: 1;
+            max-width: 20px;
+        }
+
+        .pd-up.open .pd-up-chevron {
+            transform: rotate(180deg);
+        }
 
         .pd-up-dropdown {
             position: absolute;
-            top: calc(100% + 10px); right: 0;
+            top: calc(100% + 10px);
+            right: 0;
             min-width: 260px;
             background: #fff;
             border-radius: 14px;
             border: 1px solid var(--pd-line);
-            box-shadow: 0 18px 50px rgba(11,53,98,0.18), 0 4px 14px rgba(11,53,98,0.08);
+            box-shadow: 0 18px 50px rgba(11, 53, 98, 0.18), 0 4px 14px rgba(11, 53, 98, 0.08);
             padding: 12px;
-            opacity: 0; visibility: hidden;
+            opacity: 0;
+            visibility: hidden;
             transform: translateY(-8px) scale(0.97);
             transform-origin: top right;
             pointer-events: none;
             transition: opacity 0.22s, transform 0.22s, visibility 0.22s;
             z-index: 1300;
         }
+
         .pd-up.open .pd-up-dropdown {
-            opacity: 1; visibility: visible;
+            opacity: 1;
+            visibility: visible;
             transform: translateY(0) scale(1);
             pointer-events: auto;
         }
+
         .pd-up-head {
-            display: flex; align-items: center; gap: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             padding: 12px;
             background: linear-gradient(135deg, #f0f7ff, #e6f1fb);
             border-radius: 12px;
             margin-bottom: 6px;
         }
+
         .pd-up-head-avatar {
-            width: 44px; height: 44px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             background: linear-gradient(135deg, #0a2340, #14578b);
             color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 15px;
             flex: 0 0 44px;
             border: 2px solid var(--pd-yellow);
         }
-        .pd-up-head-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+        .pd-up-head-text {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
         .pd-up-head-text strong {
-            font-size: 13.5px; color: var(--pd-navy); font-weight: 800;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            font-size: 13.5px;
+            color: var(--pd-navy);
+            font-weight: 800;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+
         .pd-up-head-text small {
-            font-size: 10.5px; color: var(--pd-muted); font-weight: 600;
-            display: flex; align-items: center; gap: 4px;
+            font-size: 10.5px;
+            color: var(--pd-muted);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
+
         .pd-up-role-tag {
             display: inline-block;
-            background: var(--pd-yellow); color: #0a2340;
-            padding: 2px 8px; border-radius: 5px;
-            font-size: 9px; font-weight: 800;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            align-self: flex-start; margin-top: 2px;
+            background: var(--pd-yellow);
+            color: #0a2340;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            align-self: flex-start;
+            margin-top: 2px;
         }
-        .pd-up-divider { border: 0; border-top: 1px solid var(--pd-line); margin: 4px 8px 6px; }
-        .pd-up-dropdown > a {
-            display: flex; align-items: center; gap: 11px;
-            padding: 10px 14px; border-radius: 9px;
-            color: #26445f; font-size: 13px; font-weight: 700;
+
+        .pd-up-divider {
+            border: 0;
+            border-top: 1px solid var(--pd-line);
+            margin: 4px 8px 6px;
+        }
+
+        .pd-up-dropdown>a {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 14px;
+            border-radius: 9px;
+            color: #26445f;
+            font-size: 13px;
+            font-weight: 700;
             text-decoration: none;
             transition: all 0.18s ease;
             margin-bottom: 2px;
         }
-        .pd-up-dropdown > a i { width: 16px; text-align: center; color: var(--pd-navy); font-size: 13px; }
-        .pd-up-dropdown > a:hover { background: #f0f7ff; color: var(--pd-navy); transform: translateX(3px); }
-        .pd-up-dropdown > a:hover i { color: var(--pd-red); }
-        .pd-up-dropdown > a.logout-link { color: var(--pd-red); }
-        .pd-up-dropdown > a.logout-link i { color: var(--pd-red); }
-        .pd-up-dropdown > a.logout-link:hover { background: #ffeaee; }
+
+        .pd-up-dropdown>a i {
+            width: 16px;
+            text-align: center;
+            color: var(--pd-navy);
+            font-size: 13px;
+        }
+
+        .pd-up-dropdown>a:hover {
+            background: #f0f7ff;
+            color: var(--pd-navy);
+            transform: translateX(3px);
+        }
+
+        .pd-up-dropdown>a:hover i {
+            color: var(--pd-red);
+        }
+
+        .pd-up-dropdown>a.logout-link {
+            color: var(--pd-red);
+        }
+
+        .pd-up-dropdown>a.logout-link i {
+            color: var(--pd-red);
+        }
+
+        .pd-up-dropdown>a.logout-link:hover {
+            background: #ffeaee;
+        }
 
         /* ===== CONTENT ===== */
         .pd-content {
@@ -473,19 +870,48 @@
             flex-direction: column;
             gap: 18px;
         }
-        .pd-flash-stack { display: flex; flex-direction: column; gap: 8px; }
+
+        .pd-flash-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
         .pd-flash {
-            display: flex; justify-content: space-between; align-items: center; gap: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
             padding: 12px 16px;
             border-radius: 10px;
-            font-size: 13px; font-weight: 600;
-            background: #e1f1ff; color: #1768a7;
+            font-size: 13px;
+            font-weight: 600;
+            background: #e1f1ff;
+            color: #1768a7;
             border: 1px solid #c5e2f8;
             transition: opacity 0.25s;
         }
-        .pd-flash.success { background: #e3f5eb; color: #168254; border-color: #c8e9d7; }
-        .pd-flash.error { background: #ffeaee; color: var(--pd-red); border-color: #f8c9d2; }
-        .pd-flash button { background: none; border: 0; font-size: 16px; cursor: pointer; color: inherit; padding: 0 2px; }
+
+        .pd-flash.success {
+            background: #e3f5eb;
+            color: #168254;
+            border-color: #c8e9d7;
+        }
+
+        .pd-flash.error {
+            background: #ffeaee;
+            color: var(--pd-red);
+            border-color: #f8c9d2;
+        }
+
+        .pd-flash button {
+            background: none;
+            border: 0;
+            font-size: 16px;
+            cursor: pointer;
+            color: inherit;
+            padding: 0 2px;
+        }
 
         /* Grid */
         .pd-grid {
@@ -494,8 +920,20 @@
             gap: 18px;
             align-items: start;
         }
-        .pd-col-main { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-        .pd-col-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+        .pd-col-main {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            min-width: 0;
+        }
+
+        .pd-col-side {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 0;
+        }
 
         /* Welcome banner */
         .pd-welcome {
@@ -511,26 +949,42 @@
             scroll-margin-top: 86px;
             border: 1px solid #c0dfff;
         }
+
         .pd-welcome::after {
             content: '';
             position: absolute;
-            right: -60px; top: -60px;
-            width: 220px; height: 220px;
+            right: -60px;
+            top: -60px;
+            width: 220px;
+            height: 220px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.4);
+            background: rgba(255, 255, 255, 0.4);
         }
+
         .pd-welcome-avatar {
-            width: 64px; height: 64px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--pd-red), #b9102c);
             border: 3px solid #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 20px; color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 20px;
+            color: #fff;
             flex: 0 0 64px;
-            position: relative; z-index: 1;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
-        .pd-welcome-text { position: relative; z-index: 1; min-width: 0; }
+
+        .pd-welcome-text {
+            position: relative;
+            z-index: 1;
+            min-width: 0;
+        }
+
         .pd-welcome h1 {
             font-family: 'Playfair Display', Georgia, serif;
             font-size: 24px;
@@ -539,17 +993,36 @@
             letter-spacing: -0.3px;
             color: var(--pd-navy);
         }
-        .pd-welcome p { margin: 0; font-size: 13px; color: #4a6b8c; }
-        .pd-welcome-meta {
-            display: flex; gap: 14px; flex-wrap: wrap;
-            margin-top: 8px;
-            font-size: 12px; font-weight: 600;
+
+        .pd-welcome p {
+            margin: 0;
+            font-size: 13px;
             color: #4a6b8c;
         }
-        .pd-welcome-meta i { color: var(--pd-red); margin-right: 4px; font-size: 11px; }
+
+        .pd-welcome-meta {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #4a6b8c;
+        }
+
+        .pd-welcome-meta i {
+            color: var(--pd-red);
+            margin-right: 4px;
+            font-size: 11px;
+        }
 
         /* Stat cards */
-        .pd-stat-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+        .pd-stat-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+
         .pd-stat {
             background: #fff;
             border: 1px solid var(--pd-line);
@@ -561,29 +1034,66 @@
             min-width: 0;
             transition: all 0.2s ease;
         }
-        .pd-stat:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(9,47,88,0.07); border-color: #d5dee8; }
+
+        .pd-stat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(9, 47, 88, 0.07);
+            border-color: #d5dee8;
+        }
+
         .pd-stat-icon {
-            width: 44px; height: 44px;
+            width: 44px;
+            height: 44px;
             border-radius: 12px;
             flex: 0 0 44px;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 17px;
         }
-        .pd-stat-icon.blue   { background: #e6f4ff; color: #1768a7; }
-        .pd-stat-icon.green  { background: #e8f8ec; color: #168254; }
-        .pd-stat-icon.purple { background: #f3e8ff; color: #7c3aed; }
-        .pd-stat-icon.amber  { background: #fff6e6; color: #b7791f; }
-        .pd-stat-text { min-width: 0; }
+
+        .pd-stat-icon.blue {
+            background: #e6f4ff;
+            color: #1768a7;
+        }
+
+        .pd-stat-icon.green {
+            background: #e8f8ec;
+            color: #168254;
+        }
+
+        .pd-stat-icon.purple {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .pd-stat-icon.amber {
+            background: #fff6e6;
+            color: #b7791f;
+        }
+
+        .pd-stat-text {
+            min-width: 0;
+        }
+
         .pd-stat-text strong {
             display: block;
-            font-size: 20px; font-weight: 800; color: var(--pd-navy);
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--pd-navy);
             line-height: 1.15;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+
         .pd-stat-text small {
             display: block;
-            font-size: 10.5px; color: var(--pd-muted);
-            text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700;
+            font-size: 10.5px;
+            color: var(--pd-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-weight: 700;
             margin-top: 2px;
         }
 
@@ -597,172 +1107,438 @@
             flex-direction: column;
             scroll-margin-top: 86px;
         }
+
         .pd-panel-head {
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: 14px 18px;
             border-bottom: 1px solid var(--pd-line);
             gap: 10px;
         }
+
         .pd-panel-title {
             margin: 0;
-            font-size: 14px; font-weight: 800; color: var(--pd-navy);
-            display: flex; align-items: center; gap: 8px;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--pd-navy);
+            display: flex;
+            align-items: center;
+            gap: 8px;
             letter-spacing: -0.2px;
         }
-        .pd-panel-title i { color: var(--pd-red); font-size: 12px; }
-        .pd-panel-link {
-            font-size: 11.5px; font-weight: 700; color: var(--pd-red);
-            text-decoration: none;
-            display: inline-flex; align-items: center; gap: 5px;
-            transition: gap 0.2s; white-space: nowrap;
+
+        .pd-panel-title i {
+            color: var(--pd-red);
+            font-size: 12px;
         }
-        .pd-panel-link:hover { gap: 9px; color: #b9102c; }
-        .pd-panel-body { padding: 16px 18px; flex: 1; }
-        .pd-panel-body.flush { padding: 0; overflow-x: auto; }
+
+        .pd-panel-link {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--pd-red);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: gap 0.2s;
+            white-space: nowrap;
+        }
+
+        .pd-panel-link:hover {
+            gap: 9px;
+            color: #b9102c;
+        }
+
+        .pd-panel-body {
+            padding: 16px 18px;
+            flex: 1;
+        }
+
+        .pd-panel-body.flush {
+            padding: 0;
+            overflow-x: auto;
+        }
 
         /* Rows */
-        .pd-row-2 { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; }
-        .pd-row-2.even { grid-template-columns: 1fr 1fr; }
+        .pd-row-2 {
+            display: grid;
+            grid-template-columns: 1.35fr 1fr;
+            gap: 16px;
+        }
+
+        .pd-row-2.even {
+            grid-template-columns: 1fr 1fr;
+        }
 
         /* Children List */
-        .pd-child-list { display: flex; flex-direction: column; gap: 12px; }
+        .pd-child-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
         .pd-child-item {
-            display: flex; align-items: center; gap: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             padding: 12px;
             border-radius: 10px;
             background: var(--pd-paper);
             border: 1px solid transparent;
             transition: all 0.2s ease;
         }
+
         .pd-child-item:hover {
             background: #fff;
             border-color: var(--pd-line);
-            box-shadow: 0 4px 12px rgba(9,47,88,0.05);
+            box-shadow: 0 4px 12px rgba(9, 47, 88, 0.05);
         }
+
         .pd-child-avatar {
-            width: 42px; height: 42px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             background: linear-gradient(135deg, #1768a7, #0d4b7a);
             color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 15px;
             flex: 0 0 42px;
             border: 2px solid #fff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
-        .pd-child-info { flex: 1; min-width: 0; }
-        .pd-child-info strong { display: block; font-size: 13px; font-weight: 700; color: var(--pd-navy); margin-bottom: 2px; }
-        .pd-child-info small { display: block; font-size: 11px; color: var(--pd-muted); font-weight: 600; }
+
+        .pd-child-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pd-child-info strong {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--pd-navy);
+            margin-bottom: 2px;
+        }
+
+        .pd-child-info small {
+            display: block;
+            font-size: 11px;
+            color: var(--pd-muted);
+            font-weight: 600;
+        }
+
         .pd-badge-active {
-            font-size: 9.5px; font-weight: 800;
-            background: #e3f5eb; color: #168254;
-            padding: 3px 8px; border-radius: 5px;
-            text-transform: uppercase; letter-spacing: 0.5px;
+            font-size: 9.5px;
+            font-weight: 800;
+            background: #e3f5eb;
+            color: #168254;
+            padding: 3px 8px;
+            border-radius: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* Donut */
-        .pd-donut-wrap { display: flex; align-items: center; gap: 18px; padding: 6px 0; }
+        .pd-donut-wrap {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 6px 0;
+        }
+
         .pd-donut {
-            width: 120px; height: 120px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             position: relative;
             flex: 0 0 120px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 16px rgba(9,47,88,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(9, 47, 88, 0.08);
         }
-        .pd-donut::before { content: ''; position: absolute; inset: 18px; background: #fff; border-radius: 50%; }
-        .pd-donut-center { position: relative; z-index: 1; text-align: center; }
-        .pd-donut-center strong { display: block; font-size: 20px; font-weight: 800; color: var(--pd-navy); line-height: 1; }
+
+        .pd-donut::before {
+            content: '';
+            position: absolute;
+            inset: 18px;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        .pd-donut-center {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .pd-donut-center strong {
+            display: block;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--pd-navy);
+            line-height: 1;
+        }
+
         .pd-donut-center small {
-            display: block; font-size: 9px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.6px;
-            color: var(--pd-muted); margin-top: 2px;
+            display: block;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--pd-muted);
+            margin-top: 2px;
         }
-        .pd-donut-legend { display: flex; flex-direction: column; gap: 10px; flex: 1; }
-        .pd-legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
-        .pd-legend-dot { width: 9px; height: 9px; border-radius: 3px; flex: 0 0 9px; }
-        .pd-legend-item span { flex: 1; color: var(--pd-muted); font-weight: 600; }
-        .pd-legend-item strong { color: var(--pd-navy); font-weight: 800; font-size: 12.5px; }
+
+        .pd-donut-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .pd-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .pd-legend-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 3px;
+            flex: 0 0 9px;
+        }
+
+        .pd-legend-item span {
+            flex: 1;
+            color: var(--pd-muted);
+            font-weight: 600;
+        }
+
+        .pd-legend-item strong {
+            color: var(--pd-navy);
+            font-weight: 800;
+            font-size: 12.5px;
+        }
 
         /* Fee Status */
         .pd-fee-status {
-            display: flex; flex-direction: column; gap: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
             padding: 16px 18px;
         }
-        .pd-fee-row { display: flex; justify-content: space-between; font-size: 12.5px; }
-        .pd-fee-row span { color: var(--pd-muted); font-weight: 600; }
-        .pd-fee-row strong { color: var(--pd-navy); font-weight: 800; }
+
+        .pd-fee-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12.5px;
+        }
+
+        .pd-fee-row span {
+            color: var(--pd-muted);
+            font-weight: 600;
+        }
+
+        .pd-fee-row strong {
+            color: var(--pd-navy);
+            font-weight: 800;
+        }
+
         .pd-fee-banner {
-            display: flex; align-items: center; gap: 10px;
-            background: #e8f8ec; color: #168254;
-            padding: 12px 14px; border-radius: 10px;
-            font-size: 12.5px; font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #e8f8ec;
+            color: #168254;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-size: 12.5px;
+            font-weight: 700;
             border: 1px solid #c8e9d7;
             margin-bottom: 8px;
         }
-        .pd-fee-banner i { font-size: 18px; }
+
+        .pd-fee-banner i {
+            font-size: 18px;
+        }
 
         /* Notices */
-        .pd-notice { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f1f5f9; }
-        .pd-notice:last-child { border-bottom: 0; }
+        .pd-notice {
+            display: flex;
+            gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .pd-notice:last-child {
+            border-bottom: 0;
+        }
+
         .pd-notice-icon {
-            width: 30px; height: 30px;
+            width: 30px;
+            height: 30px;
             border-radius: 8px;
-            background: #eef4fb; color: #1768a7;
-            display: flex; align-items: center; justify-content: center;
+            background: #eef4fb;
+            color: #1768a7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 12px;
             flex: 0 0 30px;
         }
-        .pd-notice-body { flex: 1; min-width: 0; }
-        .pd-notice-body small { display: block; font-size: 10px; color: var(--pd-muted); font-weight: 600; margin-bottom: 2px; }
-        .pd-notice-body p { margin: 0; font-size: 12.5px; font-weight: 600; color: var(--pd-navy); line-height: 1.35; }
+
+        .pd-notice-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pd-notice-body small {
+            display: block;
+            font-size: 10px;
+            color: var(--pd-muted);
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .pd-notice-body p {
+            margin: 0;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--pd-navy);
+            line-height: 1.35;
+        }
 
         /* Events */
-        .pd-event-list { display: flex; flex-direction: column; gap: 12px; }
+        .pd-event-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
         .pd-event-item {
-            display: flex; align-items: center; gap: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             padding: 10px;
             border-radius: 10px;
             background: var(--pd-paper);
             transition: all 0.2s;
         }
-        .pd-event-item:hover { background: #f0f7ff; }
+
+        .pd-event-item:hover {
+            background: #f0f7ff;
+        }
+
         .pd-event-date {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            width: 44px; height: 44px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
             border-radius: 9px;
             background: var(--pd-navy);
             color: #fff;
             flex: 0 0 44px;
         }
-        .pd-event-date strong { font-size: 16px; font-weight: 800; line-height: 1; }
-        .pd-event-date small { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85; }
-        .pd-event-info strong { display: block; font-size: 12.5px; font-weight: 700; color: var(--pd-navy); margin-bottom: 2px; }
-        .pd-event-info small { display: block; font-size: 10.5px; color: var(--pd-muted); }
+
+        .pd-event-date strong {
+            font-size: 16px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .pd-event-date small {
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.85;
+        }
+
+        .pd-event-info strong {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--pd-navy);
+            margin-bottom: 2px;
+        }
+
+        .pd-event-info small {
+            display: block;
+            font-size: 10.5px;
+            color: var(--pd-muted);
+        }
 
         /* Quick Links */
-        .pd-ql-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .pd-ql-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
         .pd-ql {
-            display: flex; flex-direction: column; align-items: center; gap: 6px;
-            padding: 12px 8px; border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 8px;
+            border-radius: 10px;
             background: var(--pd-paper);
             text-decoration: none;
             transition: all 0.2s ease;
             text-align: center;
         }
-        .pd-ql:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 6px 14px rgba(9,47,88,0.06); }
-        .pd-ql i { font-size: 16px; color: var(--pd-navy); }
-        .pd-ql span { font-size: 10px; font-weight: 700; color: var(--pd-navy); line-height: 1.2; }
+
+        .pd-ql:hover {
+            background: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(9, 47, 88, 0.06);
+        }
+
+        .pd-ql i {
+            font-size: 16px;
+            color: var(--pd-navy);
+        }
+
+        .pd-ql span {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--pd-navy);
+            line-height: 1.2;
+        }
 
         /* Forms */
-        .pd-form { display: flex; flex-direction: column; gap: 12px; }
-        .pd-form label {
-            display: flex; flex-direction: column; gap: 5px;
-            font-size: 11.5px; font-weight: 700; color: var(--pd-navy);
-            text-transform: uppercase; letter-spacing: 0.4px;
+        .pd-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
-        .pd-form input, .pd-form select, .pd-form textarea {
-            font: inherit; font-size: 13px; font-weight: 500;
+
+        .pd-form label {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--pd-navy);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .pd-form input,
+        .pd-form select,
+        .pd-form textarea {
+            font: inherit;
+            font-size: 13px;
+            font-weight: 500;
             color: var(--pd-navy);
             background: #fff;
             border: 1px solid var(--pd-line);
@@ -772,80 +1548,184 @@
             width: 100%;
             transition: all 0.2s ease;
         }
-        .pd-form input:focus, .pd-form select:focus, .pd-form textarea:focus {
+
+        .pd-form input:focus,
+        .pd-form select:focus,
+        .pd-form textarea:focus {
             border-color: #b0c4d8;
-            box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
+            box-shadow: 0 0 0 3px rgba(11, 53, 98, 0.06);
         }
-        .pd-form textarea { resize: vertical; min-height: 60px; }
-        .pd-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .pd-form textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .pd-form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
 
         .pd-btn-primary {
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             padding: 10px 16px;
             border: 1px solid var(--pd-navy);
             border-radius: 10px;
             background: var(--pd-navy);
             color: #fff;
-            font: inherit; font-size: 13px; font-weight: 700;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
         }
+
         .pd-btn-primary:hover {
             background: #061f39;
             transform: translateY(-1px);
-            box-shadow: 0 8px 18px rgba(9,47,88,0.15);
+            box-shadow: 0 8px 18px rgba(9, 47, 88, 0.15);
         }
 
         /* Fee QR / UPI */
-        .pd-fee-box { display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; margin-bottom: 14px; }
-        .pd-fee-qr { width: 120px; height: 120px; object-fit: contain; border-radius: 8px; border: 1px solid var(--pd-line); padding: 4px; }
+        .pd-fee-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .pd-fee-qr {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            border-radius: 8px;
+            border: 1px solid var(--pd-line);
+            padding: 4px;
+        }
+
         .pd-upi-btn {
-            display: inline-flex; align-items: center; gap: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             padding: 8px 16px;
-            background: #e8f8ec; color: #168254;
+            background: #e8f8ec;
+            color: #168254;
             border: 1px solid #c8e9d7;
             border-radius: 8px;
-            font-size: 12px; font-weight: 700;
+            font-size: 12px;
+            font-weight: 700;
             text-decoration: none;
             transition: all 0.2s;
         }
-        .pd-upi-btn:hover { background: #d4f0dc; }
 
-        .pd-empty { padding: 24px 16px; text-align: center; color: var(--pd-muted); font-size: 12px; font-style: italic; }
+        .pd-upi-btn:hover {
+            background: #d4f0dc;
+        }
+
+        .pd-empty {
+            padding: 24px 16px;
+            text-align: center;
+            color: var(--pd-muted);
+            font-size: 12px;
+            font-style: italic;
+        }
 
         /* Footer strip */
         .pd-footer {
-            display: flex; justify-content: space-between; align-items: center; gap: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
             flex-wrap: wrap;
             padding: 14px 4px 4px;
             border-top: 1px solid var(--pd-line);
-            font-size: 11.5px; color: var(--pd-muted);
+            font-size: 11.5px;
+            color: var(--pd-muted);
         }
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 1200px) {
-            .pd-grid { grid-template-columns: 1fr; }
-            .pd-col-side { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+            .pd-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pd-col-side {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+            }
         }
+
         @media (max-width: 1024px) {
-            .pd-sidebar { transform: translateX(-100%); }
-            .pd-sidebar.open { transform: translateX(0); }
-            .pd-main { margin-left: 0; }
-            .pd-menu-toggle { display: inline-flex; }
+            .pd-sidebar {
+                transform: translateX(-100%);
+            }
+
+            .pd-sidebar.open {
+                transform: translateX(0);
+            }
+
+            .pd-main {
+                margin-left: 0;
+            }
+
+            .pd-menu-toggle {
+                display: inline-flex;
+            }
         }
+
         @media (max-width: 900px) {
-            .pd-stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .pd-row-2, .pd-row-2.even { grid-template-columns: 1fr; }
-            .pd-col-side { grid-template-columns: 1fr; }
+            .pd-stat-row {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .pd-row-2,
+            .pd-row-2.even {
+                grid-template-columns: 1fr;
+            }
+
+            .pd-col-side {
+                grid-template-columns: 1fr;
+            }
         }
+
         @media (max-width: 640px) {
-            .pd-content { padding: 16px; }
-            .pd-search { display: none; }
-            .pd-stat-row { grid-template-columns: 1fr; }
-            .pd-welcome { flex-direction: column; align-items: flex-start; }
-            .pd-donut-wrap { flex-direction: column; text-align: center; }
-            .pd-donut-legend { width: 100%; max-width: 220px; }
-            .pd-topbar { padding: 0 16px; }
+            .pd-content {
+                padding: 16px;
+            }
+
+            .pd-search {
+                display: none;
+            }
+
+            .pd-stat-row {
+                grid-template-columns: 1fr;
+            }
+
+            .pd-welcome {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .pd-donut-wrap {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .pd-donut-legend {
+                width: 100%;
+                max-width: 220px;
+            }
+
+            .pd-topbar {
+                padding: 0 16px;
+            }
         }
     </style>
 </head>
@@ -856,7 +1736,8 @@
     <aside class="pd-sidebar" id="pdSidebar" aria-label="Parent sidebar">
         <div class="pd-sidebar-head">
             <a href="{{ url_for('home') }}" class="pd-logo">
-                <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="School Logo" class="pd-logo-img">
+                <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="School Logo"
+                    class="pd-logo-img">
                 <div class="pd-logo-text">
                     <strong>Shanti Niketan</strong>
                     <small>Parent Portal</small>
@@ -867,7 +1748,8 @@
         {% if session.get('user_id') %}
         <div class="pd-user-box">
             <div class="pd-user-avatar">
-                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if
+                session['user_name'].split()|length > 1 else '' }}
             </div>
             <div class="pd-user-info">
                 <strong>{{ session['user_name'].split()[0] }}</strong>
@@ -895,13 +1777,19 @@
 
             <div class="pd-nav-label">Communication</div>
             <a href="#notices" class="pd-nav-link"><i class="fa-solid fa-bullhorn"></i> Notices & Announcements</a>
-            <a href="#messages" class="pd-nav-link"><i class="fa-regular fa-comments"></i> Messages</a>
+            <a href="{{ url_for('messages_inbox') }}" class="pd-nav-link">
+                <i class="fa-regular fa-comments"></i> Messages
+            </a>
             <a href="#events" class="pd-nav-link"><i class="fa-regular fa-calendar-days"></i> Calendar & Events</a>
 
             <div class="pd-nav-label">System</div>
-            <a href="{{ url_for('faq_page') }}" class="pd-nav-link"><i class="fa-solid fa-circle-question"></i> Help & Support</a>
-            <a href="#" class="pd-nav-link"><i class="fa-solid fa-gear"></i> Settings</a>
-            <a href="{{ url_for('logout') }}" class="pd-nav-link pd-nav-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            <a href="{{ url_for('faq_page') }}" class="pd-nav-link"><i class="fa-solid fa-circle-question"></i> Help &
+                Support</a>
+            <a href="{{ url_for('settings_page') }}" class="pd-nav-link">
+                <i class="fa-solid fa-gear"></i> Settings
+            </a>
+            <a href="{{ url_for('logout') }}" class="pd-nav-link pd-nav-logout"><i
+                    class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </nav>
 
         <div class="pd-sidebar-foot">
@@ -920,7 +1808,8 @@
 
         <!-- TOPBAR -->
         <header class="pd-topbar">
-            <button class="pd-menu-toggle" id="pdMenuToggle" type="button" aria-label="Open navigation" aria-controls="pdSidebar" aria-expanded="false">
+            <button class="pd-menu-toggle" id="pdMenuToggle" type="button" aria-label="Open navigation"
+                aria-controls="pdSidebar" aria-expanded="false">
                 <i class="fa-solid fa-bars"></i>
             </button>
 
@@ -932,7 +1821,8 @@
             <div class="pd-actions">
                 <!-- Notification bell -->
                 <div class="pd-notif" id="pdNotif">
-                    <button type="button" class="pd-icon-btn" id="pdNotifBtn" aria-haspopup="true" aria-expanded="false" aria-controls="pdNotifDropdown" aria-label="Notifications">
+                    <button type="button" class="pd-icon-btn" id="pdNotifBtn" aria-haspopup="true" aria-expanded="false"
+                        aria-controls="pdNotifDropdown" aria-label="Notifications">
                         <i class="fa-regular fa-bell"></i>
                         {% if (messages|length) > 0 or (pending_homework and pending_homework > 0) %}
                         <span class="pd-notif-dot"></span>
@@ -965,10 +1855,10 @@
                                     <small>Review pending payments</small>
                                 </div>
                             </a>
-                            <a href="#messages" class="pd-notif-item" role="menuitem">
+                            <a href="{{ url_for('messages_inbox') }}" class="pd-notif-item" role="menuitem">
                                 <div class="pd-notif-icon red"><i class="fa-regular fa-comments"></i></div>
                                 <div class="pd-notif-body">
-                                    <strong>Message from school</strong>
+                                    <strong>Messages</strong>
                                     <small>{{ messages|length }} new message(s)</small>
                                 </div>
                             </a>
@@ -982,11 +1872,11 @@
                 <!-- User profile -->
                 {% if session.get('user_id') %}
                 <div class="pd-up" id="pdUserProfile">
-                    <button type="button" class="pd-up-btn" id="pdUserBtn"
-                            aria-haspopup="true" aria-expanded="false" aria-controls="pdUserDropdown"
-                            title="{{ session['user_name'] }} — click to open menu">
+                    <button type="button" class="pd-up-btn" id="pdUserBtn" aria-haspopup="true" aria-expanded="false"
+                        aria-controls="pdUserDropdown" title="{{ session['user_name'] }} — click to open menu">
                         <div class="pd-up-avatar">
-                            {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                            {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
+                            upper if session['user_name'].split()|length > 1 else '' }}
                         </div>
                         <div class="pd-up-info">
                             <strong>{{ session['user_name'].split()[0] }}</strong>
@@ -998,22 +1888,28 @@
                     <div class="pd-up-dropdown" id="pdUserDropdown" role="menu">
                         <div class="pd-up-head">
                             <div class="pd-up-head-avatar">
-                                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
+                                upper if session['user_name'].split()|length > 1 else '' }}
                             </div>
                             <div class="pd-up-head-text">
                                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
-                                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
+                                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A')
+                                    }}</small>
                                 <span class="pd-up-role-tag">{{ session.get('user_role', 'Parent')|capitalize }}</span>
                             </div>
                         </div>
                         <hr class="pd-up-divider">
                         <a href="#dashboard" role="menuitem"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
                         {% if session.get('user_role') == 'admin' %}
-                        <a href="{{ url_for('admin_dashboard') }}" role="menuitem"><i class="fa-solid fa-user-gear"></i> Admin Panel</a>
+                        <a href="{{ url_for('admin_dashboard') }}" role="menuitem"><i class="fa-solid fa-user-gear"></i>
+                            Admin Panel</a>
                         {% endif %}
-                        <a href="{{ url_for('home') }}" role="menuitem"><i class="fa-solid fa-globe"></i> View Website</a>
-                        <a href="{{ url_for('change_password') }}" role="menuitem"><i class="fa-solid fa-key"></i> Change Password</a>
-                        <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                        <a href="{{ url_for('home') }}" role="menuitem"><i class="fa-solid fa-globe"></i> View
+                            Website</a>
+                        <a href="{{ url_for('change_password') }}" role="menuitem"><i class="fa-solid fa-key"></i>
+                            Change Password</a>
+                        <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem"><i
+                                class="fa-solid fa-right-from-bracket"></i> Logout</a>
                     </div>
                 </div>
                 {% endif %}
@@ -1024,16 +1920,16 @@
         <main class="pd-content">
 
             {% with messages_flash = get_flashed_messages(with_categories=true) %}
-                {% if messages_flash %}
-                <div class="pd-flash-stack">
-                    {% for cat, msg in messages_flash %}
-                    <div class="pd-flash {{ cat }}">
-                        <span>{{ msg }}</span>
-                        <button type="button" aria-label="Dismiss">×</button>
-                    </div>
-                    {% endfor %}
+            {% if messages_flash %}
+            <div class="pd-flash-stack">
+                {% for cat, msg in messages_flash %}
+                <div class="pd-flash {{ cat }}">
+                    <span>{{ msg }}</span>
+                    <button type="button" aria-label="Dismiss">×</button>
                 </div>
-                {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
             {% endwith %}
 
             {% set total_att = attendance|length %}
@@ -1054,7 +1950,8 @@
                     <!-- Welcome banner -->
                     <section class="pd-welcome" id="dashboard">
                         <div class="pd-welcome-avatar">
-                            {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length > 1 else '' }}
+                            {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if
+                            user.name.split()|length > 1 else '' }}
                         </div>
                         <div class="pd-welcome-text">
                             <h1>Welcome, {{ user.name.split()[0] }}! 👋</h1>
@@ -1107,21 +2004,25 @@
                         <section class="pd-panel" id="children">
                             <div class="pd-panel-head">
                                 <h2 class="pd-panel-title"><i class="fa-solid fa-users"></i> My Children</h2>
-                                <a href="#attendance" class="pd-panel-link">View attendance <i class="fa-solid fa-arrow-right"></i></a>
+                                <a href="#attendance" class="pd-panel-link">View attendance <i
+                                        class="fa-solid fa-arrow-right"></i></a>
                             </div>
                             <div class="pd-panel-body">
                                 {% if user.child_name %}
                                 <div class="pd-child-list">
                                     <div class="pd-child-item">
                                         <div class="pd-child-avatar">
-                                            {{ user.child_name.split()[0][0]|upper }}{{ user.child_name.split()[-1][0]|upper if user.child_name.split()|length > 1 else '' }}
+                                            {{ user.child_name.split()[0][0]|upper }}{{
+                                            user.child_name.split()[-1][0]|upper if user.child_name.split()|length > 1
+                                            else '' }}
                                         </div>
                                         <div class="pd-child-info">
                                             <strong>{{ user.child_name }}</strong>
                                             <small>{{ user.child_class or 'N/A' }}</small>
                                         </div>
                                         <span class="pd-badge-active">Active</span>
-                                        <i class="fa-solid fa-chevron-right" style="color:var(--pd-muted); font-size:10px; margin-left:8px;"></i>
+                                        <i class="fa-solid fa-chevron-right"
+                                            style="color:var(--pd-muted); font-size:10px; margin-left:8px;"></i>
                                     </div>
                                 </div>
                                 {% else %}
@@ -1132,13 +2033,15 @@
 
                         <section class="pd-panel" id="attendance">
                             <div class="pd-panel-head">
-                                <h2 class="pd-panel-title"><i class="fa-solid fa-chart-pie"></i> Attendance Overview</h2>
+                                <h2 class="pd-panel-title"><i class="fa-solid fa-chart-pie"></i> Attendance Overview
+                                </h2>
                                 <span class="pd-panel-link">{{ total_att }} days</span>
                             </div>
                             <div class="pd-panel-body">
                                 {% if total_att > 0 %}
                                 <div class="pd-donut-wrap">
-                                    <div class="pd-donut" style="background: conic-gradient(#168254 0deg {{ att_deg }}deg, #d71938 {{ att_deg }}deg 360deg);">
+                                    <div class="pd-donut"
+                                        style="background: conic-gradient(#168254 0deg {{ att_deg }}deg, #d71938 {{ att_deg }}deg 360deg);">
                                         <div class="pd-donut-center">
                                             <strong>{{ att_pct }}%</strong>
                                             <small>Present</small>
@@ -1164,7 +2067,8 @@
                                 </div>
                                 {% else %}
                                 <div class="pd-empty">
-                                    <i class="fa-solid fa-chart-pie" style="font-size:28px; display:block; margin-bottom:8px; color:#cbd5e1;"></i>
+                                    <i class="fa-solid fa-chart-pie"
+                                        style="font-size:28px; display:block; margin-bottom:8px; color:#cbd5e1;"></i>
                                     No attendance records yet.
                                 </div>
                                 {% endif %}
@@ -1187,9 +2091,12 @@
                                 </div>
                                 {% endif %}
                                 <div class="pd-fee-status">
-                                    <div class="pd-fee-row"><span>Total Fee</span><strong>₹{{ total_fee if total_fee > 0 else '0' }}</strong></div>
-                                    <div class="pd-fee-row"><span>Paid</span><strong style="color:#168254;">₹{{ paid_fee if paid_fee > 0 else '0' }}</strong></div>
-                                    <div class="pd-fee-row"><span>Pending</span><strong style="color:var(--pd-red);">₹{{ pending_fee if pending_fee > 0 else '0' }}</strong></div>
+                                    <div class="pd-fee-row"><span>Total Fee</span><strong>₹{{ total_fee if total_fee > 0
+                                            else '0' }}</strong></div>
+                                    <div class="pd-fee-row"><span>Paid</span><strong style="color:#168254;">₹{{ paid_fee
+                                            if paid_fee > 0 else '0' }}</strong></div>
+                                    <div class="pd-fee-row"><span>Pending</span><strong style="color:var(--pd-red);">₹{{
+                                            pending_fee if pending_fee > 0 else '0' }}</strong></div>
                                 </div>
                                 {% if pending_fee > 0 %}
                                 <div style="margin-top:12px;">
@@ -1205,10 +2112,14 @@
                                         {% endif %}
                                     </div>
                                     {% endif %}
-                                    <form method="POST" action="{{ url_for('fee_pay') }}" class="pd-form" style="gap:10px;">
-                                        <label>Amount (₹) <input type="number" name="amount" step="0.01" required placeholder="5000"></label>
-                                        <label>Transaction ID <input type="text" name="transaction_id" placeholder="UPI txn ID"></label>
-                                        <button type="submit" class="pd-btn-primary"><i class="fa-solid fa-check"></i> Submit Payment</button>
+                                    <form method="POST" action="{{ url_for('fee_pay') }}" class="pd-form"
+                                        style="gap:10px;">
+                                        <label>Amount (₹) <input type="number" name="amount" step="0.01" required
+                                                placeholder="5000"></label>
+                                        <label>Transaction ID <input type="text" name="transaction_id"
+                                                placeholder="UPI txn ID"></label>
+                                        <button type="submit" class="pd-btn-primary"><i class="fa-solid fa-check"></i>
+                                            Submit Payment</button>
                                     </form>
                                 </div>
                                 {% endif %}
@@ -1225,7 +2136,8 @@
                                 <div class="pd-notice">
                                     <div class="pd-notice-icon"><i class="fa-regular fa-file-lines"></i></div>
                                     <div class="pd-notice-body">
-                                        <small>{{ n.date }}{% if n.tag %} · <b style="color:var(--pd-red);">{{ n.tag }}</b>{% endif %}</small>
+                                        <small>{{ n.date }}{% if n.tag %} · <b style="color:var(--pd-red);">{{ n.tag
+                                                }}</b>{% endif %}</small>
                                         <p>{{ n.title }}</p>
                                     </div>
                                 </div>
@@ -1267,7 +2179,8 @@
                                 </div>
                                 {% else %}
                                 <div class="pd-empty" style="padding:16px 4px;">
-                                    <i class="fa-regular fa-calendar-xmark" style="font-size:22px; display:block; margin-bottom:6px; color:#cbd5e1;"></i>
+                                    <i class="fa-regular fa-calendar-xmark"
+                                        style="font-size:22px; display:block; margin-bottom:6px; color:#cbd5e1;"></i>
                                     No upcoming events.
                                 </div>
                                 {% endfor %}
@@ -1286,11 +2199,11 @@
                                     <i class="fa-solid fa-book"></i>
                                     <span>Homework</span>
                                 </a>
-                                <a href="{{ url_for('faq_page') }}" class="pd-ql">
+                                <a href="{{ url_for('study_materials_page') }}" class="pd-ql">
                                     <i class="fa-solid fa-download"></i>
                                     <span>Study Materials</span>
                                 </a>
-                                <a href="#attendance" class="pd-ql">
+                                <a href="{{ url_for('results_page') }}" class="pd-ql">
                                     <i class="fa-solid fa-chart-simple"></i>
                                     <span>Results</span>
                                 </a>
@@ -1302,7 +2215,7 @@
                                     <i class="fa-solid fa-circle-question"></i>
                                     <span>Help &amp; Support</span>
                                 </a>
-                                <a href="#messages" class="pd-ql">
+                                <a href="{{ url_for('messages_inbox') }}" class="pd-ql">
                                     <i class="fa-regular fa-comments"></i>
                                     <span>Messages</span>
                                 </a>
@@ -1314,7 +2227,9 @@
                     <section class="pd-panel" id="messages">
                         <div class="pd-panel-head">
                             <h2 class="pd-panel-title"><i class="fa-regular fa-envelope"></i> Messages</h2>
-                            <span class="pd-panel-link">{{ messages|length }}</span>
+                            <a href="{{ url_for('messages_inbox') }}" class="pd-panel-link">
+                                Open inbox <i class="fa-solid fa-arrow-right"></i>
+                            </a>
                         </div>
                         <div class="pd-panel-body">
                             {% for m in messages[:3] %}
@@ -1330,6 +2245,10 @@
                             {% else %}
                             <div class="pd-empty">No messages yet.</div>
                             {% endfor %}
+                            <a href="{{ url_for('messages_compose') }}"
+                                style="display:inline-flex; align-items:center; gap:6px; margin-top:10px; padding:8px 14px; background:#0a2340; color:#fff; border-radius:8px; font-size:12px; font-weight:700; text-decoration:none;">
+                                <i class="fa-solid fa-pen"></i> Compose new message
+                            </a>
                         </div>
                     </section>
 
@@ -1347,121 +2266,122 @@
 
     <!-- ==================== JAVASCRIPT ==================== -->
     <script>
-    (function () {
-        'use strict';
+        (function () {
+            'use strict';
 
-        const sidebar   = document.getElementById('pdSidebar');
-        const backdrop  = document.getElementById('pdBackdrop');
-        const menuToggle = document.getElementById('pdMenuToggle');
+            const sidebar = document.getElementById('pdSidebar');
+            const backdrop = document.getElementById('pdBackdrop');
+            const menuToggle = document.getElementById('pdMenuToggle');
 
-        function openSidebar() {
-            sidebar.classList.add('open');
-            backdrop.classList.add('open');
-            menuToggle.setAttribute('aria-expanded', 'true');
-            document.body.classList.add('pd-menu-open');
-        }
-        function closeSidebar() {
-            sidebar.classList.remove('open');
-            backdrop.classList.remove('open');
-            menuToggle.setAttribute('aria-expanded', 'false');
-            document.body.classList.remove('pd-menu-open');
-        }
-        menuToggle.addEventListener('click', function () {
-            sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
-        });
-        backdrop.addEventListener('click', closeSidebar);
-
-        /* Sidebar nav active state + close on click (mobile) */
-        document.querySelectorAll('.pd-nav-link').forEach(function (link) {
-            link.addEventListener('click', function () {
-                const href = this.getAttribute('href') || '';
-                if (href.charAt(0) === '#') {
-                    document.querySelectorAll('.pd-nav-link').forEach(function (l) { l.classList.remove('active'); });
-                    this.classList.add('active');
-                }
-                if (window.innerWidth <= 1024) closeSidebar();
+            function openSidebar() {
+                sidebar.classList.add('open');
+                backdrop.classList.add('open');
+                menuToggle.setAttribute('aria-expanded', 'true');
+                document.body.classList.add('pd-menu-open');
+            }
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                backdrop.classList.remove('open');
+                menuToggle.setAttribute('aria-expanded', 'false');
+                document.body.classList.remove('pd-menu-open');
+            }
+            menuToggle.addEventListener('click', function () {
+                sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
             });
-        });
+            backdrop.addEventListener('click', closeSidebar);
 
-        /* User profile dropdown */
-        const up     = document.getElementById('pdUserProfile');
-        const upBtn  = document.getElementById('pdUserBtn');
-        const upDrop = document.getElementById('pdUserDropdown');
-
-        function closeUp() {
-            if (!up) return;
-            up.classList.remove('open');
-            if (upBtn) upBtn.setAttribute('aria-expanded', 'false');
-        }
-        if (upBtn && up) {
-            upBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const isOpen = up.classList.contains('open');
-                closeNotif();
-                if (!isOpen) {
-                    up.classList.add('open');
-                    upBtn.setAttribute('aria-expanded', 'true');
-                } else {
-                    closeUp();
-                }
-            });
-            if (upDrop) upDrop.addEventListener('click', function (e) { e.stopPropagation(); });
-        }
-
-        /* Notification dropdown */
-        const notif     = document.getElementById('pdNotif');
-        const notifBtn  = document.getElementById('pdNotifBtn');
-        const notifDrop = document.getElementById('pdNotifDropdown');
-
-        function closeNotif() {
-            if (!notif) return;
-            notif.classList.remove('open');
-            if (notifBtn) notifBtn.setAttribute('aria-expanded', 'false');
-        }
-        if (notifBtn && notif) {
-            notifBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const isOpen = notif.classList.contains('open');
-                closeUp();
-                if (!isOpen) {
-                    notif.classList.add('open');
-                    notifBtn.setAttribute('aria-expanded', 'true');
-                } else {
-                    closeNotif();
-                }
-            });
-            if (notifDrop) {
-                notifDrop.addEventListener('click', function (e) { e.stopPropagation(); });
-                notifDrop.querySelectorAll('a').forEach(function (a) {
-                    a.addEventListener('click', closeNotif);
+            /* Sidebar nav active state + close on click (mobile) */
+            document.querySelectorAll('.pd-nav-link').forEach(function (link) {
+                link.addEventListener('click', function () {
+                    const href = this.getAttribute('href') || '';
+                    if (href.charAt(0) === '#') {
+                        document.querySelectorAll('.pd-nav-link').forEach(function (l) { l.classList.remove('active'); });
+                        this.classList.add('active');
+                    }
+                    if (window.innerWidth <= 1024) closeSidebar();
                 });
-            }
-        }
-
-        document.addEventListener('click', function (e) {
-            if (up && !up.contains(e.target)) closeUp();
-            if (notif && !notif.contains(e.target)) closeNotif();
-        });
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                closeUp();
-                closeNotif();
-                if (window.innerWidth <= 1024) closeSidebar();
-            }
-        });
-
-        /* Flash close */
-        document.querySelectorAll('.pd-flash button').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                const f = btn.closest('.pd-flash');
-                if (!f) return;
-                f.style.opacity = '0';
-                setTimeout(function () { f.remove(); }, 250);
             });
-        });
-    })();
+
+            /* User profile dropdown */
+            const up = document.getElementById('pdUserProfile');
+            const upBtn = document.getElementById('pdUserBtn');
+            const upDrop = document.getElementById('pdUserDropdown');
+
+            function closeUp() {
+                if (!up) return;
+                up.classList.remove('open');
+                if (upBtn) upBtn.setAttribute('aria-expanded', 'false');
+            }
+            if (upBtn && up) {
+                upBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isOpen = up.classList.contains('open');
+                    closeNotif();
+                    if (!isOpen) {
+                        up.classList.add('open');
+                        upBtn.setAttribute('aria-expanded', 'true');
+                    } else {
+                        closeUp();
+                    }
+                });
+                if (upDrop) upDrop.addEventListener('click', function (e) { e.stopPropagation(); });
+            }
+
+            /* Notification dropdown */
+            const notif = document.getElementById('pdNotif');
+            const notifBtn = document.getElementById('pdNotifBtn');
+            const notifDrop = document.getElementById('pdNotifDropdown');
+
+            function closeNotif() {
+                if (!notif) return;
+                notif.classList.remove('open');
+                if (notifBtn) notifBtn.setAttribute('aria-expanded', 'false');
+            }
+            if (notifBtn && notif) {
+                notifBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isOpen = notif.classList.contains('open');
+                    closeUp();
+                    if (!isOpen) {
+                        notif.classList.add('open');
+                        notifBtn.setAttribute('aria-expanded', 'true');
+                    } else {
+                        closeNotif();
+                    }
+                });
+                if (notifDrop) {
+                    notifDrop.addEventListener('click', function (e) { e.stopPropagation(); });
+                    notifDrop.querySelectorAll('a').forEach(function (a) {
+                        a.addEventListener('click', closeNotif);
+                    });
+                }
+            }
+
+            document.addEventListener('click', function (e) {
+                if (up && !up.contains(e.target)) closeUp();
+                if (notif && !notif.contains(e.target)) closeNotif();
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeUp();
+                    closeNotif();
+                    if (window.innerWidth <= 1024) closeSidebar();
+                }
+            });
+
+            /* Flash close */
+            document.querySelectorAll('.pd-flash button').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const f = btn.closest('.pd-flash');
+                    if (!f) return;
+                    f.style.opacity = '0';
+                    setTimeout(function () { f.remove(); }, 250);
+                });
+            });
+        })();
     </script>
 </body>
+
 </html>

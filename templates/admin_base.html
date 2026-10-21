@@ -12,7 +12,7 @@
 
     <style>
         /* ============================================================
-           1. SIDEBAR USER BOX FIX (Fix for Cut-off/Squeezed text)
+           1. SIDEBAR USER BOX FIX
            ============================================================ */
         .admin-user-box {
             margin: 16px 16px 20px;
@@ -25,10 +25,8 @@
             gap: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             position: relative;
-            overflow: hidden; /* Prevents inner elements from spilling out */
+            overflow: hidden;
         }
-        
-        /* Adds a clean accent line on the left instead of weird overlapping elements */
         .admin-user-box::before {
             content: '';
             position: absolute;
@@ -36,7 +34,6 @@
             width: 3px;
             background: linear-gradient(to bottom, var(--yellow, #ffd447), var(--red, #d71938));
         }
-
         .admin-user-avatar {
             flex: 0 0 42px;
             width: 42px;
@@ -54,17 +51,15 @@
             position: relative;
             z-index: 1;
         }
-
         .admin-user-text {
             flex: 1;
-            min-width: 0; /* CRITICAL FIX: This forces long text to truncate instead of overflowing */
+            min-width: 0;
             display: flex;
             flex-direction: column;
             gap: 3px;
             position: relative;
             z-index: 1;
         }
-
         .admin-user-text strong {
             font-size: 13.5px;
             font-weight: 800;
@@ -74,7 +69,6 @@
             text-overflow: ellipsis;
             line-height: 1.2;
         }
-
         .admin-user-text small {
             font-size: 11px;
             color: #b1c2d4;
@@ -86,12 +80,10 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
         .admin-user-text small i {
             color: var(--yellow, #ffd447);
             font-size: 10px;
         }
-
         .admin-role-badge {
             display: inline-block;
             background: var(--yellow, #ffd447);
@@ -107,25 +99,55 @@
         }
 
         /* ============================================================
-           2. CUSTOM SLIM SCROLLBAR (Fixes the thick ugly scrollbar)
+           2. CUSTOM SLIM SCROLLBAR
            ============================================================ */
-        .admin-sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .admin-sidebar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .admin-sidebar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15); 
-            border-radius: 10px;
-        }
-        .admin-sidebar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3); 
-        }
+        .admin-sidebar::-webkit-scrollbar { width: 6px; }
+        .admin-sidebar::-webkit-scrollbar-track { background: transparent; }
+        .admin-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
+        .admin-sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
 
         /* ============================================================
-           3. TOPBAR — NOTIFICATION BELL + USER BUTTON DROPDOWNS
+           3. TOPBAR — SEARCH + NOTIFICATION BELL + USER BUTTON
            ============================================================ */
+        .admin-topbar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .admin-page-title {
+            flex-shrink: 0;
+            margin: 0;
+        }
+        .admin-search {
+            flex: 1;
+            max-width: 420px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            border: 1px solid #e1e8f0;
+            border-radius: 10px;
+            padding: 0 14px;
+            height: 42px;
+            transition: all 0.2s ease;
+            margin: 0 16px;
+        }
+        .admin-search i { color: #65758a; font-size: 14px; }
+        .admin-search input {
+            border: none;
+            outline: none;
+            background: transparent;
+            font: inherit;
+            font-size: 13.5px;
+            color: #0a2340;
+            width: 100%;
+        }
+        .admin-search input::placeholder { color: #a0aec0; }
+        .admin-search:focus-within {
+            border-color: #b0c4d8;
+            box-shadow: 0 0 0 3px rgba(11, 53, 98, 0.06);
+        }
+
         .admin-topbar-icon {
             position: relative;
             width: 42px;
@@ -148,8 +170,6 @@
             border-color: #b0c4d8;
             transform: translateY(-1px);
         }
-
-        /* Notification red dot */
         .notif-dot-badge {
             position: absolute;
             top: 8px;
@@ -260,12 +280,8 @@
         .notif-footer a { font-size: 11.5px; font-weight: 700; color: var(--red, #d71938); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: gap 0.2s ease; }
         .notif-footer a:hover { gap: 10px; }
 
-        /* USER PROFILE BUTTON (hover expand + click pin) */
-        .admin-user-profile {
-            position: relative;
-            display: inline-block;
-            z-index: 1200;
-        }
+        /* User profile button */
+        .admin-user-profile { position: relative; display: inline-block; z-index: 1200; }
         .admin-user-btn {
             display: inline-flex;
             align-items: center;
@@ -396,27 +412,39 @@
         .admin-user-dropdown > a.admin-logout-link i { color: var(--red, #d71938); }
         .admin-user-dropdown > a.admin-logout-link:hover { background: #ffeaee; }
 
-        /* Sidebar active nav hover dot */
+        /* Sidebar active nav */
         .admin-nav-link.active {
             background: linear-gradient(135deg, var(--red, #d71938), #b9102c) !important;
             color: #fff !important;
         }
         .admin-nav-link.active i { color: #fff !important; }
 
-        /* Flash stack position */
+        /* Sidebar group labels */
+        .admin-nav-group-label {
+            font-size: 9px;
+            font-weight: 800;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            padding: 14px 18px 6px;
+            margin-top: 2px;
+        }
+
+        /* Flash stack */
         .admin-content .flash-stack {
             position: fixed;
             top: 82px; right: 18px; z-index: 1500;
             display: grid; gap: 8px; width: min(420px, calc(100% - 36px));
         }
 
-        /* Mobile responsive */
+        /* Responsive */
         @media (max-width: 900px) {
             .admin-topbar-icon { width: 38px; height: 38px; font-size: 14px; }
             .admin-user-btn { max-width: 44px; }
             .admin-user-btn:hover, .admin-user-profile.dropdown-open .admin-user-btn { max-width: 220px; }
             .admin-notif-dropdown { width: 280px; right: -8px; }
             .admin-user-dropdown { min-width: 240px; right: -8px; }
+            .admin-search { display: none; }
         }
         @media (max-width: 640px) {
             .admin-notif-dropdown { width: 260px; }
@@ -433,7 +461,6 @@
 
     <!-- SIDEBAR -->
     <aside class="admin-sidebar" id="adminSidebar" aria-label="Admin sidebar">
-        <!-- Logo -->
         <div class="admin-sidebar-head">
             <a href="{{ url_for('admin_dashboard') }}" class="admin-logo" aria-label="Admin home">
                 <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="School Logo" class="school-logo">
@@ -444,7 +471,6 @@
             </a>
         </div>
 
-        <!-- Logged-in user info box (FIXED) -->
         {% if session.get('user_id') %}
         <div class="admin-user-box">
             <div class="admin-user-avatar">
@@ -458,8 +484,9 @@
         </div>
         {% endif %}
 
-        <!-- Navigation -->
+        <!-- Navigation (grouped like image) -->
         <nav class="admin-nav">
+            <div class="admin-nav-group-label">Main</div>
             <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link {% if active_page == 'dashboard' %}active{% endif %}">
                 <i class="fa-solid fa-gauge"></i> Dashboard
             </a>
@@ -469,9 +496,8 @@
             <a href="{{ url_for('admin_create_user') }}" class="admin-nav-link {% if active_page == 'create_user' %}active{% endif %}">
                 <i class="fa-solid fa-user-plus"></i> Create User
             </a>
-            <a href="{{ url_for('admin_notices') }}" class="admin-nav-link {% if active_page == 'notices' %}active{% endif %}">
-                <i class="fa-solid fa-bullhorn"></i> Notices
-            </a>
+
+            <div class="admin-nav-group-label">Academics</div>
             <a href="{{ url_for('admin_attendance') }}" class="admin-nav-link {% if active_page == 'attendance' %}active{% endif %}">
                 <i class="fa-solid fa-clipboard-check"></i> Attendance
             </a>
@@ -487,6 +513,11 @@
                 <span class="notif-dot" style="margin-left:auto;"></span>
                 {% endif %}
             </a>
+
+            <div class="admin-nav-group-label">Communication</div>
+            <a href="{{ url_for('admin_notices') }}" class="admin-nav-link {% if active_page == 'notices' %}active{% endif %}">
+                <i class="fa-solid fa-bullhorn"></i> Notices
+            </a>
             <a href="{{ url_for('admin_messages') }}" class="admin-nav-link {% if active_page == 'messages' %}active{% endif %}">
                 <i class="fa-solid fa-comments"></i> Messages
             </a>
@@ -494,8 +525,7 @@
                 <i class="fa-solid fa-envelope"></i> Enquiries
             </a>
 
-            <hr class="admin-divider">
-
+            <div class="admin-nav-group-label">Content</div>
             <a href="{{ url_for('admin_faculty') }}" class="admin-nav-link {% if active_page == 'faculty' %}active{% endif %}">
                 <i class="fa-solid fa-chalkboard-user"></i> Faculty
             </a>
@@ -515,8 +545,7 @@
                 <i class="fa-solid fa-circle-question"></i> FAQ
             </a>
 
-            <hr class="admin-divider">
-
+            <div class="admin-nav-group-label">System</div>
             <a href="{{ url_for('home') }}" target="_blank" rel="noopener" class="admin-nav-link">
                 <i class="fa-solid fa-globe"></i> View Website
             </a>
@@ -526,7 +555,6 @@
         </nav>
     </aside>
 
-    <!-- Mobile backdrop -->
     <div class="admin-backdrop" id="adminBackdrop" hidden></div>
 
     <!-- MAIN AREA -->
@@ -537,6 +565,11 @@
             </button>
 
             <h1 class="admin-page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+
+            <form class="admin-search" action="{{ url_for('admin_users') }}" method="get" role="search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" name="q" placeholder="Search students, teachers, parents..." aria-label="Search">
+            </form>
 
             <div class="admin-user-info">
                 <!-- NOTIFICATION BELL -->
@@ -627,7 +660,6 @@
             </div>
         </header>
 
-        <!-- FLASH MESSAGES & CONTENT -->
         <div class="admin-content">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
@@ -646,16 +678,13 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT -->
+    <!-- JAVASCRIPT (unchanged) -->
     <script>
     (function () {
         'use strict';
-
-        /* SIDEBAR TOGGLE (mobile) */
-        const sidebar       = document.getElementById('adminSidebar');
-        const menuToggle    = document.getElementById('adminMenuToggle');
-        const backdrop      = document.getElementById('adminBackdrop');
-
+        const sidebar = document.getElementById('adminSidebar');
+        const menuToggle = document.getElementById('adminMenuToggle');
+        const backdrop = document.getElementById('adminBackdrop');
         function openSidebar() {
             if (!sidebar) return;
             sidebar.classList.add('open');
@@ -678,13 +707,12 @@
         }
         if (backdrop) backdrop.addEventListener('click', closeSidebar);
 
-        /* NOTIFICATION & USER DROPDOWNS */
-        const notifWrapper  = document.getElementById('adminNotifWrapper');
-        const notifBtn      = document.getElementById('adminNotifBtn');
+        const notifWrapper = document.getElementById('adminNotifWrapper');
+        const notifBtn = document.getElementById('adminNotifBtn');
         const notifDropdown = document.getElementById('adminNotifDropdown');
-        const userProfile   = document.getElementById('adminUserProfile');
-        const userBtn       = document.getElementById('adminUserBtn');
-        const userDropdown  = document.getElementById('adminUserDropdown');
+        const userProfile = document.getElementById('adminUserProfile');
+        const userBtn = document.getElementById('adminUserBtn');
+        const userDropdown = document.getElementById('adminUserDropdown');
 
         function closeNotif() {
             if (!notifWrapper) return;
@@ -707,13 +735,9 @@
                 if (!isOpen) {
                     notifWrapper.classList.add('dropdown-open');
                     notifBtn.setAttribute('aria-expanded', 'true');
-                } else {
-                    closeNotif();
-                }
+                } else { closeNotif(); }
             });
-            if (notifDropdown) {
-                notifDropdown.addEventListener('click', e => e.stopPropagation());
-            }
+            if (notifDropdown) notifDropdown.addEventListener('click', e => e.stopPropagation());
         }
 
         if (userBtn && userProfile) {
@@ -725,13 +749,9 @@
                 if (!isOpen) {
                     userProfile.classList.add('dropdown-open');
                     userBtn.setAttribute('aria-expanded', 'true');
-                } else {
-                    closeUser();
-                }
+                } else { closeUser(); }
             });
-            if (userDropdown) {
-                userDropdown.addEventListener('click', e => e.stopPropagation());
-            }
+            if (userDropdown) userDropdown.addEventListener('click', e => e.stopPropagation());
         }
 
         document.addEventListener('click', function (e) {
@@ -740,10 +760,7 @@
         });
 
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                closeBoth();
-                closeSidebar();
-            }
+            if (e.key === 'Escape') { closeBoth(); closeSidebar(); }
         });
 
         document.addEventListener('touchstart', function (e) {
@@ -751,7 +768,6 @@
             if (userProfile && !userProfile.contains(e.target)) closeUser();
         }, { passive: true });
 
-        /* FLASH CLOSE & AUTO DISMISS */
         document.querySelectorAll('.flash-close').forEach(btn => {
             btn.addEventListener('click', () => {
                 const flash = btn.closest('.flash');
@@ -761,7 +777,6 @@
                 setTimeout(() => flash.remove(), 300);
             });
         });
-
         document.querySelectorAll('.flash').forEach(flash => {
             setTimeout(() => {
                 if (!flash.isConnected) return;
@@ -770,14 +785,11 @@
                 setTimeout(() => flash.remove(), 300);
             }, 6000);
         });
-
-        /* AUTO-CLOSE SIDEBAR ON NAV CLICK */
         document.querySelectorAll('.admin-nav-link').forEach(link => {
             link.addEventListener('click', function () {
                 if (window.innerWidth <= 900) closeSidebar();
             });
         });
-
     })();
     </script>
 

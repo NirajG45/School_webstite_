@@ -320,9 +320,9 @@ def get_user_by_unique_id(uid):
     return db.execute('SELECT * FROM users WHERE unique_id = ?', (uid,)).fetchone()
 
 def generate_unique_id(role):
-    """Generate unique ID like TSNV00001, PSNV00001, STSNV00001"""
+    """Generate unique ID like SNVT00001, SNVP00001, SNVST00001"""
     db = get_db()
-    prefixes = {'admin': 'SNV', 'teacher': 'TSNV', 'parent': 'PSNV', 'student': 'STSNV'}
+    prefixes = {'admin': 'SNV', 'teacher': 'SNVT', 'parent': 'SNVP', 'student': 'SNVST'}
     prefix = prefixes.get(role, 'SNV')
 
     last = db.execute(
@@ -523,6 +523,20 @@ def inject_admin_sidebar_counts():
         return {}
 
 # =========================================
+# 🚀 NEW: SESSION SYNC — Ensures DB photo_url is always in session
+# =========================================
+@app.before_request
+def sync_session_user_info():
+    """Har request par check karta hai ki DB aur Session me photo_url sync hai ya nahi."""
+    if session.get('user_id'):
+        db = get_db()
+        user = db.execute('SELECT photo_url, name, role FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+        if user:
+            session['photo_url'] = user['photo_url']
+            session['user_name'] = user['name']
+            session['user_role'] = user['role']
+
+# =========================================
 # 5. PUBLIC ROUTES
 # =========================================
 @app.route('/')
@@ -668,9 +682,11 @@ def admin_edit_profile(user_id):
 
         db.commit()
 
+        # 🚀 FIX: Session Update if Admin edits own profile
         if session['user_id'] == user_id:
             session['user_name'] = name
             session['user_role'] = role
+            session['photo_url'] = updates.get('photo_url', user['photo_url'])
 
         flash('Profile updated successfully!', 'success')
     except sqlite3.IntegrityError:
@@ -707,6 +723,7 @@ def login():
         session['user_name'] = user['name']
         session['user_role'] = user['role']
         session['unique_id'] = user['unique_id']
+        session['photo_url'] = user['photo_url']  # 🚀 FIX: Photo URL saved on login
 
         if user['force_password_change']:
             flash('Welcome! Please set a new password.', 'success')
@@ -1073,6 +1090,65 @@ def admin_users():
         q=q,
         active_page='users'
     )
+
+# =========================================
+# 🚀 NEW: ADMIN DEDICATED PHOTO ROUTES (For Admin Users Page Modal)
+# =========================================
+@app.route('/admin/users/<int:user_id>/update-photo', methods=['POST'])
+@admin_required
+def admin_update_user_photo(user_id):
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    if not user:
+        flash('User not found.', 'error')
+        return redirect(request.referrer or url_for('admin_users'))
+
+    photo_file = request.files.get('photo')
+    if not photo_file or not photo_file.filename:
+        flash('No file uploaded.', 'error')
+        return redirect(request.referrer or url_for('admin_users'))
+
+    if not allowed_file(photo_file.filename):
+        flash('Invalid file type.', 'error')
+        return redirect(request.referrer or url_for('admin_users'))
+
+    photo_url = save_user_photo(photo_file)
+    if not photo_url:
+        flash('Image too large (max 2MB) or could not be saved.', 'error')
+        return redirect(request.referrer or url_for('admin_users'))
+
+    db.execute('UPDATE users SET photo_url = ? WHERE id = ?', (photo_url, user_id))
+    if user['role'] == 'teacher':
+        db.execute('UPDATE faculty SET photo_url = ? WHERE user_id = ?', (photo_url, user_id))
+    db.commit()
+
+    if session['user_id'] == user_id:
+        session['photo_url'] = photo_url
+
+    flash('User photo updated successfully.', 'success')
+    return redirect(request.referrer or url_for('admin_users'))
+
+
+@app.route('/admin/users/<int:user_id>/remove-photo', methods=['POST'])
+@admin_required
+def admin_remove_user_photo(user_id):
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    if not user:
+        flash('User not found.', 'error')
+        return redirect(request.referrer or url_for('admin_users'))
+
+    db.execute('UPDATE users SET photo_url = NULL WHERE id = ?', (user_id,))
+    if user['role'] == 'teacher':
+        db.execute('UPDATE faculty SET photo_url = NULL WHERE user_id = ?', (user_id,))
+    db.commit()
+
+    if session['user_id'] == user_id:
+        session['photo_url'] = None
+
+    flash('User photo removed.', 'success')
+    return redirect(request.referrer or url_for('admin_users'))
+# =========================================
 
 @app.route('/admin/create-user', methods=['GET', 'POST'])
 @admin_required

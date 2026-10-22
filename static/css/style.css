@@ -5072,3 +5072,636 @@ img { display: block; max-width: 100%; }
     border-radius: 50%;
     display: block;
 }
+
+/* ==========================================================================
+   🚀 ENHANCEMENTS — APPEND-ONLY IMPROVEMENTS
+   --------------------------------------------------------------------------
+   Nothing above this line is modified, removed, or overridden aggressively.
+   These rules only ENHANCE — they use safe specificity, progressive
+   enhancement (@supports / @media guards), and never break existing behavior.
+   ========================================================================== */
+
+/* ------------------------------------------------------------------
+   1. BASE RENDERING & TYPOGRAPHY POLISH
+   ------------------------------------------------------------------ */
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    color-scheme: light;
+}
+body {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Balanced headings — avoids awkward last-word wraps */
+h1, h2, h3, h4, .hero h1, .welcome-text h1 {
+    text-wrap: balance;
+}
+p, .notice p, .event-details p, .faq-answer, .faculty-bio {
+    text-wrap: pretty;
+}
+
+/* Kerning + ligatures on serif headings */
+h1, h2, h3, .brand-copy strong, .hero h1, .welcome-text h1 {
+    font-kerning: normal;
+    font-feature-settings: "kern" 1, "liga" 1;
+    font-optical-sizing: auto;
+}
+
+/* Tabular numbers for stats — keeps digits aligned */
+.stat strong,
+.stat-num,
+.w-stat strong,
+.att-ring-label,
+.dq-stat strong,
+.admin-stat-card .stat-num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}
+
+/* Selection colors — matches brand */
+::selection {
+    background: var(--yellow);
+    color: var(--navy);
+}
+::-moz-selection {
+    background: var(--yellow);
+    color: var(--navy);
+}
+
+/* Placeholder color consistency */
+::placeholder {
+    color: #9aabba;
+    opacity: 0.9;
+}
+
+/* Prevent text selection on decorative numbers/avatars */
+.stat strong,
+.att-ring-label,
+.w-stat strong,
+.big-avatar,
+.user-avatar,
+.dq-stat strong {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* ------------------------------------------------------------------
+   2. SCROLLBAR STYLING (Webkit) — nicer look, same functionality
+   ------------------------------------------------------------------ */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #eef2f7;
+}
+::-webkit-scrollbar-thumb {
+    background: #c3d0de;
+    border-radius: 10px;
+    border: 2px solid #eef2f7;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #9fb3c6;
+}
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #c3d0de #eef2f7;
+}
+
+/* ------------------------------------------------------------------
+   3. FOCUS MANAGEMENT — only show outline for keyboard users
+   ------------------------------------------------------------------ */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+:focus-visible {
+    outline: 3px solid #f0b928;
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+/* Extra accent for dropdown + panel controls */
+.user-dropdown :focus-visible,
+.mobile-nav :focus-visible {
+    outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------
+   4. ANCHOR SCROLL OFFSET FOR STICKY HEADER
+   Ensures #hash targets aren't hidden behind the sticky header
+   ------------------------------------------------------------------ */
+section[id],
+div[id].panel,
+article[id],
+[id]:target {
+    scroll-margin-top: calc(var(--header-h) + 20px);
+}
+
+/* ------------------------------------------------------------------
+   5. DISABLED STATES — clearer visual + a11y
+   ------------------------------------------------------------------ */
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+.btn:disabled,
+.btn-admin-primary:disabled,
+.page-btn.disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    filter: grayscale(20%);
+}
+button:disabled,
+.btn:disabled,
+.btn-admin-primary:disabled {
+    pointer-events: none;
+}
+
+/* ------------------------------------------------------------------
+   6. FORM CONTROL POLISH — accent colors, dark-mode safety
+   ------------------------------------------------------------------ */
+input[type="checkbox"],
+input[type="radio"],
+input[type="range"] {
+    accent-color: var(--red);
+}
+/* Ensure form controls remain light-on-light even if OS is dark */
+input, select, textarea {
+    color-scheme: light;
+}
+/* Prevent the select-arrow from being hidden on Windows */
+select {
+    background-clip: padding-box;
+}
+
+/* ------------------------------------------------------------------
+   7. TOUCH FEEDBACK — subtle press animation on mobile
+   ------------------------------------------------------------------ */
+@media (hover: none) and (pointer: coarse) {
+    .btn:active,
+    .nav-link:active,
+    .mobile-nav a:active,
+    .quick-strip > a:active,
+    .stat:active,
+    .panel:active,
+    .faculty-card:active,
+    .achievement-card:active,
+    .home-event-card:active {
+        transform: scale(0.98);
+        transition: transform 0.08s ease;
+    }
+    /* Smoother tap highlight in brand gold */
+    .nav-link,
+    .quick-strip > a,
+    .quick-list > a,
+    .panel,
+    .mobile-nav a {
+        -webkit-tap-highlight-color: rgba(255, 212, 71, 0.25);
+    }
+}
+
+/* ------------------------------------------------------------------
+   8. SAFE-AREA SUPPORT — notches & home-indicators
+   ------------------------------------------------------------------ */
+@supports (padding: env(safe-area-inset-left)) {
+    .header-inner,
+    .wrap,
+    .gallery-hero-inner {
+        padding-left: max(0px, env(safe-area-inset-left));
+        padding-right: max(0px, env(safe-area-inset-right));
+    }
+    .mobile-menu {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    .flash-stack {
+        right: max(18px, env(safe-area-inset-right));
+    }
+}
+
+/* ------------------------------------------------------------------
+   9. @supports FALLBACK — for browsers without backdrop-filter
+   ------------------------------------------------------------------ */
+@supports not (backdrop-filter: blur(10px)) {
+    .site-header {
+        background: rgba(255, 255, 255, 0.99);
+    }
+    .mobile-menu-head {
+        background: var(--navy);
+    }
+    .card-zoom,
+    .lb-btn,
+    .lb-counter,
+    .lightbox-close,
+    .lightbox-nav {
+        background: rgba(0, 0, 0, 0.6);
+    }
+    .g-meta-chip,
+    .hero-photo-card {
+        background: rgba(255, 255, 255, 0.18);
+    }
+}
+
+/* ------------------------------------------------------------------
+   10. OVERSCROLL CONTAINMENT — prevents scroll chaining on modals
+   ------------------------------------------------------------------ */
+.mobile-nav,
+.att-list,
+.notices-dash-panel .notice-list,
+.admin-notice-list,
+.lightbox,
+.user-dropdown {
+    overscroll-behavior: contain;
+}
+
+/* ------------------------------------------------------------------
+   11. PERFORMANCE HINTS — will-change on frequent-animated elements
+   ------------------------------------------------------------------ */
+.user-avatar-btn:hover,
+.user-profile.dropdown-open .user-avatar-btn,
+.hero-photo-card:hover,
+.panel:hover,
+.gallery-page-item:hover {
+    will-change: transform;
+}
+/* Promote fixed layers to avoid repaint during scroll */
+.site-header,
+.mobile-menu,
+.menu-backdrop,
+.flash-stack {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+/* ------------------------------------------------------------------
+   12. CONTENT-VISIBILITY — skip rendering off-screen sections
+   (Safe because contain-intrinsic-size reserves space)
+   ------------------------------------------------------------------ */
+.home-events-section,
+.home-testimonials,
+.home-achievements-section,
+.faculty-page-content,
+.events-page-content,
+.achievements-content,
+.faq-content,
+.gallery-page-content,
+.notices-page-content,
+.academics-content {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 800px;
+}
+
+/* ------------------------------------------------------------------
+   13. IMAGE LOADING POLISH — shimmer placeholder + layout stability
+   ------------------------------------------------------------------ */
+img[loading="lazy"] {
+    background: linear-gradient(90deg, #eef2f7 0%, #f8fafc 50%, #eef2f7 100%);
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.5s ease-in-out infinite;
+}
+@keyframes skeletonShimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ------------------------------------------------------------------
+   14. LONG-TEXT / EMAIL SAFETY — prevent overflow breaking layout
+   ------------------------------------------------------------------ */
+.user-cell-meta small,
+.profile-value,
+.notice p,
+.admin-table td,
+.user-info-text small,
+.faq-answer {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* ------------------------------------------------------------------
+   15. DROPDOWN PIN OPEN — subtle bounce animation
+   ------------------------------------------------------------------ */
+.user-profile.dropdown-open .user-dropdown {
+    animation: dropdownPinBounce 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes dropdownPinBounce {
+    0%   { transform: translateY(-8px) scale(0.97); }
+    60%  { transform: translateY(2px) scale(1.005); }
+    100% { transform: translateY(0) scale(1); }
+}
+
+/* ------------------------------------------------------------------
+   16. GALLERY SLIDER — keyboard focus visual
+   ------------------------------------------------------------------ */
+.slider-track:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: -3px;
+    border-radius: 8px;
+}
+
+/* ------------------------------------------------------------------
+   17. ENHANCED REDUCED-MOTION — extends existing support
+   (Original rule at line ~1500 already covers most; this adds
+    element-specific corrections for hover transforms)
+   ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+    .hero-photo-card:hover,
+    .panel:hover,
+    .faculty-card:hover,
+    .achievement-card:hover,
+    .home-event-card:hover,
+    .home-achievement-card:hover,
+    .testimonial-card:hover,
+    .gallery-page-item:hover,
+    .notice:hover,
+    .quick-list > a:hover,
+    .quick-strip > a:hover,
+    .stat:hover,
+    .user-avatar:hover,
+    .user-avatar-btn:hover,
+    .user-profile.dropdown-open .user-avatar-btn,
+    .stage-card:hover,
+    .subject-card:hover,
+    .page-hero:hover .page-hero-icon {
+        transform: none !important;
+    }
+    .user-profile.dropdown-open .user-dropdown {
+        animation: none !important;
+    }
+    img[loading="lazy"] {
+        animation: none !important;
+        background: #eef2f7;
+    }
+}
+
+/* ------------------------------------------------------------------
+   18. HIGH-CONTRAST MODE — better visibility, doesn't override layout
+   ------------------------------------------------------------------ */
+@media (prefers-contrast: more) {
+    .panel,
+    .admin-panel,
+    .user-dropdown,
+    .mobile-menu,
+    .stage-card,
+    .subject-card,
+    .faculty-card,
+    .achievement-card,
+    .event-card,
+    .notice-card {
+        border-width: 2px;
+        border-color: var(--navy);
+    }
+    .nav-link {
+        border: 1px solid transparent;
+    }
+    .nav-link:hover,
+    .nav-link:focus-visible {
+        border-color: var(--navy);
+        background: #fff;
+        color: var(--navy);
+    }
+    .att-badge,
+    .role-badge,
+    .kind-badge,
+    .notice-tag,
+    .user-status-pill,
+    .user-role-pill,
+    .faculty-subject {
+        font-weight: 900;
+        border: 1px solid currentColor;
+    }
+    .brand-copy strong,
+    .hero h1,
+    .welcome-text h1,
+    .panel-title h2 {
+        font-weight: 900;
+    }
+}
+
+/* ------------------------------------------------------------------
+   19. FORCED-COLORS (Windows High Contrast / Forced-Color Mode)
+   ------------------------------------------------------------------ */
+@media (forced-colors: active) {
+    .btn,
+    .btn-yellow,
+    .btn-glass,
+    .btn-primary,
+    .btn-admin-primary,
+    .login-btn,
+    .upi-pay-btn,
+    .mobile-dash-btn,
+    .mobile-login-btn,
+    .page-btn,
+    .filter-btn,
+    .gallery-chip,
+    .gallery-filter-btn {
+        border: 1px solid ButtonText;
+        background: ButtonFace;
+        color: ButtonText;
+        forced-color-adjust: none;
+    }
+    .btn:hover,
+    .btn-admin-primary:hover,
+    .login-btn:hover {
+        background: Highlight;
+        color: HighlightText;
+    }
+    .panel,
+    .admin-panel,
+    .user-dropdown,
+    .mobile-menu,
+    .stage-card,
+    .subject-card,
+    .faculty-card,
+    .achievement-card,
+    .event-card,
+    .notice-card {
+        border: 1px solid CanvasText;
+    }
+    .att-badge,
+    .role-badge,
+    .kind-badge,
+    .notice-tag,
+    .user-status-pill,
+    .user-role-pill {
+        border: 1px solid CanvasText;
+        background: Canvas;
+        color: CanvasText;
+    }
+    .user-avatar,
+    .user-info-avatar,
+    .big-avatar,
+    .mobile-user-avatar,
+    .faculty-avatar,
+    .testimonial-avatar {
+        border: 2px solid CanvasText;
+    }
+    .live-dot,
+    .user-status-dot,
+    .notif-dot {
+        background: Highlight !important;
+    }
+}
+
+/* ------------------------------------------------------------------
+   20. PRINT STYLES — clean, readable, ink-friendly
+   ------------------------------------------------------------------ */
+@media print {
+    /* Hide all interactive chrome */
+    .site-header,
+    .mobile-menu,
+    .menu-backdrop,
+    .site-footer,
+    .flash-stack,
+    .lightbox,
+    .user-dropdown,
+    .menu-toggle,
+    .menu-toggle *,
+    .hero-actions,
+    .btn,
+    .btn-back-home,
+    .back-top,
+    .mobile-dash-btn,
+    .filter-tabs,
+    .gallery-toolbar,
+    .notice-controls,
+    .pagination,
+    .quick-strip,
+    .btn-admin-primary,
+    .btn-icon-approve,
+    .btn-icon-danger,
+    .admin-sidebar,
+    .admin-backdrop,
+    .admin-menu-toggle,
+    .action-btn-group,
+    .date-filters,
+    .up-pay-btn,
+    .upi-pay-btn,
+    .fee-payment-box {
+        display: none !important;
+    }
+
+    /* Reset to print-friendly */
+    body {
+        background: #fff !important;
+        color: #000 !important;
+        font-size: 12pt;
+    }
+    a {
+        color: #000 !important;
+        text-decoration: underline;
+    }
+    h1, h2, h3, h4 {
+        color: #000 !important;
+        page-break-after: avoid;
+        page-break-inside: avoid;
+    }
+    img {
+        max-width: 100% !important;
+        page-break-inside: avoid;
+    }
+    .panel,
+    .admin-panel,
+    .notice-card,
+    .event-card,
+    .faculty-card,
+    .achievement-card {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+        page-break-inside: avoid;
+    }
+    .admin-table {
+        page-break-inside: auto;
+    }
+    .admin-table tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+    .admin-table th {
+        background: #eee !important;
+        color: #000 !important;
+    }
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    /* Make dashboard grid single column for cleaner print */
+    .dashboard-grid,
+    .content-grid,
+    .lower-grid,
+    .admin-grid-2,
+    .admin-grid-2-uneven {
+        display: block !important;
+    }
+    .dashboard-grid > *,
+    .content-grid > *,
+    .lower-grid > *,
+    .admin-grid-2 > * {
+        margin-bottom: 18px;
+    }
+}
+
+/* ------------------------------------------------------------------
+   21. DARK-MODE OS SAFETY — do NOT flip the site, but fix contrast
+   (Keeps brand identity; only ensures form controls & images behave)
+   ------------------------------------------------------------------ */
+@media (prefers-color-scheme: dark) {
+    /* Images are usually light — don't invert them */
+    img { color-scheme: light; }
+    /* Native form controls: keep them readable */
+    input, select, textarea { color-scheme: light; }
+    /* Prevent auto-dark filter from muting our brand colors */
+    .brand-mark img,
+    .school-logo,
+    .footer-brand img {
+        color-scheme: light;
+    }
+}
+
+/* ------------------------------------------------------------------
+   22. PROGRESSIVE :has() ENHANCEMENT — dropdown auto-close hint
+   (Only in browsers that support :has — no fallback needed)
+   ------------------------------------------------------------------ */
+@supports selector(:has(*)) {
+    /* Give the pinned dropdown a focus-visible hint on keyboard */
+    .user-profile:has(.user-dropdown:focus-within) .user-avatar-btn {
+        border-color: rgba(240, 185, 40, 0.4);
+        background: rgba(11, 53, 98, 0.08);
+    }
+    /* When a card contains an open <details>, hint active */
+    .faq-item:has(details[open]) {
+        border-color: var(--yellow);
+    }
+}
+
+/* ------------------------------------------------------------------
+   23. TABLE POLISH — zebra stripes only where useful, not everywhere
+   (Uses :nth-child to avoid touching design language on hero panels)
+   ------------------------------------------------------------------ */
+.admin-table tbody tr:nth-child(even) {
+    background: rgba(248, 250, 252, 0.55);
+}
+.admin-table tbody tr:nth-child(even):hover {
+    background: #f0f6fd;
+}
+
+/* ------------------------------------------------------------------
+   24. QUICK A11Y WIN — scrollbars always visible when content overflows
+   ------------------------------------------------------------------ */
+.att-list,
+.notices-dash-panel .notice-list,
+.admin-notice-list,
+.mobile-nav {
+    scrollbar-gutter: stable;
+}
+
+/* ------------------------------------------------------------------
+   25. TEXT-SIZE ADJUSTMENT FOR SMALL SCREENS — respects user zoom
+   ------------------------------------------------------------------ */
+@media (max-width: 360px) {
+    html {
+        /* Slight breathing room; doesn't override font sizes */
+        letter-spacing: 0.01em;
+    }
+}

@@ -2,6 +2,41 @@
   'use strict';
 
   /* =========================================
+     0. UTILITY HELPERS (NEW — do not affect existing logic)
+     ========================================= */
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Debounce — prevents rapid-fire calls (used for resize)
+  function debounce(fn, wait = 150) {
+    let t;
+    return function (...args) {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(this, args), wait);
+    };
+  }
+
+  // Throttle — limits calls to once per interval (used for scroll-based work)
+  function throttle(fn, wait = 100) {
+    let last = 0, timer;
+    return function (...args) {
+      const now = Date.now();
+      const remaining = wait - (now - last);
+      if (remaining <= 0) {
+        clearTimeout(timer);
+        timer = null;
+        last = now;
+        fn.apply(this, args);
+      } else if (!timer) {
+        timer = setTimeout(() => {
+          last = Date.now();
+          timer = null;
+          fn.apply(this, args);
+        }, remaining);
+      }
+    };
+  }
+
+  /* =========================================
      1. MOBILE MENU LOGIC (ROBUST FIX)
      ========================================= */
   const toggle = document.getElementById('menuToggle');
@@ -29,6 +64,8 @@
     }
     document.body.classList.add('menu-open');
     requestAnimationFrame(() => closeButton?.focus());
+    /* === IMPROVED: prevent body scroll for a cleaner overlay === */
+    document.documentElement.style.overflow = 'hidden';
   }
 
   function closeMenu({ restoreFocus = true } = {}) {
@@ -45,6 +82,8 @@
     }, 300); // Wait for transition to finish
     
     document.body.classList.remove('menu-open');
+    /* === IMPROVED: restore document scroll === */
+    document.documentElement.style.overflow = '';
     if (restoreFocus && lastFocused instanceof HTMLElement) {
       lastFocused.focus({ preventScroll: true });
     }
@@ -88,11 +127,12 @@
     if (!event.matches) closeMenu({ restoreFocus: false });
   });
   
-  window.addEventListener('resize', () => {
-    if (!mobileBreakpoint.matches && menu.classList.contains('is-open')) {
+  /* === IMPROVED: debounce resize so it doesn't fire on every pixel === */
+  window.addEventListener('resize', debounce(() => {
+    if (!mobileBreakpoint.matches && menu?.classList.contains('is-open')) {
         closeMenu({ restoreFocus: false });
     }
-  }, { passive: true });
+  }, 150), { passive: true });
 
 
   /* =========================================
@@ -139,6 +179,17 @@
     });
   });
 
+  /* === IMPROVED: auto-dismiss flash messages after 6s (optional UX boost) === */
+  document.querySelectorAll('.flash').forEach(flash => {
+    if (flash.dataset.autoDismiss === 'false') return;
+    setTimeout(() => {
+      if (!flash.isConnected) return;
+      flash.style.opacity = '0';
+      flash.style.transform = 'translateX(100%)';
+      setTimeout(() => flash.remove(), 300);
+    }, 6000);
+  });
+
 
   /* =========================================
      4. GALLERY AUTO-SLIDER
@@ -151,6 +202,10 @@
 
     const startSlider = () => {
       if (slides.length <= 1) return; 
+      /* === IMPROVED: respect reduced-motion preference === */
+      if (prefersReducedMotion) return;
+      /* === IMPROVED: avoid stacking intervals if called twice === */
+      clearInterval(slideInterval);
       slideInterval = setInterval(() => {
         currentIndex++;
         if (currentIndex >= slides.length) {
@@ -164,6 +219,19 @@
       clearInterval(slideInterval);
     };
 
+    /* === IMPROVED: helper to jump to a specific index (used by dots/swipe/keyboard) === */
+    const goToSlide = (i) => {
+      if (!slides.length) return;
+      currentIndex = ((i % slides.length) + slides.length) % slides.length;
+      sliderTrack.style.transform = `translateX(-${currentIndex * 100}%)`;
+      /* === IMPROVED: keep dot indicators in sync if they exist === */
+      const dots = document.querySelectorAll('.gallery-slider-dots button, .slider-dot');
+      dots.forEach((d, idx) => {
+        d.classList.toggle('active', idx === currentIndex);
+        d.setAttribute('aria-selected', idx === currentIndex ? 'true' : 'false');
+      });
+    };
+
     // Start the slider
     startSlider();
 
@@ -172,8 +240,95 @@
     if (sliderBox) {
       sliderBox.addEventListener('mouseenter', stopSlider);
       sliderBox.addEventListener('mouseleave', startSlider);
+      /* === IMPROVED: pause on focus-within too (keyboard users) === */
+      sliderBox.addEventListener('focusin', stopSlider);
+      sliderBox.addEventListener('focusout', startSlider);
     }
+
+    /* === IMPROVED: pause when the tab is hidden (saves CPU/battery) === */
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopSlider();
+      else startSlider();
+    });
+
+    /* === IMPROVED: pause when the slider is off-screen (scroll out of view) === */
+    if ('IntersectionObserver' in window && sliderBox) {
+      const sliderVisibilityObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) startSlider();
+          else stopSlider();
+        });
+      }, { threshold: 0.1 });
+      sliderVisibilityObserver.observe(sliderBox);
+    }
+
+    /* === IMPROVED: swipe support on touch devices === */
+    let sx = 0, sy = 0, swiping = false;
+    sliderTrack.addEventListener('touchstart', (e) => {
+      if (!e.touches[0]) return;
+      sx = e.touches[0].clientX;
+      sy = e.touches[0].clientY;
+      swiping = true;
+      stopSlider();
+    }, { passive: true });
+
+    sliderTrack.addEventListener('touchend', (e) => {
+      if (!swiping) return;
+      swiping = false;
+      const t = e.changedTouches[0];
+      if (!t) { startSlider(); return; }
+      const dx = t.clientX - sx;
+      const dy = t.clientY - sy;
+      /* Only treat as horizontal swipe if horizontal movement dominates */
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+        if (dx < 0) goToSlide(currentIndex + 1);   // swipe left  → next
+        else        goToSlide(currentIndex - 1);   // swipe right → prev
+      }
+      startSlider();
+    }, { passive: true });
+
+    /* === IMPROVED: keyboard navigation (← → arrows) when slider has focus === */
+    sliderTrack.setAttribute('tabindex', '0');
+    sliderTrack.setAttribute('role', 'region');
+    sliderTrack.setAttribute('aria-roledescription', 'carousel');
+    sliderTrack.setAttribute('aria-label', 'Gallery slideshow — use arrow keys to navigate');
+    sliderTrack.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft')  { e.preventDefault(); stopSlider(); goToSlide(currentIndex - 1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); stopSlider(); goToSlide(currentIndex + 1); }
+      if (e.key === 'Home')       { e.preventDefault(); goToSlide(0); }
+      if (e.key === 'End')        { e.preventDefault(); goToSlide(slides.length - 1); }
+    });
+
+    /* === IMPROVED: dot navigation wiring (if dots exist) === */
+    const dots = document.querySelectorAll('.gallery-slider-dots button, .slider-dot');
+    dots.forEach((dot, idx) => {
+      dot.addEventListener('click', () => {
+        stopSlider();
+        goToSlide(idx);
+        startSlider();
+      });
+    });
+
+    /* === IMPROVED: pause slider when user prefers reduced motion === */
+    if (prefersReducedMotion) stopSlider();
   }
+
+  /* === IMPROVED: smooth scroll for in-page anchor links (#hash) === */
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const href = this.getAttribute('href');
+      if (!href || href === '#' || href.length < 2) return;
+      const target = document.querySelector(href);
+      if (!target) return;
+      e.preventDefault();
+      const topBar = document.querySelector('.site-header');
+      const offset = topBar ? topBar.offsetHeight + 12 : 12;
+      const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+      window.scrollTo({ top, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+      /* Update URL without jumping */
+      if (history.replaceState) history.replaceState(null, '', href);
+    });
+  });
 
 })();
 
@@ -238,4 +393,48 @@
             closeMenu();
         }
     }, { passive: true });
+
+    /* === IMPROVED: keyboard navigation inside dropdown (↑ ↓ Home End) === */
+    userDropdown.addEventListener('keydown', function (e) {
+        const items = [...userDropdown.querySelectorAll('a[href], button:not([disabled])')];
+        if (!items.length) return;
+        const idx = items.indexOf(document.activeElement);
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            items[(idx + 1 + items.length) % items.length].focus();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            items[(idx - 1 + items.length) % items.length].focus();
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            items[0].focus();
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            items[items.length - 1].focus();
+        }
+    });
+
+    /* === IMPROVED: focus first item when dropdown opens via keyboard === */
+    userMenuBtn.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (!userProfile.classList.contains('dropdown-open')) openMenu();
+            requestAnimationFrame(() => {
+                const first = userDropdown.querySelector('a[href], button:not([disabled])');
+                first?.focus();
+            });
+        }
+    });
+
+    /* === IMPROVED: close on any navigation link click inside dropdown === */
+    userDropdown.querySelectorAll('a[href]').forEach(link => {
+        link.addEventListener('click', () => closeMenu());
+    });
+
+    /* === IMPROVED: close on hash-link navigation for consistency === */
+    userDropdown.querySelectorAll('a[href^="#"]').forEach(link => {
+        link.addEventListener('click', () => {
+            setTimeout(closeMenu, 50);
+        });
+    });
 })();

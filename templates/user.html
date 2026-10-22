@@ -15,7 +15,7 @@
 
     <style>
         /* =========================================
-           NEW: EDIT PROFILE MODAL STYLES
+           EDIT PROFILE MODAL STYLES
            ========================================= */
         .modal-overlay {
             position: fixed;
@@ -106,6 +106,133 @@
             background: #f1f5f9;
             color: var(--navy, #092f58);
         }
+
+        /* =========================================
+           NEW — PROFILE PHOTO SUPPORT
+           ========================================= */
+        /* When photo exists, avatars render an <img> */
+        .user-avatar.has-photo,
+        .user-info-avatar.has-photo,
+        .mobile-user-avatar.has-photo,
+        .big-avatar.has-photo,
+        .st-profile-avatar.has-photo {
+            padding: 0 !important;
+            overflow: hidden;
+        }
+        .user-avatar.has-photo img,
+        .user-info-avatar.has-photo img,
+        .mobile-user-avatar.has-photo img,
+        .big-avatar.has-photo img,
+        .st-profile-avatar.has-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+        }
+
+        /* Dropdown action buttons (Change/Remove Photo) */
+        .user-dropdown > form { margin: 0; padding: 0; }
+        .user-dropdown > form > button {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 14px;
+            border-radius: 9px;
+            color: #26445f;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.18s ease;
+            margin-bottom: 2px;
+            background: transparent;
+            border: 0;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .user-dropdown > form > button:hover {
+            background: #f0f7ff;
+            color: var(--navy, #092f58);
+            transform: translateX(3px);
+        }
+        .user-dropdown > form > button i {
+            width: 16px;
+            text-align: center;
+            color: var(--navy, #092f58);
+            font-size: 13px;
+        }
+        .user-dropdown > form > button:hover i {
+            color: var(--red, #d71938);
+        }
+        .user-dropdown > form > button.remove-photo-btn {
+            color: var(--red, #d71938);
+        }
+        .user-dropdown > form > button.remove-photo-btn i {
+            color: var(--red, #d71938);
+        }
+        .user-dropdown > form > button.remove-photo-btn:hover {
+            background: #ffeaee;
+        }
+
+        /* Profile panel avatar + actions */
+        .st-profile-avatar-wrap {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 14px;
+            padding-top: 6px;
+        }
+        .st-profile-avatar {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--red, #d71938), #b9102c);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 26px;
+            letter-spacing: 1px;
+            border: 3px solid var(--yellow, #ffd447);
+            box-shadow: 0 6px 20px rgba(9,47,88,0.15);
+            overflow: hidden;
+        }
+        .st-profile-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .st-photo-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border: 1px solid var(--line, #e4eaf1);
+            background: #fff;
+            border-radius: 8px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--navy, #092f58);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .st-photo-btn:hover {
+            background: #f4f7fb;
+            border-color: #b0c4d8;
+            transform: translateY(-1px);
+        }
+        .st-photo-btn.danger {
+            background: #ffeaee;
+            color: var(--red, #d71938);
+            border-color: #f8c9d2;
+        }
+        .st-photo-btn.danger:hover { background: #ffd9e0; }
     </style>
 </head>
 
@@ -114,7 +241,7 @@
     <a class="skip-link" href="#main">Skip to content</a>
 
     <!-- =========================================
-         HEADER (Same as index.html)
+         HEADER
          ========================================= -->
     <header class="site-header" id="top">
         <div class="header-inner">
@@ -130,7 +257,7 @@
                 </span>
             </a>
 
-            <!-- ========== UPGRADED DESKTOP NAVIGATION ========== -->
+            <!-- UPGRADED DESKTOP NAVIGATION -->
             <nav class="desktop-nav" aria-label="Main navigation">
                 <a class="nav-link" href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
                 <a class="nav-link" href="{{ url_for('home') }}#about"><i class="fa-solid fa-users"></i> About Us</a>
@@ -153,18 +280,21 @@
 
             <div class="header-actions">
                 {% if session.get('user_id') %}
-                <!-- =====================================================
-                     UPGRADED USER PROFILE — Hover Expand + Click to Pin
-                     ===================================================== -->
                 <div class="user-profile" id="userProfile">
                     <button type="button" class="user-avatar-btn" id="userMenuBtn"
                             aria-haspopup="true" aria-expanded="false" aria-controls="userDropdown"
                             title="{{ session['user_name'] }} — click to open menu">
+                        {% if session.get('photo_url') %}
+                        <div class="user-avatar has-photo">
+                            <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+                        </div>
+                        {% else %}
                         <div class="user-avatar">
                             {{ session['user_name'].split()[0][0] | upper }}{{
                             session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1
                             else '' }}
                         </div>
+                        {% endif %}
                         <div class="user-avatar-info">
                             <strong>{{ session['user_name'].split()[0] }}</strong>
                             <small>{{ session.get('user_role', 'User')|capitalize }} • {{ session.get('unique_id', '') }}</small>
@@ -174,11 +304,17 @@
 
                     <div class="user-dropdown" id="userDropdown" role="menu">
                         <div class="user-info-head">
+                            {% if session.get('photo_url') %}
+                            <div class="user-info-avatar has-photo">
+                                <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+                            </div>
+                            {% else %}
                             <div class="user-info-avatar">
                                 {{ session['user_name'].split()[0][0] | upper }}{{
                                 session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1
                                 else '' }}
                             </div>
+                            {% endif %}
                             <div class="user-info-text">
                                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
                                 <small><i class="fa-solid fa-id-badge"></i> ID: {{ session.get('unique_id', 'N/A') }}
@@ -196,12 +332,36 @@
                             <i class="fa-solid fa-gauge"></i> Dashboard
                         </a>
                         {% endif %}
+
+                        <!-- NEW: Change Photo -->
+                        <a href="#" role="menuitem"
+                           onclick="event.preventDefault(); document.getElementById('userProfile').classList.remove('dropdown-open'); document.getElementById('udPhotoInput').click();">
+                            <i class="fa-solid fa-camera"></i> Change Photo
+                        </a>
+
+                        <!-- NEW: Remove Photo (only if photo exists) -->
+                        {% if session.get('photo_url') %}
+                        <form method="POST" action="{{ url_for('remove_profile_photo') }}"
+                              onsubmit="return confirm('Remove your profile photo?');">
+                            <button type="submit" class="remove-photo-btn">
+                                <i class="fa-solid fa-trash"></i> Remove Photo
+                            </button>
+                        </form>
+                        {% endif %}
+
                         <a href="{{ url_for('change_password') }}" role="menuitem">
                             <i class="fa-solid fa-key"></i> Change Password
                         </a>
                         <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem">
                             <i class="fa-solid fa-right-from-bracket"></i> Logout
                         </a>
+
+                        <!-- NEW: Hidden photo upload form -->
+                        <form id="udPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
+                              enctype="multipart/form-data" style="display:none;">
+                            <input type="file" id="udPhotoInput" name="photo" accept="image/*"
+                                   onchange="document.getElementById('udPhotoForm').submit();">
+                        </form>
                     </div>
                 </div>
                 {% else %}
@@ -218,7 +378,7 @@
     <div class="menu-backdrop" id="menuBackdrop" hidden></div>
 
     <!-- =========================================
-         UPGRADED MOBILE MENU (with user info)
+         MOBILE MENU
          ========================================= -->
     <aside class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation" aria-hidden="true" inert>
         <div class="mobile-menu-head">
@@ -228,10 +388,16 @@
 
         {% if session.get('user_id') %}
         <div class="mobile-user-box logged-in">
+            {% if session.get('photo_url') %}
+            <div class="mobile-user-avatar has-photo">
+                <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+            </div>
+            {% else %}
             <div class="mobile-user-avatar">
                 {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if
                 session['user_name'].split()|length > 1 else '' }}
             </div>
+            {% endif %}
             <div class="mobile-user-text">
                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
                 <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
@@ -263,7 +429,6 @@
         </div>
         {% endif %}
 
-        <!-- ========== UPGRADED MOBILE NAVIGATION ========== -->
         <nav class="mobile-nav">
             <a href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
             <a href="{{ url_for('user_dashboard') }}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
@@ -321,10 +486,16 @@
                             user.unique_id }}</strong></p>
                 </div>
                 <div class="welcome-avatar">
+                    {% if session.get('photo_url') %}
+                    <div class="big-avatar has-photo">
+                        <img src="{{ session['photo_url'] }}" alt="{{ user.name }}">
+                    </div>
+                    {% else %}
                     <div class="big-avatar">
                         {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length
                         > 1 else '' }}
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </section>
@@ -332,13 +503,48 @@
         <!-- Dashboard Grid -->
         <section class="wrap dashboard-grid">
 
-            <!-- PROFILE -->
-            <div class="panel">
+            <!-- PROFILE (with photo panel) -->
+            <div class="panel" id="profile">
                 <div class="panel-title">
                     <span class="panel-title-icon"><i class="fa-solid fa-id-card"></i></span>
                     <h2>My Profile</h2>
                 </div>
                 <div class="profile-body">
+
+                    <!-- NEW: Profile avatar + change/remove -->
+                    <div class="st-profile-avatar-wrap">
+                        {% if session.get('photo_url') %}
+                        <div class="st-profile-avatar has-photo">
+                            <img src="{{ session['photo_url'] }}" alt="{{ user.name }}">
+                        </div>
+                        {% else %}
+                        <div class="st-profile-avatar">
+                            {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length > 1 else '' }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="st-profile-actions">
+                        <button type="button" class="st-photo-btn"
+                                onclick="document.getElementById('udProfilePhotoInput').click();">
+                            <i class="fa-solid fa-camera"></i> Change
+                        </button>
+                        {% if session.get('photo_url') %}
+                        <button type="button" class="st-photo-btn danger"
+                                onclick="if(confirm('Remove profile photo?')) document.getElementById('udProfileRemoveForm').submit();">
+                            <i class="fa-solid fa-trash"></i> Remove
+                        </button>
+                        {% endif %}
+                    </div>
+                    <form id="udProfilePhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
+                          enctype="multipart/form-data" style="display:none;">
+                        <input type="file" id="udProfilePhotoInput" name="photo" accept="image/*"
+                               onchange="document.getElementById('udProfilePhotoForm').submit();">
+                    </form>
+                    {% if session.get('photo_url') %}
+                    <form id="udProfileRemoveForm" method="POST"
+                          action="{{ url_for('remove_profile_photo') }}" style="display:none;"></form>
+                    {% endif %}
+
                     <div class="profile-row">
                         <span class="profile-label"><i class="fa-solid fa-id-badge"></i> Unique ID</span>
                         <span class="profile-value"><strong>{{ user.unique_id }}</strong></span>
@@ -372,7 +578,7 @@
                         <a href="{{ url_for('change_password') }}" class="btn-admin-primary" style="display:inline-flex;">
                             <i class="fa-solid fa-key"></i> Change Password
                         </a>
-                        <!-- NEW: Edit Profile Button (Only for Admins) -->
+                        <!-- Edit Profile Button (Only for Admins) -->
                         {% if session.get('user_role') == 'admin' %}
                         <button type="button" id="openEditModalBtn" class="btn-admin-primary" style="display:inline-flex; background: #fff; color: var(--blue); border: 1px solid var(--line); box-shadow: none;">
                             <i class="fa-solid fa-user-pen"></i> Edit Profile
@@ -475,9 +681,7 @@
             </div>
             {% endif %}
 
-            <!-- =========================================
-                 FEE PAYMENT (STUDENT/PARENT) — UPGRADED
-                 ========================================= -->
+            <!-- FEE PAYMENT (STUDENT/PARENT) -->
             {% if user.role in ['student', 'parent'] %}
             <div class="panel">
                 <div class="panel-title">
@@ -486,7 +690,6 @@
                 </div>
                 <div style="padding:20px;">
 
-                    <!-- QR + UPI Link Section -->
                     {% if fee_qr or upi_link %}
                     <div class="fee-payment-box">
                         <p class="fee-payment-title">
@@ -517,7 +720,6 @@
                     </div>
                     {% endif %}
 
-                    <!-- Manual Payment Entry Form -->
                     <form method="POST" action="{{ url_for('fee_pay') }}" class="admin-form">
                         <label>Amount (₹)
                             <input type="number" name="amount" step="0.01" required placeholder="e.g. 5000">
@@ -575,7 +777,7 @@
     </main>
 
     <!-- =========================================
-         NEW: EDIT PROFILE MODAL (Hidden by default)
+         EDIT PROFILE MODAL (Admin only)
          ========================================= -->
     {% if session.get('user_role') == 'admin' %}
     <div class="modal-overlay" id="editProfileModal">
@@ -618,7 +820,7 @@
     {% endif %}
 
     <!-- =========================================
-         FOOTER (Same as index.html)
+         FOOTER
          ========================================= -->
     <footer class="site-footer">
         <div class="wrap footer-inner">
@@ -720,7 +922,7 @@
             });
 
             /* ============================================================
-               NEW: USER PROFILE DROPDOWN — Click to pin, click-outside close
+               USER PROFILE DROPDOWN — Click to pin, click-outside close
                ============================================================ */
             (function initUserDropdown() {
                 const userProfile = document.getElementById('userProfile');
@@ -778,7 +980,7 @@
             })();
 
             /* ============================================================
-               NEW: EDIT PROFILE MODAL LOGIC
+               EDIT PROFILE MODAL LOGIC
                ============================================================ */
             const modal = document.getElementById('editProfileModal');
             const openModalBtn = document.getElementById('openEditModalBtn');
@@ -789,27 +991,23 @@
                 // Open Modal
                 openModalBtn.addEventListener('click', () => {
                     modal.classList.add('active');
-                    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                    document.body.style.overflow = 'hidden';
                 });
 
-                // Close Modal Function
                 function closeModal() {
                     modal.classList.remove('active');
-                    document.body.style.overflow = ''; // Restore scrolling
+                    document.body.style.overflow = '';
                 }
 
-                // Close on Button Clicks
                 if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
                 if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
 
-                // Close on outside click
                 modal.addEventListener('click', (e) => {
                     if (e.target === modal) {
                         closeModal();
                     }
                 });
 
-                // Close on Escape key
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape' && modal.classList.contains('active')) {
                         closeModal();

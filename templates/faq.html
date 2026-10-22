@@ -7,6 +7,23 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        /* ============================================================
+           NEW — HEADER USER AVATAR PHOTO SUPPORT
+           ============================================================ */
+        .user-avatar.has-photo {
+            padding: 0 !important;
+            overflow: hidden;
+        }
+        .user-avatar.has-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+        }
+    </style>
 </head>
 <body>
     <header class="site-header">
@@ -36,7 +53,16 @@
                        class="user-avatar-btn"
                        title="{{ session.get('user_name', 'User') }}"
                        aria-label="Open dashboard">
-                        <div class="user-avatar">{{ (session.get('user_name') or 'U')[0] | upper }}</div>
+                        {% if session.get('photo_url') %}
+                        <div class="user-avatar has-photo">
+                            <img src="{{ session['photo_url'] }}" alt="{{ session.get('user_name', 'User') }}">
+                        </div>
+                        {% else %}
+                        <div class="user-avatar">
+                            {% set _un = session.get('user_name') or 'U' %}
+                            {{ _un.split()[0][0] | upper }}{{ _un.split()[-1][0] | upper if _un.split()|length > 1 else '' }}
+                        </div>
+                        {% endif %}
                     </a>
                 </div>
                 {% else %}

@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        /* ===== UPGRADED USER PROFILE BUTTON (same as parent) ===== */
+        /* ===== UPGRADED USER PROFILE BUTTON ===== */
         .user-profile {
             position: relative;
             display: inline-block;
@@ -194,23 +194,10 @@
                 gap: 10px;
             }
 
-            .dq-stat {
-                padding: 12px 14px;
-            }
-
-            .dq-stat-icon {
-                width: 36px;
-                height: 36px;
-                font-size: 15px;
-            }
-
-            .dq-stat strong {
-                font-size: 16px;
-            }
-
-            .dq-stat small {
-                font-size: 10px;
-            }
+            .dq-stat { padding: 12px 14px; }
+            .dq-stat-icon { width: 36px; height: 36px; font-size: 15px; }
+            .dq-stat strong { font-size: 16px; }
+            .dq-stat small { font-size: 10px; }
         }
 
         /* ===== DASHBOARD TABLES & TABS ===== */
@@ -287,161 +274,130 @@
             }
         }
 
-        /* ===== NEW: HOMEWORK PANEL ===== */
-        .hw-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
+        /* ===== HOMEWORK PANEL ===== */
+        .hw-list { display: flex; flex-direction: column; gap: 10px; }
         .hw-item {
-            display: flex;
-            gap: 12px;
-            padding: 12px;
-            border-radius: 10px;
-            background: #f8fafc;
-            border: 1px solid transparent;
-            transition: all 0.2s ease;
+            display: flex; gap: 12px; padding: 12px; border-radius: 10px;
+            background: #f8fafc; border: 1px solid transparent; transition: all 0.2s ease;
         }
-
         .hw-item:hover {
-            background: #fff;
-            border-color: #e2e8f0;
-            box-shadow: 0 4px 12px rgba(11, 53, 98, 0.05);
+            background: #fff; border-color: #e2e8f0; box-shadow: 0 4px 12px rgba(11, 53, 98, 0.05);
         }
-
         .hw-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 9px;
-            background: #e1f1ff;
-            color: #1768a7;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex: 0 0 36px;
+            width: 36px; height: 36px; border-radius: 9px; background: #e1f1ff; color: #1768a7;
+            display: flex; align-items: center; justify-content: center; font-size: 14px; flex: 0 0 36px;
         }
-
-        .hw-info {
-            flex: 1;
-            min-width: 0;
-        }
-
+        .hw-info { flex: 1; min-width: 0; }
         .hw-info strong {
-            display: block;
-            font-size: 13px;
-            font-weight: 700;
-            color: #0b3562;
-            margin-bottom: 3px;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            display: block; font-size: 13px; font-weight: 700; color: #0b3562; margin-bottom: 3px;
+            overflow: hidden; text-overflow: ellipsis;
         }
-
-        .hw-info small {
-            display: block;
-            font-size: 11px;
-            color: #65758a;
-            line-height: 1.35;
-        }
-
+        .hw-info small { display: block; font-size: 11px; color: #65758a; line-height: 1.35; }
         .hw-info .hw-desc {
-            display: block;
-            font-size: 10.5px;
-            color: #94a3b8;
-            margin-top: 3px;
-            line-height: 1.4;
+            display: block; font-size: 10.5px; color: #94a3b8; margin-top: 3px; line-height: 1.4;
         }
-
         .hw-meta {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 4px;
-            font-size: 10.5px;
-            color: #65758a;
+            display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px;
+            font-size: 10.5px; color: #65758a;
         }
+        .hw-meta span { display: inline-flex; align-items: center; gap: 4px; }
+        .hw-meta i { font-size: 9px; color: #94a3b8; }
 
-        .hw-meta span {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .hw-meta i {
-            font-size: 9px;
-            color: #94a3b8;
-        }
-
-        /* ===== NEW: UPCOMING EVENTS PANEL ===== */
-        .event-mini-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
+        /* ===== UPCOMING EVENTS PANEL ===== */
+        .event-mini-list { display: flex; flex-direction: column; gap: 10px; }
         .event-mini-item {
-            display: flex;
-            gap: 12px;
-            padding: 10px;
-            border-radius: 10px;
-            background: #f8fafc;
-            transition: all 0.2s ease;
+            display: flex; gap: 12px; padding: 10px; border-radius: 10px;
+            background: #f8fafc; transition: all 0.2s ease;
         }
-
-        .event-mini-item:hover {
-            background: #fff;
-            box-shadow: 0 4px 12px rgba(11, 53, 98, 0.05);
-        }
-
+        .event-mini-item:hover { background: #fff; box-shadow: 0 4px 12px rgba(11, 53, 98, 0.05); }
         .event-mini-date {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 44px;
-            height: 44px;
-            border-radius: 9px;
-            background: #0b3562;
-            color: #fff;
-            flex: 0 0 44px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 44px; height: 44px; border-radius: 9px; background: #0b3562; color: #fff; flex: 0 0 44px;
         }
-
-        .event-mini-date strong {
-            font-size: 16px;
-            font-weight: 800;
-            line-height: 1;
-        }
-
+        .event-mini-date strong { font-size: 16px; font-weight: 800; line-height: 1; }
         .event-mini-date small {
-            font-size: 8px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            opacity: 0.85;
+            font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85;
         }
-
-        .event-mini-info {
-            flex: 1;
-            min-width: 0;
-        }
-
+        .event-mini-info { flex: 1; min-width: 0; }
         .event-mini-info strong {
-            display: block;
-            font-size: 12.5px;
-            font-weight: 700;
-            color: #0b3562;
-            margin-bottom: 2px;
+            display: block; font-size: 12.5px; font-weight: 700; color: #0b3562; margin-bottom: 2px;
+            overflow: hidden; text-overflow: ellipsis;
+        }
+        .event-mini-info small { display: block; font-size: 10.5px; color: #65758a; line-height: 1.35; }
+
+        /* ============================================================
+           NEW — PROFILE PHOTO SUPPORT
+           ============================================================ */
+        /* Generic has-photo: avatar variants render an <img> instead of initials */
+        .user-avatar.has-photo,
+        .user-info-avatar.has-photo,
+        .mobile-user-avatar.has-photo,
+        .big-avatar.has-photo,
+        .st-profile-avatar.has-photo {
+            padding: 0 !important;
             overflow: hidden;
-            text-overflow: ellipsis;
+        }
+        .user-avatar.has-photo img,
+        .user-info-avatar.has-photo img,
+        .mobile-user-avatar.has-photo img,
+        .big-avatar.has-photo img,
+        .st-profile-avatar.has-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
         }
 
-        .event-mini-info small {
-            display: block;
-            font-size: 10.5px;
-            color: #65758a;
-            line-height: 1.35;
+        /* Dropdown action buttons (Change/Remove Photo) — NEW */
+        .user-dropdown > form { margin: 0; padding: 0; }
+        .user-dropdown > form > button {
+            display: flex; align-items: center; gap: 11px; padding: 10px 14px;
+            border-radius: 9px; color: #26445f; font-size: 13px; font-weight: 700;
+            text-decoration: none; transition: all 0.18s ease; margin-bottom: 2px;
+            background: transparent; border: 0; width: 100%; text-align: left;
+            cursor: pointer; font-family: inherit;
         }
+        .user-dropdown > form > button:hover {
+            background: #f0f7ff; color: #0b3562; transform: translateX(3px);
+        }
+        .user-dropdown > form > button i {
+            width: 16px; text-align: center; color: #0b3562; font-size: 13px;
+        }
+        .user-dropdown > form > button:hover i { color: #d71938; }
+        .user-dropdown > form > button.remove-photo-btn { color: #d71938; }
+        .user-dropdown > form > button.remove-photo-btn i { color: #d71938; }
+        .user-dropdown > form > button.remove-photo-btn:hover { background: #ffeaee; }
+
+        /* Profile panel avatar + actions — NEW */
+        .st-profile-avatar-wrap {
+            display: flex; justify-content: center; margin-bottom: 14px; padding-top: 6px;
+        }
+        .st-profile-avatar {
+            width: 90px; height: 90px; border-radius: 50%;
+            background: linear-gradient(135deg, #d71938, #b9102c);
+            color: #fff; display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 26px; letter-spacing: 1px;
+            border: 3px solid #ffd447;
+            box-shadow: 0 6px 20px rgba(9, 47, 88, 0.15);
+            overflow: hidden;
+        }
+        .st-profile-actions {
+            display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px;
+        }
+        .st-photo-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 14px; border: 1px solid #e1e8f0; background: #fff;
+            border-radius: 8px; font-size: 11.5px; font-weight: 700; color: #0b3562;
+            cursor: pointer; transition: all 0.2s ease; font-family: inherit; white-space: nowrap;
+        }
+        .st-photo-btn:hover {
+            background: #f4f7fb; border-color: #b0c4d8; transform: translateY(-1px);
+        }
+        .st-photo-btn.danger {
+            background: #ffeaee; color: #d71938; border-color: #f8c9d2;
+        }
+        .st-photo-btn.danger:hover { background: #ffd9e0; }
     </style>
 </head>
 
@@ -483,10 +439,16 @@
                     <button type="button" class="user-avatar-btn" id="userMenuBtn" aria-haspopup="true"
                         aria-expanded="false" aria-controls="userDropdown"
                         title="{{ session['user_name'] }} — click to open menu">
+                        {% if session.get('photo_url') %}
+                        <div class="user-avatar has-photo">
+                            <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+                        </div>
+                        {% else %}
                         <div class="user-avatar">
                             {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
                             upper if session['user_name'].split()|length > 1 else '' }}
                         </div>
+                        {% endif %}
                         <div class="user-avatar-info">
                             <strong>{{ session['user_name'].split()[0] }}</strong>
                             <small>{{ session.get('user_role', 'Student')|capitalize }} • {{ session.get('unique_id',
@@ -496,10 +458,16 @@
                     </button>
                     <div class="user-dropdown" id="userDropdown" role="menu">
                         <div class="user-info-head">
+                            {% if session.get('photo_url') %}
+                            <div class="user-info-avatar has-photo">
+                                <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+                            </div>
+                            {% else %}
                             <div class="user-info-avatar">
                                 {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
                                 upper if session['user_name'].split()|length > 1 else '' }}
                             </div>
+                            {% endif %}
                             <div class="user-info-text">
                                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
                                 <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A')
@@ -516,6 +484,23 @@
                                 class="fa-solid fa-book-open"></i> Study Materials</a>
                         <a href="{{ url_for('results_page') }}" role="menuitem"><i class="fa-solid fa-file-lines"></i>
                             My Results</a>
+
+                        <!-- NEW: Change Photo -->
+                        <a href="#" role="menuitem"
+                           onclick="event.preventDefault(); document.getElementById('userProfile').classList.remove('dropdown-open'); document.getElementById('stPhotoInput').click();">
+                            <i class="fa-solid fa-camera"></i> Change Photo
+                        </a>
+
+                        <!-- NEW: Remove Photo (only if photo exists) -->
+                        {% if session.get('photo_url') %}
+                        <form method="POST" action="{{ url_for('remove_profile_photo') }}"
+                              onsubmit="return confirm('Remove your profile photo?');">
+                            <button type="submit" class="remove-photo-btn">
+                                <i class="fa-solid fa-trash"></i> Remove Photo
+                            </button>
+                        </form>
+                        {% endif %}
+
                         {% if session.get('user_role') == 'admin' %}
                         <a href="{{ url_for('admin_dashboard') }}" role="menuitem"><i class="fa-solid fa-user-gear"></i>
                             Admin Panel</a>
@@ -524,6 +509,13 @@
                             Change Password</a>
                         <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem"><i
                                 class="fa-solid fa-right-from-bracket"></i> Logout</a>
+
+                        <!-- NEW: Hidden photo upload form -->
+                        <form id="stPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
+                              enctype="multipart/form-data" style="display:none;">
+                            <input type="file" id="stPhotoInput" name="photo" accept="image/*"
+                                   onchange="document.getElementById('stPhotoForm').submit();">
+                        </form>
                     </div>
                 </div>
                 {% else %}
@@ -549,10 +541,16 @@
 
         {% if session.get('user_id') %}
         <div class="mobile-user-box logged-in">
+            {% if session.get('photo_url') %}
+            <div class="mobile-user-avatar has-photo">
+                <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+            </div>
+            {% else %}
             <div class="mobile-user-avatar">
                 {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if
                 session['user_name'].split()|length > 1 else '' }}
             </div>
+            {% endif %}
             <div class="mobile-user-text">
                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
                 <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
@@ -608,10 +606,16 @@
                     </p>
                 </div>
                 <div class="welcome-avatar">
+                    {% if session.get('photo_url') %}
+                    <div class="big-avatar student-avatar has-photo">
+                        <img src="{{ session['photo_url'] }}" alt="{{ user.name }}">
+                    </div>
+                    {% else %}
                     <div class="big-avatar student-avatar">
                         {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length
                         > 1 else '' }}
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </section>
@@ -637,7 +641,6 @@
                     <small>Attendance</small>
                 </div>
             </div>
-            <!-- NEW: Pending Homework — real data -->
             <div class="dq-stat">
                 <div class="dq-stat-icon" style="background:#f3e8ff; color:#7c3aed;">
                     <i class="fa-solid fa-book-open"></i>
@@ -669,13 +672,48 @@
 
         <section class="wrap dashboard-grid">
 
-            <!-- PROFILE -->
-            <div class="panel">
+            <!-- PROFILE (NEW: avatar + change/remove) -->
+            <div class="panel" id="profile">
                 <div class="panel-title">
                     <span class="panel-title-icon student-icon"><i class="fa-solid fa-id-card"></i></span>
                     <h2>My Profile</h2>
                 </div>
                 <div class="profile-body">
+
+                    <!-- NEW: Avatar with change/remove buttons -->
+                    <div class="st-profile-avatar-wrap">
+                        {% if session.get('photo_url') %}
+                        <div class="st-profile-avatar has-photo">
+                            <img src="{{ session['photo_url'] }}" alt="{{ user.name }}">
+                        </div>
+                        {% else %}
+                        <div class="st-profile-avatar">
+                            {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length > 1 else '' }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="st-profile-actions">
+                        <button type="button" class="st-photo-btn"
+                                onclick="document.getElementById('stProfilePhotoInput').click();">
+                            <i class="fa-solid fa-camera"></i> Change
+                        </button>
+                        {% if session.get('photo_url') %}
+                        <button type="button" class="st-photo-btn danger"
+                                onclick="if(confirm('Remove profile photo?')) document.getElementById('stProfileRemoveForm').submit();">
+                            <i class="fa-solid fa-trash"></i> Remove
+                        </button>
+                        {% endif %}
+                    </div>
+                    <form id="stProfilePhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
+                          enctype="multipart/form-data" style="display:none;">
+                        <input type="file" id="stProfilePhotoInput" name="photo" accept="image/*"
+                               onchange="document.getElementById('stProfilePhotoForm').submit();">
+                    </form>
+                    {% if session.get('photo_url') %}
+                    <form id="stProfileRemoveForm" method="POST"
+                          action="{{ url_for('remove_profile_photo') }}" style="display:none;"></form>
+                    {% endif %}
+
                     <div class="profile-row">
                         <span class="profile-label"><i class="fa-solid fa-id-badge"></i> Student ID</span>
                         <span class="profile-value"><strong>{{ user.unique_id }}</strong></span>
@@ -723,7 +761,7 @@
                 </div>
             </div>
 
-            <!-- NEW: UPCOMING EVENTS (real backend data) -->
+            <!-- UPCOMING EVENTS -->
             <div class="panel" id="events">
                 <div class="panel-title">
                     <span class="panel-title-icon student-icon" style="background:#e1f1ff; color:#1768a7;">
@@ -754,7 +792,7 @@
                 </div>
             </div>
 
-            <!-- ATTENDANCE (full width) -->
+            <!-- ATTENDANCE -->
             <div class="panel" style="grid-column: 1 / -1;">
                 <div class="panel-title">
                     <span class="panel-title-icon student-icon"><i class="fa-solid fa-clipboard-check"></i></span>
@@ -773,7 +811,6 @@
                     </div>
 
                     <div class="attendance-split-layout">
-                        <!-- SUBJECT WISE TABLE -->
                         <div>
                             <h3 style="font-size: 14px; margin-bottom: 10px; color: #0b3562;"><i
                                     class="fa-solid fa-book"></i> Subject-wise Report</h3>
@@ -813,7 +850,6 @@
                             </div>
                         </div>
 
-                        <!-- DATE WISE LOGS -->
                         <div>
                             <h3 style="font-size: 14px; margin-bottom: 10px; color: #0b3562;"><i
                                     class="fa-solid fa-calendar-days"></i> Recent Logs</h3>
@@ -838,7 +874,7 @@
                 </div>
             </div>
 
-            <!-- NEW: MY HOMEWORK (real backend data) -->
+            <!-- HOMEWORK -->
             <div class="panel" id="homework">
                 <div class="panel-title">
                     <span class="panel-title-icon student-icon" style="background:#f3e8ff; color:#7c3aed;">
@@ -928,7 +964,7 @@
                 </div>
             </div>
 
-            <!-- NEW: QUICK LINKS -->
+            <!-- QUICK LINKS -->
             <div class="panel">
                 <div class="panel-title">
                     <span class="panel-title-icon student-icon" style="background:#e1f1ff; color:#1768a7;">
@@ -957,7 +993,7 @@
                 </div>
             </div>
 
-            <!-- FEE PAYMENT (FIXED — form restored, panel properly closed) -->
+            <!-- FEE PAYMENT -->
             <div class="panel">
                 <div class="panel-title">
                     <span class="panel-title-icon student-icon"><i class="fa-solid fa-indian-rupee-sign"></i></span>
@@ -995,7 +1031,7 @@
                 </div>
             </div>
 
-            <!-- FEE HISTORY (sibling — NOT nested inside Fee Payment) -->
+            <!-- FEE HISTORY -->
             <div class="panel">
                 <div class="panel-title">
                     <span class="panel-title-icon student-icon"><i class="fa-solid fa-receipt"></i></span>
@@ -1019,7 +1055,7 @@
                 </div>
             </div>
 
-            <!-- NOTICES (sibling) -->
+            <!-- NOTICES -->
             <div class="panel">
                 <div class="panel-title notice-title">
                     <span class="panel-title-icon"><i class="fa-solid fa-bell"></i></span>
@@ -1040,7 +1076,7 @@
                 </div>
             </div>
 
-            <!-- MESSAGES (sibling — with Open inbox link + Compose button) -->
+            <!-- MESSAGES -->
             <div class="panel">
                 <div class="panel-title">
                     <span class="panel-title-icon student-icon"><i class="fa-solid fa-comments"></i></span>
@@ -1184,7 +1220,7 @@
             })();
         });
 
-        /* Filter Attendance by Date (Today, Yesterday, All) */
+        /* Filter Attendance by Date */
         window.filterDates = function (type) {
             const rows = document.querySelectorAll('#attendanceLogs .att-row');
             const today = new Date().toISOString().split('T')[0];
@@ -1207,7 +1243,7 @@
             });
         };
 
-        /* Filter Exams (Half Yearly, Final, All, etc.) */
+        /* Filter Exams */
         window.filterExams = function () {
             const filter = document.getElementById('examTypeFilter').value;
             const rows = document.querySelectorAll('.exam-row');

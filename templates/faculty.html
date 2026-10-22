@@ -111,6 +111,21 @@
         .empty-state h3 { color: var(--f-navy); margin-bottom: 5px; }
         .empty-state p { color: var(--f-muted); }
 
+        /* ============================================================
+           NEW — HEADER USER AVATAR PHOTO SUPPORT
+           ============================================================ */
+        .user-avatar.has-photo {
+            padding: 0 !important;
+            overflow: hidden;
+        }
+        .user-avatar.has-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+        }
+
         @media (max-width: 768px) {
             .page-hero-inner { flex-direction: column; text-align: center; }
             .btn-back-home { margin: 15px auto 0; }
@@ -119,7 +134,7 @@
     </style>
 </head>
 <body>
-    <!-- HEADER (Same as Index) -->
+    <!-- HEADER -->
     <header class="site-header">
         <div class="header-inner">
             <a class="brand" href="{{ url_for('home') }}">
@@ -143,8 +158,17 @@
             <div class="header-actions">
                 {% if session.get('user_id') %}
                 <div class="user-profile">
-                    <a href="{{ url_for('user_dashboard') }}" class="user-avatar-btn">
-                        <div class="user-avatar">{{ session['user_name'].split()[0][0] | upper }}</div>
+                    <a href="{{ url_for('user_dashboard') }}" class="user-avatar-btn"
+                       title="{{ session['user_name'] }} — open dashboard">
+                        {% if session.get('photo_url') %}
+                        <div class="user-avatar has-photo">
+                            <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+                        </div>
+                        {% else %}
+                        <div class="user-avatar">
+                            {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+                        </div>
+                        {% endif %}
                     </a>
                 </div>
                 {% else %}

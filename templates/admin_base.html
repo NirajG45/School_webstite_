@@ -771,6 +771,81 @@
                 right: -8px;
             }
         }
+
+        /* ============================================================
+   PROFILE PHOTO — AVATAR IMAGES
+   ============================================================ */
+        .admin-user-avatar.has-photo,
+        .admin-user-head-avatar.has-photo {
+            padding: 0 !important;
+            overflow: hidden;
+        }
+
+        .admin-user-avatar.has-photo img,
+        .admin-user-head-avatar.has-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+        }
+
+        /* Dropdown action buttons (Change/Remove Photo) */
+        .admin-user-dropdown>form {
+            margin: 0;
+            padding: 0;
+        }
+
+        .admin-user-dropdown>form>button {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 14px;
+            border-radius: 9px;
+            color: #26445f;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.18s ease;
+            margin-bottom: 2px;
+            background: transparent;
+            border: 0;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .admin-user-dropdown>form>button:hover {
+            background: #f0f7ff;
+            color: #0a2340;
+            transform: translateX(3px);
+        }
+
+        .admin-user-dropdown>form>button i {
+            width: 16px;
+            text-align: center;
+            color: #0a2340;
+            font-size: 13px;
+            transition: all 0.18s ease;
+        }
+
+        .admin-user-dropdown>form>button:hover i {
+            color: var(--red, #d71938);
+            transform: scale(1.1);
+        }
+
+        .admin-user-dropdown>form>button.remove-photo-btn {
+            color: var(--red, #d71938);
+        }
+
+        .admin-user-dropdown>form>button.remove-photo-btn i {
+            color: var(--red, #d71938);
+        }
+
+        .admin-user-dropdown>form>button.remove-photo-btn:hover {
+            background: #ffeaee;
+        }
     </style>
 
     {% block extra_head %}{% endblock %}
@@ -793,10 +868,16 @@
 
         {% if session.get('user_id') %}
         <div class="admin-user-box">
+            {% if session.get('photo_url') %}
+            <div class="admin-user-avatar has-photo">
+                <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+            </div>
+            {% else %}
             <div class="admin-user-avatar">
                 {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if
                 session['user_name'].split()|length > 1 else '' }}
             </div>
+            {% endif %}
             <div class="admin-user-text">
                 <strong>{{ session['user_name'].split()[0] }}</strong>
                 <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
@@ -996,10 +1077,16 @@
                     <button type="button" class="admin-user-btn" id="adminUserBtn" aria-haspopup="true"
                         aria-expanded="false" aria-controls="adminUserDropdown"
                         title="{{ session['user_name'] }} — click to open menu">
+                        {% if session.get('photo_url') %}
+                        <div class="admin-user-avatar has-photo">
+                            <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+                        </div>
+                        {% else %}
                         <div class="admin-user-avatar">
                             {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
                             upper if session['user_name'].split()|length > 1 else '' }}
                         </div>
+                        {% endif %}
                         <div class="admin-user-btn-info">
                             <strong>{{ session['user_name'].split()[0] }}</strong>
                             <small>Administrator</small>
@@ -1009,10 +1096,16 @@
 
                     <div class="admin-user-dropdown" id="adminUserDropdown" role="menu">
                         <div class="admin-user-head">
+                            {% if session.get('photo_url') %}
+                            <div class="admin-user-head-avatar has-photo">
+                                <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+                            </div>
+                            {% else %}
                             <div class="admin-user-head-avatar">
                                 {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
                                 upper if session['user_name'].split()|length > 1 else '' }}
                             </div>
+                            {% endif %}
                             <div class="admin-user-head-text">
                                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
                                 <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A')
@@ -1025,12 +1118,36 @@
                             Dashboard</a>
                         <a href="{{ url_for('messages_inbox') }}" role="menuitem"><i class="fa-solid fa-inbox"></i>
                             Inbox</a>
+
+                        <!-- NEW: Change Photo -->
+                        <a href="#" role="menuitem"
+                            onclick="event.preventDefault(); document.getElementById('adminUserProfile').classList.remove('dropdown-open'); document.getElementById('adminPhotoInput').click();">
+                            <i class="fa-solid fa-camera"></i> Change Photo
+                        </a>
+
+                        <!-- NEW: Remove Photo (only if photo exists) -->
+                        {% if session.get('photo_url') %}
+                        <form method="POST" action="{{ url_for('remove_profile_photo') }}"
+                            onsubmit="return confirm('Remove your profile photo?');">
+                            <button type="submit" class="remove-photo-btn">
+                                <i class="fa-solid fa-trash"></i> Remove Photo
+                            </button>
+                        </form>
+                        {% endif %}
+
                         <a href="{{ url_for('home') }}" target="_blank" rel="noopener" role="menuitem"><i
                                 class="fa-solid fa-globe"></i> View Website</a>
                         <a href="{{ url_for('change_password') }}" role="menuitem"><i class="fa-solid fa-key"></i>
                             Change Password</a>
                         <a href="{{ url_for('logout') }}" class="admin-logout-link" role="menuitem"><i
                                 class="fa-solid fa-right-from-bracket"></i> Logout</a>
+
+                        <!-- NEW: Hidden photo upload form -->
+                        <form id="adminPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
+                            enctype="multipart/form-data" style="display:none;">
+                            <input type="file" id="adminPhotoInput" name="photo" accept="image/*"
+                                onchange="document.getElementById('adminPhotoForm').submit();">
+                        </form>
                     </div>
                 </div>
             </div>

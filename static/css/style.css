@@ -5050,3 +5050,25 @@ img { display: block; max-width: 100%; }
         max-width: 240px;
     }
 }
+
+/* =========================================
+   PROFILE PHOTO — AVATAR IMAGES
+   ========================================= */
+.user-avatar.has-photo,
+.user-info-avatar.has-photo,
+.mobile-user-avatar.has-photo {
+    padding: 0 !important;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.user-avatar.has-photo img,
+.user-info-avatar.has-photo img,
+.mobile-user-avatar.has-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}

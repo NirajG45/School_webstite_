@@ -17,55 +17,80 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
     <!-- =========================================
-         🚀 UI/UX ENHANCEMENTS (SMOOTH HOVER + CLICK)
+         UI/UX ENHANCEMENTS (SMOOTH HOVER + CLICK)
          ========================================= -->
     <style>
         /* Smooth Scrolling */
-        html { scroll-behavior: smooth; }
+        html {
+            scroll-behavior: smooth;
+        }
 
-        /* 🚀 Button Click & Hover Effects */
-        .btn, .login-btn, .enquire-btn-secondary {
+        /* Button Click & Hover Effects */
+        .btn,
+        .login-btn,
+        .enquire-btn-secondary {
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
             position: relative;
             overflow: hidden;
         }
-        .btn:hover, .login-btn:hover, .enquire-btn-secondary:hover {
+
+        .btn:hover,
+        .login-btn:hover,
+        .enquire-btn-secondary:hover {
             transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-        }
-        .btn:active, .login-btn:active, .enquire-btn-secondary:active {
-            transform: translateY(0) scale(0.96);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
         }
 
-        /* 🚀 Card Hover Effects */
-        .home-event-card, .testimonial-card, .home-achievement-card, .quick-strip a {
+        .btn:active,
+        .login-btn:active,
+        .enquire-btn-secondary:active {
+            transform: translateY(0) scale(0.96);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Card Hover Effects */
+        .home-event-card,
+        .testimonial-card,
+        .home-achievement-card,
+        .quick-strip a {
             transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
             border: 1px solid transparent;
         }
-        .home-event-card:hover, .testimonial-card:hover, .home-achievement-card:hover {
+
+        .home-event-card:hover,
+        .testimonial-card:hover,
+        .home-achievement-card:hover {
             transform: translateY(-6px);
             box-shadow: 0 15px 35px rgba(11, 53, 98, 0.08);
             border-color: rgba(11, 53, 98, 0.1);
             background: #ffffff;
         }
+
         .quick-strip a:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
             background: #f8fafc;
         }
 
-        /* 🚀 Smooth Flash/Toast Messages */
+        /* Smooth Flash/Toast Messages */
         .flash {
             animation: slideDownFade 0.4s ease forwards;
         }
+
         @keyframes slideDownFade {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* =========================================
-           🚀 FOOTER ENHANCEMENT (Clean Grid + Hover)
+           FOOTER ENHANCEMENT (Clean Grid + Hover)
            ========================================= -->
         .site-footer {
             background-color: var(--navy, #0b3562);
@@ -163,10 +188,14 @@
 
             <nav class="desktop-nav" aria-label="Main navigation">
                 <a class="nav-link active" href="#top"><i class="fa-solid fa-house"></i> Home</a>
-                <a class="nav-link" href="{{ url_for('gallery_page') }}"><i class="fa-regular fa-images"></i> Gallery</a>
-                <a class="nav-link" href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i> Faculty</a>
-                <a class="nav-link" href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i> Events</a>
-                <a class="nav-link" href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i> Achievements</a>
+                <a class="nav-link" href="{{ url_for('gallery_page') }}"><i class="fa-regular fa-images"></i>
+                    Gallery</a>
+                <a class="nav-link" href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i>
+                    Faculty</a>
+                <a class="nav-link" href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i>
+                    Events</a>
+                <a class="nav-link" href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i>
+                    Achievements</a>
                 <a class="nav-link" href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
                 <a class="nav-link" href="#contact"><i class="fa-regular fa-envelope"></i> Contact</a>
             </nav>
@@ -174,28 +203,41 @@
             <div class="header-actions">
                 {% if session.get('user_id') %}
                 <div class="user-profile" id="userProfile">
-                    <button type="button" class="user-avatar-btn" id="userMenuBtn"
-                            aria-haspopup="true" aria-expanded="false" aria-controls="userDropdown"
-                            title="{{ session['user_name'] }} — click to open menu">
+                    <button type="button" class="user-avatar-btn" id="userMenuBtn" aria-haspopup="true"
+                        aria-expanded="false" aria-controls="userDropdown"
+                        title="{{ session['user_name'] }} — click to open menu">
+                        {% if session.get('photo_url') %}
+                        <div class="user-avatar has-photo">
+                            <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+                        </div>
+                        {% else %}
                         <div class="user-avatar">
                             {{ session['user_name'].split()[0][0] | upper }}{{
                             session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1
                             else '' }}
                         </div>
+                        {% endif %}
                         <div class="user-avatar-info">
                             <strong>{{ session['user_name'].split()[0] }}</strong>
-                            <small>{{ session.get('user_role', 'User')|capitalize }} • {{ session.get('unique_id', '') }}</small>
+                            <small>{{ session.get('user_role', 'User')|capitalize }} • {{ session.get('unique_id', '')
+                                }}</small>
                         </div>
                         <i class="fa-solid fa-chevron-down user-chevron"></i>
                     </button>
 
                     <div class="user-dropdown" id="userDropdown" role="menu">
                         <div class="user-info-head">
+                            {% if session.get('photo_url') %}
+                            <div class="user-info-avatar has-photo">
+                                <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+                            </div>
+                            {% else %}
                             <div class="user-info-avatar">
                                 {{ session['user_name'].split()[0][0] | upper }}{{
                                 session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1
                                 else '' }}
                             </div>
+                            {% endif %}
                             <div class="user-info-text">
                                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
                                 <small><i class="fa-solid fa-id-badge"></i> ID: {{ session.get('unique_id', 'N/A') }}
@@ -243,14 +285,22 @@
     <aside class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation" aria-hidden="true" inert>
         <div class="mobile-menu-head">
             <span>Explore School</span>
-            <button type="button" id="menuClose" aria-label="Close navigation menu"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" id="menuClose" aria-label="Close navigation menu"><i
+                    class="fa-solid fa-xmark"></i></button>
         </div>
 
         {% if session.get('user_id') %}
         <div class="mobile-user-box logged-in">
-            <div class="mobile-user-avatar">
-                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if session['user_name'].split()|length > 1 else '' }}
+            {% if session.get('photo_url') %}
+            <div class="mobile-user-avatar has-photo">
+                <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
             </div>
+            {% else %}
+            <div class="mobile-user-avatar">
+                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if
+                session['user_name'].split()|length > 1 else '' }}
+            </div>
+            {% endif %}
             <div class="mobile-user-text">
                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
                 <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
@@ -295,9 +345,11 @@
             <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-user-gear"></i> Admin Panel</a>
             {% endif %}
             <a href="{{ url_for('change_password') }}"><i class="fa-solid fa-key"></i> Change Password</a>
-            <a href="{{ url_for('logout') }}" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            <a href="{{ url_for('logout') }}" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i>
+                Logout</a>
             {% else %}
-            <a href="{{ url_for('login_page') }}" class="mobile-login-nav"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+            <a href="{{ url_for('login_page') }}" class="mobile-login-nav"><i class="fa-solid fa-right-to-bracket"></i>
+                Login</a>
             {% endif %}
         </nav>
         <div class="mobile-menu-foot">Learn <span>•</span> Grow <span>•</span> Succeed</div>
@@ -370,15 +422,18 @@
                         <h3>{{ e.title }}</h3>
                         <p>{{ e.description or '' }}</p>
                         <div class="event-meta">
-                            {% if e.event_time %}<span><i class="fa-regular fa-clock"></i> {{ e.event_time }}</span>{% endif %}
-                            {% if e.location %}<span><i class="fa-solid fa-location-dot"></i> {{ e.location }}</span>{% endif %}
+                            {% if e.event_time %}<span><i class="fa-regular fa-clock"></i> {{ e.event_time }}</span>{%
+                            endif %}
+                            {% if e.location %}<span><i class="fa-solid fa-location-dot"></i> {{ e.location }}</span>{%
+                            endif %}
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
             <div style="text-align:center; margin-top:25px;">
-                <a href="{{ url_for('events_page') }}" class="btn btn-primary">View All Events <i class="fa-solid fa-arrow-right"></i></a>
+                <a href="{{ url_for('events_page') }}" class="btn btn-primary">View All Events <i
+                        class="fa-solid fa-arrow-right"></i></a>
             </div>
         </section>
         {% endif %}
@@ -429,7 +484,8 @@
                         <i class="fa-solid fa-graduation-cap"></i>
                         <span><b>Classes offered</b><br>Pre-Nursery to Class 8</span>
                     </div>
-                    <a class="nav-link" href="{{ url_for('academics_page') }}"><i class="fa-solid fa-book-open"></i> Academics</a>
+                    <a class="nav-link" href="{{ url_for('academics_page') }}"><i class="fa-solid fa-book-open"></i>
+                        Academics</a>
                 </div>
             </article>
 
@@ -480,7 +536,8 @@
                     </article>
                     {% endfor %}
                 </div>
-                <a class="all-notices" href="{{ url_for('notices_page') }}">View All Notices <i class="fa-solid fa-arrow-right"></i></a>
+                <a class="all-notices" href="{{ url_for('notices_page') }}">View All Notices <i
+                        class="fa-solid fa-arrow-right"></i></a>
             </aside>
         </section>
 
@@ -523,7 +580,8 @@
                         </div>
                         <p class="testimonial-text">"{{ t.message }}"</p>
                         <div class="testimonial-author">
-                            <div class="testimonial-avatar">{{ t.author_name.split()[0][0] }}{{ t.author_name.split()[-1][0] if t.author_name.split()|length > 1 else '' }}</div>
+                            <div class="testimonial-avatar">{{ t.author_name.split()[0][0] }}{{
+                                t.author_name.split()[-1][0] if t.author_name.split()|length > 1 else '' }}</div>
                             <div>
                                 <strong>{{ t.author_name }}</strong>
                                 <small>{{ t.author_role }}</small>
@@ -540,18 +598,21 @@
         <section class="lower-grid wrap" id="gallery">
             <div class="classes-banner gallery-slider-box">
 
-                <!-- 🚀 DYNAMIC BACKGROUND IMAGE SLIDER -->
+                <!-- DYNAMIC BACKGROUND IMAGE SLIDER -->
                 <div class="slider-track" id="autoSlider">
                     {% if gallery_images %}
-                        {% for img in gallery_images %}
-                        <div class="slide">
-                            <img src="{% if img.image_url.startswith('http') %}{{ img.image_url }}{% else %}{{ url_for('static', filename='images/' + img.image_url) }}{% endif %}" alt="{{ img.title }}" loading="lazy">
-                        </div>
-                        {% endfor %}
+                    {% for img in gallery_images %}
+                    <div class="slide">
+                        <img src="{% if img.image_url.startswith('http') %}{{ img.image_url }}{% else %}{{ url_for('static', filename='images/' + img.image_url) }}{% endif %}"
+                            alt="{{ img.title }}" loading="lazy">
+                    </div>
+                    {% endfor %}
                     {% else %}
-                        <!-- Fallback if no images in Admin Gallery -->
-                        <div class="slide"><img src="{{ url_for('static', filename='images/campus.jpg') }}" alt="Campus" loading="lazy"></div>
-                        <div class="slide"><img src="{{ url_for('static', filename='images/head2.jpeg') }}" alt="School Event" loading="lazy"></div>
+                    <!-- Fallback if no images in Admin Gallery -->
+                    <div class="slide"><img src="{{ url_for('static', filename='images/campus.jpg') }}" alt="Campus"
+                            loading="lazy"></div>
+                    <div class="slide"><img src="{{ url_for('static', filename='images/head2.jpeg') }}"
+                            alt="School Event" loading="lazy"></div>
                     {% endif %}
                 </div>
 
@@ -562,7 +623,8 @@
                         <p>A strong foundation for curious minds and confident learners.</p>
                     </div>
                     <div class="class-pills">
-                        <span>Pre-Nursery</span><span>Nursery</span><span>LKG</span><span>UKG</span><span>Class 1–8</span>
+                        <span>Pre-Nursery</span><span>Nursery</span><span>LKG</span><span>UKG</span><span>Class
+                            1–8</span>
                     </div>
                     <div style="margin-top:20px;">
                         <a href="{{ url_for('gallery_page') }}" class="btn btn-yellow" style="display:inline-flex;">
@@ -617,7 +679,8 @@
                         <textarea name="message" rows="3" maxlength="1000"
                             placeholder="Tell us how we can help"></textarea>
                     </label>
-                    <button class="btn btn-primary" type="submit">Submit enquiry <i class="fa-solid fa-arrow-right"></i></button>
+                    <button class="btn btn-primary" type="submit">Submit enquiry <i
+                            class="fa-solid fa-arrow-right"></i></button>
                 </form>
             </section>
         </section>
@@ -643,7 +706,8 @@
                 {% endfor %}
             </div>
             <div style="text-align:center; margin-top:25px;">
-                <a href="{{ url_for('achievements_page') }}" class="btn btn-primary">View All Achievements <i class="fa-solid fa-arrow-right"></i></a>
+                <a href="{{ url_for('achievements_page') }}" class="btn btn-primary">View All Achievements <i
+                        class="fa-solid fa-arrow-right"></i></a>
             </div>
         </section>
         {% endif %}
@@ -665,7 +729,8 @@
                     <label class="sr-only" for="contactMessage">Message</label>
                     <textarea id="contactMessage" name="message" required rows="2" maxlength="1000"
                         placeholder="Your message"></textarea>
-                    <button class="btn btn-yellow" type="submit">Send message <i class="fa-solid fa-paper-plane"></i></button>
+                    <button class="btn btn-yellow" type="submit">Send message <i
+                            class="fa-solid fa-paper-plane"></i></button>
                 </form>
             </div>
         </section>
@@ -677,15 +742,18 @@
     <footer class="site-footer">
         <div class="wrap footer-inner">
             <div class="footer-brand-col">
-                <a class="footer-brand" href="#top" aria-label="Residential Shanti Niketan home" style="display:flex; align-items:center; gap:15px; text-decoration:none;">
+                <a class="footer-brand" href="#top" aria-label="Residential Shanti Niketan home"
+                    style="display:flex; align-items:center; gap:15px; text-decoration:none;">
                     <span class="brand-mark small-mark">
-                        <img src="{{ url_for('static', filename='images/school-logo.png') }}"
-                            alt="School Logo" class="school-logo" loading="lazy" style="width:60px; height:auto;">
+                        <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="School Logo"
+                            class="school-logo" loading="lazy" style="width:60px; height:auto;">
                     </span>
                     <span class="footer-brand-copy" style="display:flex; flex-direction:column; gap:4px;">
                         <strong style="font-size:18px; color:#fff;">Residential Shanti Niketan</strong>
                         <small style="color:#aebfd0; font-size:13px;">Navinagar, Jamui</small>
-                        <span class="footer-tagline" style="color:var(--yellow, #fbbd08); font-size:11px; font-weight:600; letter-spacing:0.5px; margin-top:5px;">EDUCATION • VALUES • EXCELLENCE</span>
+                        <span class="footer-tagline"
+                            style="color:var(--yellow, #fbbd08); font-size:11px; font-weight:600; letter-spacing:0.5px; margin-top:5px;">EDUCATION
+                            • VALUES • EXCELLENCE</span>
                     </span>
                 </a>
                 <p style="color:#aebfd0; font-size:13px; line-height:1.6; margin-top:15px; max-width:300px;">
@@ -707,7 +775,7 @@
                 <a href="#about"><i class="fa-solid fa-users"></i> About Us</a>
                 <a href="#academics"><i class="fa-solid fa-book-open"></i> Academics</a>
                 <a href="#contact"><i class="fa-regular fa-envelope"></i> Contact Us</a>
-                
+
                 <a class="back-top" href="#top" style="margin-top:15px; width:max-content;">
                     Back to top <i class="fa-solid fa-arrow-up"></i>
                 </a>
@@ -715,13 +783,18 @@
         </div>
 
         <div class="footer-bottom" style="border-top: 1px solid rgba(255,255,255,0.1); padding: 20px 0;">
-            <div class="wrap" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
-                <p class="copyright-text" style="margin:0; color:#aebfd0; font-size:13px;">© <span id="year"></span> Residential Shanti Niketan. All Rights Reserved.</p>
+            <div class="wrap"
+                style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
+                <p class="copyright-text" style="margin:0; color:#aebfd0; font-size:13px;">© <span id="year"></span>
+                    Residential Shanti Niketan. All Rights Reserved.</p>
                 <div class="developer-credit">
-                    <span class="dev-badge" style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.05); padding:8px 16px; border-radius:50px; border:1px solid rgba(255,255,255,0.1);">
+                    <span class="dev-badge"
+                        style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.05); padding:8px 16px; border-radius:50px; border:1px solid rgba(255,255,255,0.1);">
                         <i class="fa-solid fa-code" style="color:var(--yellow, #fbbd08);"></i>
-                        <span style="color:#aebfd0; font-size:12px;">Developed by <strong style="color:#fff;">Niraj Kumar</strong></span>
-                        <a href="tel:9155658081" class="dev-contact" style="display:flex; align-items:center; gap:5px; color:var(--yellow, #fbbd08); text-decoration:none; font-size:12px; font-weight:600; border-left:1px solid rgba(255,255,255,0.2); padding-left:10px; margin-left:5px;">
+                        <span style="color:#aebfd0; font-size:12px;">Developed by <strong style="color:#fff;">Niraj
+                                Kumar</strong></span>
+                        <a href="tel:9155658081" class="dev-contact"
+                            style="display:flex; align-items:center; gap:5px; color:var(--yellow, #fbbd08); text-decoration:none; font-size:12px; font-weight:600; border-left:1px solid rgba(255,255,255,0.2); padding-left:10px; margin-left:5px;">
                             <i class="fa-solid fa-phone"></i> 9155658081
                         </a>
                     </span>

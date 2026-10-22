@@ -1649,6 +1649,136 @@
             color: var(--td-muted);
         }
 
+        /* ============================================================
+           PROFILE PHOTO — AVATAR IMAGES
+           ============================================================ */
+        .td-user-avatar.has-photo,
+        .td-up-avatar.has-photo,
+        .td-up-head-avatar.has-photo,
+        .td-welcome-avatar.has-photo,
+        .td-profile-avatar.has-photo {
+            padding: 0 !important;
+            overflow: hidden;
+        }
+        .td-user-avatar.has-photo img,
+        .td-up-avatar.has-photo img,
+        .td-up-head-avatar.has-photo img,
+        .td-welcome-avatar.has-photo img,
+        .td-profile-avatar.has-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+        }
+
+        /* Dropdown action buttons (Change/Remove Photo) */
+        .td-up-dropdown > form {
+            margin: 0;
+            padding: 0;
+        }
+        .td-up-dropdown > form > button {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 14px;
+            border-radius: 9px;
+            color: #26445f;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.18s ease;
+            margin-bottom: 2px;
+            background: transparent;
+            border: 0;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .td-up-dropdown > form > button:hover {
+            background: #f0f7ff;
+            color: var(--td-navy);
+            transform: translateX(3px);
+        }
+        .td-up-dropdown > form > button i {
+            width: 16px;
+            text-align: center;
+            color: var(--td-navy);
+            font-size: 13px;
+        }
+        .td-up-dropdown > form > button:hover i {
+            color: var(--td-red);
+        }
+        .td-up-dropdown > form > button.remove-photo-btn {
+            color: var(--td-red);
+        }
+        .td-up-dropdown > form > button.remove-photo-btn i {
+            color: var(--td-red);
+        }
+        .td-up-dropdown > form > button.remove-photo-btn:hover {
+            background: #ffeaee;
+        }
+
+        /* Profile panel avatar + actions */
+        .td-profile-avatar-wrap {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+        .td-profile-avatar {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--td-red), #b9102c);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 24px;
+            letter-spacing: 1px;
+            border: 3px solid var(--td-yellow);
+            box-shadow: 0 6px 20px rgba(9,47,88,0.15);
+            overflow: hidden;
+        }
+        .td-profile-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+        .td-photo-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border: 1px solid var(--td-line);
+            background: #fff;
+            border-radius: 8px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--td-navy);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .td-photo-btn:hover {
+            background: var(--td-paper);
+            border-color: #b0c4d8;
+            transform: translateY(-1px);
+        }
+        .td-photo-btn.danger {
+            background: #ffeaee;
+            color: var(--td-red);
+            border-color: #f8c9d2;
+        }
+        .td-photo-btn.danger:hover {
+            background: #ffd9e0;
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 1200px) {
             .td-grid {
@@ -1754,10 +1884,16 @@
 
         {% if session.get('user_id') %}
         <div class="td-user-box">
+            {% if session.get('photo_url') %}
+            <div class="td-user-avatar has-photo">
+                <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+            </div>
+            {% else %}
             <div class="td-user-avatar">
                 {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if
                 session['user_name'].split()|length > 1 else '' }}
             </div>
+            {% endif %}
             <div class="td-user-info">
                 <strong>{{ session['user_name'].split()[0] }}</strong>
                 <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
@@ -1792,7 +1928,6 @@
             <a href="{{ url_for('messages_inbox') }}" class="td-nav-link">
                 <i class="fa-regular fa-comments"></i> Messages
             </a>
-            <!-- NEW: Events link -->
             <a href="#events" class="td-nav-link"><i class="fa-regular fa-calendar-days"></i> Events</a>
 
             <div class="td-nav-label">System</div>
@@ -1885,10 +2020,16 @@
                 <div class="td-up" id="tdUserProfile">
                     <button type="button" class="td-up-btn" id="tdUserBtn" aria-haspopup="true" aria-expanded="false"
                         aria-controls="tdUserDropdown" title="{{ session['user_name'] }} — click to open menu">
+                        {% if session.get('photo_url') %}
+                        <div class="td-up-avatar has-photo">
+                            <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+                        </div>
+                        {% else %}
                         <div class="td-up-avatar">
                             {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
                             upper if session['user_name'].split()|length > 1 else '' }}
                         </div>
+                        {% endif %}
                         <div class="td-up-info">
                             <strong>{{ session['user_name'].split()[0] }}</strong>
                             <small>{{ session.get('user_role', 'Teacher')|capitalize }}</small>
@@ -1898,10 +2039,16 @@
 
                     <div class="td-up-dropdown" id="tdUserDropdown" role="menu">
                         <div class="td-up-head">
+                            {% if session.get('photo_url') %}
+                            <div class="td-up-head-avatar has-photo">
+                                <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+                            </div>
+                            {% else %}
                             <div class="td-up-head-avatar">
                                 {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
                                 upper if session['user_name'].split()|length > 1 else '' }}
                             </div>
+                            {% endif %}
                             <div class="td-up-head-text">
                                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
                                 <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A')
@@ -1911,6 +2058,23 @@
                         </div>
                         <hr class="td-up-divider">
                         <a href="#dashboard" role="menuitem"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+
+                        <!-- NEW: Change Photo -->
+                        <a href="#" role="menuitem"
+                           onclick="event.preventDefault(); document.getElementById('tdUserProfile').classList.remove('open'); document.getElementById('tdPhotoInput').click();">
+                            <i class="fa-solid fa-camera"></i> Change Photo
+                        </a>
+
+                        <!-- NEW: Remove Photo (only if photo exists) -->
+                        {% if session.get('photo_url') %}
+                        <form method="POST" action="{{ url_for('remove_profile_photo') }}"
+                              onsubmit="return confirm('Remove your profile photo?');">
+                            <button type="submit" class="remove-photo-btn">
+                                <i class="fa-solid fa-trash"></i> Remove Photo
+                            </button>
+                        </form>
+                        {% endif %}
+
                         {% if session.get('user_role') == 'admin' %}
                         <a href="{{ url_for('admin_dashboard') }}" role="menuitem"><i class="fa-solid fa-user-gear"></i>
                             Admin Panel</a>
@@ -1921,6 +2085,13 @@
                             Change Password</a>
                         <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem"><i
                                 class="fa-solid fa-right-from-bracket"></i> Logout</a>
+
+                        <!-- NEW: Hidden photo upload form -->
+                        <form id="tdPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
+                              enctype="multipart/form-data" style="display:none;">
+                            <input type="file" id="tdPhotoInput" name="photo" accept="image/*"
+                                   onchange="document.getElementById('tdPhotoForm').submit();">
+                        </form>
                     </div>
                 </div>
                 {% endif %}
@@ -1950,10 +2121,16 @@
 
                     <!-- Welcome banner -->
                     <section class="td-welcome" id="dashboard">
+                        {% if session.get('photo_url') %}
+                        <div class="td-welcome-avatar has-photo">
+                            <img src="{{ session['photo_url'] }}" alt="{{ user.name }}">
+                        </div>
+                        {% else %}
                         <div class="td-welcome-avatar">
                             {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if
                             user.name.split()|length > 1 else '' }}
                         </div>
+                        {% endif %}
                         <div class="td-welcome-text">
                             <h1>Hello, {{ user.name.split()[0] }}! 👋</h1>
                             <p>Welcome to your teacher portal. Here's your day at a glance.</p>
@@ -2210,21 +2387,18 @@
                         <div class="td-panel-body">
                             <div class="td-qa-grid">
 
-                                <!-- 1. View my profile — dynamic route -->
                                 <a href="{{ url_for('settings_page') }}" class="td-qa-link">
                                     <div class="td-qa-icon blue"><i class="fa-regular fa-user"></i></div>
                                     <div class="td-qa-text"><strong>View my profile</strong></div>
                                     <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
                                 </a>
 
-                                <!-- 2. My attendance summary — scroll to dashboard section -->
                                 <a href="#attendance" class="td-qa-link">
                                     <div class="td-qa-icon green"><i class="fa-solid fa-clipboard-check"></i></div>
                                     <div class="td-qa-text"><strong>My attendance summary</strong></div>
                                     <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
                                 </a>
 
-                                <!-- 3. NEW: Mark attendance — dynamic route to dedicated page -->
                                 <a href="{{ url_for('teacher_attendance') }}" class="td-qa-link">
                                     <div class="td-qa-icon green" style="background:#d4f0dc; color:#0d5c3d;">
                                         <i class="fa-solid fa-clipboard-user"></i>
@@ -2232,35 +2406,31 @@
                                     <div class="td-qa-text"><strong>Mark attendance</strong></div>
                                     <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
                                 </a>
-                                <!-- 3b. NEW: Assign Homework -->
+
                                 <a href="{{ url_for('teacher_homework') }}" class="td-qa-link">
                                     <div class="td-qa-icon purple"><i class="fa-solid fa-book-open"></i></div>
                                     <div class="td-qa-text"><strong>Assign homework</strong></div>
                                     <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
                                 </a>
 
-                                <!-- 4. Apply for leave — dashboard form -->
                                 <a href="#leave" class="td-qa-link">
                                     <div class="td-qa-icon amber"><i class="fa-solid fa-calendar-plus"></i></div>
                                     <div class="td-qa-text"><strong>Apply for leave</strong></div>
                                     <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
                                 </a>
 
-                                <!-- 5. Leave history — dashboard section -->
                                 <a href="#history" class="td-qa-link">
                                     <div class="td-qa-icon purple"><i class="fa-solid fa-clock-rotate-left"></i></div>
                                     <div class="td-qa-text"><strong>Leave history</strong></div>
                                     <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
                                 </a>
 
-                                <!-- 6. Upcoming events — dynamic route to public events page -->
                                 <a href="{{ url_for('events_page') }}" class="td-qa-link">
                                     <div class="td-qa-icon blue"><i class="fa-regular fa-calendar-days"></i></div>
                                     <div class="td-qa-text"><strong>Upcoming events</strong></div>
                                     <i class="fa-solid fa-chevron-right td-qa-arrow"></i>
                                 </a>
 
-                                <!-- 7. Check messages — dashboard section -->
                                 <a href="{{ url_for('messages_inbox') }}" class="td-qa-link">
                                     <div class="td-qa-icon red"><i class="fa-regular fa-comments"></i></div>
                                     <div class="td-qa-text"><strong>All messages</strong></div>
@@ -2271,7 +2441,7 @@
                         </div>
                     </section>
 
-                    <!-- NEW: Upcoming events (uses backend `upcoming_events`) -->
+                    <!-- Upcoming events -->
                     <section class="td-panel" id="events">
                         <div class="td-panel-head">
                             <h2 class="td-panel-title"><i class="fa-regular fa-calendar-days"></i> Upcoming events</h2>
@@ -2302,12 +2472,25 @@
                         </div>
                     </section>
 
-                    <!-- Profile summary -->
+                    <!-- Profile summary (NOW WITH AVATAR + CHANGE/REMOVE) -->
                     <section class="td-panel" id="profile">
                         <div class="td-panel-head">
                             <h2 class="td-panel-title"><i class="fa-solid fa-id-card"></i> My profile</h2>
                         </div>
                         <div class="td-panel-body">
+                            <!-- NEW: Avatar -->
+                            <div class="td-profile-avatar-wrap">
+                                {% if session.get('photo_url') %}
+                                <div class="td-profile-avatar has-photo">
+                                    <img src="{{ session['photo_url'] }}" alt="{{ user.name }}">
+                                </div>
+                                {% else %}
+                                <div class="td-profile-avatar">
+                                    {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length > 1 else '' }}
+                                </div>
+                                {% endif %}
+                            </div>
+
                             <div class="td-profile-rows">
                                 <div class="td-profile-row"><span>Teacher ID</span><strong>{{ user.unique_id }}</strong>
                                 </div>
@@ -2327,6 +2510,30 @@
                                         }}</strong></div>
                                 {% endif %}
                             </div>
+
+                            <!-- NEW: Photo action buttons -->
+                            <div class="td-profile-actions">
+                                <button type="button" class="td-photo-btn"
+                                        onclick="document.getElementById('tdProfilePhotoInput').click();">
+                                    <i class="fa-solid fa-camera"></i> Change
+                                </button>
+                                {% if session.get('photo_url') %}
+                                <button type="button" class="td-photo-btn danger"
+                                        onclick="if(confirm('Remove profile photo?')) document.getElementById('tdProfileRemoveForm').submit();">
+                                    <i class="fa-solid fa-trash"></i> Remove
+                                </button>
+                                {% endif %}
+                            </div>
+                            <form id="tdProfilePhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
+                                  enctype="multipart/form-data" style="display:none;">
+                                <input type="file" id="tdProfilePhotoInput" name="photo" accept="image/*"
+                                       onchange="document.getElementById('tdProfilePhotoForm').submit();">
+                            </form>
+                            {% if session.get('photo_url') %}
+                            <form id="tdProfileRemoveForm" method="POST"
+                                  action="{{ url_for('remove_profile_photo') }}" style="display:none;"></form>
+                            {% endif %}
+
                             <a href="{{ url_for('change_password') }}" class="td-btn-primary"
                                 style="width:100%; margin-top:12px; justify-content:center;">
                                 <i class="fa-solid fa-key"></i> Change password

@@ -274,7 +274,6 @@
             color: #fff;
         }
 
-        /* NEW: count badge for nav */
         .pd-nav-badge {
             margin-left: auto;
             display: inline-flex;
@@ -457,17 +456,9 @@
         }
 
         @keyframes pdPulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(215, 25, 56, 0.5);
-            }
-
-            70% {
-                box-shadow: 0 0 0 6px rgba(215, 25, 56, 0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(215, 25, 56, 0);
-            }
+            0% { box-shadow: 0 0 0 0 rgba(215, 25, 56, 0.5); }
+            70% { box-shadow: 0 0 0 6px rgba(215, 25, 56, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(215, 25, 56, 0); }
         }
 
         /* Notification dropdown */
@@ -560,30 +551,11 @@
             font-size: 13px;
         }
 
-        .pd-notif-icon.amber {
-            background: #fff1d6;
-            color: #a86a00;
-        }
-
-        .pd-notif-icon.blue {
-            background: #e1f1ff;
-            color: #1768a7;
-        }
-
-        .pd-notif-icon.green {
-            background: #e3f5eb;
-            color: #168254;
-        }
-
-        .pd-notif-icon.red {
-            background: #ffeaee;
-            color: var(--pd-red);
-        }
-
-        .pd-notif-icon.purple {
-            background: #f0e7ff;
-            color: #7439b2;
-        }
+        .pd-notif-icon.amber { background: #fff1d6; color: #a86a00; }
+        .pd-notif-icon.blue { background: #e1f1ff; color: #1768a7; }
+        .pd-notif-icon.green { background: #e3f5eb; color: #168254; }
+        .pd-notif-icon.red { background: #ffeaee; color: var(--pd-red); }
+        .pd-notif-icon.purple { background: #f0e7ff; color: #7439b2; }
 
         .pd-notif-body {
             flex: 1;
@@ -1052,25 +1024,10 @@
             font-size: 17px;
         }
 
-        .pd-stat-icon.blue {
-            background: #e6f4ff;
-            color: #1768a7;
-        }
-
-        .pd-stat-icon.green {
-            background: #e8f8ec;
-            color: #168254;
-        }
-
-        .pd-stat-icon.purple {
-            background: #f3e8ff;
-            color: #7c3aed;
-        }
-
-        .pd-stat-icon.amber {
-            background: #fff6e6;
-            color: #b7791f;
-        }
+        .pd-stat-icon.blue { background: #e6f4ff; color: #1768a7; }
+        .pd-stat-icon.green { background: #e8f8ec; color: #168254; }
+        .pd-stat-icon.purple { background: #f3e8ff; color: #7c3aed; }
+        .pd-stat-icon.amber { background: #fff6e6; color: #b7791f; }
 
         .pd-stat-text {
             min-width: 0;
@@ -1649,12 +1606,169 @@
             color: var(--pd-muted);
         }
 
+        /* ============================================================
+           PROFILE PHOTO — AVATAR IMAGES  (NEW)
+           ============================================================ */
+        .pd-user-avatar.has-photo,
+        .pd-up-avatar.has-photo,
+        .pd-up-head-avatar.has-photo,
+        .pd-welcome-avatar.has-photo,
+        .pd-profile-avatar.has-photo {
+            padding: 0 !important;
+            overflow: hidden;
+        }
+        .pd-user-avatar.has-photo img,
+        .pd-up-avatar.has-photo img,
+        .pd-up-head-avatar.has-photo img,
+        .pd-welcome-avatar.has-photo img,
+        .pd-profile-avatar.has-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+        }
+
+        /* Dropdown action buttons (Change/Remove Photo) — NEW */
+        .pd-up-dropdown > form {
+            margin: 0;
+            padding: 0;
+        }
+        .pd-up-dropdown > form > button {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 14px;
+            border-radius: 9px;
+            color: #26445f;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.18s ease;
+            margin-bottom: 2px;
+            background: transparent;
+            border: 0;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .pd-up-dropdown > form > button:hover {
+            background: #f0f7ff;
+            color: var(--pd-navy);
+            transform: translateX(3px);
+        }
+        .pd-up-dropdown > form > button i {
+            width: 16px;
+            text-align: center;
+            color: var(--pd-navy);
+            font-size: 13px;
+        }
+        .pd-up-dropdown > form > button:hover i {
+            color: var(--pd-red);
+        }
+        .pd-up-dropdown > form > button.remove-photo-btn {
+            color: var(--pd-red);
+        }
+        .pd-up-dropdown > form > button.remove-photo-btn i {
+            color: var(--pd-red);
+        }
+        .pd-up-dropdown > form > button.remove-photo-btn:hover {
+            background: #ffeaee;
+        }
+
+        /* Profile panel avatar + actions — NEW */
+        .pd-profile-avatar-wrap {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+        .pd-profile-avatar {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--pd-red), #b9102c);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 24px;
+            letter-spacing: 1px;
+            border: 3px solid var(--pd-yellow);
+            box-shadow: 0 6px 20px rgba(9,47,88,0.15);
+            overflow: hidden;
+        }
+        .pd-profile-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+        .pd-photo-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border: 1px solid var(--pd-line);
+            background: #fff;
+            border-radius: 8px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--pd-navy);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .pd-photo-btn:hover {
+            background: var(--pd-paper);
+            border-color: #b0c4d8;
+            transform: translateY(-1px);
+        }
+        .pd-photo-btn.danger {
+            background: #ffeaee;
+            color: var(--pd-red);
+            border-color: #f8c9d2;
+        }
+        .pd-photo-btn.danger:hover {
+            background: #ffd9e0;
+        }
+
+        /* Profile rows (side) — NEW */
+        .pd-profile-rows {
+            display: flex;
+            flex-direction: column;
+        }
+        .pd-profile-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px dashed #eef2f7;
+            font-size: 12px;
+        }
+        .pd-profile-row:last-child {
+            border-bottom: 0;
+        }
+        .pd-profile-row span {
+            color: var(--pd-muted);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .pd-profile-row strong {
+            color: var(--pd-navy);
+            font-weight: 700;
+            text-align: right;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 1200px) {
-            .pd-grid {
-                grid-template-columns: 1fr;
-            }
-
+            .pd-grid { grid-template-columns: 1fr; }
             .pd-col-side {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
@@ -1663,69 +1777,26 @@
         }
 
         @media (max-width: 1024px) {
-            .pd-sidebar {
-                transform: translateX(-100%);
-            }
-
-            .pd-sidebar.open {
-                transform: translateX(0);
-            }
-
-            .pd-main {
-                margin-left: 0;
-            }
-
-            .pd-menu-toggle {
-                display: inline-flex;
-            }
+            .pd-sidebar { transform: translateX(-100%); }
+            .pd-sidebar.open { transform: translateX(0); }
+            .pd-main { margin-left: 0; }
+            .pd-menu-toggle { display: inline-flex; }
         }
 
         @media (max-width: 900px) {
-            .pd-stat-row {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .pd-row-2,
-            .pd-row-2.even {
-                grid-template-columns: 1fr;
-            }
-
-            .pd-col-side {
-                grid-template-columns: 1fr;
-            }
+            .pd-stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .pd-row-2, .pd-row-2.even { grid-template-columns: 1fr; }
+            .pd-col-side { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 640px) {
-            .pd-content {
-                padding: 16px;
-            }
-
-            .pd-search {
-                display: none;
-            }
-
-            .pd-stat-row {
-                grid-template-columns: 1fr;
-            }
-
-            .pd-welcome {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .pd-donut-wrap {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .pd-donut-legend {
-                width: 100%;
-                max-width: 220px;
-            }
-
-            .pd-topbar {
-                padding: 0 16px;
-            }
+            .pd-content { padding: 16px; }
+            .pd-search { display: none; }
+            .pd-stat-row { grid-template-columns: 1fr; }
+            .pd-welcome { flex-direction: column; align-items: flex-start; }
+            .pd-donut-wrap { flex-direction: column; text-align: center; }
+            .pd-donut-legend { width: 100%; max-width: 220px; }
+            .pd-topbar { padding: 0 16px; }
         }
     </style>
 </head>
@@ -1747,10 +1818,16 @@
 
         {% if session.get('user_id') %}
         <div class="pd-user-box">
+            {% if session.get('photo_url') %}
+            <div class="pd-user-avatar has-photo">
+                <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+            </div>
+            {% else %}
             <div class="pd-user-avatar">
                 {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper if
                 session['user_name'].split()|length > 1 else '' }}
             </div>
+            {% endif %}
             <div class="pd-user-info">
                 <strong>{{ session['user_name'].split()[0] }}</strong>
                 <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
@@ -1761,6 +1838,7 @@
 
         <nav class="pd-nav">
             <a href="#dashboard" class="pd-nav-link active"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+            <a href="#profile" class="pd-nav-link"><i class="fa-regular fa-user"></i> My Profile</a>
             <a href="#children" class="pd-nav-link"><i class="fa-solid fa-users"></i> My Children</a>
             <a href="#attendance" class="pd-nav-link"><i class="fa-solid fa-clipboard-check"></i> Attendance</a>
 
@@ -1874,10 +1952,16 @@
                 <div class="pd-up" id="pdUserProfile">
                     <button type="button" class="pd-up-btn" id="pdUserBtn" aria-haspopup="true" aria-expanded="false"
                         aria-controls="pdUserDropdown" title="{{ session['user_name'] }} — click to open menu">
+                        {% if session.get('photo_url') %}
+                        <div class="pd-up-avatar has-photo">
+                            <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+                        </div>
+                        {% else %}
                         <div class="pd-up-avatar">
                             {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
                             upper if session['user_name'].split()|length > 1 else '' }}
                         </div>
+                        {% endif %}
                         <div class="pd-up-info">
                             <strong>{{ session['user_name'].split()[0] }}</strong>
                             <small>{{ session.get('user_role', 'Parent')|capitalize }}</small>
@@ -1887,10 +1971,16 @@
 
                     <div class="pd-up-dropdown" id="pdUserDropdown" role="menu">
                         <div class="pd-up-head">
+                            {% if session.get('photo_url') %}
+                            <div class="pd-up-head-avatar has-photo">
+                                <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+                            </div>
+                            {% else %}
                             <div class="pd-up-head-avatar">
                                 {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
                                 upper if session['user_name'].split()|length > 1 else '' }}
                             </div>
+                            {% endif %}
                             <div class="pd-up-head-text">
                                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
                                 <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A')
@@ -1900,6 +1990,24 @@
                         </div>
                         <hr class="pd-up-divider">
                         <a href="#dashboard" role="menuitem"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+                        <a href="#profile" role="menuitem"><i class="fa-regular fa-user"></i> My Profile</a>
+
+                        <!-- NEW: Change Photo -->
+                        <a href="#" role="menuitem"
+                           onclick="event.preventDefault(); document.getElementById('pdUserProfile').classList.remove('open'); document.getElementById('pdPhotoInput').click();">
+                            <i class="fa-solid fa-camera"></i> Change Photo
+                        </a>
+
+                        <!-- NEW: Remove Photo (only if photo exists) -->
+                        {% if session.get('photo_url') %}
+                        <form method="POST" action="{{ url_for('remove_profile_photo') }}"
+                              onsubmit="return confirm('Remove your profile photo?');">
+                            <button type="submit" class="remove-photo-btn">
+                                <i class="fa-solid fa-trash"></i> Remove Photo
+                            </button>
+                        </form>
+                        {% endif %}
+
                         {% if session.get('user_role') == 'admin' %}
                         <a href="{{ url_for('admin_dashboard') }}" role="menuitem"><i class="fa-solid fa-user-gear"></i>
                             Admin Panel</a>
@@ -1910,6 +2018,13 @@
                             Change Password</a>
                         <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem"><i
                                 class="fa-solid fa-right-from-bracket"></i> Logout</a>
+
+                        <!-- NEW: Hidden photo upload form -->
+                        <form id="pdPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
+                              enctype="multipart/form-data" style="display:none;">
+                            <input type="file" id="pdPhotoInput" name="photo" accept="image/*"
+                                   onchange="document.getElementById('pdPhotoForm').submit();">
+                        </form>
                     </div>
                 </div>
                 {% endif %}
@@ -1949,10 +2064,16 @@
 
                     <!-- Welcome banner -->
                     <section class="pd-welcome" id="dashboard">
+                        {% if session.get('photo_url') %}
+                        <div class="pd-welcome-avatar has-photo">
+                            <img src="{{ session['photo_url'] }}" alt="{{ user.name }}">
+                        </div>
+                        {% else %}
                         <div class="pd-welcome-avatar">
                             {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if
                             user.name.split()|length > 1 else '' }}
                         </div>
+                        {% endif %}
                         <div class="pd-welcome-text">
                             <h1>Welcome, {{ user.name.split()[0] }}! 👋</h1>
                             <p>Stay connected with your child's learning journey...</p>
@@ -1966,7 +2087,7 @@
                         </div>
                     </section>
 
-                    <!-- Stat cards — real backend values -->
+                    <!-- Stat cards -->
                     <div class="pd-stat-row" id="homework">
                         <div class="pd-stat">
                             <div class="pd-stat-icon blue"><i class="fa-solid fa-users"></i></div>
@@ -1985,7 +2106,6 @@
                         <div class="pd-stat">
                             <div class="pd-stat-icon purple"><i class="fa-solid fa-book"></i></div>
                             <div class="pd-stat-text">
-                                <!-- FIXED: now uses real pending_homework from backend -->
                                 <strong>{{ pending_homework or 0 }}</strong>
                                 <small>Pending Homework</small>
                             </div>
@@ -2153,7 +2273,7 @@
                 <!-- ============ SIDE COLUMN ============ -->
                 <aside class="pd-col-side">
 
-                    <!-- Upcoming Events — from backend `upcoming_events` -->
+                    <!-- Upcoming Events -->
                     <section class="pd-panel" id="events">
                         <div class="pd-panel-head">
                             <h2 class="pd-panel-title"><i class="fa-regular fa-calendar-days"></i> Upcoming Events</h2>
@@ -2188,7 +2308,7 @@
                         </div>
                     </section>
 
-                    <!-- Quick Links — real destinations -->
+                    <!-- Quick Links -->
                     <section class="pd-panel" id="materials">
                         <div class="pd-panel-head">
                             <h2 class="pd-panel-title"><i class="fa-solid fa-link"></i> Quick Links</h2>
@@ -2248,6 +2368,70 @@
                             <a href="{{ url_for('messages_compose') }}"
                                 style="display:inline-flex; align-items:center; gap:6px; margin-top:10px; padding:8px 14px; background:#0a2340; color:#fff; border-radius:8px; font-size:12px; font-weight:700; text-decoration:none;">
                                 <i class="fa-solid fa-pen"></i> Compose new message
+                            </a>
+                        </div>
+                    </section>
+
+                    <!-- NEW: My Profile panel -->
+                    <section class="pd-panel" id="profile">
+                        <div class="pd-panel-head">
+                            <h2 class="pd-panel-title"><i class="fa-solid fa-id-card"></i> My Profile</h2>
+                        </div>
+                        <div class="pd-panel-body">
+                            <div class="pd-profile-avatar-wrap">
+                                {% if session.get('photo_url') %}
+                                <div class="pd-profile-avatar has-photo">
+                                    <img src="{{ session['photo_url'] }}" alt="{{ user.name }}">
+                                </div>
+                                {% else %}
+                                <div class="pd-profile-avatar">
+                                    {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length > 1 else '' }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="pd-profile-rows">
+                                <div class="pd-profile-row"><span>Parent ID</span><strong>{{ user.unique_id }}</strong></div>
+                                <div class="pd-profile-row"><span>Name</span><strong>{{ user.name }}</strong></div>
+                                {% if user.email %}
+                                <div class="pd-profile-row"><span>Email</span><strong>{{ user.email }}</strong></div>
+                                {% endif %}
+                                {% if user.phone %}
+                                <div class="pd-profile-row"><span>Mobile</span><strong>{{ user.phone }}</strong></div>
+                                {% endif %}
+                                {% if user.child_name %}
+                                <div class="pd-profile-row"><span>Child</span><strong>{{ user.child_name }}</strong></div>
+                                {% endif %}
+                                {% if user.child_class %}
+                                <div class="pd-profile-row"><span>Class</span><strong>{{ user.child_class }}</strong></div>
+                                {% endif %}
+                            </div>
+
+                            <div class="pd-profile-actions">
+                                <button type="button" class="pd-photo-btn"
+                                        onclick="document.getElementById('pdProfilePhotoInput').click();">
+                                    <i class="fa-solid fa-camera"></i> Change
+                                </button>
+                                {% if session.get('photo_url') %}
+                                <button type="button" class="pd-photo-btn danger"
+                                        onclick="if(confirm('Remove profile photo?')) document.getElementById('pdProfileRemoveForm').submit();">
+                                    <i class="fa-solid fa-trash"></i> Remove
+                                </button>
+                                {% endif %}
+                            </div>
+                            <form id="pdProfilePhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
+                                  enctype="multipart/form-data" style="display:none;">
+                                <input type="file" id="pdProfilePhotoInput" name="photo" accept="image/*"
+                                       onchange="document.getElementById('pdProfilePhotoForm').submit();">
+                            </form>
+                            {% if session.get('photo_url') %}
+                            <form id="pdProfileRemoveForm" method="POST"
+                                  action="{{ url_for('remove_profile_photo') }}" style="display:none;"></form>
+                            {% endif %}
+
+                            <a href="{{ url_for('change_password') }}" class="pd-btn-primary"
+                                style="width:100%; margin-top:12px; justify-content:center;">
+                                <i class="fa-solid fa-key"></i> Change Password
                             </a>
                         </div>
                     </section>

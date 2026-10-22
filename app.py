@@ -2295,6 +2295,68 @@ def teacher_delete_homework(hid):
 
 
 # =========================================
+# USER SELF-SERVICE — PROFILE PHOTO
+# =========================================
+@app.route('/update-profile-photo', methods=['POST'])
+@login_required
+def update_profile_photo():
+    user = get_user_by_id(session['user_id'])
+    if not user:
+        session.clear()
+        return redirect(url_for('login_page'))
+
+    photo_file = request.files.get('photo')
+    if not photo_file or not photo_file.filename:
+        flash('Please select an image file.', 'error')
+        return redirect(request.referrer or url_for('user_dashboard'))
+
+    if not allowed_file(photo_file.filename):
+        flash('Only JPG / PNG / WEBP / GIF allowed.', 'error')
+        return redirect(request.referrer or url_for('user_dashboard'))
+
+    photo_url = save_user_photo(photo_file)
+    if not photo_url:
+        flash('Image is too large (max 2MB) or could not be saved.', 'error')
+        return redirect(request.referrer or url_for('user_dashboard'))
+
+    db = get_db()
+    db.execute('UPDATE users SET photo_url = ? WHERE id = ?', (photo_url, user['id']))
+    db.commit()
+
+    # Sync to faculty table for teachers so public faculty page reflects new photo
+    if user['role'] == 'teacher':
+        db.execute('UPDATE faculty SET photo_url = ? WHERE user_id = ?', (photo_url, user['id']))
+        db.commit()
+
+    # Refresh session so it appears immediately everywhere
+    session['photo_url'] = photo_url
+
+    flash('Profile photo updated successfully!', 'success')
+    return redirect(request.referrer or url_for('user_dashboard'))
+
+
+@app.route('/remove-profile-photo', methods=['POST'])
+@login_required
+def remove_profile_photo():
+    user = get_user_by_id(session['user_id'])
+    if not user:
+        session.clear()
+        return redirect(url_for('login_page'))
+
+    db = get_db()
+    db.execute('UPDATE users SET photo_url = NULL WHERE id = ?', (user['id'],))
+    db.commit()
+
+    if user['role'] == 'teacher':
+        db.execute('UPDATE faculty SET photo_url = NULL WHERE user_id = ?', (user['id'],))
+        db.commit()
+
+    session['photo_url'] = None
+
+    flash('Profile photo removed.', 'success')
+    return redirect(request.referrer or url_for('user_dashboard'))
+
+# =========================================
 # MESSAGING SYSTEM — ROLE-BASED
 # =========================================
 def _allowed_recipients(db, user):

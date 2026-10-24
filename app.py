@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from pathlib import Path
 import os
 import sqlite3
@@ -15,8 +16,16 @@ from werkzeug.utils import secure_filename
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = Path(os.environ.get('SCHOOL_DB_PATH', BASE_DIR / 'school.db'))
 
+load_dotenv(Path(__file__).resolve().with_name(".env"))
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'change-this-before-deployment')
+secret_key = os.environ.get("SECRET_KEY")
+
+if not secret_key or len(secret_key) < 32:
+    raise RuntimeError(
+        "SECRET_KEY missing or too short. Check your .env file."
+    )
+
+app.config["SECRET_KEY"] = secret_key
 app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20MB limit
 app.config['SESSION_COOKIE_SECURE'] = True if os.environ.get('FLASK_ENV') == 'production' else False
 app.config['SESSION_COOKIE_HTTPONLY'] = True

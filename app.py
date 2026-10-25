@@ -9,6 +9,8 @@ from datetime import timedelta, datetime
 from flask import (Flask, render_template, request, redirect, url_for, flash, jsonify, g, session)
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from PIL import Image, ImageOps
+import io
 
 # =========================================
 # 1. APP CONFIGURATION
@@ -304,6 +306,18 @@ def init_db():
             uploaded_by INTEGER,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
 
+        # 🚀 NEW: Faculty subject assignments (class-wise + day-wise)
+        db.execute('''CREATE TABLE IF NOT EXISTS faculty_subject_assignments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            faculty_id INTEGER NOT NULL,
+            class_name TEXT NOT NULL,
+            day TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            period TEXT,
+            room TEXT,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (faculty_id) REFERENCES faculty(id) ON DELETE CASCADE)''')
+
         # Default school settings (required — not dummy data)
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('fee_qr_url', '')")
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('school_name', 'Residential Shanti Niketan')")
@@ -365,34 +379,44 @@ def set_setting(key, value):
     db.commit()
 
 def get_combined_faculty():
-    """Fetches manual faculty AND registered teachers (from users) to show them together."""
+    """Fetches faculty records. Ensures every active teacher has a faculty row
+       so that faculty.id is always available for subject assignments."""
     db = get_db()
 
-    manual_faculty = db.execute(
-        'SELECT id, name, subject, qualification, experience, photo_url, bio, display_order FROM faculty ORDER BY display_order, id'
-    ).fetchall()
-
+    # --- Defensive sync: every active teacher must have a faculty row ---
     teachers = db.execute(
-        "SELECT id, name, subject, qualification, experience, photo_url FROM users WHERE role = 'teacher' AND is_active = 1"
+        "SELECT id, name, subject, qualification, experience, photo_url FROM users "
+        "WHERE role='teacher' AND is_active = 1"
     ).fetchall()
-
-    combined = []
-    seen_names = set()
-
-    for f in manual_faculty:
-        combined.append(dict(f))
-        seen_names.add(f['name'].strip().lower())
-
     for t in teachers:
-        if t['name'].strip().lower() not in seen_names:
-            t_dict = dict(t)
-            t_dict['bio'] = t_dict.get('bio') or 'Dedicated teacher at Residential Shanti Niketan.'
-            t_dict['display_order'] = 999
-            combined.append(t_dict)
-            seen_names.add(t['name'].strip().lower())
+        existing = db.execute(
+            'SELECT id FROM faculty WHERE user_id = ?', (t['id'],)
+        ).fetchone()
+        if existing:
+            continue
+        # Fallback: try matching by name (legacy rows without user_id)
+        existing = db.execute(
+            'SELECT id FROM faculty WHERE name = ?', (t['name'],)
+        ).fetchone()
+        if existing:
+            db.execute('UPDATE faculty SET user_id = ? WHERE id = ?',
+                       (t['id'], existing['id']))
+        else:
+            db.execute(
+                'INSERT INTO faculty '
+                '(user_id, name, subject, qualification, experience, photo_url, bio) '
+                'VALUES (?, ?, ?, ?, ?, ?, ?)',
+                (t['id'], t['name'], t['subject'] or 'General',
+                 t['qualification'] or '', t['experience'] or '', t['photo_url'],
+                 'Dedicated teacher at Residential Shanti Niketan.')
+            )
+    db.commit()
 
-    combined.sort(key=lambda x: (x.get('display_order', 0), x['name']))
-    return combined
+    rows = db.execute(
+        'SELECT id, user_id, name, subject, qualification, experience, '
+        'photo_url, bio, display_order FROM faculty ORDER BY display_order, id'
+    ).fetchall()
+    return [dict(r) for r in rows]
 
 
 # =========================================
@@ -436,25 +460,20 @@ def get_parent_child(db, parent_user):
 # =========================================
 # 3.1. USER PHOTO + FIELD HELPERS
 # =========================================
-def save_user_photo(file_storage, max_mb=2):
-    """Save uploaded user photo to static/uploads/photos/. Returns public URL or None."""
+def save_user_photo(file_storage, max_kb=60):
     if not file_storage or not file_storage.filename:
         return None
     if not allowed_file(file_storage.filename):
         return None
-    try:
-        file_storage.stream.seek(0, os.SEEK_END)
-        size = file_storage.stream.tell()
-        file_storage.stream.seek(0)
-        if size > max_mb * 1024 * 1024:
-            return None
-    except (AttributeError, OSError):
-        pass
-    ext = file_storage.filename.rsplit('.', 1)[1].lower()
-    filename = f"user_{secrets.token_hex(8)}.{ext}"
+
+    compressed = compress_image(file_storage, target_kb=max_kb)
+    if not compressed:
+        return None
+
+    filename = f"user_{secrets.token_hex(8)}.jpg"
     photos_dir = UPLOAD_FOLDER / 'photos'
     photos_dir.mkdir(parents=True, exist_ok=True)
-    file_storage.save(photos_dir / filename)
+    (photos_dir / filename).write_bytes(compressed)
     return url_for('static', filename=f'uploads/photos/{filename}')
 
 
@@ -474,6 +493,58 @@ def _collect_form_fields(role):
     if data.get('aadhar'):
         data['aadhar'] = re.sub(r'\D', '', data['aadhar']) or None
     return data
+
+
+def compress_image(file_storage, target_kb=45, max_dim=1600,
+                   quality_start=85, quality_min=20):
+    """
+    Kisi bhi size ki image ko target_kb (~45KB) tak compress karta hai.
+    Returns: bytes (JPEG)  OR  None (agar fail ho jaye)
+    """
+    try:
+        file_storage.stream.seek(0)
+        img = Image.open(file_storage.stream)
+        img = ImageOps.exif_transpose(img)  # phone camera ka rotation fix
+
+        # RGBA / P / LA → RGB (JPEG alpha support nahi karta)
+        if img.mode in ('RGBA', 'LA', 'P'):
+            if img.mode == 'P':
+                img = img.convert('RGBA')
+            bg = Image.new('RGB', img.size, (255, 255, 255))
+            bg.paste(img, mask=img.split()[-1])
+            img = bg
+        elif img.mode != 'RGB':
+            img = img.convert('RGB')
+
+        # Bahut bada dimension ho to pehle resize
+        if max(img.size) > max_dim:
+            img.thumbnail((max_dim, max_dim), Image.LANCZOS)
+
+        buf = io.BytesIO()
+
+        # Quality ghataate jao jab tak size ~target na ho jaye
+        quality = quality_start
+        while quality >= quality_min:
+            buf.seek(0); buf.truncate()
+            img.save(buf, format='JPEG', quality=quality,
+                     optimize=True, progressive=True)
+            if buf.tell() <= target_kb * 1024:
+                break
+            quality -= 5
+
+        # Agar min quality par bhi bada hai, to progressively shrink
+        while buf.tell() > target_kb * 1024 and max(img.size) > 400:
+            new_size = (int(img.width * 0.85), int(img.height * 0.85))
+            img = img.resize(new_size, Image.LANCZOS)
+            buf.seek(0); buf.truncate()
+            img.save(buf, format='JPEG', quality=quality_min,
+                     optimize=True, progressive=True)
+
+        buf.seek(0)
+        return buf.getvalue()
+    except Exception as e:
+        print(f"[compress_image] error: {e}")
+        return None
 
 # =========================================
 # 4. DECORATORS
@@ -527,12 +598,15 @@ def inject_admin_sidebar_counts():
             'total_study_materials': db.execute(
                 "SELECT COUNT(*) FROM study_materials"
             ).fetchone()[0],
+            'total_assignments': db.execute(
+                "SELECT COUNT(*) FROM faculty_subject_assignments"
+            ).fetchone()[0],
         }
     except Exception:
         return {}
 
 # =========================================
-# 🚀 NEW: SESSION SYNC — Ensures DB photo_url is always in session
+# 🚀 SESSION SYNC — Ensures DB photo_url is always in session
 # =========================================
 @app.before_request
 def sync_session_user_info():
@@ -687,6 +761,11 @@ def admin_edit_profile(user_id):
                            (user_id, name, updates.get('subject') or 'General',
                             updates.get('qualification') or '', updates.get('experience') or '', updates.get('photo_url')))
         else:
+            # 🚀 CASCADE: remove faculty row AND its subject assignments
+            fac_row = db.execute('SELECT id FROM faculty WHERE user_id = ?', (user_id,)).fetchone()
+            if fac_row:
+                db.execute('DELETE FROM faculty_subject_assignments WHERE faculty_id = ?',
+                           (fac_row['id'],))
             db.execute('DELETE FROM faculty WHERE user_id = ?', (user_id,))
 
         db.commit()
@@ -992,6 +1071,7 @@ def admin_dashboard():
         'total_enquiries': db.execute('SELECT COUNT(*) FROM enquiries').fetchone()[0],
         'pending_leaves':  db.execute("SELECT COUNT(*) FROM leave_requests WHERE status='pending'").fetchone()[0],
         'pending_fees':    db.execute("SELECT COUNT(*) FROM fee_payments WHERE status='pending'").fetchone()[0],
+        'total_assignments': db.execute("SELECT COUNT(*) FROM faculty_subject_assignments").fetchone()[0],
     }
 
     stats['total_classes'] = db.execute(
@@ -1101,7 +1181,7 @@ def admin_users():
     )
 
 # =========================================
-# 🚀 NEW: ADMIN DEDICATED PHOTO ROUTES (For Admin Users Page Modal)
+# ADMIN DEDICATED PHOTO ROUTES (For Admin Users Page Modal)
 # =========================================
 @app.route('/admin/users/<int:user_id>/update-photo', methods=['POST'])
 @admin_required
@@ -1383,6 +1463,13 @@ def admin_delete_user(user_id):
         flash('You cannot delete your own account!', 'error')
         return redirect(url_for('admin_users'))
     db = get_db()
+
+    # 🚀 CASCADE: remove assignments before removing faculty row
+    fac_row = db.execute('SELECT id FROM faculty WHERE user_id = ?', (user_id,)).fetchone()
+    if fac_row:
+        db.execute('DELETE FROM faculty_subject_assignments WHERE faculty_id = ?',
+                   (fac_row['id'],))
+
     db.execute('DELETE FROM users WHERE id = ?', (user_id,))
     db.execute('DELETE FROM faculty WHERE user_id = ?', (user_id,))
     db.commit()
@@ -1410,6 +1497,11 @@ def admin_change_role(user_id):
             db.execute('INSERT INTO faculty (user_id, name, subject) VALUES (?, ?, ?)',
                        (user_id, user['name'], user['subject'] or 'General'))
     else:
+        # 🚀 CASCADE: remove faculty row AND its assignments
+        fac_row = db.execute('SELECT id FROM faculty WHERE user_id = ?', (user_id,)).fetchone()
+        if fac_row:
+            db.execute('DELETE FROM faculty_subject_assignments WHERE faculty_id = ?',
+                       (fac_row['id'],))
         db.execute('DELETE FROM faculty WHERE user_id = ?', (user_id,))
 
     db.commit()
@@ -1751,8 +1843,131 @@ def admin_delete_enquiry(eid):
 @app.route('/admin/faculty')
 @admin_required
 def admin_faculty():
+    db = get_db()
     faculty = get_combined_faculty()
-    return render_template('admin_faculty.html', faculty=faculty, active_page='faculty')
+
+    # --- All subject assignments (with faculty name joined) ---
+    rows = db.execute('''
+        SELECT a.*, f.name AS faculty_name
+        FROM faculty_subject_assignments a
+        JOIN faculty f ON a.faculty_id = f.id
+        ORDER BY
+            CASE a.day
+                WHEN 'Monday'    THEN 1
+                WHEN 'Tuesday'   THEN 2
+                WHEN 'Wednesday' THEN 3
+                WHEN 'Thursday'  THEN 4
+                WHEN 'Friday'    THEN 5
+                WHEN 'Saturday'  THEN 6
+                WHEN 'Sunday'    THEN 7
+                WHEN 'All Days'  THEN 8
+                ELSE 9
+            END,
+            a.class_name, COALESCE(a.period, ''), a.id
+    ''').fetchall()
+    assignments = [dict(r) for r in rows]
+
+    # --- Datalist suggestions ---
+    classes = [
+        r['class_name'] for r in db.execute(
+            "SELECT DISTINCT class_name FROM users "
+            "WHERE role='student' AND class_name IS NOT NULL "
+            "AND class_name != '' ORDER BY class_name"
+        ).fetchall() if r['class_name']
+    ]
+    subjects = [
+        r['subject'] for r in db.execute(
+            "SELECT DISTINCT subject FROM users "
+            "WHERE role='teacher' AND subject IS NOT NULL "
+            "AND subject != '' ORDER BY subject"
+        ).fetchall() if r['subject']
+    ]
+
+    return render_template(
+        'admin_faculty.html',
+        faculty=faculty,
+        assignments=assignments,
+        classes=classes,
+        subjects=subjects,
+        active_page='faculty'
+    )
+
+
+# 🚀 NEW: Assign subject to faculty (class-wise + day-wise)
+@app.route('/admin/faculty/assign-subject', methods=['POST'])
+@admin_required
+def admin_assign_subject():
+    faculty_id = (request.form.get('faculty_id') or '').strip()
+    class_name = (request.form.get('class_name') or '').strip()
+    day        = (request.form.get('day') or '').strip()
+    subject    = (request.form.get('subject') or '').strip()
+    period     = (request.form.get('period') or '').strip()
+    room       = (request.form.get('room') or '').strip()
+
+    if not faculty_id or not class_name or not day or not subject:
+        flash('Faculty, Class, Day and Subject are required.', 'error')
+        return redirect(url_for('admin_faculty'))
+
+    try:
+        faculty_id = int(faculty_id)
+    except (TypeError, ValueError):
+        flash('Invalid faculty selection.', 'error')
+        return redirect(url_for('admin_faculty'))
+
+    db = get_db()
+    if not db.execute('SELECT 1 FROM faculty WHERE id = ?', (faculty_id,)).fetchone():
+        flash('Selected faculty not found.', 'error')
+        return redirect(url_for('admin_faculty'))
+
+    # "All Days" → expand to Mon–Sat
+    days_to_assign = (
+        ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        if day == 'All Days' else [day]
+    )
+
+    inserted = 0
+    skipped  = 0
+    for d in days_to_assign:
+        exists = db.execute(
+            'SELECT id FROM faculty_subject_assignments '
+            'WHERE faculty_id=? AND class_name=? AND day=? AND subject=? '
+            'AND COALESCE(period, "") = ?',
+            (faculty_id, class_name, d, subject, period)
+        ).fetchone()
+        if exists:
+            skipped += 1
+            continue
+        db.execute(
+            'INSERT INTO faculty_subject_assignments '
+            '(faculty_id, class_name, day, subject, period, room) '
+            'VALUES (?, ?, ?, ?, ?, ?)',
+            (faculty_id, class_name, d, subject,
+             period or None, room or None)
+        )
+        inserted += 1
+
+    db.commit()
+
+    if inserted and not skipped:
+        flash(f'{inserted} assignment(s) added successfully.', 'success')
+    elif inserted and skipped:
+        flash(f'{inserted} added, {skipped} skipped (already exist).', 'success')
+    else:
+        flash('Assignment already exists for the selected day(s).', 'info')
+
+    return redirect(url_for('admin_faculty'))
+
+
+# 🚀 NEW: Delete a specific assignment
+@app.route('/admin/faculty/assignment/<int:aid>/delete', methods=['POST'])
+@admin_required
+def admin_delete_assignment(aid):
+    db = get_db()
+    db.execute('DELETE FROM faculty_subject_assignments WHERE id = ?', (aid,))
+    db.commit()
+    flash('Assignment removed.', 'success')
+    return redirect(url_for('admin_faculty'))
+
 
 @app.route('/admin/faculty/add', methods=['POST'])
 @admin_required
@@ -1811,9 +2026,11 @@ def admin_edit_faculty(fid):
 @admin_required
 def admin_delete_faculty(fid):
     db = get_db()
+    # 🚀 CASCADE — remove all assignments tied to this faculty row
+    db.execute('DELETE FROM faculty_subject_assignments WHERE faculty_id = ?', (fid,))
     db.execute('DELETE FROM faculty WHERE id = ?', (fid,))
     db.commit()
-    flash('Faculty removed.', 'success')
+    flash('Faculty and their assignments removed.', 'success')
     return redirect(url_for('admin_faculty'))
 
 
@@ -1906,11 +2123,14 @@ def admin_add_gallery():
     image_file = request.files.get('image_file')
     if image_file and image_file.filename:
         if allowed_file(image_file.filename):
-            ext = image_file.filename.rsplit('.', 1)[1].lower()
-            filename = f"gallery_{secrets.token_hex(6)}.{ext}"
+            compressed = compress_image(image_file, target_kb=45)
+            if compressed is None:
+                flash('Image process nahi ho payi. Doosri image try karein.', 'error')
+                return redirect(url_for('admin_gallery'))
+            filename = f"gallery_{secrets.token_hex(6)}.jpg"   # always .jpg
             images_folder = BASE_DIR / 'static' / 'images'
             images_folder.mkdir(parents=True, exist_ok=True)
-            image_file.save(images_folder / filename)
+            (images_folder / filename).write_bytes(compressed)
             image_url = filename
         else:
             flash('Invalid image type.', 'error')

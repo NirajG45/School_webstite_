@@ -2,11 +2,10 @@
   'use strict';
 
   /* =========================================
-     0. UTILITY HELPERS (NEW — do not affect existing logic)
+     0. UTILITY HELPERS
      ========================================= */
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Debounce — prevents rapid-fire calls (used for resize)
   function debounce(fn, wait = 150) {
     let t;
     return function (...args) {
@@ -15,7 +14,6 @@
     };
   }
 
-  // Throttle — limits calls to once per interval (used for scroll-based work)
   function throttle(fn, wait = 100) {
     let last = 0, timer;
     return function (...args) {
@@ -37,15 +35,27 @@
   }
 
   /* =========================================
-     1. MOBILE MENU LOGIC (ROBUST FIX)
+     NEW UPGRADE: STICKY HEADER SCROLL EFFECT
+     ========================================= */
+  const siteHeader = document.querySelector('.site-header');
+  if (siteHeader) {
+    window.addEventListener('scroll', throttle(() => {
+      if (window.scrollY > 50) {
+        siteHeader.classList.add('scrolled');
+      } else {
+        siteHeader.classList.remove('scrolled');
+      }
+    }, 100), { passive: true });
+  }
+
+  /* =========================================
+     1. MOBILE MENU LOGIC (Public Site)
      ========================================= */
   const toggle = document.getElementById('menuToggle');
   const menu = document.getElementById('mobileMenu');
   const backdrop = document.getElementById('menuBackdrop');
   const closeButton = document.getElementById('menuClose');
   
-  // 🚀 UPGRADE: matchMedia की शर्त हटा दी गई है ताकि बटन क्लिक करने पर मेनू 100% खुले।
-  // CSS पहले से ही बटन को सिर्फ मोबाइल पर दिखाता है, इसलिए JS में इसकी जरूरत नहीं है।
   const mobileBreakpoint = window.matchMedia('(max-width: 1280px)');
   let lastFocused = null;
 
@@ -59,12 +69,10 @@
     toggle.setAttribute('aria-label', 'Close navigation menu');
     if (backdrop) {
         backdrop.hidden = false;
-        // Small delay to ensure the transition works perfectly
         setTimeout(() => backdrop.classList.add('is-open'), 10);
     }
     document.body.classList.add('menu-open');
     requestAnimationFrame(() => closeButton?.focus());
-    /* === IMPROVED: prevent body scroll for a cleaner overlay === */
     document.documentElement.style.overflow = 'hidden';
   }
 
@@ -79,29 +87,22 @@
     backdrop.classList.remove('is-open');
     setTimeout(() => {
         backdrop.hidden = true;
-    }, 300); // Wait for transition to finish
+    }, 300); 
     
     document.body.classList.remove('menu-open');
-    /* === IMPROVED: restore document scroll === */
     document.documentElement.style.overflow = '';
     if (restoreFocus && lastFocused instanceof HTMLElement) {
       lastFocused.focus({ preventScroll: true });
     }
   }
 
-  // Event Listeners
   toggle?.addEventListener('click', () => {
     toggle.getAttribute('aria-expanded') === 'true' ? closeMenu() : openMenu();
   });
-  
   closeButton?.addEventListener('click', () => closeMenu());
-  
-  // ✅ Backdrop Click Close Feature (बाहर क्लिक करने पर बंद होना)
   backdrop?.addEventListener('click', () => closeMenu());
-  
   menu?.querySelectorAll('a').forEach(link => link.addEventListener('click', () => closeMenu({ restoreFocus: false })));
 
-  // Keyboard Accessibility (Esc key & Tab trapping)
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && toggle?.getAttribute('aria-expanded') === 'true') {
       closeMenu();
@@ -111,28 +112,145 @@
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
-
       if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
+        event.preventDefault(); last.focus();
       } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
+        event.preventDefault(); first.focus();
       }
     }
   });
 
-  // Responsive breakpoint handling (Close menu if resized to desktop)
   mobileBreakpoint.addEventListener?.('change', event => {
     if (!event.matches) closeMenu({ restoreFocus: false });
   });
   
-  /* === IMPROVED: debounce resize so it doesn't fire on every pixel === */
   window.addEventListener('resize', debounce(() => {
     if (!mobileBreakpoint.matches && menu?.classList.contains('is-open')) {
         closeMenu({ restoreFocus: false });
     }
   }, 150), { passive: true });
+
+
+  /* =========================================
+     NEW UPGRADE: DASHBOARD SIDEBAR TOGGLE
+     ========================================= */
+  const dashSidebar = document.getElementById('dashSidebar');
+  const dashToggle = document.getElementById('dashMenuToggle');
+  const dashBackdrop = document.getElementById('dashBackdrop');
+
+  if (dashSidebar && dashToggle) {
+    function openDashSidebar() {
+      dashSidebar.classList.add('open');
+      if (dashBackdrop) {
+        dashBackdrop.hidden = false;
+        setTimeout(() => dashBackdrop.classList.add('show'), 10);
+      }
+      dashToggle.setAttribute('aria-expanded', 'true');
+      document.body.classList.add('dash-sidebar-open');
+    }
+
+    function closeDashSidebar() {
+      dashSidebar.classList.remove('open');
+      if (dashBackdrop) {
+        dashBackdrop.classList.remove('show');
+        setTimeout(() => { dashBackdrop.hidden = true; }, 300);
+      }
+      dashToggle.setAttribute('aria-expanded', 'false');
+      document.body.classList.remove('dash-sidebar-open');
+    }
+
+    dashToggle.addEventListener('click', () => {
+      dashSidebar.classList.contains('open') ? closeDashSidebar() : openDashSidebar();
+    });
+
+    dashBackdrop?.addEventListener('click', closeDashSidebar);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && dashSidebar.classList.contains('open')) closeDashSidebar();
+    });
+
+    dashSidebar.querySelectorAll('a[href^="#"]').forEach(link => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth <= 1024) closeDashSidebar();
+      });
+    });
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 1024) closeDashSidebar();
+    });
+  }
+
+
+  /* =========================================
+     NEW UPGRADE: ADMIN SIDEBAR TOGGLE & COLLAPSE
+     ========================================= */
+  const adminSidebar = document.getElementById('adminSidebar');
+  const adminMenuToggle = document.getElementById('adminMenuToggle');
+  const adminBackdrop = document.getElementById('adminBackdrop');
+  const collapseBtn = document.getElementById('sidebarCollapseBtn');
+
+  // Mobile Toggle
+  if (adminMenuToggle && adminSidebar) {
+    function openAdminSidebar() {
+      adminSidebar.classList.add('open');
+      if (adminBackdrop) { adminBackdrop.hidden = false; adminBackdrop.classList.add('open'); }
+      adminMenuToggle.setAttribute('aria-expanded', 'true');
+      document.body.classList.add('menu-open');
+    }
+    function closeAdminSidebar() {
+      adminSidebar.classList.remove('open');
+      if (adminBackdrop) { adminBackdrop.classList.remove('open'); setTimeout(() => { adminBackdrop.hidden = true; }, 300); }
+      adminMenuToggle.setAttribute('aria-expanded', 'false');
+      document.body.classList.remove('menu-open');
+    }
+    adminMenuToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      adminSidebar.classList.contains('open') ? closeAdminSidebar() : openAdminSidebar();
+    });
+    adminBackdrop?.addEventListener('click', closeAdminSidebar);
+  }
+
+  // Desktop Collapse
+  if (collapseBtn && adminSidebar) {
+    if (window.innerWidth > 900 && localStorage.getItem('adminSidebarCollapsed') === 'true') {
+      adminSidebar.classList.add('collapsed');
+      document.body.classList.add('admin-sidebar-collapsed');
+      const icon = collapseBtn.querySelector('i');
+      if (icon) icon.className = 'fa-solid fa-angles-right';
+    }
+    collapseBtn.addEventListener('click', function () {
+      adminSidebar.classList.toggle('collapsed');
+      const isCollapsed = adminSidebar.classList.contains('collapsed');
+      document.body.classList.toggle('admin-sidebar-collapsed', isCollapsed);
+      localStorage.setItem('adminSidebarCollapsed', isCollapsed ? 'true' : 'false');
+      const icon = this.querySelector('i');
+      if (icon) icon.className = isCollapsed ? 'fa-solid fa-angles-right' : 'fa-solid fa-angles-left';
+    });
+  }
+
+  // Sidebar Live Search Filter (Admin)
+  const sidebarSearch = document.getElementById('sidebarSearch');
+  if (sidebarSearch) {
+    sidebarSearch.addEventListener('input', function () {
+      const q = this.value.toLowerCase().trim();
+      const links = document.querySelectorAll('.admin-nav-link');
+      links.forEach(link => {
+        const label = (link.getAttribute('data-label') || link.textContent).toLowerCase();
+        link.style.display = (!q || label.includes(q)) ? '' : 'none';
+      });
+      document.querySelectorAll('.admin-nav-group-label').forEach(label => {
+        let next = label.nextElementSibling;
+        let hasVisible = false;
+        while (next && !next.classList.contains('admin-nav-group-label')) {
+          if (next.classList.contains('admin-nav-link') && next.style.display !== 'none') {
+            hasVisible = true; break;
+          }
+          next = next.nextElementSibling;
+        }
+        label.style.display = (!q || hasVisible) ? '' : 'none';
+      });
+    });
+  }
 
 
   /* =========================================
@@ -167,7 +285,6 @@
   const yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  // Smooth removal of flash messages
   document.querySelectorAll('.flash-close').forEach(button => {
     button.addEventListener('click', () => {
       const flash = button.closest('.flash');
@@ -179,7 +296,6 @@
     });
   });
 
-  /* === IMPROVED: auto-dismiss flash messages after 6s (optional UX boost) === */
   document.querySelectorAll('.flash').forEach(flash => {
     if (flash.dataset.autoDismiss === 'false') return;
     setTimeout(() => {
@@ -202,29 +318,21 @@
 
     const startSlider = () => {
       if (slides.length <= 1) return; 
-      /* === IMPROVED: respect reduced-motion preference === */
       if (prefersReducedMotion) return;
-      /* === IMPROVED: avoid stacking intervals if called twice === */
       clearInterval(slideInterval);
       slideInterval = setInterval(() => {
         currentIndex++;
-        if (currentIndex >= slides.length) {
-          currentIndex = 0; 
-        }
+        if (currentIndex >= slides.length) currentIndex = 0; 
         sliderTrack.style.transform = `translateX(-${currentIndex * 100}%)`;
-      }, 3000); // 3 seconds
+      }, 3000);
     };
 
-    const stopSlider = () => {
-      clearInterval(slideInterval);
-    };
+    const stopSlider = () => clearInterval(slideInterval);
 
-    /* === IMPROVED: helper to jump to a specific index (used by dots/swipe/keyboard) === */
     const goToSlide = (i) => {
       if (!slides.length) return;
       currentIndex = ((i % slides.length) + slides.length) % slides.length;
       sliderTrack.style.transform = `translateX(-${currentIndex * 100}%)`;
-      /* === IMPROVED: keep dot indicators in sync if they exist === */
       const dots = document.querySelectorAll('.gallery-slider-dots button, .slider-dot');
       dots.forEach((d, idx) => {
         d.classList.toggle('active', idx === currentIndex);
@@ -232,26 +340,21 @@
       });
     };
 
-    // Start the slider
     startSlider();
 
-    // Pause on hover, resume on mouse leave
     const sliderBox = sliderTrack.closest('.gallery-slider-box');
     if (sliderBox) {
       sliderBox.addEventListener('mouseenter', stopSlider);
       sliderBox.addEventListener('mouseleave', startSlider);
-      /* === IMPROVED: pause on focus-within too (keyboard users) === */
       sliderBox.addEventListener('focusin', stopSlider);
       sliderBox.addEventListener('focusout', startSlider);
     }
 
-    /* === IMPROVED: pause when the tab is hidden (saves CPU/battery) === */
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) stopSlider();
       else startSlider();
     });
 
-    /* === IMPROVED: pause when the slider is off-screen (scroll out of view) === */
     if ('IntersectionObserver' in window && sliderBox) {
       const sliderVisibilityObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -262,7 +365,6 @@
       sliderVisibilityObserver.observe(sliderBox);
     }
 
-    /* === IMPROVED: swipe support on touch devices === */
     let sx = 0, sy = 0, swiping = false;
     sliderTrack.addEventListener('touchstart', (e) => {
       if (!e.touches[0]) return;
@@ -279,15 +381,13 @@
       if (!t) { startSlider(); return; }
       const dx = t.clientX - sx;
       const dy = t.clientY - sy;
-      /* Only treat as horizontal swipe if horizontal movement dominates */
       if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
-        if (dx < 0) goToSlide(currentIndex + 1);   // swipe left  → next
-        else        goToSlide(currentIndex - 1);   // swipe right → prev
+        if (dx < 0) goToSlide(currentIndex + 1);
+        else        goToSlide(currentIndex - 1);
       }
       startSlider();
     }, { passive: true });
 
-    /* === IMPROVED: keyboard navigation (← → arrows) when slider has focus === */
     sliderTrack.setAttribute('tabindex', '0');
     sliderTrack.setAttribute('role', 'region');
     sliderTrack.setAttribute('aria-roledescription', 'carousel');
@@ -299,21 +399,19 @@
       if (e.key === 'End')        { e.preventDefault(); goToSlide(slides.length - 1); }
     });
 
-    /* === IMPROVED: dot navigation wiring (if dots exist) === */
     const dots = document.querySelectorAll('.gallery-slider-dots button, .slider-dot');
     dots.forEach((dot, idx) => {
       dot.addEventListener('click', () => {
-        stopSlider();
-        goToSlide(idx);
-        startSlider();
+        stopSlider(); goToSlide(idx); startSlider();
       });
     });
 
-    /* === IMPROVED: pause slider when user prefers reduced motion === */
     if (prefersReducedMotion) stopSlider();
   }
 
-  /* === IMPROVED: smooth scroll for in-page anchor links (#hash) === */
+  /* =========================================
+     5. SMOOTH SCROLL FOR IN-PAGE ANCHORS
+     ========================================= */
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
       const href = this.getAttribute('href');
@@ -325,7 +423,6 @@
       const offset = topBar ? topBar.offsetHeight + 12 : 12;
       const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
       window.scrollTo({ top, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
-      /* Update URL without jumping */
       if (history.replaceState) history.replaceState(null, '', href);
     });
   });
@@ -333,108 +430,95 @@
 })();
 
 /* ============================================================
-   USER PROFILE DROPDOWN — Click to pin, click-outside to close
+   DROPDOWNS: USER PROFILE & ADMIN NOTIFICATIONS
    ============================================================ */
-(function initUserDropdown() {
+(function initDropdowns() {
+    // ---- User Profile Dropdown ----
     const userProfile  = document.getElementById('userProfile');
     const userMenuBtn  = document.getElementById('userMenuBtn');
     const userDropdown = document.getElementById('userDropdown');
 
-    if (!userProfile || !userMenuBtn || !userDropdown) return;
-
-    function openMenu() {
-        userProfile.classList.add('dropdown-open');
-        userMenuBtn.setAttribute('aria-expanded', 'true');
-    }
-
-    function closeMenu() {
-        userProfile.classList.remove('dropdown-open');
-        userMenuBtn.setAttribute('aria-expanded', 'false');
-    }
-
-    function toggleMenu(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (userProfile.classList.contains('dropdown-open')) {
-            closeMenu();
-        } else {
-            openMenu();
+    if (userProfile && userMenuBtn && userDropdown) {
+        function openUserMenu() {
+            userProfile.classList.add('dropdown-open');
+            userMenuBtn.setAttribute('aria-expanded', 'true');
         }
-    }
-
-    // Click on button → toggle pin
-    userMenuBtn.addEventListener('click', toggleMenu);
-
-    // Click inside dropdown → don't close (link will navigate)
-    userDropdown.addEventListener('click', function (e) {
-        e.stopPropagation();
-    });
-
-    // Click anywhere outside → close
-    document.addEventListener('click', function (e) {
-        if (userProfile.classList.contains('dropdown-open') &&
-            !userProfile.contains(e.target)) {
-            closeMenu();
+        function closeUserMenu() {
+            userProfile.classList.remove('dropdown-open');
+            userMenuBtn.setAttribute('aria-expanded', 'false');
         }
-    });
-
-    // ESC key → close
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && userProfile.classList.contains('dropdown-open')) {
-            closeMenu();
-            userMenuBtn.focus();
+        function toggleUserMenu(e) {
+            e.preventDefault(); e.stopPropagation();
+            userProfile.classList.contains('dropdown-open') ? closeUserMenu() : openUserMenu();
         }
-    });
 
-    // Touch devices: tap outside to close
-    document.addEventListener('touchstart', function (e) {
-        if (userProfile.classList.contains('dropdown-open') &&
-            !userProfile.contains(e.target)) {
-            closeMenu();
-        }
-    }, { passive: true });
-
-    /* === IMPROVED: keyboard navigation inside dropdown (↑ ↓ Home End) === */
-    userDropdown.addEventListener('keydown', function (e) {
-        const items = [...userDropdown.querySelectorAll('a[href], button:not([disabled])')];
-        if (!items.length) return;
-        const idx = items.indexOf(document.activeElement);
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            items[(idx + 1 + items.length) % items.length].focus();
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            items[(idx - 1 + items.length) % items.length].focus();
-        } else if (e.key === 'Home') {
-            e.preventDefault();
-            items[0].focus();
-        } else if (e.key === 'End') {
-            e.preventDefault();
-            items[items.length - 1].focus();
-        }
-    });
-
-    /* === IMPROVED: focus first item when dropdown opens via keyboard === */
-    userMenuBtn.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
-            e.preventDefault();
-            if (!userProfile.classList.contains('dropdown-open')) openMenu();
-            requestAnimationFrame(() => {
-                const first = userDropdown.querySelector('a[href], button:not([disabled])');
-                first?.focus();
-            });
-        }
-    });
-
-    /* === IMPROVED: close on any navigation link click inside dropdown === */
-    userDropdown.querySelectorAll('a[href]').forEach(link => {
-        link.addEventListener('click', () => closeMenu());
-    });
-
-    /* === IMPROVED: close on hash-link navigation for consistency === */
-    userDropdown.querySelectorAll('a[href^="#"]').forEach(link => {
-        link.addEventListener('click', () => {
-            setTimeout(closeMenu, 50);
+        userMenuBtn.addEventListener('click', toggleUserMenu);
+        userDropdown.addEventListener('click', e => e.stopPropagation());
+        
+        document.addEventListener('click', e => {
+            if (userProfile.classList.contains('dropdown-open') && !userProfile.contains(e.target)) closeUserMenu();
         });
-    });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && userProfile.classList.contains('dropdown-open')) {
+                closeUserMenu(); userMenuBtn.focus();
+            }
+        });
+        document.addEventListener('touchstart', e => {
+            if (userProfile.classList.contains('dropdown-open') && !userProfile.contains(e.target)) closeUserMenu();
+        }, { passive: true });
+
+        userDropdown.addEventListener('keydown', function (e) {
+            const items = [...userDropdown.querySelectorAll('a[href], button:not([disabled])')];
+            if (!items.length) return;
+            const idx = items.indexOf(document.activeElement);
+            if (e.key === 'ArrowDown') { e.preventDefault(); items[(idx + 1 + items.length) % items.length].focus(); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); items[(idx - 1 + items.length) % items.length].focus(); }
+            else if (e.key === 'Home') { e.preventDefault(); items[0].focus(); }
+            else if (e.key === 'End') { e.preventDefault(); items[items.length - 1].focus(); }
+        });
+
+        userMenuBtn.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (!userProfile.classList.contains('dropdown-open')) openUserMenu();
+                requestAnimationFrame(() => {
+                    const first = userDropdown.querySelector('a[href], button:not([disabled])');
+                    first?.focus();
+                });
+            }
+        });
+
+        userDropdown.querySelectorAll('a[href]').forEach(link => link.addEventListener('click', closeUserMenu));
+        userDropdown.querySelectorAll('a[href^="#"]').forEach(link => link.addEventListener('click', () => setTimeout(closeUserMenu, 50)));
+    }
+
+    // ---- Admin Notification Dropdown ----
+    const notifWrapper = document.getElementById('adminNotifWrapper');
+    const notifBtn = document.getElementById('adminNotifBtn');
+    const notifDropdown = document.getElementById('adminNotifDropdown');
+
+    if (notifWrapper && notifBtn && notifDropdown) {
+        function openNotif() { notifWrapper.classList.add('dropdown-open'); notifBtn.setAttribute('aria-expanded', 'true'); }
+        function closeNotif() { notifWrapper.classList.remove('dropdown-open'); notifBtn.setAttribute('aria-expanded', 'false'); }
+        
+        notifBtn.addEventListener('click', function (e) {
+            e.preventDefault(); e.stopPropagation();
+            const isOpen = notifWrapper.classList.contains('dropdown-open');
+            // Close user menu if open
+            if (userProfile && userProfile.classList.contains('dropdown-open')) {
+                userProfile.classList.remove('dropdown-open');
+            }
+            if (!isOpen) openNotif(); else closeNotif();
+        });
+
+        notifDropdown.addEventListener('click', e => e.stopPropagation());
+        document.addEventListener('click', e => {
+            if (notifWrapper.classList.contains('dropdown-open') && !notifWrapper.contains(e.target)) closeNotif();
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && notifWrapper.classList.contains('dropdown-open')) {
+                closeNotif(); notifBtn.focus();
+            }
+        });
+    }
 })();

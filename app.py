@@ -140,6 +140,7 @@ STUDENT_FIELDS = [
 ROLE_FIELDS = {
     'teacher': TEACHER_FIELDS,
     'admin': ADMIN_FIELDS,
+    'administrator': ADMIN_FIELDS, # UPGRADE: Administrator gets same fields as Admin
     'parent': PARENT_FIELDS,
     'student': STUDENT_FIELDS,
 }
@@ -345,7 +346,8 @@ def get_user_by_unique_id(uid):
 def generate_unique_id(role):
     """Generate unique ID like SNVT00001, SNVP00001, SNVST00001"""
     db = get_db()
-    prefixes = {'admin': 'SNV', 'teacher': 'SNVT', 'parent': 'SNVP', 'student': 'SNVST'}
+    # 🚀 UPGRADE: Added 'administrator' mapping
+    prefixes = {'admin': 'SNV', 'administrator': 'SNV', 'teacher': 'SNVT', 'parent': 'SNVP', 'student': 'SNVST'}
     prefix = prefixes.get(role, 'SNV')
 
     last = db.execute(
@@ -568,20 +570,23 @@ def admin_required(f):
         if not session.get('user_id'):
             flash('Please login to access admin panel.', 'error')
             return redirect(url_for('login_page'))
-        if session.get('user_role') != 'admin':
+        # 🚀 UPGRADE: Allowed both admin and administrator
+        if session.get('user_role') not in ('admin', 'administrator'):
             flash('Access denied. Admin privileges required.', 'error')
             return redirect(url_for('user_dashboard'))
         return f(*args, **kwargs)
     return decorated
 
 def get_dashboard_url(role):
-    return url_for('admin_dashboard') if role == 'admin' else url_for('user_dashboard')
+    # 🚀 UPGRADE: Allowed both admin and administrator
+    return url_for('admin_dashboard') if role in ('admin', 'administrator') else url_for('user_dashboard')
 
 # === Context processor for admin sidebar pending counts ===
 @app.context_processor
 def inject_admin_sidebar_counts():
     """Make pending counts available to all admin templates."""
-    if not session.get('user_id') or session.get('user_role') != 'admin':
+    # 🚀 UPGRADE: Allowed both admin and administrator
+    if not session.get('user_id') or session.get('user_role') not in ('admin', 'administrator'):
         return {}
     try:
         db = get_db()
@@ -708,7 +713,8 @@ def admin_edit_profile(user_id):
         flash('Invalid email format.', 'error')
         return redirect(request.referrer or url_for('admin_users'))
 
-    if role not in ('teacher', 'admin', 'parent', 'student'):
+    # 🚀 UPGRADE: Added administrator
+    if role not in ('teacher', 'admin', 'administrator', 'parent', 'student'):
         flash('Invalid role.', 'error')
         return redirect(request.referrer or url_for('admin_users'))
 
@@ -1254,7 +1260,8 @@ def admin_create_user():
 
         if not role:
             errors['role'] = 'Please select a role'
-        elif role not in ('teacher', 'admin', 'parent', 'student'):
+        # 🚀 UPGRADE: Added administrator
+        elif role not in ('teacher', 'admin', 'administrator', 'parent', 'student'):
             errors['role'] = 'Invalid role selected'
 
         if not name:
@@ -1318,7 +1325,8 @@ def admin_create_user():
             if not (form.get('subject') or '').strip():
                 errors['subject'] = 'Primary Subject is required'
 
-        elif role == 'admin':
+        # 🚀 UPGRADE: Added administrator block
+        elif role in ('admin', 'administrator'):
             if not (form.get('designation') or '').strip():
                 errors['designation'] = 'Designation is required'
             if not (form.get('department') or '').strip():
@@ -1412,7 +1420,7 @@ def admin_create_user():
         return redirect(url_for('admin_users'))
 
     pre_role = request.args.get('role', '')
-    if pre_role and pre_role in ('teacher', 'admin', 'parent', 'student'):
+    if pre_role and pre_role in ('teacher', 'admin', 'administrator', 'parent', 'student'):
         initial_form = {'role': pre_role}
     else:
         initial_form = {}
@@ -1480,7 +1488,8 @@ def admin_delete_user(user_id):
 @admin_required
 def admin_change_role(user_id):
     new_role = request.form.get('role', 'student')
-    if new_role not in ['teacher', 'admin', 'parent', 'student']:
+    # 🚀 UPGRADE: Added administrator
+    if new_role not in ['teacher', 'admin', 'administrator', 'parent', 'student']:
         flash('Invalid role.', 'error')
         return redirect(url_for('admin_users'))
 
@@ -2325,7 +2334,8 @@ def admin_delete_homework(hid):
 @login_required
 def teacher_attendance():
     user = get_user_by_id(session['user_id'])
-    if not user or user['role'] not in ('teacher', 'admin'):
+    # 🚀 UPGRADE: Allowed both admin and administrator
+    if not user or user['role'] not in ('teacher', 'admin', 'administrator'):
         flash('Only teachers can access this page.', 'error')
         return redirect(url_for('user_dashboard'))
 
@@ -2465,7 +2475,8 @@ def teacher_attendance():
 @login_required
 def teacher_homework():
     user = get_user_by_id(session['user_id'])
-    if not user or user['role'] not in ('teacher', 'admin'):
+    # 🚀 UPGRADE: Allowed both admin and administrator
+    if not user or user['role'] not in ('teacher', 'admin', 'administrator'):
         flash('Only teachers can access this page.', 'error')
         return redirect(url_for('user_dashboard'))
 
@@ -2549,7 +2560,8 @@ def teacher_homework():
 @login_required
 def teacher_add_homework():
     user = get_user_by_id(session['user_id'])
-    if not user or user['role'] not in ('teacher', 'admin'):
+    # 🚀 UPGRADE: Allowed both admin and administrator
+    if not user or user['role'] not in ('teacher', 'admin', 'administrator'):
         flash('Only teachers can access this page.', 'error')
         return redirect(url_for('user_dashboard'))
 
@@ -2578,7 +2590,8 @@ def teacher_add_homework():
 @login_required
 def teacher_delete_homework(hid):
     user = get_user_by_id(session['user_id'])
-    if not user or user['role'] not in ('teacher', 'admin'):
+    # 🚀 UPGRADE: Allowed both admin and administrator
+    if not user or user['role'] not in ('teacher', 'admin', 'administrator'):
         flash('Only teachers can access this page.', 'error')
         return redirect(url_for('user_dashboard'))
 
@@ -2589,7 +2602,7 @@ def teacher_delete_homework(hid):
         flash('Homework not found.', 'error')
         return redirect(url_for('teacher_homework'))
 
-    if user['role'] != 'admin' and hw['assigned_by'] != user['id']:
+    if user['role'] not in ('admin', 'administrator') and hw['assigned_by'] != user['id']:
         flash('You can only delete homework you assigned.', 'error')
         return redirect(url_for('teacher_homework'))
 
@@ -2669,7 +2682,7 @@ def _allowed_recipients(db, user):
     Returns list of dicts {id, name, unique_id, role} this user can message.
 
     Rules:
-      admin   → everyone (students, teachers, parents, other admins)
+      admin / administrator   → everyone (students, teachers, parents, other admins)
       teacher → admin, teachers, their students, parents of those students
       parent  → admin, teachers
       student → admin, teachers
@@ -2678,7 +2691,8 @@ def _allowed_recipients(db, user):
     uid = user['id']
     recipients = []
 
-    if role == 'admin':
+    # 🚀 UPGRADE: Allowed both admin and administrator
+    if role in ('admin', 'administrator'):
         rows = db.execute(
             "SELECT id, name, unique_id, role FROM users "
             "WHERE is_active=1 AND id != ? ORDER BY role, name",
@@ -2689,7 +2703,7 @@ def _allowed_recipients(db, user):
     elif role == 'teacher':
         rows = db.execute(
             "SELECT id, name, unique_id, role FROM users "
-            "WHERE is_active=1 AND role IN ('admin','teacher') AND id != ? "
+            "WHERE is_active=1 AND role IN ('admin', 'administrator', 'teacher') AND id != ? "
             "ORDER BY role, name",
             (uid,)
         ).fetchall()
@@ -2721,7 +2735,7 @@ def _allowed_recipients(db, user):
     elif role == 'parent':
         rows = db.execute(
             "SELECT id, name, unique_id, role FROM users "
-            "WHERE is_active=1 AND role IN ('admin','teacher') AND id != ? "
+            "WHERE is_active=1 AND role IN ('admin', 'administrator', 'teacher') AND id != ? "
             "ORDER BY role, name",
             (uid,)
         ).fetchall()
@@ -2730,7 +2744,7 @@ def _allowed_recipients(db, user):
     elif role == 'student':
         rows = db.execute(
             "SELECT id, name, unique_id, role FROM users "
-            "WHERE is_active=1 AND role IN ('admin','teacher') AND id != ? "
+            "WHERE is_active=1 AND role IN ('admin', 'administrator', 'teacher') AND id != ? "
             "ORDER BY role, name",
             (uid,)
         ).fetchall()
@@ -2944,7 +2958,8 @@ def messages_delete(msg_id):
         flash('Message not found.', 'error')
         return redirect(url_for('messages_inbox'))
 
-    if msg['from_user_id'] != user['id'] and user['role'] != 'admin':
+    # 🚀 UPGRADE: Allowed both admin and administrator
+    if msg['from_user_id'] != user['id'] and user['role'] not in ('admin', 'administrator'):
         flash('You can only delete messages you sent.', 'error')
         return redirect(url_for('messages_inbox'))
 

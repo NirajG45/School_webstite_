@@ -1174,6 +1174,18 @@
                 data-label="Attendance">
                 <i class="fa-solid fa-clipboard-check"></i><span class="nav-label">Attendance</span>
             </a>
+            <!-- ADDED: Enter Marks -->
+            <a href="{{ url_for('admin_enter_marks') }}"
+                class="admin-nav-link {% if active_page == 'enter_marks' %}active{% endif %}"
+                data-label="Enter Marks">
+                <i class="fa-solid fa-pen-to-square"></i><span class="nav-label">Enter Marks</span>
+            </a>
+            <!-- ADDED: Bulk Marks -->
+            <a href="{{ url_for('admin_bulk_marks') }}"
+                class="admin-nav-link {% if active_page == 'bulk_marks' %}active{% endif %}"
+                data-label="Bulk Marks">
+                <i class="fa-solid fa-file-import"></i><span class="nav-label">Bulk Marks</span>
+            </a>
             <a href="{{ url_for('admin_homework') }}"
                 class="admin-nav-link {% if active_page == 'homework' %}active{% endif %}"
                 data-label="Homework">
@@ -1181,6 +1193,24 @@
                 {% if total_homework and total_homework > 0 %}
                 <span class="nav-badge">{{ total_homework }}</span>
                 {% endif %}
+            </a>
+            <!-- ADDED: Study Materials -->
+            <a href="{{ url_for('admin_study_materials') }}"
+                class="admin-nav-link {% if active_page == 'study_materials' %}active{% endif %}"
+                data-label="Study Materials">
+                <i class="fa-solid fa-folder-open"></i><span class="nav-label">Study Materials</span>
+            </a>
+            <!-- ADDED: Reports -->
+            <a href="{{ url_for('admin_reports') }}"
+                class="admin-nav-link {% if active_page == 'reports' %}active{% endif %}"
+                data-label="Reports">
+                <i class="fa-solid fa-chart-pie"></i><span class="nav-label">Reports</span>
+            </a>
+            <!-- ADDED: Generate Reports -->
+            <a href="{{ url_for('admin_generate_reports') }}"
+                class="admin-nav-link {% if active_page == 'generate_reports' %}active{% endif %}"
+                data-label="Generate Reports">
+                <i class="fa-solid fa-file-invoice"></i><span class="nav-label">Generate Reports</span>
             </a>
             <a href="{{ url_for('admin_leaves') }}"
                 class="admin-nav-link {% if active_page == 'leaves' %}active{% endif %}"
@@ -1215,6 +1245,12 @@
             </a>
 
             <div class="admin-nav-group-label">Content</div>
+            <!-- ADDED: Notices -->
+            <a href="{{ url_for('admin_notices') }}"
+                class="admin-nav-link {% if active_page == 'notices' %}active{% endif %}"
+                data-label="Notices">
+                <i class="fa-solid fa-bullhorn"></i><span class="nav-label">Notices</span>
+            </a>
             <a href="{{ url_for('admin_faculty') }}"
                 class="admin-nav-link {% if active_page == 'faculty' %}active{% endif %}"
                 data-label="Faculty">
@@ -1358,7 +1394,7 @@
                     </div>
                 </div>
 
-                <!-- NEW: MY DASHBOARD TOPBAR BUTTON -->
+                <!-- MY DASHBOARD TOPBAR BUTTON -->
                 <a href="{{ url_for('user_dashboard') }}"
                    class="admin-topbar-icon admin-my-dash-btn"
                    aria-label="My Dashboard"
@@ -1428,7 +1464,9 @@
                         {% endif %}
 
                         <a href="{{ url_for('home') }}" target="_blank" rel="noopener" role="menuitem"><i class="fa-solid fa-globe"></i> View Website</a>
-                        <a href="{{ url_for('change_password') }}" role="menuitem"><i class="fa-solid fa-key"></i> Change Password</a>
+                        
+                        <!-- REMOVED: Change Password link from Profile Dropdown as requested -->
+
                         <a href="{{ url_for('logout') }}" class="admin-logout-link" role="menuitem"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
 
                         <form id="adminPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"

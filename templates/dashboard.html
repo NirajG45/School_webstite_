@@ -112,7 +112,7 @@
         .user-dropdown > form > button.remove-photo-btn:hover { background: #ffeaee; }
 
         /* =========================================
-           NEW: DASHBOARD SIDEBAR LAYOUT
+           DASHBOARD SIDEBAR LAYOUT
            ========================================= */
         .dash-layout {
             display: flex;
@@ -379,9 +379,8 @@
                         </form>
                         {% endif %}
 
-                        <a href="{{ url_for('change_password') }}" role="menuitem">
-                            <i class="fa-solid fa-key"></i> Change Password
-                        </a>
+                        <!-- REMOVED: Change Password link from Profile Dropdown as requested -->
+
                         <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem">
                             <i class="fa-solid fa-right-from-bracket"></i> Logout
                         </a>
@@ -553,7 +552,12 @@
                 <a href="{{ url_for('admin_users') }}" class="dash-nav-link"><i class="fa-solid fa-users"></i> All Users</a>
                 <a href="{{ url_for('admin_create_user') }}" class="dash-nav-link"><i class="fa-solid fa-user-plus"></i> Create User</a>
                 <a href="{{ url_for('admin_attendance') }}" class="dash-nav-link"><i class="fa-solid fa-clipboard-check"></i> Attendance</a>
+                <a href="{{ url_for('admin_enter_marks') }}" class="dash-nav-link"><i class="fa-solid fa-pen-to-square"></i> Enter Marks</a>
+                <a href="{{ url_for('admin_bulk_marks') }}" class="dash-nav-link"><i class="fa-solid fa-file-import"></i> Bulk Marks</a>
                 <a href="{{ url_for('admin_homework') }}" class="dash-nav-link"><i class="fa-solid fa-book-open"></i> Homework</a>
+                <a href="{{ url_for('admin_study_materials') }}" class="dash-nav-link"><i class="fa-solid fa-folder-open"></i> Study Materials</a>
+                <a href="{{ url_for('admin_reports') }}" class="dash-nav-link"><i class="fa-solid fa-chart-pie"></i> Reports</a>
+                <a href="{{ url_for('admin_generate_reports') }}" class="dash-nav-link"><i class="fa-solid fa-file-invoice"></i> Generate Reports</a>
                 <a href="{{ url_for('admin_leaves') }}" class="dash-nav-link"><i class="fa-solid fa-calendar-minus"></i> Leave Requests</a>
                 <a href="{{ url_for('admin_fees') }}" class="dash-nav-link"><i class="fa-solid fa-indian-rupee-sign"></i> Fee Payments</a>
 
@@ -563,6 +567,7 @@
                 <a href="{{ url_for('admin_enquiries') }}" class="dash-nav-link"><i class="fa-solid fa-envelope"></i> Enquiries</a>
 
                 <div class="dash-nav-group-label">Content</div>
+                <a href="{{ url_for('admin_notices') }}" class="dash-nav-link"><i class="fa-solid fa-bullhorn"></i> Notices</a>
                 <a href="{{ url_for('admin_faculty') }}" class="dash-nav-link"><i class="fa-solid fa-chalkboard-user"></i> Faculty</a>
                 <a href="{{ url_for('admin_events') }}" class="dash-nav-link"><i class="fa-regular fa-calendar-days"></i> Events</a>
                 <a href="{{ url_for('admin_gallery') }}" class="dash-nav-link"><i class="fa-regular fa-images"></i> Gallery</a>
@@ -584,12 +589,18 @@
                 <a href="#profile" class="dash-nav-link"><i class="fa-solid fa-id-card"></i> My Profile</a>
 
                 <div class="dash-nav-group-label">Teaching</div>
-                <a href="#attendance" class="dash-nav-link"><i class="fa-solid fa-clipboard-check"></i> My Attendance</a>
+                <a href="{{ url_for('teacher_attendance') }}" class="dash-nav-link"><i class="fa-solid fa-clipboard-check"></i> Mark Attendance</a>
+                <a href="{{ url_for('teacher_homework') }}" class="dash-nav-link"><i class="fa-solid fa-book-open"></i> Homework</a>
+                
+                <!-- TEACHER MARKS ADD FEATURE ONLY -->
+                <a href="{{ url_for('admin_enter_marks') }}" class="dash-nav-link"><i class="fa-solid fa-pen-to-square"></i> Enter Marks</a>
+                
+                <a href="{{ url_for('study_materials_page') }}" class="dash-nav-link"><i class="fa-solid fa-folder-open"></i> Study Materials</a>
                 <a href="#leave" class="dash-nav-link"><i class="fa-solid fa-calendar-minus"></i> Leave Requests</a>
                 <a href="#notices" class="dash-nav-link"><i class="fa-solid fa-bell"></i> Notices</a>
 
                 <div class="dash-nav-group-label">Communication</div>
-                <a href="#messages" class="dash-nav-link"><i class="fa-solid fa-comments"></i> Messages from Admin</a>
+                <a href="{{ url_for('messages_inbox') }}" class="dash-nav-link"><i class="fa-solid fa-comments"></i> Messages</a>
 
                 <div class="dash-nav-group-label">Account</div>
                 <a href="{{ url_for('change_password') }}" class="dash-nav-link"><i class="fa-solid fa-key"></i> Change Password</a>
@@ -606,11 +617,13 @@
 
                 <div class="dash-nav-group-label">My Child</div>
                 <a href="#attendance" class="dash-nav-link"><i class="fa-solid fa-clipboard-check"></i> Child's Attendance</a>
+                <a href="{{ url_for('study_materials_page') }}" class="dash-nav-link"><i class="fa-solid fa-folder-open"></i> Study Materials</a>
+                <a href="{{ url_for('results_page') }}" class="dash-nav-link"><i class="fa-solid fa-chart-simple"></i> Exam Results</a>
                 <a href="#fee" class="dash-nav-link"><i class="fa-solid fa-indian-rupee-sign"></i> Fee Payment</a>
                 <a href="#notices" class="dash-nav-link"><i class="fa-solid fa-bell"></i> Notices</a>
 
                 <div class="dash-nav-group-label">Communication</div>
-                <a href="#messages" class="dash-nav-link"><i class="fa-solid fa-comments"></i> Messages from Admin</a>
+                <a href="{{ url_for('messages_inbox') }}" class="dash-nav-link"><i class="fa-solid fa-comments"></i> Messages</a>
 
                 <div class="dash-nav-group-label">Account</div>
                 <a href="{{ url_for('change_password') }}" class="dash-nav-link"><i class="fa-solid fa-key"></i> Change Password</a>
@@ -627,11 +640,13 @@
 
                 <div class="dash-nav-group-label">Academics</div>
                 <a href="#attendance" class="dash-nav-link"><i class="fa-solid fa-clipboard-check"></i> My Attendance</a>
+                <a href="{{ url_for('study_materials_page') }}" class="dash-nav-link"><i class="fa-solid fa-folder-open"></i> Study Materials</a>
+                <a href="{{ url_for('results_page') }}" class="dash-nav-link"><i class="fa-solid fa-chart-simple"></i> My Results</a>
                 <a href="#fee" class="dash-nav-link"><i class="fa-solid fa-indian-rupee-sign"></i> Fee Payment</a>
                 <a href="#notices" class="dash-nav-link"><i class="fa-solid fa-bell"></i> Notices</a>
 
                 <div class="dash-nav-group-label">Communication</div>
-                <a href="#messages" class="dash-nav-link"><i class="fa-solid fa-comments"></i> Messages from Admin</a>
+                <a href="{{ url_for('messages_inbox') }}" class="dash-nav-link"><i class="fa-solid fa-comments"></i> Messages</a>
 
                 <div class="dash-nav-group-label">Account</div>
                 <a href="{{ url_for('change_password') }}" class="dash-nav-link"><i class="fa-solid fa-key"></i> Change Password</a>
@@ -795,7 +810,7 @@
                             </button>
                             {% endif %}
 
-                            {% if session.get('user_role') == 'admin' %}
+                            {% if session.get('user_role') in ['admin', 'administrator'] %}
                             <button type="button" id="openAdminEditBtn" class="btn-edit-admin">
                                 <i class="fa-solid fa-user-gear"></i> Admin Edit
                             </button>
@@ -1081,7 +1096,7 @@
     <!-- =========================================
          ADMIN-ONLY: EXTENDED EDIT MODAL
          ========================================= -->
-    {% if session.get('user_role') == 'admin' %}
+    {% if session.get('user_role') in ['admin', 'administrator'] %}
     <div class="modal-overlay" id="editProfileModal">
         <div class="modal-container">
             <div class="modal-header">
@@ -1102,6 +1117,7 @@
                                 <option value="parent" {% if user.role == 'parent' %}selected{% endif %}>Parent</option>
                                 <option value="teacher" {% if user.role == 'teacher' %}selected{% endif %}>Teacher</option>
                                 <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                                <option value="administrator" {% if user.role == 'administrator' %}selected{% endif %}>Administrator</option>
                             </select>
                         </label>
                     </div>
@@ -1283,7 +1299,7 @@
                 });
             })();
 
-            /* ---------- NEW: Dashboard sidebar toggle ---------- */
+            /* ---------- Dashboard sidebar toggle ---------- */
             (function initDashSidebar() {
                 const sidebar = document.getElementById('dashSidebar');
                 const toggle = document.getElementById('dashMenuToggle');

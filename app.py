@@ -3188,6 +3188,36 @@ def add_headers(response):
     return response
 
 # =========================================
+# MISSING ADMIN ROUTES (For Sidebar Links)
+# =========================================
+
+@app.route('/admin/enter-marks')
+@admin_required
+def admin_enter_marks():
+    # यहाँ आप मार्क्स एंटर करने का लॉजिक बाद में जोड़ सकते हैं
+    return render_template('admin_enter_marks.html', active_page='enter_marks')
+
+@app.route('/admin/bulk-marks')
+@admin_required
+def admin_bulk_marks():
+    return render_template('admin_bulk_marks.html', active_page='bulk_marks')
+
+@app.route('/admin/reports')
+@admin_required
+def admin_reports():
+    return render_template('admin_reports.html', active_page='reports')
+
+@app.route('/admin/reports-dashboard')
+@admin_required
+def admin_reports_dashboard():
+    return render_template('admin_generate_reports.html', active_page='reports_dashboard')
+
+@app.route('/admin/generate-reports')
+@admin_required
+def admin_generate_reports():
+    return render_template('admin_generate_reports.html', active_page='generate_reports')
+
+# =========================================
 # INIT
 # =========================================
 init_db()

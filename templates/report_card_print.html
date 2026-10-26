@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Report Card - {{ student.name }}</title>
+    <style>
+        /* PRINTING SPECIFIC CSS FOR 2 CARDS PER PAGE */
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #525659;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            font-family: 'Times New Roman', Times, serif; /* Using standard school font */
+        }
+
+        /* A4 Paper Container */
+        .a4-page {
+            width: 210mm;
+            height: 297mm;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            page-break-after: always;
+        }
+
+        /* Individual Report Card (148mm is roughly half of 297mm) */
+        .report-card {
+            width: 100%;
+            height: 148.5mm;
+            padding: 8mm;
+            border-bottom: 2px dashed #ccc; /* Cut line */
+            position: relative;
+        }
+        
+        /* Remove border and cut line for the last card in print */
+        .report-card:last-child {
+            border-bottom: none;
+        }
+
+        /* Outer Box Design */
+        .border-box {
+            border: 2px solid #000;
+            padding: 2px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .inner-box {
+            border: 1px solid #000;
+            padding: 10px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER */
+        .header {
+            text-align: center;
+            position: relative;
+            margin-bottom: 10px;
+        }
+        .header h1 {
+            font-size: 22px;
+            margin: 0;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+        .header h2 {
+            font-size: 18px;
+            margin: 2px 0;
+            font-weight: bold;
+        }
+        .header h3 {
+            font-size: 14px;
+            margin: 2px 0 8px 0;
+            border-bottom: 1.5px solid #000;
+            display: inline-block;
+            padding-bottom: 2px;
+        }
+        
+        /* Logo (Red one provided) */
+        .logo {
+            position: absolute;
+            top: -5px;
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+        }
+        .logo.left { left: 0; }
+        .logo.right { right: 0; }
+
+        /* TITLE */
+        .title-box {
+            text-align: center;
+            margin: 5px 0 10px 0;
+            position: relative;
+        }
+        .title-box::before, .title-box::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 32%;
+            height: 1.5px;
+            background: #000;
+        }
+        .title-box::before { left: 0; }
+        .title-box::after { right: 0; }
+        .title-text {
+            display: inline-block;
+            border: 2px solid #000;
+            border-radius: 15px;
+            padding: 3px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            background: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* STUDENT INFO */
+        .info-box {
+            border: 2px solid #000;
+            border-radius: 8px;
+            padding: 8px 15px;
+            margin-bottom: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .info-box span {
+            font-weight: normal;
+            border-bottom: 1px dotted #000;
+            display: inline-block;
+            width: 70%;
+            padding-left: 5px;
+        }
+
+        /* TABLE */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: auto;
+            font-size: 13px;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 4px 8px;
+            text-align: left;
+        }
+        th {
+            background: #eee;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        td.center { text-align: center; }
+        
+        .total-row td {
+            background: #eee;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        /* SIGNATURES */
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 13px;
+            font-weight: bold;
+            padding-bottom: 5px;
+        }
+        .sign-box {
+            border-bottom: 1px solid #000;
+            width: 35%;
+            padding-bottom: 2px;
+        }
+
+        .footer-text {
+            text-align: center;
+            font-style: italic;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: auto;
+        }
+        .footer-text::before, .footer-text::after {
+            content: "";
+            display: inline-block;
+            width: 40px;
+            height: 1px;
+            background: #000;
+        }
+
+        /* PRINT BUTTON (Hidden on print) */
+        .print-action {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+        }
+        .print-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Media Print Overrides */
+        @media print {
+            body { background: white; padding: 0; margin: 0; display: block; }
+            .a4-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; }
+            .report-card { border-bottom: none; } /* Remove cut lines for clean print */
+            .print-action { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="print-action">
+        <button class="print-btn" onclick="window.print()">
+            🖨️ Print Report Cards
+        </button>
+    </div>
+
+    <!-- A4 PAGE WRAPPER -->
+    <div class="a4-page">
+        
+        <!-- ================= REPORT CARD 1 (TOP) ================= -->
+        <div class="report-card">
+            <div class="border-box">
+                <div class="inner-box">
+                    
+                    <div class="header">
+                        <!-- Naya Logo integrate kiya gaya hai -->
+                        <img src="{{ url_for('static', filename='images/school_logo.png') }}" class="logo left" alt="Logo">
+                        <img src="{{ url_for('static', filename='images/school_logo.png') }}" class="logo right" alt="Logo">
+                        
+                        <h1>RES. SHANTI NIKETAN SHISHU VIDYA MANDIR</h1>
+                        <h2>NAVINAGAR ( JAMUI )</h2>
+                        <h3>{{ exam_type|upper }}</h3>
+                    </div>
+
+                    <div class="title-box">
+                        <div class="title-text">PROGRESS REPORT</div>
+                    </div>
+
+                    <div class="info-box">
+                        <div>Name &nbsp;&nbsp;&nbsp;&nbsp;: <span>{{ student.name }}</span></div>
+                        <div>Class &nbsp;&nbsp;&nbsp;&nbsp;: <span>{{ class_name }}</span></div>
+                        <div>Roll No. : <span>{{ student.roll_no or student.admission_no or '-' }}</span></div>
+                        <div>Sec. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span>{{ student.section or student.child_section or '-' }}</span></div>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 45%;">SUBJECT</th>
+                                <th style="width: 25%;">MAX MARKS</th>
+                                <th style="width: 30%;">MARKS OBTAINED</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sub in subjects %}
+                            <tr>
+                                <td>{{ sub.subject_name|upper }}</td>
+                                <td class="center">{{ sub.max_marks }}</td>
+                                <td class="center"><strong>{{ marks_data[sub.id] }}</strong></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="3" class="center">No subjects configured.</td></tr>
+                            {% endfor %}
+                            
+                            <tr class="total-row">
+                                <td>TOTAL</td>
+                                <td class="center">{{ total_max }}</td>
+                                <td class="center">{{ total_obtained }}</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td>PERCENTAGE</td>
+                                <td class="center">100%</td>
+                                <td class="center">{{ percentage }}%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="signatures">
+                        <div class="sign-box">Principal's Sign:</div>
+                        <div class="sign-box">Teacher's Sign:</div>
+                    </div>
+
+                    <div class="footer-text">
+                        Learn &bull; Grow &bull; Build a Better Future
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= REPORT CARD 2 (BOTTOM) ================= -->
+        <!-- Green Environment: Same student ka duplicate copy ya dusre student ka card yahan aa sakta hai.
+             Abhi ke liye hum same student ka ek aur copy render kar rahe hain taaki half page waste na ho. -->
+        <div class="report-card">
+            <div class="border-box">
+                <div class="inner-box">
+                    
+                    <div class="header">
+                        <img src="{{ url_for('static', filename='images/school_logo.png') }}" class="logo left" alt="Logo">
+                        <img src="{{ url_for('static', filename='images/school_logo.png') }}" class="logo right" alt="Logo">
+                        
+                        <h1>RES. SHANTI NIKETAN SHISHU VIDYA MANDIR</h1>
+                        <h2>NAVINAGAR ( JAMUI )</h2>
+                        <h3>{{ exam_type|upper }}</h3>
+                    </div>
+
+                    <div class="title-box">
+                        <div class="title-text">PROGRESS REPORT</div>
+                    </div>
+
+                    <div class="info-box">
+                        <div>Name &nbsp;&nbsp;&nbsp;&nbsp;: <span>{{ student.name }}</span></div>
+                        <div>Class &nbsp;&nbsp;&nbsp;&nbsp;: <span>{{ class_name }}</span></div>
+                        <div>Roll No. : <span>{{ student.roll_no or student.admission_no or '-' }}</span></div>
+                        <div>Sec. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span>{{ student.section or student.child_section or '-' }}</span></div>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 45%;">SUBJECT</th>
+                                <th style="width: 25%;">MAX MARKS</th>
+                                <th style="width: 30%;">MARKS OBTAINED</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sub in subjects %}
+                            <tr>
+                                <td>{{ sub.subject_name|upper }}</td>
+                                <td class="center">{{ sub.max_marks }}</td>
+                                <td class="center"><strong>{{ marks_data[sub.id] }}</strong></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="3" class="center">No subjects configured.</td></tr>
+                            {% endfor %}
+                            
+                            <tr class="total-row">
+                                <td>TOTAL</td>
+                                <td class="center">{{ total_max }}</td>
+                                <td class="center">{{ total_obtained }}</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td>PERCENTAGE</td>
+                                <td class="center">100%</td>
+                                <td class="center">{{ percentage }}%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="signatures">
+                        <div class="sign-box">Principal's Sign:</div>
+                        <div class="sign-box">Teacher's Sign:</div>
+                    </div>
+
+                    <div class="footer-text">
+                        Learn &bull; Grow &bull; Build a Better Future
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

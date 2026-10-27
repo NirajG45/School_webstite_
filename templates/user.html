@@ -17,222 +17,135 @@
         /* =========================================
            EDIT PROFILE MODAL STYLES
            ========================================= */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(5, 24, 44, 0.6);
-            backdrop-filter: blur(4px);
-            z-index: 5000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        .modal-container {
-            background: #fff;
-            width: 100%;
-            max-width: 550px;
-            border-radius: 16px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
-            transform: translateY(20px) scale(0.95);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
-            margin: 20px;
-        }
-        .modal-overlay.active .modal-container {
-            transform: translateY(0) scale(1);
-        }
-        .modal-header {
-            padding: 18px 22px;
-            background: #f8fafc;
-            border-bottom: 1px solid var(--line, #e4eaf1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .modal-header h3 {
-            margin: 0;
-            font-size: 16px;
-            color: var(--navy, #092f58);
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(5, 24, 44, 0.6); backdrop-filter: blur(4px); z-index: 5000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-container { background: #fff; width: 100%; max-width: 550px; border-radius: 16px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2); transform: translateY(20px) scale(0.95); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; margin: 20px; }
+        .modal-overlay.active .modal-container { transform: translateY(0) scale(1); }
+        .modal-header { padding: 18px 22px; background: #f8fafc; border-bottom: 1px solid var(--line, #e4eaf1); display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { margin: 0; font-size: 16px; color: var(--navy, #092f58); font-weight: 800; display: flex; align-items: center; gap: 8px; }
         .modal-header h3 i { color: var(--blue, #124d82); }
-        .modal-close {
-            background: transparent;
-            border: none;
-            font-size: 20px;
-            color: #65758a;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .modal-close:hover {
-            color: var(--red, #d71938);
-            transform: rotate(90deg);
-        }
-        .modal-body {
-            padding: 22px;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-        .modal-footer {
-            padding: 16px 22px;
-            background: #f8fafc;
-            border-top: 1px solid var(--line, #e4eaf1);
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-        }
-        .btn-secondary {
-            padding: 10px 18px;
-            background: #fff;
-            border: 1px solid var(--line, #e4eaf1);
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--muted, #65758a);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-secondary:hover {
-            background: #f1f5f9;
-            color: var(--navy, #092f58);
-        }
+        .modal-close { background: transparent; border: none; font-size: 20px; color: #65758a; cursor: pointer; transition: all 0.2s; }
+        .modal-close:hover { color: var(--red, #d71938); transform: rotate(90deg); }
+        .modal-body { padding: 22px; max-height: 70vh; overflow-y: auto; }
+        .modal-footer { padding: 16px 22px; background: #f8fafc; border-top: 1px solid var(--line, #e4eaf1); display: flex; justify-content: flex-end; gap: 12px; }
+        .btn-secondary { padding: 10px 18px; background: #fff; border: 1px solid var(--line, #e4eaf1); border-radius: 10px; font-size: 13px; font-weight: 700; color: var(--muted, #65758a); cursor: pointer; transition: all 0.2s; }
+        .btn-secondary:hover { background: #f1f5f9; color: var(--navy, #092f58); }
 
         /* =========================================
-           NEW — PROFILE PHOTO SUPPORT
+           PROFILE PHOTO SUPPORT
            ========================================= */
-        /* When photo exists, avatars render an <img> */
-        .user-avatar.has-photo,
-        .user-info-avatar.has-photo,
-        .mobile-user-avatar.has-photo,
-        .big-avatar.has-photo,
-        .st-profile-avatar.has-photo {
-            padding: 0 !important;
-            overflow: hidden;
-        }
-        .user-avatar.has-photo img,
-        .user-info-avatar.has-photo img,
-        .mobile-user-avatar.has-photo img,
-        .big-avatar.has-photo img,
-        .st-profile-avatar.has-photo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-            display: block;
-        }
+        .user-avatar.has-photo, .user-info-avatar.has-photo, .mobile-user-avatar.has-photo,
+        .big-avatar.has-photo, .st-profile-avatar.has-photo { padding: 0 !important; overflow: hidden; }
+        .user-avatar.has-photo img, .user-info-avatar.has-photo img, .mobile-user-avatar.has-photo img,
+        .big-avatar.has-photo img, .st-profile-avatar.has-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
 
-        /* Dropdown action buttons (Change/Remove Photo) */
         .user-dropdown > form { margin: 0; padding: 0; }
-        .user-dropdown > form > button {
-            display: flex;
-            align-items: center;
-            gap: 11px;
-            padding: 10px 14px;
-            border-radius: 9px;
-            color: #26445f;
-            font-size: 13px;
-            font-weight: 700;
-            text-decoration: none;
-            transition: all 0.18s ease;
-            margin-bottom: 2px;
-            background: transparent;
-            border: 0;
-            width: 100%;
-            text-align: left;
-            cursor: pointer;
-            font-family: inherit;
-        }
-        .user-dropdown > form > button:hover {
-            background: #f0f7ff;
-            color: var(--navy, #092f58);
-            transform: translateX(3px);
-        }
-        .user-dropdown > form > button i {
-            width: 16px;
-            text-align: center;
-            color: var(--navy, #092f58);
-            font-size: 13px;
-        }
-        .user-dropdown > form > button:hover i {
-            color: var(--red, #d71938);
-        }
-        .user-dropdown > form > button.remove-photo-btn {
-            color: var(--red, #d71938);
-        }
-        .user-dropdown > form > button.remove-photo-btn i {
-            color: var(--red, #d71938);
-        }
-        .user-dropdown > form > button.remove-photo-btn:hover {
-            background: #ffeaee;
-        }
+        .user-dropdown > form > button { display: flex; align-items: center; gap: 11px; padding: 10px 14px; border-radius: 9px; color: #26445f; font-size: 13px; font-weight: 700; text-decoration: none; transition: all 0.18s ease; margin-bottom: 2px; background: transparent; border: 0; width: 100%; text-align: left; cursor: pointer; font-family: inherit; }
+        .user-dropdown > form > button:hover { background: #f0f7ff; color: var(--navy, #092f58); transform: translateX(3px); }
+        .user-dropdown > form > button i { width: 16px; text-align: center; color: var(--navy, #092f58); font-size: 13px; }
+        .user-dropdown > form > button:hover i { color: var(--red, #d71938); }
+        .user-dropdown > form > button.remove-photo-btn { color: var(--red, #d71938); }
+        .user-dropdown > form > button.remove-photo-btn i { color: var(--red, #d71938); }
+        .user-dropdown > form > button.remove-photo-btn:hover { background: #ffeaee; }
+
+        /* Admin Panel highlighted link in profile dropdown */
+        .user-dropdown > a.admin-panel-link { background: linear-gradient(135deg, #fff8e7, #fff3d6); border: 1px solid #f0b429; margin-bottom: 4px; }
+        .user-dropdown > a.admin-panel-link:hover { background: linear-gradient(135deg, #fff3d6, #ffe8b8); border-color: #e0a015; transform: translateX(3px); }
+        .user-dropdown > a.admin-panel-link i { color: #d97706 !important; }
+        .user-dropdown > a.admin-panel-link:hover i { color: #b45309 !important; transform: scale(1.1); }
+        .user-dropdown > a.admin-panel-link strong { font-weight: 800; color: #92400e; }
 
         /* Profile panel avatar + actions */
-        .st-profile-avatar-wrap {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 14px;
-            padding-top: 6px;
-        }
-        .st-profile-avatar {
-            width: 88px;
-            height: 88px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--red, #d71938), #b9102c);
-            color: #fff;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 26px;
-            letter-spacing: 1px;
-            border: 3px solid var(--yellow, #ffd447);
-            box-shadow: 0 6px 20px rgba(9,47,88,0.15);
-            overflow: hidden;
-        }
-        .st-profile-actions {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 14px;
-        }
-        .st-photo-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
-            border: 1px solid var(--line, #e4eaf1);
-            background: #fff;
-            border-radius: 8px;
-            font-size: 11.5px;
-            font-weight: 700;
-            color: var(--navy, #092f58);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: inherit;
-            white-space: nowrap;
-        }
-        .st-photo-btn:hover {
-            background: #f4f7fb;
-            border-color: #b0c4d8;
-            transform: translateY(-1px);
-        }
-        .st-photo-btn.danger {
-            background: #ffeaee;
-            color: var(--red, #d71938);
-            border-color: #f8c9d2;
-        }
+        .st-profile-avatar-wrap { display: flex; justify-content: center; margin-bottom: 14px; padding-top: 6px; }
+        .st-profile-avatar { width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(135deg, var(--red, #d71938), #b9102c); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 26px; letter-spacing: 1px; border: 3px solid var(--yellow, #ffd447); box-shadow: 0 6px 20px rgba(9,47,88,0.15); overflow: hidden; }
+        .st-profile-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
+        .st-photo-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid var(--line, #e4eaf1); background: #fff; border-radius: 8px; font-size: 11.5px; font-weight: 700; color: var(--navy, #092f58); cursor: pointer; transition: all 0.2s ease; font-family: inherit; white-space: nowrap; }
+        .st-photo-btn:hover { background: #f4f7fb; border-color: #b0c4d8; transform: translateY(-1px); }
+        .st-photo-btn.danger { background: #ffeaee; color: var(--red, #d71938); border-color: #f8c9d2; }
         .st-photo-btn.danger:hover { background: #ffd9e0; }
+
+        /* ============================================================
+           NEW: DASHBOARD LAYOUT WITH SIDEBAR
+           ============================================================ */
+        .dash-layout {
+            display: flex;
+            align-items: stretch;
+            background: #f5f8fc;
+            min-height: calc(100vh - 80px);
+            position: relative;
+        }
+
+        .dash-sidebar {
+            flex: 0 0 264px;
+            width: 264px;
+            background: linear-gradient(180deg, #0a2340 0%, #0e2f57 100%);
+            color: #fff;
+            position: sticky;
+            top: 0;
+            align-self: flex-start;
+            height: 100vh;
+            overflow-y: auto;
+            padding-bottom: 30px;
+            z-index: 60;
+            box-shadow: 2px 0 18px rgba(10, 35, 64, 0.10);
+        }
+        .dash-sidebar::-webkit-scrollbar { width: 6px; }
+        .dash-sidebar::-webkit-scrollbar-track { background: transparent; }
+        .dash-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
+        .dash-sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.30); }
+
+        .dash-sidebar-head { padding: 18px 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .dash-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #fff; }
+        .dash-brand img { width: 38px; height: 38px; object-fit: contain; }
+        .dash-brand strong { display: block; font-size: 13.5px; font-weight: 800; letter-spacing: 0.02em; line-height: 1.15; }
+        .dash-brand small { display: block; font-size: 9.5px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.10em; font-weight: 700; margin-top: 2px; }
+
+        .dash-user-box { margin: 16px 16px 6px; padding: 12px 14px; border-radius: 12px; background: linear-gradient(135deg, rgba(240,180,41,0.12), rgba(56,189,248,0.10)); border: 1px solid rgba(240,180,41,0.28); display: flex; align-items: center; gap: 12px; position: relative; overflow: hidden; }
+        .dash-user-box::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(to bottom, #f0b429, #38bdf8); }
+        .dash-user-avatar { flex: 0 0 42px; width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #124d82, #1a5fa0); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 13px; border: 2px solid #f0b429; letter-spacing: 0.5px; }
+        .dash-user-avatar.has-photo { padding: 0; overflow: hidden; }
+        .dash-user-avatar.has-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+        .dash-user-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; position: relative; z-index: 1; }
+        .dash-user-text strong { font-size: 13.5px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+        .dash-user-text small { font-size: 10.5px; color: #b1c2d4; display: flex; align-items: center; gap: 4px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dash-user-text small i { color: #f0b429; font-size: 9px; }
+        .dash-role-badge { display: inline-block; background: #f0b429; color: #0a2340; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; align-self: flex-start; margin-top: 2px; }
+
+        .dash-admin-btn { display: flex; align-items: center; gap: 10px; margin: 12px 16px 8px; padding: 11px 14px; border-radius: 10px; background: linear-gradient(135deg, #f0b429, #e0a015); color: #0a2340; font-weight: 800; font-size: 12.5px; text-decoration: none; text-transform: uppercase; letter-spacing: 0.04em; transition: all 0.22s; box-shadow: 0 6px 16px rgba(240, 180, 41, 0.30); }
+        .dash-admin-btn i:first-child { font-size: 14px; }
+        .dash-admin-btn i:last-child { margin-left: auto; font-size: 10px; transition: transform 0.22s; }
+        .dash-admin-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(240, 180, 41, 0.45); }
+        .dash-admin-btn:hover i:last-child { transform: translateX(3px); }
+
+        .dash-nav { padding: 6px 0 20px; }
+        .dash-nav-group-label { font-size: 9px; font-weight: 800; color: rgba(255, 255, 255, 0.40); text-transform: uppercase; letter-spacing: 1.2px; padding: 14px 20px 6px; }
+        .dash-nav-link { display: flex; align-items: center; gap: 11px; padding: 10px 20px; color: rgba(255, 255, 255, 0.78); font-size: 13px; font-weight: 600; text-decoration: none; transition: all 0.18s; border-left: 3px solid transparent; }
+        .dash-nav-link i { width: 18px; text-align: center; font-size: 13px; color: rgba(255, 255, 255, 0.6); transition: color 0.18s; }
+        .dash-nav-link:hover { background: rgba(255, 255, 255, 0.06); color: #fff; border-left-color: #38bdf8; }
+        .dash-nav-link:hover i { color: #38bdf8; }
+        .dash-nav-link.active { background: linear-gradient(90deg, rgba(215, 25, 56, 0.85), rgba(185, 16, 44, 0.55)); color: #fff; border-left-color: #ffd447; }
+        .dash-nav-link.active i { color: #ffd447; }
+        .dash-nav-link.logout-link { color: #ff8c9e; }
+        .dash-nav-link.logout-link i { color: #ff8c9e; }
+        .dash-nav-link.logout-link:hover { background: rgba(215, 25, 56, 0.15); border-left-color: #d71938; color: #fff; }
+        .dash-nav-link.logout-link:hover i { color: #fff; }
+
+        .dash-main { flex: 1; min-width: 0; background: #f5f8fc; }
+
+        /* Mobile floating toggle */
+        .dash-menu-toggle { display: none; position: fixed; bottom: 24px; left: 24px; width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #124d82, #0a2340); color: #fff; border: none; box-shadow: 0 8px 24px rgba(10, 35, 64, 0.35); z-index: 400; cursor: pointer; font-size: 18px; align-items: center; justify-content: center; transition: transform 0.22s, box-shadow 0.22s; }
+        .dash-menu-toggle:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(10, 35, 64, 0.5); }
+
+        .dash-backdrop { display: none; position: fixed; inset: 0; background: rgba(5, 24, 44, 0.55); backdrop-filter: blur(3px); z-index: 200; opacity: 0; transition: opacity 0.25s; }
+        .dash-backdrop.show { opacity: 1; }
+
+        @media (max-width: 1024px) {
+            .dash-layout { display: block; min-height: auto; }
+            .dash-sidebar { position: fixed; top: 0; left: 0; bottom: 0; height: 100vh; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 300; align-self: auto; }
+            .dash-sidebar.open { transform: translateX(0); }
+            .dash-menu-toggle { display: flex; }
+            .dash-backdrop { display: block; }
+        }
     </style>
 </head>
 
@@ -257,25 +170,12 @@
                 </span>
             </a>
 
-            <!-- UPGRADED DESKTOP NAVIGATION -->
+            <!-- SIMPLIFIED DESKTOP NAVIGATION — 4 items only -->
             <nav class="desktop-nav" aria-label="Main navigation">
                 <a class="nav-link" href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
-                <a class="nav-link" href="{{ url_for('home') }}#about"><i class="fa-solid fa-users"></i> About Us</a>
-                <a class="nav-link" href="{{ url_for('home') }}#academics"><i class="fa-solid fa-book-open"></i>
-                    Academics</a>
-                <a class="nav-link" href="{{ url_for('home') }}#gallery"><i class="fa-regular fa-images"></i>
-                    Gallery</a>
-                <a class="nav-link" href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i>
-                    Faculty</a>
-                <a class="nav-link" href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i>
-                    Events</a>
-                <a class="nav-link" href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i>
-                    Achievements</a>
-                <a class="nav-link" href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i>
-                    FAQ</a>
-                <a class="nav-link" href="{{ url_for('home') }}#notices"><i class="fa-solid fa-bell"></i> Notices</a>
-                <a class="nav-link" href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i>
-                    Contact</a>
+                <a class="nav-link" href="{{ url_for('home') }}#academics"><i class="fa-solid fa-book-open"></i> Academics</a>
+                <a class="nav-link" href="{{ url_for('home') }}#gallery"><i class="fa-regular fa-images"></i> Gallery</a>
+                <a class="nav-link" href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i> Faculty</a>
             </nav>
 
             <div class="header-actions">
@@ -323,9 +223,14 @@
                             </div>
                         </div>
                         <hr class="user-divider">
-                        {% if session.get('user_role') == 'admin' %}
-                        <a href="{{ url_for('admin_dashboard') }}" role="menuitem">
-                            <i class="fa-solid fa-user-gear"></i> Admin Panel
+
+                        {# ✅ ADMIN + ADMINISTRATOR — golden Admin Panel + My Dashboard #}
+                        {% if session.get('user_role') in ['admin', 'administrator'] %}
+                        <a href="{{ url_for('admin_dashboard') }}" role="menuitem" class="admin-panel-link">
+                            <i class="fa-solid fa-user-gear"></i> <strong>Admin Panel</strong>
+                        </a>
+                        <a href="{{ url_for('user_dashboard') }}" role="menuitem">
+                            <i class="fa-solid fa-gauge"></i> My Dashboard
                         </a>
                         {% else %}
                         <a href="{{ url_for('user_dashboard') }}" role="menuitem">
@@ -333,13 +238,11 @@
                         </a>
                         {% endif %}
 
-                        <!-- NEW: Change Photo -->
                         <a href="#" role="menuitem"
                            onclick="event.preventDefault(); document.getElementById('userProfile').classList.remove('dropdown-open'); document.getElementById('udPhotoInput').click();">
                             <i class="fa-solid fa-camera"></i> Change Photo
                         </a>
 
-                        <!-- NEW: Remove Photo (only if photo exists) -->
                         {% if session.get('photo_url') %}
                         <form method="POST" action="{{ url_for('remove_profile_photo') }}"
                               onsubmit="return confirm('Remove your profile photo?');">
@@ -356,7 +259,6 @@
                             <i class="fa-solid fa-right-from-bracket"></i> Logout
                         </a>
 
-                        <!-- NEW: Hidden photo upload form -->
                         <form id="udPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
                               enctype="multipart/form-data" style="display:none;">
                             <input type="file" id="udPhotoInput" name="photo" accept="image/*"
@@ -378,7 +280,7 @@
     <div class="menu-backdrop" id="menuBackdrop" hidden></div>
 
     <!-- =========================================
-         MOBILE MENU
+         MOBILE MENU (School pages)
          ========================================= -->
     <aside class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation" aria-hidden="true" inert>
         <div class="mobile-menu-head">
@@ -408,7 +310,7 @@
             <a href="{{ url_for('user_dashboard') }}" class="mobile-dash-btn">
                 <i class="fa-solid fa-gauge"></i> Open My Dashboard
             </a>
-            {% if session.get('user_role') == 'admin' %}
+            {% if session.get('user_role') in ['admin', 'administrator'] %}
             <a href="{{ url_for('admin_dashboard') }}" class="mobile-dash-btn" style="margin-top:6px;">
                 <i class="fa-solid fa-user-gear"></i> Admin Panel
             </a>
@@ -416,9 +318,7 @@
         </div>
         {% else %}
         <div class="mobile-user-box logged-out">
-            <div class="mobile-login-icon">
-                <i class="fa-regular fa-user"></i>
-            </div>
+            <div class="mobile-login-icon"><i class="fa-regular fa-user"></i></div>
             <div class="mobile-user-text">
                 <strong>Not Logged In</strong>
                 <small>Please login first to access your dashboard</small>
@@ -443,7 +343,7 @@
             <a href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i> Contact Us</a>
 
             {% if session.get('user_id') %}
-            {% if session.get('user_role') == 'admin' %}
+            {% if session.get('user_role') in ['admin', 'administrator'] %}
             <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-user-gear"></i> Admin Panel</a>
             {% endif %}
             <a href="{{ url_for('change_password') }}"><i class="fa-solid fa-key"></i> Change Password</a>
@@ -472,314 +372,481 @@
     {% endif %}{% endwith %}
 
     <!-- =========================================
-         MAIN CONTENT
+         DASHBOARD WITH SIDEBAR
          ========================================= -->
-    <main id="main">
+    <div class="dash-layout">
 
-        <!-- Welcome Banner -->
-        <section class="user-welcome-banner">
-            <div class="wrap welcome-inner">
-                <div class="welcome-text">
-                    <p class="section-kicker light">WELCOME TO YOUR PORTAL</p>
-                    <h1>Hello, {{ user.name.split()[0] }}! 👋</h1>
-                    <p>You are logged in as <strong>{{ user.role|capitalize }}</strong>. Your ID: <strong>{{
-                            user.unique_id }}</strong></p>
+        <!-- ========== ROLE-BASED SIDEBAR ========== -->
+        <aside class="dash-sidebar" id="dashSidebar" aria-label="Dashboard navigation">
+            <div class="dash-sidebar-head">
+                <a href="{{ url_for('user_dashboard') }}" class="dash-brand">
+                    <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="Logo">
+                    <div>
+                        <strong>My Portal</strong>
+                        <small>{{ user.role|capitalize }} Dashboard</small>
+                    </div>
+                </a>
+            </div>
+
+            <div class="dash-user-box">
+                {% if session.get('photo_url') %}
+                <div class="dash-user-avatar has-photo">
+                    <img src="{{ session['photo_url'] }}" alt="{{ user.name }}">
                 </div>
-                <div class="welcome-avatar">
-                    {% if session.get('photo_url') %}
-                    <div class="big-avatar has-photo">
-                        <img src="{{ session['photo_url'] }}" alt="{{ user.name }}">
-                    </div>
-                    {% else %}
-                    <div class="big-avatar">
-                        {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length
-                        > 1 else '' }}
-                    </div>
-                    {% endif %}
+                {% else %}
+                <div class="dash-user-avatar">
+                    {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length > 1 else '' }}
+                </div>
+                {% endif %}
+                <div class="dash-user-text">
+                    <strong>{{ user.name.split()[0] }}</strong>
+                    <small><i class="fa-solid fa-id-badge"></i> {{ user.unique_id }}</small>
+                    <span class="dash-role-badge">{{ user.role|capitalize }}</span>
                 </div>
             </div>
-        </section>
 
-        <!-- Dashboard Grid -->
-        <section class="wrap dashboard-grid">
+            {# ===== ADMIN PANEL — golden button ===== #}
+            {% if session.get('user_role') in ['admin', 'administrator'] %}
+            <a href="{{ url_for('admin_dashboard') }}" class="dash-admin-btn">
+                <i class="fa-solid fa-user-gear"></i>
+                <span>Admin Panel</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+            {% endif %}
 
-            <!-- PROFILE (with photo panel) -->
-            <div class="panel" id="profile">
-                <div class="panel-title">
-                    <span class="panel-title-icon"><i class="fa-solid fa-id-card"></i></span>
-                    <h2>My Profile</h2>
-                </div>
-                <div class="profile-body">
+            <nav class="dash-nav">
+                {# =====================================================
+                   ADMIN / ADMINISTRATOR — full management sidebar
+                   ===================================================== #}
+                {% if session.get('user_role') in ['admin', 'administrator'] %}
+                <div class="dash-nav-group-label">Main</div>
+                <a href="{{ url_for('admin_dashboard') }}" class="dash-nav-link"><i class="fa-solid fa-gauge"></i> Admin Dashboard</a>
+                <a href="{{ url_for('user_dashboard') }}" class="dash-nav-link active"><i class="fa-solid fa-id-card"></i> My Profile</a>
 
-                    <!-- NEW: Profile avatar + change/remove -->
-                    <div class="st-profile-avatar-wrap">
+                <div class="dash-nav-group-label">Management</div>
+                <a href="{{ url_for('admin_users') }}" class="dash-nav-link"><i class="fa-solid fa-users"></i> All Users</a>
+                <a href="{{ url_for('admin_create_user') }}" class="dash-nav-link"><i class="fa-solid fa-user-plus"></i> Create User</a>
+                <a href="{{ url_for('admin_attendance') }}" class="dash-nav-link"><i class="fa-solid fa-clipboard-check"></i> Attendance</a>
+                <a href="{{ url_for('admin_enter_marks') }}" class="dash-nav-link"><i class="fa-solid fa-pen-to-square"></i> Enter Marks</a>
+                <a href="{{ url_for('admin_bulk_marks') }}" class="dash-nav-link"><i class="fa-solid fa-file-import"></i> Bulk Marks</a>
+                <a href="{{ url_for('admin_homework') }}" class="dash-nav-link"><i class="fa-solid fa-book-open"></i> Homework</a>
+                <a href="{{ url_for('admin_study_materials') }}" class="dash-nav-link"><i class="fa-solid fa-folder-open"></i> Study Materials</a>
+                <a href="{{ url_for('admin_reports') }}" class="dash-nav-link"><i class="fa-solid fa-chart-pie"></i> Reports</a>
+                <a href="{{ url_for('admin_generate_reports') }}" class="dash-nav-link"><i class="fa-solid fa-file-invoice"></i> Generate Reports</a>
+                <a href="{{ url_for('admin_leaves') }}" class="dash-nav-link"><i class="fa-solid fa-calendar-minus"></i> Leave Requests</a>
+                <a href="{{ url_for('admin_fees') }}" class="dash-nav-link"><i class="fa-solid fa-indian-rupee-sign"></i> Fee Payments</a>
+
+                <div class="dash-nav-group-label">Communication</div>
+                <a href="{{ url_for('messages_inbox') }}" class="dash-nav-link"><i class="fa-solid fa-inbox"></i> Inbox</a>
+                <a href="{{ url_for('admin_messages') }}" class="dash-nav-link"><i class="fa-solid fa-paper-plane"></i> Send / Broadcast</a>
+                <a href="{{ url_for('admin_enquiries') }}" class="dash-nav-link"><i class="fa-solid fa-envelope"></i> Enquiries</a>
+
+                <div class="dash-nav-group-label">Content</div>
+                <a href="{{ url_for('admin_notices') }}" class="dash-nav-link"><i class="fa-solid fa-bullhorn"></i> Notices</a>
+                <a href="{{ url_for('admin_faculty') }}" class="dash-nav-link"><i class="fa-solid fa-chalkboard-user"></i> Faculty</a>
+                <a href="{{ url_for('admin_events') }}" class="dash-nav-link"><i class="fa-regular fa-calendar-days"></i> Events</a>
+                <a href="{{ url_for('admin_gallery') }}" class="dash-nav-link"><i class="fa-regular fa-images"></i> Gallery</a>
+                <a href="{{ url_for('admin_achievements') }}" class="dash-nav-link"><i class="fa-solid fa-trophy"></i> Achievements</a>
+                <a href="{{ url_for('admin_testimonials') }}" class="dash-nav-link"><i class="fa-solid fa-quote-left"></i> Testimonials</a>
+                <a href="{{ url_for('admin_faq') }}" class="dash-nav-link"><i class="fa-solid fa-circle-question"></i> FAQ</a>
+
+                <div class="dash-nav-group-label">Account</div>
+                <a href="{{ url_for('change_password') }}" class="dash-nav-link"><i class="fa-solid fa-key"></i> Change Password</a>
+                <a href="{{ url_for('home') }}" class="dash-nav-link"><i class="fa-solid fa-globe"></i> View Website</a>
+                <a href="{{ url_for('logout') }}" class="dash-nav-link logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+
+                {# =====================================================
+                   TEACHER
+                   ===================================================== #}
+                {% elif session.get('user_role') == 'teacher' %}
+                <div class="dash-nav-group-label">Main</div>
+                <a href="{{ url_for('user_dashboard') }}" class="dash-nav-link active"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                <a href="#profile" class="dash-nav-link"><i class="fa-solid fa-id-card"></i> My Profile</a>
+
+                <div class="dash-nav-group-label">Teaching</div>
+                <a href="{{ url_for('teacher_attendance') }}" class="dash-nav-link"><i class="fa-solid fa-clipboard-check"></i> Mark Attendance</a>
+                <a href="{{ url_for('teacher_homework') }}" class="dash-nav-link"><i class="fa-solid fa-book-open"></i> Homework</a>
+                <a href="{{ url_for('admin_enter_marks') }}" class="dash-nav-link"><i class="fa-solid fa-pen-to-square"></i> Enter Marks</a>
+                <a href="{{ url_for('study_materials_page') }}" class="dash-nav-link"><i class="fa-solid fa-folder-open"></i> Study Materials</a>
+                <a href="#profile" class="dash-nav-link"><i class="fa-solid fa-calendar-minus"></i> Leave Requests</a>
+                <a href="#notices" class="dash-nav-link"><i class="fa-solid fa-bell"></i> Notices</a>
+
+                <div class="dash-nav-group-label">Communication</div>
+                <a href="{{ url_for('messages_inbox') }}" class="dash-nav-link"><i class="fa-solid fa-comments"></i> Messages</a>
+
+                <div class="dash-nav-group-label">Account</div>
+                <a href="{{ url_for('change_password') }}" class="dash-nav-link"><i class="fa-solid fa-key"></i> Change Password</a>
+                <a href="{{ url_for('home') }}" class="dash-nav-link"><i class="fa-solid fa-globe"></i> View Website</a>
+                <a href="{{ url_for('logout') }}" class="dash-nav-link logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+
+                {# =====================================================
+                   PARENT
+                   ===================================================== #}
+                {% elif session.get('user_role') == 'parent' %}
+                <div class="dash-nav-group-label">Main</div>
+                <a href="{{ url_for('user_dashboard') }}" class="dash-nav-link active"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                <a href="#profile" class="dash-nav-link"><i class="fa-solid fa-id-card"></i> My Profile</a>
+
+                <div class="dash-nav-group-label">My Child</div>
+                <a href="#attendance" class="dash-nav-link"><i class="fa-solid fa-clipboard-check"></i> Child's Attendance</a>
+                <a href="{{ url_for('study_materials_page') }}" class="dash-nav-link"><i class="fa-solid fa-folder-open"></i> Study Materials</a>
+                <a href="{{ url_for('results_page') }}" class="dash-nav-link"><i class="fa-solid fa-chart-simple"></i> Exam Results</a>
+                <a href="#fee" class="dash-nav-link"><i class="fa-solid fa-indian-rupee-sign"></i> Fee Payment</a>
+                <a href="#notices" class="dash-nav-link"><i class="fa-solid fa-bell"></i> Notices</a>
+
+                <div class="dash-nav-group-label">Communication</div>
+                <a href="{{ url_for('messages_inbox') }}" class="dash-nav-link"><i class="fa-solid fa-comments"></i> Messages</a>
+
+                <div class="dash-nav-group-label">Account</div>
+                <a href="{{ url_for('change_password') }}" class="dash-nav-link"><i class="fa-solid fa-key"></i> Change Password</a>
+                <a href="{{ url_for('home') }}" class="dash-nav-link"><i class="fa-solid fa-globe"></i> View Website</a>
+                <a href="{{ url_for('logout') }}" class="dash-nav-link logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+
+                {# =====================================================
+                   STUDENT
+                   ===================================================== #}
+                {% elif session.get('user_role') == 'student' %}
+                <div class="dash-nav-group-label">Main</div>
+                <a href="{{ url_for('user_dashboard') }}" class="dash-nav-link active"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                <a href="#profile" class="dash-nav-link"><i class="fa-solid fa-id-card"></i> My Profile</a>
+
+                <div class="dash-nav-group-label">Academics</div>
+                <a href="#attendance" class="dash-nav-link"><i class="fa-solid fa-clipboard-check"></i> My Attendance</a>
+                <a href="{{ url_for('study_materials_page') }}" class="dash-nav-link"><i class="fa-solid fa-folder-open"></i> Study Materials</a>
+                <a href="{{ url_for('results_page') }}" class="dash-nav-link"><i class="fa-solid fa-chart-simple"></i> My Results</a>
+                <a href="#fee" class="dash-nav-link"><i class="fa-solid fa-indian-rupee-sign"></i> Fee Payment</a>
+                <a href="#notices" class="dash-nav-link"><i class="fa-solid fa-bell"></i> Notices</a>
+
+                <div class="dash-nav-group-label">Communication</div>
+                <a href="{{ url_for('messages_inbox') }}" class="dash-nav-link"><i class="fa-solid fa-comments"></i> Messages</a>
+
+                <div class="dash-nav-group-label">Account</div>
+                <a href="{{ url_for('change_password') }}" class="dash-nav-link"><i class="fa-solid fa-key"></i> Change Password</a>
+                <a href="{{ url_for('home') }}" class="dash-nav-link"><i class="fa-solid fa-globe"></i> View Website</a>
+                <a href="{{ url_for('logout') }}" class="dash-nav-link logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+
+                {# =====================================================
+                   FALLBACK
+                   ===================================================== #}
+                {% else %}
+                <div class="dash-nav-group-label">Main</div>
+                <a href="{{ url_for('user_dashboard') }}" class="dash-nav-link active"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                <a href="#profile" class="dash-nav-link"><i class="fa-solid fa-id-card"></i> My Profile</a>
+                <a href="#notices" class="dash-nav-link"><i class="fa-solid fa-bell"></i> Notices</a>
+                <a href="{{ url_for('change_password') }}" class="dash-nav-link"><i class="fa-solid fa-key"></i> Change Password</a>
+                <a href="{{ url_for('logout') }}" class="dash-nav-link logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                {% endif %}
+            </nav>
+        </aside>
+
+        <div class="dash-backdrop" id="dashBackdrop" hidden></div>
+
+        <!-- ========== MAIN CONTENT ========== -->
+        <main class="dash-main" id="main">
+
+            <button type="button" class="dash-menu-toggle" id="dashMenuToggle"
+                    aria-label="Open dashboard menu" aria-controls="dashSidebar" aria-expanded="false">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <!-- Welcome Banner (unchanged) -->
+            <section class="user-welcome-banner">
+                <div class="wrap welcome-inner">
+                    <div class="welcome-text">
+                        <p class="section-kicker light">WELCOME TO YOUR PORTAL</p>
+                        <h1>Hello, {{ user.name.split()[0] }}! 👋</h1>
+                        <p>You are logged in as <strong>{{ user.role|capitalize }}</strong>. Your ID: <strong>{{
+                                user.unique_id }}</strong></p>
+                    </div>
+                    <div class="welcome-avatar">
                         {% if session.get('photo_url') %}
-                        <div class="st-profile-avatar has-photo">
+                        <div class="big-avatar has-photo">
                             <img src="{{ session['photo_url'] }}" alt="{{ user.name }}">
                         </div>
                         {% else %}
-                        <div class="st-profile-avatar">
-                            {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length > 1 else '' }}
+                        <div class="big-avatar">
+                            {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length
+                            > 1 else '' }}
                         </div>
                         {% endif %}
                     </div>
-                    <div class="st-profile-actions">
-                        <button type="button" class="st-photo-btn"
-                                onclick="document.getElementById('udProfilePhotoInput').click();">
-                            <i class="fa-solid fa-camera"></i> Change
-                        </button>
+                </div>
+            </section>
+
+            <!-- Dashboard Grid (unchanged content) -->
+            <section class="wrap dashboard-grid">
+
+                <!-- PROFILE -->
+                <div class="panel" id="profile">
+                    <div class="panel-title">
+                        <span class="panel-title-icon"><i class="fa-solid fa-id-card"></i></span>
+                        <h2>My Profile</h2>
+                    </div>
+                    <div class="profile-body">
+
+                        <div class="st-profile-avatar-wrap">
+                            {% if session.get('photo_url') %}
+                            <div class="st-profile-avatar has-photo">
+                                <img src="{{ session['photo_url'] }}" alt="{{ user.name }}">
+                            </div>
+                            {% else %}
+                            <div class="st-profile-avatar">
+                                {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length > 1 else '' }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="st-profile-actions">
+                            <button type="button" class="st-photo-btn"
+                                    onclick="document.getElementById('udProfilePhotoInput').click();">
+                                <i class="fa-solid fa-camera"></i> Change
+                            </button>
+                            {% if session.get('photo_url') %}
+                            <button type="button" class="st-photo-btn danger"
+                                    onclick="if(confirm('Remove profile photo?')) document.getElementById('udProfileRemoveForm').submit();">
+                                <i class="fa-solid fa-trash"></i> Remove
+                            </button>
+                            {% endif %}
+                        </div>
+                        <form id="udProfilePhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
+                              enctype="multipart/form-data" style="display:none;">
+                            <input type="file" id="udProfilePhotoInput" name="photo" accept="image/*"
+                                   onchange="document.getElementById('udProfilePhotoForm').submit();">
+                        </form>
                         {% if session.get('photo_url') %}
-                        <button type="button" class="st-photo-btn danger"
-                                onclick="if(confirm('Remove profile photo?')) document.getElementById('udProfileRemoveForm').submit();">
-                            <i class="fa-solid fa-trash"></i> Remove
-                        </button>
+                        <form id="udProfileRemoveForm" method="POST"
+                              action="{{ url_for('remove_profile_photo') }}" style="display:none;"></form>
                         {% endif %}
-                    </div>
-                    <form id="udProfilePhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
-                          enctype="multipart/form-data" style="display:none;">
-                        <input type="file" id="udProfilePhotoInput" name="photo" accept="image/*"
-                               onchange="document.getElementById('udProfilePhotoForm').submit();">
-                    </form>
-                    {% if session.get('photo_url') %}
-                    <form id="udProfileRemoveForm" method="POST"
-                          action="{{ url_for('remove_profile_photo') }}" style="display:none;"></form>
-                    {% endif %}
 
-                    <div class="profile-row">
-                        <span class="profile-label"><i class="fa-solid fa-id-badge"></i> Unique ID</span>
-                        <span class="profile-value"><strong>{{ user.unique_id }}</strong></span>
-                    </div>
-                    <div class="profile-row">
-                        <span class="profile-label"><i class="fa-regular fa-user"></i> Name</span>
-                        <span class="profile-value">{{ user.name }}</span>
-                    </div>
-                    <div class="profile-row">
-                        <span class="profile-label"><i class="fa-regular fa-envelope"></i> Email</span>
-                        <span class="profile-value">{{ user.email }}</span>
-                    </div>
-                    <div class="profile-row">
-                        <span class="profile-label"><i class="fa-solid fa-phone"></i> Mobile</span>
-                        <span class="profile-value">{{ user.phone }}</span>
-                    </div>
-                    {% if user.child_name %}
-                    <div class="profile-row">
-                        <span class="profile-label"><i class="fa-solid fa-child"></i> Child</span>
-                        <span class="profile-value">{{ user.child_name }} ({{ user.child_class }})</span>
-                    </div>
-                    {% endif %}
-                    {% if user.child_class and user.role == 'student' %}
-                    <div class="profile-row">
-                        <span class="profile-label"><i class="fa-solid fa-book"></i> Class</span>
-                        <span class="profile-value">{{ user.child_class }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                        <a href="{{ url_for('change_password') }}" class="btn-admin-primary" style="display:inline-flex;">
-                            <i class="fa-solid fa-key"></i> Change Password
-                        </a>
-                        <!-- Edit Profile Button (Only for Admins) -->
-                        {% if session.get('user_role') == 'admin' %}
-                        <button type="button" id="openEditModalBtn" class="btn-admin-primary" style="display:inline-flex; background: #fff; color: var(--blue); border: 1px solid var(--line); box-shadow: none;">
-                            <i class="fa-solid fa-user-pen"></i> Edit Profile
-                        </button>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- ATTENDANCE -->
-            <div class="panel">
-                <div class="panel-title">
-                    <span class="panel-title-icon"><i class="fa-solid fa-clipboard-check"></i></span>
-                    <h2>{% if user.role == 'parent' %}Child's Attendance{% else %}My Attendance{% endif %}</h2>
-                </div>
-                <div class="attendance-summary">
-                    {% set present = attendance|selectattr('status','equalto','present')|list|length %}
-                    {% set absent = attendance|selectattr('status','equalto','absent')|list|length %}
-                    <div class="att-stat"><strong style="color:#168254;">{{ present }}</strong><small>Present</small>
-                    </div>
-                    <div class="att-stat"><strong style="color:#d71938;">{{ absent }}</strong><small>Absent</small>
-                    </div>
-                    <div class="att-stat"><strong>{{ attendance|length }}</strong><small>Total Days</small></div>
-                </div>
-                <div class="att-list">
-                    {% for a in attendance[:10] %}
-                    <div class="att-row">
-                        <span>{{ a.date }}</span>
-                        <span class="att-badge att-{{ a.status }}">{{ a.status|capitalize }}</span>
-                    </div>
-                    {% else %}
-                    <p class="empty-row">No attendance records yet.</p>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- NOTICES -->
-            <div class="panel">
-                <div class="panel-title notice-title">
-                    <span class="panel-title-icon"><i class="fa-solid fa-bell"></i></span>
-                    <h2>Notices for You</h2>
-                    <span class="live-dot"></span>
-                </div>
-                <div class="notice-list">
-                    {% for n in notices[:5] %}
-                    <article class="notice">
-                        <span class="notice-file"><i class="fa-regular fa-file-lines"></i></span>
-                        <div>
-                            <small>{{ n.date }} <b>{{ n.tag }}</b></small>
-                            <p>{{ n.title }}</p>
+                        <div class="profile-row">
+                            <span class="profile-label"><i class="fa-solid fa-id-badge"></i> Unique ID</span>
+                            <span class="profile-value"><strong>{{ user.unique_id }}</strong></span>
                         </div>
-                    </article>
-                    {% else %}
-                    <p class="empty-row" style="padding:20px;">No notices yet.</p>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- LEAVE REQUEST (TEACHER ONLY) -->
-            {% if user.role == 'teacher' %}
-            <div class="panel">
-                <div class="panel-title">
-                    <span class="panel-title-icon"><i class="fa-solid fa-calendar-minus"></i></span>
-                    <h2>Apply for Leave</h2>
-                </div>
-                <form method="POST" action="{{ url_for('leave_request') }}" class="admin-form">
-                    <label>Leave Type
-                        <select name="leave_type" required>
-                            <option value="">Select</option>
-                            <option>Sick Leave</option>
-                            <option>Casual Leave</option>
-                            <option>Personal Leave</option>
-                            <option>Emergency</option>
-                        </select>
-                    </label>
-                    <div class="form-row-2col">
-                        <label>From <input type="date" name="from_date" required></label>
-                        <label>To <input type="date" name="to_date" required></label>
-                    </div>
-                    <label>Reason
-                        <textarea name="reason" rows="2" required maxlength="500" placeholder="Brief reason"></textarea>
-                    </label>
-                    <button type="submit" class="btn-admin-primary">
-                        <i class="fa-solid fa-paper-plane"></i> Submit Request
-                    </button>
-                </form>
-                <div style="padding:0 20px 20px;">
-                    <h4 style="font-size:13px;color:#65758a;margin-bottom:8px;">My Leave History</h4>
-                    {% for l in leaves[:5] %}
-                    <div class="att-row">
-                        <span style="font-size:12px;">{{ l.from_date }} → {{ l.to_date }}</span>
-                        <span
-                            class="kind-badge kind-{{ 'admission' if l.status=='approved' else 'contact' if l.status=='rejected' else 'notice' }}">{{
-                            l.status|capitalize }}</span>
-                    </div>
-                    {% else %}
-                    <p class="muted" style="font-size:12px;">No leave requests yet.</p>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- FEE PAYMENT (STUDENT/PARENT) -->
-            {% if user.role in ['student', 'parent'] %}
-            <div class="panel">
-                <div class="panel-title">
-                    <span class="panel-title-icon"><i class="fa-solid fa-indian-rupee-sign"></i></span>
-                    <h2>Fee Payment</h2>
-                </div>
-                <div style="padding:20px;">
-
-                    {% if fee_qr or upi_link %}
-                    <div class="fee-payment-box">
-                        <p class="fee-payment-title">
-                            <i class="fa-solid fa-qrcode"></i> Pay Your Fees Online
-                        </p>
-
-                        {% if fee_qr %}
-                        <div class="fee-qr-wrap">
-                            <p class="fee-qr-label">Scan this QR with any UPI app</p>
-                            <img src="{{ fee_qr }}" alt="Fee QR" class="fee-qr-img">
+                        <div class="profile-row">
+                            <span class="profile-label"><i class="fa-regular fa-user"></i> Name</span>
+                            <span class="profile-value">{{ user.name }}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label"><i class="fa-regular fa-envelope"></i> Email</span>
+                            <span class="profile-value">{{ user.email }}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label"><i class="fa-solid fa-phone"></i> Mobile</span>
+                            <span class="profile-value">{{ user.phone }}</span>
+                        </div>
+                        {% if user.child_name %}
+                        <div class="profile-row">
+                            <span class="profile-label"><i class="fa-solid fa-child"></i> Child</span>
+                            <span class="profile-value">{{ user.child_name }} ({{ user.child_class }})</span>
+                        </div>
+                        {% endif %}
+                        {% if user.child_class and user.role == 'student' %}
+                        <div class="profile-row">
+                            <span class="profile-label"><i class="fa-solid fa-book"></i> Class</span>
+                            <span class="profile-value">{{ user.child_class }}</span>
                         </div>
                         {% endif %}
 
-                        {% if upi_link %}
-                        <a href="{{ upi_link }}" class="upi-pay-btn">
-                            <i class="fa-solid fa-mobile-screen-button"></i>
-                            Pay Now via UPI App
-                        </a>
-                        <p class="upi-hint">
-                            <i class="fa-solid fa-info-circle"></i> Works on mobile with GPay, PhonePe, Paytm, etc.
-                        </p>
-                        {% endif %}
+                        <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                            <a href="{{ url_for('change_password') }}" class="btn-admin-primary" style="display:inline-flex;">
+                                <i class="fa-solid fa-key"></i> Change Password
+                            </a>
+                            {% if session.get('user_role') in ['admin', 'administrator'] %}
+                            <button type="button" id="openEditModalBtn" class="btn-admin-primary" style="display:inline-flex; background: #fff; color: var(--blue); border: 1px solid var(--line); box-shadow: none;">
+                                <i class="fa-solid fa-user-pen"></i> Edit Profile
+                            </button>
+                            {% endif %}
+                        </div>
                     </div>
-                    {% else %}
-                    <div class="fee-not-set">
-                        <i class="fa-solid fa-circle-info"></i>
-                        <p>Payment options not set up yet. Please contact the school office.</p>
-                    </div>
-                    {% endif %}
+                </div>
 
-                    <form method="POST" action="{{ url_for('fee_pay') }}" class="admin-form">
-                        <label>Amount (₹)
-                            <input type="number" name="amount" step="0.01" required placeholder="e.g. 5000">
+                <!-- ATTENDANCE -->
+                <div class="panel" id="attendance">
+                    <div class="panel-title">
+                        <span class="panel-title-icon"><i class="fa-solid fa-clipboard-check"></i></span>
+                        <h2>{% if user.role == 'parent' %}Child's Attendance{% else %}My Attendance{% endif %}</h2>
+                    </div>
+                    <div class="attendance-summary">
+                        {% set present = attendance|selectattr('status','equalto','present')|list|length %}
+                        {% set absent = attendance|selectattr('status','equalto','absent')|list|length %}
+                        <div class="att-stat"><strong style="color:#168254;">{{ present }}</strong><small>Present</small></div>
+                        <div class="att-stat"><strong style="color:#d71938;">{{ absent }}</strong><small>Absent</small></div>
+                        <div class="att-stat"><strong>{{ attendance|length }}</strong><small>Total Days</small></div>
+                    </div>
+                    <div class="att-list">
+                        {% for a in attendance[:10] %}
+                        <div class="att-row">
+                            <span>{{ a.date }}</span>
+                            <span class="att-badge att-{{ a.status }}">{{ a.status|capitalize }}</span>
+                        </div>
+                        {% else %}
+                        <p class="empty-row">No attendance records yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- NOTICES -->
+                <div class="panel" id="notices">
+                    <div class="panel-title notice-title">
+                        <span class="panel-title-icon"><i class="fa-solid fa-bell"></i></span>
+                        <h2>Notices for You</h2>
+                        <span class="live-dot"></span>
+                    </div>
+                    <div class="notice-list">
+                        {% for n in notices[:5] %}
+                        <article class="notice">
+                            <span class="notice-file"><i class="fa-regular fa-file-lines"></i></span>
+                            <div>
+                                <small>{{ n.date }} <b>{{ n.tag }}</b></small>
+                                <p>{{ n.title }}</p>
+                            </div>
+                        </article>
+                        {% else %}
+                        <p class="empty-row" style="padding:20px;">No notices yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- LEAVE REQUEST (TEACHER) -->
+                {% if user.role == 'teacher' %}
+                <div class="panel" id="leave">
+                    <div class="panel-title">
+                        <span class="panel-title-icon"><i class="fa-solid fa-calendar-minus"></i></span>
+                        <h2>Apply for Leave</h2>
+                    </div>
+                    <form method="POST" action="{{ url_for('leave_request') }}" class="admin-form">
+                        <label>Leave Type
+                            <select name="leave_type" required>
+                                <option value="">Select</option>
+                                <option>Sick Leave</option>
+                                <option>Casual Leave</option>
+                                <option>Personal Leave</option>
+                                <option>Emergency</option>
+                            </select>
                         </label>
-                        <label>Transaction ID
-                            <input type="text" name="transaction_id" placeholder="UPI/Bank txn ID" maxlength="100">
-                        </label>
-                        <label>Remarks
-                            <input type="text" name="remarks" placeholder="Optional note" maxlength="200">
+                        <div class="form-row-2col">
+                            <label>From <input type="date" name="from_date" required></label>
+                            <label>To <input type="date" name="to_date" required></label>
+                        </div>
+                        <label>Reason
+                            <textarea name="reason" rows="2" required maxlength="500" placeholder="Brief reason"></textarea>
                         </label>
                         <button type="submit" class="btn-admin-primary">
-                            <i class="fa-solid fa-check"></i> Submit Payment
+                            <i class="fa-solid fa-paper-plane"></i> Submit Request
                         </button>
                     </form>
-
-                    {% if fees %}
-                    <h4 style="font-size:13px;color:#65758a;margin:20px 0 8px;">Recent Payments</h4>
-                    {% for f in fees[:5] %}
-                    <div class="att-row">
-                        <span>₹{{ f.amount }} • {{ f.payment_date }}</span>
-                        <span
-                            class="kind-badge kind-{{ 'admission' if f.status=='verified' else 'contact' if f.status=='rejected' else 'notice' }}">{{
-                            f.status|capitalize }}</span>
-                    </div>
-                    {% endfor %}
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- MESSAGES FROM ADMIN -->
-            <div class="panel">
-                <div class="panel-title">
-                    <span class="panel-title-icon"><i class="fa-solid fa-comments"></i></span>
-                    <h2>Messages from Admin</h2>
-                </div>
-                <div class="notice-list">
-                    {% for m in messages[:5] %}
-                    <article class="notice">
-                        <span class="notice-file"><i class="fa-solid fa-envelope"></i></span>
-                        <div>
-                            <small>{{ m.created_at[:10] }}</small>
-                            <p><strong>{{ m.subject }}</strong></p>
-                            <small style="color:#65758a;">{{ m.body[:80] }}...</small>
+                    <div style="padding:0 20px 20px;">
+                        <h4 style="font-size:13px;color:#65758a;margin-bottom:8px;">My Leave History</h4>
+                        {% for l in leaves[:5] %}
+                        <div class="att-row">
+                            <span style="font-size:12px;">{{ l.from_date }} → {{ l.to_date }}</span>
+                            <span
+                                class="kind-badge kind-{{ 'admission' if l.status=='approved' else 'contact' if l.status=='rejected' else 'notice' }}">{{
+                                l.status|capitalize }}</span>
                         </div>
-                    </article>
-                    {% else %}
-                    <p class="empty-row" style="padding:20px;">No messages yet.</p>
-                    {% endfor %}
+                        {% else %}
+                        <p class="muted" style="font-size:12px;">No leave requests yet.</p>
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
+                {% endif %}
 
-        </section>
+                <!-- FEE PAYMENT -->
+                {% if user.role in ['student', 'parent'] %}
+                <div class="panel" id="fee">
+                    <div class="panel-title">
+                        <span class="panel-title-icon"><i class="fa-solid fa-indian-rupee-sign"></i></span>
+                        <h2>Fee Payment</h2>
+                    </div>
+                    <div style="padding:20px;">
+                        {% if fee_qr or upi_link %}
+                        <div class="fee-payment-box">
+                            <p class="fee-payment-title">
+                                <i class="fa-solid fa-qrcode"></i> Pay Your Fees Online
+                            </p>
+                            {% if fee_qr %}
+                            <div class="fee-qr-wrap">
+                                <p class="fee-qr-label">Scan this QR with any UPI app</p>
+                                <img src="{{ fee_qr }}" alt="Fee QR" class="fee-qr-img">
+                            </div>
+                            {% endif %}
+                            {% if upi_link %}
+                            <a href="{{ upi_link }}" class="upi-pay-btn">
+                                <i class="fa-solid fa-mobile-screen-button"></i>
+                                Pay Now via UPI App
+                            </a>
+                            <p class="upi-hint">
+                                <i class="fa-solid fa-info-circle"></i> Works on mobile with GPay, PhonePe, Paytm, etc.
+                            </p>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="fee-not-set">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <p>Payment options not set up yet. Please contact the school office.</p>
+                        </div>
+                        {% endif %}
 
-    </main>
+                        <form method="POST" action="{{ url_for('fee_pay') }}" class="admin-form">
+                            <label>Amount (₹)
+                                <input type="number" name="amount" step="0.01" required placeholder="e.g. 5000">
+                            </label>
+                            <label>Transaction ID
+                                <input type="text" name="transaction_id" placeholder="UPI/Bank txn ID" maxlength="100">
+                            </label>
+                            <label>Remarks
+                                <input type="text" name="remarks" placeholder="Optional note" maxlength="200">
+                            </label>
+                            <button type="submit" class="btn-admin-primary">
+                                <i class="fa-solid fa-check"></i> Submit Payment
+                            </button>
+                        </form>
+
+                        {% if fees %}
+                        <h4 style="font-size:13px;color:#65758a;margin:20px 0 8px;">Recent Payments</h4>
+                        {% for f in fees[:5] %}
+                        <div class="att-row">
+                            <span>₹{{ f.amount }} • {{ f.payment_date }}</span>
+                            <span
+                                class="kind-badge kind-{{ 'admission' if f.status=='verified' else 'contact' if f.status=='rejected' else 'notice' }}">{{
+                                f.status|capitalize }}</span>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- MESSAGES -->
+                <div class="panel" id="messages">
+                    <div class="panel-title">
+                        <span class="panel-title-icon"><i class="fa-solid fa-comments"></i></span>
+                        <h2>Messages from Admin</h2>
+                    </div>
+                    <div class="notice-list">
+                        {% for m in messages[:5] %}
+                        <article class="notice">
+                            <span class="notice-file"><i class="fa-solid fa-envelope"></i></span>
+                            <div>
+                                <small>{{ m.created_at[:10] }}</small>
+                                <p><strong>{{ m.subject }}</strong></p>
+                                <small style="color:#65758a;">{{ m.body[:80] }}...</small>
+                            </div>
+                        </article>
+                        {% else %}
+                        <p class="empty-row" style="padding:20px;">No messages yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </section>
+
+        </main>
+    </div>
 
     <!-- =========================================
-         EDIT PROFILE MODAL (Admin only)
+         EDIT PROFILE MODAL
          ========================================= -->
-    {% if session.get('user_role') == 'admin' %}
+    {% if session.get('user_role') in ['admin', 'administrator'] %}
     <div class="modal-overlay" id="editProfileModal">
         <div class="modal-container">
             <div class="modal-header">
@@ -794,12 +861,13 @@
                     </div>
                     <div class="form-row-2col">
                         <label>Phone <input type="text" name="phone" value="{{ user.phone }}" required></label>
-                        <label>Role 
+                        <label>Role
                             <select name="role">
                                 <option value="student" {% if user.role == 'student' %}selected{% endif %}>Student</option>
                                 <option value="parent" {% if user.role == 'parent' %}selected{% endif %}>Parent</option>
                                 <option value="teacher" {% if user.role == 'teacher' %}selected{% endif %}>Teacher</option>
                                 <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                                <option value="administrator" {% if user.role == 'administrator' %}selected{% endif %}>Administrator</option>
                             </select>
                         </label>
                     </div>
@@ -841,8 +909,7 @@
                 <h4>About School</h4>
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                     <span>
-                        <strong style="color: #fff; font-size: 13px; display: block;">Residential Shanti
-                            Niketan</strong>
+                        <strong style="color: #fff; font-size: 13px; display: block;">Residential Shanti Niketan</strong>
                         <small style="font-size: 11px; color: #aebfd0;">Navinagar Jamui</small>
                     </span>
                 </div>
@@ -871,47 +938,46 @@
          JAVASCRIPT
          ========================================= -->
     <script>
-        // Mobile Menu
         document.addEventListener('DOMContentLoaded', function () {
+
+            /* ---------- Mobile menu (school pages) ---------- */
             const menuToggle = document.getElementById('menuToggle');
             const mobileMenu = document.getElementById('mobileMenu');
             const menuBackdrop = document.getElementById('menuBackdrop');
             const menuClose = document.getElementById('menuClose');
 
-            if (!menuToggle || !mobileMenu || !menuBackdrop) return;
-
-            function openMenu() {
-                mobileMenu.classList.add('is-open');
-                mobileMenu.removeAttribute('inert');
-                mobileMenu.setAttribute('aria-hidden', 'false');
-                menuToggle.setAttribute('aria-expanded', 'true');
-                menuBackdrop.hidden = false;
-                setTimeout(() => menuBackdrop.classList.add('is-open'), 10);
-                document.body.classList.add('menu-open');
+            if (menuToggle && mobileMenu && menuBackdrop) {
+                function openMenu() {
+                    mobileMenu.classList.add('is-open');
+                    mobileMenu.removeAttribute('inert');
+                    mobileMenu.setAttribute('aria-hidden', 'false');
+                    menuToggle.setAttribute('aria-expanded', 'true');
+                    menuBackdrop.hidden = false;
+                    setTimeout(() => menuBackdrop.classList.add('is-open'), 10);
+                    document.body.classList.add('menu-open');
+                }
+                function closeMenu() {
+                    mobileMenu.classList.remove('is-open');
+                    mobileMenu.setAttribute('inert', '');
+                    mobileMenu.setAttribute('aria-hidden', 'true');
+                    menuToggle.setAttribute('aria-expanded', 'false');
+                    menuBackdrop.classList.remove('is-open');
+                    setTimeout(() => { menuBackdrop.hidden = true; }, 300);
+                    document.body.classList.remove('menu-open');
+                }
+                menuToggle.addEventListener('click', () => {
+                    menuToggle.getAttribute('aria-expanded') === 'true' ? closeMenu() : openMenu();
+                });
+                if (menuClose) menuClose.addEventListener('click', closeMenu);
+                menuBackdrop.addEventListener('click', closeMenu);
+                mobileMenu.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
             }
 
-            function closeMenu() {
-                mobileMenu.classList.remove('is-open');
-                mobileMenu.setAttribute('inert', '');
-                mobileMenu.setAttribute('aria-hidden', 'true');
-                menuToggle.setAttribute('aria-expanded', 'false');
-                menuBackdrop.classList.remove('is-open');
-                setTimeout(() => { menuBackdrop.hidden = true; }, 300);
-                document.body.classList.remove('menu-open');
-            }
-
-            menuToggle.addEventListener('click', () => {
-                menuToggle.getAttribute('aria-expanded') === 'true' ? closeMenu() : openMenu();
-            });
-            if (menuClose) menuClose.addEventListener('click', closeMenu);
-            menuBackdrop.addEventListener('click', closeMenu);
-            mobileMenu.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
-
-            // Footer Year
+            /* ---------- Footer year ---------- */
             const yearEl = document.getElementById('year');
             if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-            // Flash Close
+            /* ---------- Flash close ---------- */
             document.querySelectorAll('.flash-close').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const flash = btn.closest('.flash');
@@ -921,99 +987,88 @@
                 });
             });
 
-            /* ============================================================
-               USER PROFILE DROPDOWN — Click to pin, click-outside close
-               ============================================================ */
+            /* ---------- User dropdown ---------- */
             (function initUserDropdown() {
                 const userProfile = document.getElementById('userProfile');
                 const userMenuBtn = document.getElementById('userMenuBtn');
                 const userDropdown = document.getElementById('userDropdown');
-
                 if (!userProfile || !userMenuBtn || !userDropdown) return;
 
-                function openMenu() {
-                    userProfile.classList.add('dropdown-open');
-                    userMenuBtn.setAttribute('aria-expanded', 'true');
-                }
-
-                function closeMenu() {
-                    userProfile.classList.remove('dropdown-open');
-                    userMenuBtn.setAttribute('aria-expanded', 'false');
-                }
-
-                function toggleMenu(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (userProfile.classList.contains('dropdown-open')) {
-                        closeMenu();
-                    } else {
-                        openMenu();
-                    }
-                }
-
-                userMenuBtn.addEventListener('click', toggleMenu);
-
-                userDropdown.addEventListener('click', function (e) {
-                    e.stopPropagation();
+                function openM() { userProfile.classList.add('dropdown-open'); userMenuBtn.setAttribute('aria-expanded', 'true'); }
+                function closeM() { userProfile.classList.remove('dropdown-open'); userMenuBtn.setAttribute('aria-expanded', 'false'); }
+                userMenuBtn.addEventListener('click', e => {
+                    e.preventDefault(); e.stopPropagation();
+                    userProfile.classList.contains('dropdown-open') ? closeM() : openM();
                 });
-
-                document.addEventListener('click', function (e) {
-                    if (userProfile.classList.contains('dropdown-open') &&
-                        !userProfile.contains(e.target)) {
-                        closeMenu();
-                    }
+                userDropdown.addEventListener('click', e => e.stopPropagation());
+                document.addEventListener('click', e => {
+                    if (userProfile.classList.contains('dropdown-open') && !userProfile.contains(e.target)) closeM();
                 });
-
-                document.addEventListener('keydown', function (e) {
-                    if (e.key === 'Escape' && userProfile.classList.contains('dropdown-open')) {
-                        closeMenu();
-                        userMenuBtn.focus();
-                    }
+                document.addEventListener('keydown', e => {
+                    if (e.key === 'Escape' && userProfile.classList.contains('dropdown-open')) { closeM(); userMenuBtn.focus(); }
                 });
-
-                document.addEventListener('touchstart', function (e) {
-                    if (userProfile.classList.contains('dropdown-open') &&
-                        !userProfile.contains(e.target)) {
-                        closeMenu();
-                    }
+                document.addEventListener('touchstart', e => {
+                    if (userProfile.classList.contains('dropdown-open') && !userProfile.contains(e.target)) closeM();
                 }, { passive: true });
             })();
 
-            /* ============================================================
-               EDIT PROFILE MODAL LOGIC
-               ============================================================ */
-            const modal = document.getElementById('editProfileModal');
-            const openModalBtn = document.getElementById('openEditModalBtn');
-            const closeModalBtn = document.getElementById('closeModalBtn');
-            const cancelModalBtn = document.getElementById('cancelModalBtn');
+            /* ---------- Edit Profile modal ---------- */
+            (function initEditModal() {
+                const modal = document.getElementById('editProfileModal');
+                const openBtn = document.getElementById('openEditModalBtn');
+                const closeBtn = document.getElementById('closeModalBtn');
+                const cancelBtn = document.getElementById('cancelModalBtn');
+                if (!modal || !openBtn) return;
 
-            if (modal && openModalBtn) {
-                // Open Modal
-                openModalBtn.addEventListener('click', () => {
-                    modal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
+                function openM() { modal.classList.add('active'); document.body.style.overflow = 'hidden'; }
+                function closeM() { modal.classList.remove('active'); document.body.style.overflow = ''; }
+
+                openBtn.addEventListener('click', openM);
+                if (closeBtn) closeBtn.addEventListener('click', closeM);
+                if (cancelBtn) cancelBtn.addEventListener('click', closeM);
+                modal.addEventListener('click', e => { if (e.target === modal) closeM(); });
+                document.addEventListener('keydown', e => {
+                    if (e.key === 'Escape' && modal.classList.contains('active')) closeM();
                 });
+            })();
 
-                function closeModal() {
-                    modal.classList.remove('active');
-                    document.body.style.overflow = '';
+            /* ---------- NEW: Dashboard sidebar toggle (mobile) ---------- */
+            (function initDashSidebar() {
+                const sidebar = document.getElementById('dashSidebar');
+                const toggle = document.getElementById('dashMenuToggle');
+                const backdrop = document.getElementById('dashBackdrop');
+                if (!sidebar || !toggle) return;
+
+                function openSidebar() {
+                    sidebar.classList.add('open');
+                    if (backdrop) { backdrop.hidden = false; setTimeout(() => backdrop.classList.add('show'), 10); }
+                    toggle.setAttribute('aria-expanded', 'true');
+                    document.body.classList.add('dash-sidebar-open');
+                }
+                function closeSidebar() {
+                    sidebar.classList.remove('open');
+                    if (backdrop) { backdrop.classList.remove('show'); setTimeout(() => { backdrop.hidden = true; }, 300); }
+                    toggle.setAttribute('aria-expanded', 'false');
+                    document.body.classList.remove('dash-sidebar-open');
                 }
 
-                if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
-                if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
-
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        closeModal();
-                    }
+                toggle.addEventListener('click', () => {
+                    sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
                 });
-
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape' && modal.classList.contains('active')) {
-                        closeModal();
-                    }
+                if (backdrop) backdrop.addEventListener('click', closeSidebar);
+                document.addEventListener('keydown', e => {
+                    if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
                 });
-            }
+                sidebar.querySelectorAll('a[href^="#"]').forEach(link => {
+                    link.addEventListener('click', () => {
+                        if (window.innerWidth <= 1024) closeSidebar();
+                    });
+                });
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth > 1024) closeSidebar();
+                });
+            })();
+
         });
     </script>
 

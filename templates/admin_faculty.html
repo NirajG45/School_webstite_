@@ -1,38 +1,730 @@
 {% extends "admin_base.html" %}
-{% block title %}Faculty{% endblock %}
+{% block title %}Faculty & Assignments{% endblock %}
 {% block page_title %}Faculty Management{% endblock %}
 {% block content %}
-<div class="admin-grid-2-uneven">
-    <div class="admin-panel">
-        <div class="admin-panel-head"><h3><i class="fa-solid fa-plus"></i> Add Faculty</h3></div>
-        <form method="POST" action="{{ url_for('admin_add_faculty') }}" class="admin-form">
-            <label>Name * <input type="text" name="name" required maxlength="100"></label>
-            <label>Subject * <input type="text" name="subject" required maxlength="80"></label>
-            <div class="form-row-2col">
-                <label>Qualification <input type="text" name="qualification" maxlength="100"></label>
-                <label>Experience <input type="text" name="experience" maxlength="50"></label>
+
+{# Safety defaults for edit_faculty route (which only passes faculty) #}
+{% set assignments = assignments if assignments is defined else [] %}
+{% set classes = classes if classes is defined else [] %}
+{% set subjects = subjects if subjects is defined else [] %}
+
+<style>
+    /* ============================================================
+       STAT CARDS
+       ============================================================ */
+    .fac-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+    .fac-stat {
+        background: #fff;
+        border: 1px solid var(--line, #e4eaf1);
+        border-radius: 14px;
+        padding: 18px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.25s ease;
+    }
+    .fac-stat::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+    }
+    .fac-stat.blue::before { background: #1768a7; }
+    .fac-stat.green::before { background: #168254; }
+    .fac-stat.purple::before { background: #7439b2; }
+    .fac-stat:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(9, 47, 88, 0.06);
+        border-color: #d5dee8;
+    }
+    .fac-stat-inner {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .fac-stat-icon {
+        width: 44px; height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+    .fac-stat.blue .fac-stat-icon { background: #e1f1ff; color: #1768a7; }
+    .fac-stat.green .fac-stat-icon { background: #e3f5eb; color: #168254; }
+    .fac-stat.purple .fac-stat-icon { background: #f0e7ff; color: #7439b2; }
+    .fac-stat-info { flex: 1; min-width: 0; }
+    .fac-stat-label {
+        font-size: 10.5px;
+        font-weight: 800;
+        color: var(--muted, #65758a);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 3px;
+    }
+    .fac-stat-value {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--navy, #092f58);
+        line-height: 1;
+    }
+
+    /* ============================================================
+       FACULTY LIST ITEM
+       ============================================================ */
+    .fac-list-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--line, #e4eaf1);
+    }
+    .fac-list-item:last-child { border-bottom: none; }
+    .fac-avatar {
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--navy, #092f58), #14578b);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 13px;
+        flex-shrink: 0;
+        border: 2px solid var(--yellow, #ffd447);
+        letter-spacing: 0.5px;
+    }
+    .fac-avatar.has-photo { padding: 0; overflow: hidden; }
+    .fac-avatar.has-photo img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        display: block;
+    }
+    .fac-info { flex: 1; min-width: 0; }
+    .fac-info strong {
+        display: block;
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--navy, #092f58);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .fac-info small {
+        display: block;
+        font-size: 11px;
+        color: var(--muted, #65758a);
+        margin-top: 2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .fac-info .fac-subject {
+        color: var(--red, #d71938);
+        font-weight: 700;
+    }
+    .fac-actions {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+    .fac-icon-btn {
+        width: 32px; height: 32px;
+        border-radius: 8px;
+        border: 1px solid var(--line, #e4eaf1);
+        background: #fff;
+        color: var(--navy, #092f58);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 12px;
+        padding: 0;
+        text-decoration: none;
+    }
+    .fac-icon-btn:hover { background: #f1f5f9; border-color: #cbd5e1; transform: translateY(-1px); }
+    .fac-icon-btn.danger { color: var(--red, #d71938); border-color: #f8c9d2; }
+    .fac-icon-btn.danger:hover { background: #ffeaee; border-color: #f0a4b3; }
+    .fac-icon-btn.edit { color: #1768a7; border-color: #b8daf5; }
+    .fac-icon-btn.edit:hover { background: #e1f1ff; border-color: #8dc4ec; }
+
+    /* ============================================================
+       FILTER BAR
+       ============================================================ */
+    .fac-filter-bar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+    }
+    .fac-filter-bar select {
+        flex: 1;
+        min-width: 140px;
+        padding: 8px 12px;
+        border: 1px solid var(--line, #e4eaf1);
+        border-radius: 8px;
+        font-size: 12.5px;
+        font-family: inherit;
+        background: #fff;
+        color: var(--navy, #092f58);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .fac-filter-bar select:focus {
+        outline: none;
+        border-color: var(--navy, #092f58);
+        box-shadow: 0 0 0 3px rgba(9, 47, 88, 0.06);
+    }
+
+    /* ============================================================
+       ASSIGNMENTS TABLE
+       ============================================================ */
+    .fac-table-wrap {
+        overflow-x: auto;
+        border-radius: 8px;
+        border: 1px solid var(--line, #e4eaf1);
+    }
+    .fac-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12.5px;
+        min-width: 620px;
+    }
+    .fac-table thead { background: #fafcfd; }
+    .fac-table th {
+        text-align: left;
+        padding: 11px 12px;
+        font-size: 10px;
+        font-weight: 800;
+        color: var(--muted, #65758a);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--line, #e4eaf1);
+        white-space: nowrap;
+    }
+    .fac-table td {
+        padding: 10px 12px;
+        color: var(--navy, #092f58);
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+    .fac-table tr:last-child td { border-bottom: none; }
+    .fac-table tr:hover { background: #fafcfd; }
+
+    .fac-day-pill {
+        display: inline-block;
+        padding: 3px 9px;
+        border-radius: 5px;
+        font-size: 9.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+    }
+    .fac-day-pill.mon { background: #e3f5eb; color: #168254; }
+    .fac-day-pill.tue { background: #e1f1ff; color: #1768a7; }
+    .fac-day-pill.wed { background: #f0e7ff; color: #7439b2; }
+    .fac-day-pill.thu { background: #fff1d6; color: #a86a00; }
+    .fac-day-pill.fri { background: #ffeaee; color: #d71938; }
+    .fac-day-pill.sat { background: #e0f7fa; color: #00838f; }
+    .fac-day-pill.alld { background: linear-gradient(135deg, #ffe0e8, #fff1d6); color: #b45309; }
+
+    .fac-class-pill {
+        display: inline-block;
+        padding: 3px 9px;
+        border-radius: 5px;
+        font-size: 10px;
+        font-weight: 700;
+        background: #f1f5f9;
+        color: var(--navy, #092f58);
+        white-space: nowrap;
+    }
+
+    /* ============================================================
+       HIGHLIGHT & EDITING BANNER
+       ============================================================ */
+    .fac-panel-highlight {
+        animation: highlightPulse 1.5s ease;
+    }
+    @keyframes highlightPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(240, 180, 41, 0); }
+        50% { box-shadow: 0 0 0 6px rgba(240, 180, 41, 0.25); }
+    }
+
+    .fac-editing-banner {
+        display: none;
+        padding: 10px 14px;
+        background: linear-gradient(135deg, #fff8e7, #fff3d6);
+        border: 1px solid #f0b429;
+        border-radius: 10px;
+        margin: 0 20px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #92400e;
+        align-items: center;
+        gap: 8px;
+    }
+    .fac-editing-banner.show { display: flex; }
+    .fac-editing-banner i { color: #d97706; }
+    .fac-editing-banner .cancel-edit {
+        margin-left: auto;
+        padding: 4px 10px;
+        border: 1px solid #f0b429;
+        background: #fff;
+        border-radius: 6px;
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #92400e;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+    .fac-editing-banner .cancel-edit:hover {
+        background: #f0b429;
+        color: #fff;
+    }
+
+    /* ============================================================
+       EMPTY STATE
+       ============================================================ */
+    .fac-empty {
+        text-align: center;
+        padding: 30px 20px;
+        color: var(--muted, #65758a);
+        font-size: 12.5px;
+    }
+    .fac-empty i {
+        font-size: 28px;
+        color: #cbd5e1;
+        display: block;
+        margin-bottom: 8px;
+    }
+    .fac-empty p { margin: 0; }
+
+    /* ============================================================
+       MOBILE
+       ============================================================ */
+    @media (max-width: 900px) {
+        .fac-stats { grid-template-columns: 1fr; gap: 10px; }
+        .fac-stat { padding: 14px; }
+        .fac-stat-value { font-size: 20px; }
+        .fac-filter-bar { flex-direction: column; }
+        .fac-filter-bar select { min-width: 0; width: 100%; }
+    }
+</style>
+
+<!-- ============================================================
+     STATS
+     ============================================================ -->
+<div class="fac-stats">
+    <div class="fac-stat blue">
+        <div class="fac-stat-inner">
+            <div class="fac-stat-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+            <div class="fac-stat-info">
+                <div class="fac-stat-label">Total Faculty</div>
+                <div class="fac-stat-value">{{ faculty|length }}</div>
             </div>
-            <label>Bio <textarea name="bio" rows="3" maxlength="500"></textarea></label>
-            <label>Display Order <input type="number" name="display_order" value="0" min="0"></label>
-            <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-check"></i> Add</button>
-        </form>
+        </div>
     </div>
-    <div class="admin-panel">
-        <div class="admin-panel-head"><h3><i class="fa-solid fa-chalkboard-user"></i> All Faculty ({{ faculty|length }})</h3></div>
-        <div class="admin-notice-list">
-            {% for f in faculty %}
-            <div class="admin-notice-item">
-                <div class="notice-item-body">
-                    <small class="muted">Order: {{ f.display_order }}</small>
-                    <p>{{ f.name }} — <span style="color:var(--red);">{{ f.subject }}</span></p>
-                    <span class="notice-desc muted">{{ f.qualification or '' }}{% if f.experience %} • {{ f.experience }}{% endif %}</span>
-                </div>
-                <form method="POST" action="{{ url_for('admin_delete_faculty', fid=f.id) }}" data-confirm="Delete?">
-                    <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
-                </form>
+    <div class="fac-stat green">
+        <div class="fac-stat-inner">
+            <div class="fac-stat-icon"><i class="fa-solid fa-book"></i></div>
+            <div class="fac-stat-info">
+                <div class="fac-stat-label">Assignments</div>
+                <div class="fac-stat-value">{{ assignments|length }}</div>
             </div>
-            {% else %}<p class="empty-row">No faculty yet.</p>{% endfor %}
+        </div>
+    </div>
+    <div class="fac-stat purple">
+        <div class="fac-stat-inner">
+            <div class="fac-stat-icon"><i class="fa-solid fa-school"></i></div>
+            <div class="fac-stat-info">
+                <div class="fac-stat-label">Classes Covered</div>
+                <div class="fac-stat-value">{{ classes|length }}</div>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- ============================================================
+     FACULTY MANAGEMENT (Add/Edit + List)
+     ============================================================ -->
+<div class="admin-grid-2-uneven">
+    <!-- Add / Edit faculty form -->
+    <div class="admin-panel">
+        <div class="admin-panel-head">
+            <h3>
+                {% if edit_faculty %}
+                <i class="fa-solid fa-pen"></i> Edit Faculty
+                {% else %}
+                <i class="fa-solid fa-plus"></i> Add Faculty
+                {% endif %}
+            </h3>
+        </div>
+
+        {% if edit_faculty %}
+        <form method="POST" action="{{ url_for('admin_edit_faculty', fid=edit_faculty.id) }}" class="admin-form">
+            <label>Name * <input type="text" name="name" required maxlength="100" value="{{ edit_faculty.name }}"></label>
+            <label>Subject * <input type="text" name="subject" required maxlength="80" value="{{ edit_faculty.subject }}"></label>
+            <div class="form-row-2col">
+                <label>Qualification <input type="text" name="qualification" maxlength="100" value="{{ edit_faculty.qualification or '' }}"></label>
+                <label>Experience <input type="text" name="experience" maxlength="50" value="{{ edit_faculty.experience or '' }}"></label>
+            </div>
+            <label>Bio <textarea name="bio" rows="3" maxlength="500">{{ edit_faculty.bio or '' }}</textarea></label>
+            <label>Display Order <input type="number" name="display_order" value="{{ edit_faculty.display_order or 0 }}" min="0"></label>
+            <div style="display: flex; gap: 10px;">
+                <a href="{{ url_for('admin_faculty') }}" class="btn-soft" style="flex:1; justify-content:center;">
+                    <i class="fa-solid fa-xmark"></i> Cancel
+                </a>
+                <button type="submit" class="btn-admin-primary" style="flex:1;">
+                    <i class="fa-solid fa-check"></i> Save Changes
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <form method="POST" action="{{ url_for('admin_add_faculty') }}" class="admin-form">
+            <label>Name * <input type="text" name="name" required maxlength="100" placeholder="e.g. Mr. Sharma"></label>
+            <label>Subject * <input type="text" name="subject" required maxlength="80" placeholder="e.g. Mathematics"></label>
+            <div class="form-row-2col">
+                <label>Qualification <input type="text" name="qualification" maxlength="100" placeholder="M.Sc, B.Ed"></label>
+                <label>Experience <input type="text" name="experience" maxlength="50" placeholder="5 years"></label>
+            </div>
+            <label>Bio <textarea name="bio" rows="3" maxlength="500" placeholder="Short introduction..."></textarea></label>
+            <label>Display Order <input type="number" name="display_order" value="0" min="0"></label>
+            <button type="submit" class="btn-admin-primary">
+                <i class="fa-solid fa-check"></i> Add Faculty
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    <!-- Faculty list -->
+    <div class="admin-panel">
+        <div class="admin-panel-head">
+            <h3><i class="fa-solid fa-users"></i> All Faculty ({{ faculty|length }})</h3>
+        </div>
+        <div style="padding: 4px 20px 20px; max-height: 560px; overflow-y: auto;">
+            {% for f in faculty %}
+            <div class="fac-list-item">
+                {% if f.photo_url %}
+                <div class="fac-avatar has-photo">
+                    <img src="{{ f.photo_url }}" alt="{{ f.name }}">
+                </div>
+                {% else %}
+                <div class="fac-avatar">
+                    {{ f.name.split()[0][0]|upper }}{{ f.name.split()[-1][0]|upper if f.name.split()|length > 1 else '' }}
+                </div>
+                {% endif %}
+                <div class="fac-info">
+                    <strong>{{ f.name }}</strong>
+                    <small>
+                        <span class="fac-subject">{{ f.subject }}</span>
+                        {% if f.qualification %} • {{ f.qualification }}{% endif %}
+                        {% if f.experience %} • {{ f.experience }}{% endif %}
+                    </small>
+                </div>
+                <div class="fac-actions">
+                    <a href="{{ url_for('admin_edit_faculty', fid=f.id) }}" class="fac-icon-btn edit" title="Edit">
+                        <i class="fa-solid fa-pen"></i>
+                    </a>
+                    <form method="POST" action="{{ url_for('admin_delete_faculty', fid=f.id) }}"
+                          onsubmit='return confirm("Delete " + {{ f.name|tojson }} + " and all their assignments?");'
+                          style="margin:0;">
+                        <button type="submit" class="fac-icon-btn danger" title="Delete">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="fac-empty">
+                <i class="fa-solid fa-users-slash"></i>
+                <p>No faculty yet. Add one using the form.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     CLASS-WISE SUBJECT ASSIGNMENT
+     ============================================================ -->
+<div class="admin-grid-2-uneven" style="margin-top: 20px;">
+
+    <!-- Assign form -->
+    <div class="admin-panel" id="assignPanel">
+        <div class="admin-panel-head">
+            <h3><i class="fa-solid fa-book-open"></i> Assign / Change Subject</h3>
+        </div>
+
+        <div class="fac-editing-banner" id="editingBanner">
+            <i class="fa-solid fa-pen-to-square"></i>
+            <span>Editing existing assignment</span>
+            <button type="button" class="cancel-edit" onclick="cancelEdit()">Cancel</button>
+        </div>
+
+        <form method="POST" action="{{ url_for('admin_assign_subject') }}" class="admin-form" id="assignForm">
+            <input type="hidden" name="old_assignment_id" id="assignOldId" value="">
+
+            <label>Faculty *
+                <select name="faculty_id" id="assignFaculty" required>
+                    <option value="">— Select Faculty —</option>
+                    {% for f in faculty %}
+                    <option value="{{ f.id }}">{{ f.name }} ({{ f.subject }})</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <div class="form-row-2col">
+                <label>Class *
+                    <input type="text" name="class_name" id="assignClass" required maxlength="30"
+                           list="classesList" placeholder="e.g. Class 5">
+                    <datalist id="classesList">
+                        {% for c in classes %}<option value="{{ c }}">{% endfor %}
+                    </datalist>
+                </label>
+                <label>Day *
+                    <select name="day" id="assignDay" required>
+                        <option value="">— Select Day —</option>
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                        <option value="Saturday">Saturday</option>
+                        <option value="Sunday">Sunday</option>
+                        <option value="All Days">All Days (Mon–Sat)</option>
+                    </select>
+                </label>
+            </div>
+
+            <label>Subject *
+                <input type="text" name="subject" id="assignSubject" required maxlength="80"
+                       list="subjectsList" placeholder="e.g. Mathematics">
+                <datalist id="subjectsList">
+                    {% for s in subjects %}<option value="{{ s }}">{% endfor %}
+                </datalist>
+            </label>
+
+            <div class="form-row-2col">
+                <label>Period (optional) <input type="text" name="period" id="assignPeriod" maxlength="20" placeholder="e.g. 1st"></label>
+                <label>Room (optional) <input type="text" name="room" id="assignRoom" maxlength="20" placeholder="e.g. A-12"></label>
+            </div>
+
+            <button type="submit" class="btn-admin-primary" id="assignSubmitBtn">
+                <i class="fa-solid fa-plus"></i> Assign Subject
+            </button>
+        </form>
+    </div>
+
+    <!-- Assignments table -->
+    <div class="admin-panel">
+        <div class="admin-panel-head">
+            <h3><i class="fa-solid fa-calendar-days"></i> Assignments ({{ assignments|length }})</h3>
+        </div>
+        <div style="padding: 16px 20px 20px;">
+            <div class="fac-filter-bar">
+                <select id="filterClass">
+                    <option value="">All Classes</option>
+                    {% for c in classes %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+                </select>
+                <select id="filterFaculty">
+                    <option value="">All Faculty</option>
+                    {% for f in faculty %}<option value="{{ f.id }}">{{ f.name }}</option>{% endfor %}
+                </select>
+            </div>
+
+            <div class="fac-table-wrap">
+                <table class="fac-table" id="assignTable">
+                    <thead>
+                        <tr>
+                            <th>Faculty</th>
+                            <th>Class</th>
+                            <th>Day</th>
+                            <th>Subject</th>
+                            <th>Period</th>
+                            <th>Room</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in assignments %}
+                        {% set dayClass = 'mon' if a.day == 'Monday' else 'tue' if a.day == 'Tuesday' else 'wed' if a.day == 'Wednesday' else 'thu' if a.day == 'Thursday' else 'fri' if a.day == 'Friday' else 'sat' if a.day == 'Saturday' else 'alld' %}
+                        <tr data-id="{{ a.id }}"
+                            data-faculty-id="{{ a.faculty_id }}"
+                            data-faculty-name="{{ a.faculty_name }}"
+                            data-class="{{ a.class_name }}"
+                            data-day="{{ a.day }}"
+                            data-subject="{{ a.subject }}"
+                            data-period="{{ a.period or '' }}"
+                            data-room="{{ a.room or '' }}">
+                            <td><strong>{{ a.faculty_name }}</strong></td>
+                            <td><span class="fac-class-pill">{{ a.class_name }}</span></td>
+                            <td><span class="fac-day-pill {{ dayClass }}">{{ a.day }}</span></td>
+                            <td>{{ a.subject }}</td>
+                            <td>{{ a.period or '—' }}</td>
+                            <td>{{ a.room or '—' }}</td>
+                            <td style="text-align:right; white-space:nowrap;">
+                                <button type="button" class="fac-icon-btn edit" title="Edit / Change" onclick="editAssignment(this)">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <form method="POST" action="{{ url_for('admin_delete_assignment', aid=a.id) }}"
+                                      onsubmit="return confirm('Remove this assignment?');"
+                                      style="display:inline-block; margin-left:4px;">
+                                    <button type="submit" class="fac-icon-btn danger" title="Delete">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" style="text-align:center; padding:30px 20px; color:var(--muted); font-size:12.5px;">
+                                <i class="fa-solid fa-calendar-xmark" style="font-size:28px; color:#cbd5e1; display:block; margin-bottom:8px;"></i>
+                                No assignments yet. Use the form to assign a subject.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    /* ============================================================
+       1. FILTER ASSIGNMENTS
+       ============================================================ */
+    const filterClass = document.getElementById('filterClass');
+    const filterFaculty = document.getElementById('filterFaculty');
+    const assignTable = document.getElementById('assignTable');
+
+    function applyFilters() {
+        if (!assignTable) return;
+        const c = filterClass ? filterClass.value.toLowerCase().trim() : '';
+        const f = filterFaculty ? filterFaculty.value.trim() : '';
+        assignTable.querySelectorAll('tbody tr').forEach(row => {
+            if (!row.dataset.id) return;
+            const rowClass = (row.dataset.class || '').toLowerCase().trim();
+            const rowFacId = (row.dataset.facultyId || '').trim();
+            const matchClass = !c || rowClass === c;
+            const matchFac = !f || rowFacId === f;
+            row.style.display = (matchClass && matchFac) ? '' : 'none';
+        });
+    }
+    if (filterClass) filterClass.addEventListener('change', applyFilters);
+    if (filterFaculty) filterFaculty.addEventListener('change', applyFilters);
+
+    /* ============================================================
+       2. EDIT ASSIGNMENT — fill the form
+       ============================================================ */
+    window.editAssignment = function (btn) {
+        const row = btn.closest('tr');
+        if (!row) return;
+
+        const d = row.dataset;
+        const oldIdField = document.getElementById('assignOldId');
+        const facultySel = document.getElementById('assignFaculty');
+        const classInp = document.getElementById('assignClass');
+        const daySel = document.getElementById('assignDay');
+        const subjInp = document.getElementById('assignSubject');
+        const periodInp = document.getElementById('assignPeriod');
+        const roomInp = document.getElementById('assignRoom');
+
+        if (oldIdField) oldIdField.value = d.id || '';
+        if (facultySel) facultySel.value = d.facultyId || '';
+        if (classInp) classInp.value = d.class || '';
+        if (daySel) daySel.value = d.day || '';
+        if (subjInp) subjInp.value = d.subject || '';
+        if (periodInp) periodInp.value = d.period || '';
+        if (roomInp) roomInp.value = d.room || '';
+
+        // Show editing banner
+        const banner = document.getElementById('editingBanner');
+        if (banner) banner.classList.add('show');
+
+        // Change submit button
+        const submitBtn = document.getElementById('assignSubmitBtn');
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Update Assignment';
+            submitBtn.style.background = 'linear-gradient(135deg, #f0b429, #e0a015)';
+            submitBtn.style.color = '#0a2340';
+        }
+
+        // Highlight and scroll to form
+        const panel = document.getElementById('assignPanel');
+        if (panel) {
+            panel.classList.add('fac-panel-highlight');
+            panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => panel.classList.remove('fac-panel-highlight'), 1600);
+        }
+    };
+
+    /* ============================================================
+       3. CANCEL EDIT — reset form
+       ============================================================ */
+    window.cancelEdit = function () {
+        const oldIdField = document.getElementById('assignOldId');
+        const form = document.getElementById('assignForm');
+        const banner = document.getElementById('editingBanner');
+        const submitBtn = document.getElementById('assignSubmitBtn');
+
+        if (oldIdField) oldIdField.value = '';
+        if (form) form.reset();
+        if (banner) banner.classList.remove('show');
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Assign Subject';
+            submitBtn.style.background = '';
+            submitBtn.style.color = '';
+        }
+    };
+
+    /* ============================================================
+       4. SUBMIT — handle "change" (delete old + re-add new)
+       ============================================================ */
+    const assignForm = document.getElementById('assignForm');
+    if (assignForm) {
+        assignForm.addEventListener('submit', async function (e) {
+            const oldId = document.getElementById('assignOldId').value;
+            if (!oldId) return; // Normal add — let form submit normally
+
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('assignSubmitBtn');
+            const originalHTML = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Updating...';
+
+            try {
+                // Step 1: Delete the old assignment
+                const delUrl = '/admin/faculty/assignment/' + encodeURIComponent(oldId) + '/delete';
+                const res = await fetch(delUrl, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!res.ok) throw new Error('Delete failed with status ' + res.status);
+
+                // Step 2: Submit the form natively (bypasses this listener)
+                HTMLFormElement.prototype.submit.call(this);
+            } catch (err) {
+                console.error('Update failed:', err);
+                alert('Could not update assignment: ' + err.message);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalHTML;
+            }
+        });
+    }
+})();
+</script>
+
 {% endblock %}

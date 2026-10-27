@@ -1337,7 +1337,7 @@
                 <div style="font-size:11.5px; color:var(--muted); font-weight:600; margin-bottom:16px;">
                     <i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}
                     <span
-                        style="display:inline-block; margin-left:6px; background:var(--yellow); color:#0a2340; padding:2px 8px; border-radius:4px; font-size:9px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">Administrator</span>
+                        style="display:inline-block; margin-left:6px; background:var(--yellow); color:#0a2340; padding:2px 8px; border-radius:4px; font-size:9px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">{% if session.get('user_role') == 'administrator' %}Administrator{% else %}Admin{% endif %}</span>
                 </div>
                 <div class="admin-profile-actions">
                     <button type="button" class="admin-photo-btn"

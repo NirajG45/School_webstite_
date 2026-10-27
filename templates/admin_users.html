@@ -6,7 +6,7 @@
 
 <style>
 /* ============================================================
-   USER MANAGEMENT — PREMIUM STYLES
+   USER MANAGEMENT — PREMIUM & RESPONSIVE
    ============================================================ */
 
 /* ---------- Stats row ---------- */
@@ -58,33 +58,42 @@
     color: var(--muted, #65758a);
 }
 
-/* ---------- Search ---------- */
-.table-search {
-    position: relative;
-    flex: 1;
-    min-width: 200px;
-    max-width: 320px;
-    margin-right: auto;
-    margin-left: 16px;
+/* ============================================================
+   TOOLBAR (search + filter tabs)
+   ============================================================ */
+.user-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line, #e4eaf1);
+    background: #fafcff;
 }
-.table-search input {
+
+.user-search {
+    position: relative;
+    flex: 1 1 260px;
+    max-width: 340px;
+    min-width: 0;
+}
+.user-search input {
     width: 100%;
     padding: 9px 14px 9px 38px;
     border: 1px solid var(--line, #e4eaf1);
     border-radius: 10px;
     font-family: inherit;
     font-size: 13px;
-    background: #f8fafc;
+    background: #fff;
     color: var(--navy, #092f58);
     transition: all .2s;
 }
-.table-search input:focus {
+.user-search input:focus {
     outline: none;
-    background: #fff;
     border-color: var(--blue, #124d82);
     box-shadow: 0 0 0 3px rgba(18,77,130,.12);
 }
-.table-search i {
+.user-search i {
     position: absolute;
     left: 13px;
     top: 50%;
@@ -94,18 +103,66 @@
     pointer-events: none;
 }
 
-/* ---------- Table polish ---------- */
-#usersTable tbody tr {
-    transition: background .18s;
+.user-filter-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    margin-left: auto;
+    padding-bottom: 2px;
 }
-#usersTable tbody tr:hover {
-    background: #f8fafc;
+.user-filter-tabs::-webkit-scrollbar { display: none; }
+.user-filter-tabs .filter-tab {
+    flex-shrink: 0;
 }
 
+/* ============================================================
+   TABLE (desktop) — sticky header, clean rows
+   ============================================================ */
+.admin-table-wrap {
+    overflow-x: auto;
+    border-radius: 0 0 14px 14px;
+    -webkit-overflow-scrolling: touch;
+}
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    min-width: 900px;
+}
+.admin-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #fafcfd;
+    text-align: left;
+    padding: 11px 16px;
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--muted, #65758a);
+    text-transform: uppercase;
+    letter-spacing: 0.55px;
+    border-bottom: 1px solid var(--line, #e4eaf1);
+    white-space: nowrap;
+}
+.admin-table tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: var(--navy, #092f58);
+    vertical-align: middle;
+}
+.admin-table tbody tr:last-child td { border-bottom: none; }
+.admin-table tbody tr { transition: background .18s; }
+.admin-table tbody tr:hover { background: #f8fafc; }
+
+/* User cell */
 .user-cell {
     display: flex;
     align-items: center;
     gap: 10px;
+    min-width: 0;
 }
 .user-cell-avatar {
     width: 36px;
@@ -120,11 +177,9 @@
     flex-shrink: 0;
     letter-spacing: 0.5px;
 }
-/* NEW — photo variant */
 .user-cell-avatar.has-photo {
     padding: 0;
     overflow: hidden;
-    display: block;
 }
 .user-cell-avatar.has-photo img {
     width: 100%;
@@ -133,39 +188,60 @@
     border-radius: 50%;
     display: block;
 }
-
+.user-cell-meta {
+    min-width: 0;
+    flex: 1;
+}
 .user-cell-meta strong {
     display: block;
     font-size: 13px;
     color: var(--navy, #092f58);
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
 }
 .user-cell-meta small {
     display: block;
     font-size: 11.5px;
     color: var(--muted, #65758a);
     line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
 }
 
-/* Role pills */
-.user-role-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
+/* Role select (unified pill-styled dropdown) */
+.role-select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 5px 24px 5px 10px;
     border-radius: 999px;
+    font-family: inherit;
     font-size: 10.5px;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    white-space: nowrap;
+    letter-spacing: 0.05em;
+    border: 1px solid transparent;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='currentColor' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    transition: all .2s;
 }
-.user-role-pill i { font-size: 9px; }
-.user-role-pill.admin   { background: #fef3c7; color: #b45309; }
-.user-role-pill.teacher { background: #dbeafe; color: #1e40af; }
-.user-role-pill.parent  { background: #fce7f3; color: #9d174d; }
-.user-role-pill.student { background: #e0e7ff; color: #4338ca; }
+.role-select:hover { filter: brightness(0.96); }
+.role-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(18,77,130,.15);
+}
+.role-select.admin   { background-color: #fef3c7; color: #b45309; }
+.role-select.teacher { background-color: #dbeafe; color: #1e40af; }
+.role-select.parent  { background-color: #fce7f3; color: #9d174d; }
+.role-select.student { background-color: #e0e7ff; color: #4338ca; }
+.role-select.administrator { background-color: #fef3c7; color: #92400e; border-color: #f0b429; }
 
 /* Status pills */
 .user-status-pill {
@@ -178,6 +254,7 @@
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.06em;
+    white-space: nowrap;
 }
 .user-status-pill.active   { background: #dcfce7; color: #15803d; }
 .user-status-pill.inactive { background: #fee2e2; color: #b91c1c; }
@@ -200,14 +277,14 @@
 .action-btn-group {
     display: flex;
     gap: 5px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
 }
 .btn-icon-edit,
 .btn-icon-approve,
 .btn-icon-danger {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 9px;
     border: none;
     display: grid;
@@ -249,6 +326,159 @@
 }
 
 /* ============================================================
+   RESPONSIVE — MOBILE CARD VIEW (<768px)
+   ============================================================ */
+@media (max-width: 768px) {
+    /* Stats: 2×2 compact */
+    .user-stats-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    .user-stat-card {
+        padding: 12px 14px;
+        gap: 10px;
+    }
+    .user-stat-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        font-size: 14px;
+    }
+    .user-stat-meta strong { font-size: 18px; }
+    .user-stat-meta small { font-size: 9.5px; }
+
+    /* Toolbar stacked */
+    .user-toolbar {
+        padding: 12px 14px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .user-search {
+        flex: 1;
+        max-width: 100%;
+    }
+    .user-filter-tabs {
+        margin-left: 0;
+        justify-content: flex-start;
+    }
+
+    /* TABLE → CARDS */
+    .admin-table-wrap {
+        overflow: visible;
+        border-radius: 0;
+        background: transparent;
+        padding: 12px;
+    }
+    .admin-table {
+        min-width: 0;
+        font-size: 13px;
+    }
+    .admin-table thead {
+        display: none;
+    }
+    .admin-table tbody tr {
+        display: block;
+        background: #fff;
+        border: 1px solid var(--line, #e4eaf1);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 8px rgba(9,47,88,.04);
+        transition: box-shadow .2s;
+    }
+    .admin-table tbody tr:hover {
+        background: #fff;
+        box-shadow: 0 6px 18px rgba(9,47,88,.10);
+    }
+    .admin-table tbody td {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px dashed #f1f5f9;
+    }
+    .admin-table tbody td:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    .admin-table tbody td:first-child {
+        padding-top: 0;
+    }
+    /* Label from data-label */
+    .admin-table tbody td::before {
+        content: attr(data-label);
+        flex-shrink: 0;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted, #65758a);
+        padding-top: 4px;
+        min-width: 70px;
+    }
+    /* User cell spans full width */
+    .admin-table tbody td[data-label="User"] {
+        flex-direction: row;
+        justify-content: flex-start;
+        border-bottom: 1px solid #f1f5f9;
+        padding: 0 0 12px;
+        margin-bottom: 6px;
+    }
+    .admin-table tbody td[data-label="User"]::before {
+        display: none;
+    }
+    .user-cell-meta strong,
+    .user-cell-meta small {
+        max-width: 100%;
+        font-size: 13.5px;
+    }
+    .user-cell-avatar {
+        width: 44px;
+        height: 44px;
+        font-size: 14px;
+    }
+    /* Action buttons row */
+    .admin-table tbody td[data-label="Actions"] {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding-top: 12px;
+        border-top: 1px solid #f1f5f9;
+    }
+    .admin-table tbody td[data-label="Actions"]::before {
+        display: none;
+    }
+    .action-btn-group {
+        justify-content: flex-end;
+        gap: 6px;
+    }
+    .btn-icon-edit,
+    .btn-icon-approve,
+    .btn-icon-danger {
+        width: 40px;
+        height: 40px;
+        font-size: 13px;
+        border-radius: 10px;
+    }
+    /* Wider role select */
+    .role-select {
+        padding: 6px 26px 6px 12px;
+        font-size: 11px;
+    }
+    /* Empty rows */
+    .admin-table tbody tr td.empty-row,
+    .admin-table tbody tr#searchEmptyRow td {
+        display: block;
+        text-align: center;
+        padding: 30px 16px;
+        border: none;
+    }
+}
+
+/* ============================================================
    EDIT USER MODAL
    ============================================================ */
 .user-modal {
@@ -274,7 +504,7 @@
     background: #fff;
     width: 100%;
     max-width: 620px;
-    max-height: 92vh;
+    max-height: calc(92vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
     border-radius: 18px;
     display: flex;
     flex-direction: column;
@@ -293,6 +523,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
 }
 .user-modal-head h3 {
     margin: 0;
@@ -305,8 +536,8 @@
 }
 .user-modal-head h3 i { color: var(--blue, #124d82); }
 .user-modal-close {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 8px;
     border: none;
     background: transparent;
@@ -328,6 +559,8 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
 }
 .user-modal-section-title {
     font-size: 11px;
@@ -357,6 +590,7 @@
     color: var(--navy, #092f58);
     background: #f8fafc;
     transition: all .2s;
+    min-height: 42px;
 }
 .user-modal-body input:focus,
 .user-modal-body select:focus {
@@ -382,6 +616,7 @@
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+    flex-shrink: 0;
 }
 .user-modal-btn-cancel {
     padding: 10px 18px;
@@ -394,6 +629,7 @@
     color: var(--muted, #65758a);
     cursor: pointer;
     transition: all .2s;
+    min-height: 42px;
 }
 .user-modal-btn-cancel:hover {
     background: #f1f5f9;
@@ -414,15 +650,14 @@
     cursor: pointer;
     transition: all .22s;
     box-shadow: 0 6px 16px rgba(18,77,130,.24);
+    min-height: 42px;
 }
 .user-modal-btn-save:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 22px rgba(18,77,130,.34);
 }
 
-/* ============================================================
-   NEW — PROFILE PHOTO BLOCK INSIDE EDIT MODAL
-   ============================================================ */
+/* Photo block */
 .user-photo-block {
     display: flex;
     align-items: center;
@@ -432,6 +667,7 @@
     border: 1px solid var(--line, #e4eaf1);
     border-radius: 12px;
     margin-bottom: 6px;
+    flex-wrap: wrap;
 }
 .user-photo-preview {
     width: 64px;
@@ -449,9 +685,7 @@
     border: 3px solid #fff;
     box-shadow: 0 4px 14px rgba(9,47,88,.14);
 }
-.user-photo-preview.has-photo {
-    padding: 0;
-}
+.user-photo-preview.has-photo { padding: 0; }
 .user-photo-preview.has-photo img {
     width: 100%;
     height: 100%;
@@ -486,7 +720,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 7px 12px;
+    padding: 8px 13px;
     border-radius: 8px;
     border: 1px solid var(--line, #e4eaf1);
     background: #fff;
@@ -497,6 +731,7 @@
     cursor: pointer;
     transition: all .2s ease;
     white-space: nowrap;
+    min-height: 34px;
 }
 .user-photo-change-btn:hover {
     background: #f1f5f9;
@@ -515,20 +750,53 @@
     transform: translateY(-1px);
 }
 
-/* ---------- Responsive ---------- */
-@media (max-width: 720px) {
-    .table-search {
-        max-width: 100%;
-        margin: 10px 0 0;
-        order: 3;
+/* ============================================================
+   MODAL — MOBILE FULL-SCREEN
+   ============================================================ */
+@media (max-width: 640px) {
+    .user-modal {
+        padding: 0;
+        align-items: stretch;
     }
-    .admin-panel-head { flex-wrap: wrap; }
-    .user-modal-row-2col { grid-template-columns: 1fr; }
-    .user-modal-body { padding: 18px; }
-    .user-modal-foot { padding: 14px 18px; }
-    .user-stat-meta strong { font-size: 19px; }
-    .user-photo-block { flex-wrap: wrap; }
+    .user-modal-box {
+        max-width: 100%;
+        width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+        transform: translateY(30px);
+    }
+    .user-modal.active .user-modal-box {
+        transform: translateY(0);
+    }
+    .user-modal-head {
+        padding: 14px 18px;
+        padding-top: calc(14px + env(safe-area-inset-top, 0px));
+    }
+    .user-modal-body {
+        padding: 18px;
+    }
+    .user-modal-row-2col {
+        grid-template-columns: 1fr;
+    }
+    .user-modal-foot {
+        padding: 14px 18px;
+        padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+        flex-direction: column-reverse;
+    }
+    .user-modal-foot button {
+        width: 100%;
+        justify-content: center;
+    }
     .user-photo-btns { width: 100%; }
+    .user-photo-btns button { flex: 1; justify-content: center; }
+}
+
+/* Small device tweaks */
+@media (max-width: 420px) {
+    .user-stats-row { grid-template-columns: 1fr 1fr; }
+    .user-stat-meta strong { font-size: 16px; }
+    .user-stat-meta small { font-size: 9px; letter-spacing: 0.05em; }
+    .user-stat-icon { width: 34px; height: 34px; font-size: 13px; }
 }
 </style>
 
@@ -560,7 +828,7 @@
     <div class="user-stat-card">
         <div class="user-stat-icon admins"><i class="fa-solid fa-user-shield"></i></div>
         <div class="user-stat-meta">
-            <strong>{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</strong>
+            <strong>{{ (users|selectattr('role', 'equalto', 'admin')|list|length) + (users|selectattr('role', 'equalto', 'administrator')|list|length) }}</strong>
             <small>Admins</small>
         </div>
     </div>
@@ -570,17 +838,20 @@
      MAIN PANEL
      ============================================================ -->
 <div class="admin-panel">
-    <div class="admin-panel-head">
-        <h3><i class="fa-solid fa-users"></i> All Users ({{ users|length }})</h3>
+    <div class="admin-panel-head" style="padding-bottom: 0; border-bottom: none;">
+        <h3 style="margin-bottom: 14px;"><i class="fa-solid fa-users"></i> All Users ({{ users|length }})</h3>
+    </div>
 
-        <div class="table-search">
+    <div class="user-toolbar">
+        <div class="user-search">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" id="userSearch" placeholder="Search name, email, ID…" autocomplete="off">
         </div>
 
-        <div class="filter-tabs">
+        <div class="user-filter-tabs">
             <a href="{{ url_for('admin_users', role='all') }}"     class="filter-tab {% if role_filter=='all' %}active{% endif %}">All</a>
             <a href="{{ url_for('admin_users', role='admin') }}"   class="filter-tab {% if role_filter=='admin' %}active{% endif %}">Admin</a>
+            <a href="{{ url_for('admin_users', role='administrator') }}" class="filter-tab {% if role_filter=='administrator' %}active{% endif %}">Admin<span style="font-size:8px;">+</span></a>
             <a href="{{ url_for('admin_users', role='teacher') }}" class="filter-tab {% if role_filter=='teacher' %}active{% endif %}">Teacher</a>
             <a href="{{ url_for('admin_users', role='parent') }}"  class="filter-tab {% if role_filter=='parent' %}active{% endif %}">Parent</a>
             <a href="{{ url_for('admin_users', role='student') }}" class="filter-tab {% if role_filter=='student' %}active{% endif %}">Student</a>
@@ -592,7 +863,7 @@
             <thead>
                 <tr>
                     <th>Unique ID</th>
-                    <th>Name</th>
+                    <th>User</th>
                     <th>Contact</th>
                     <th>Role</th>
                     <th>Status</th>
@@ -602,10 +873,14 @@
             <tbody>
                 {% for u in users %}
                 <tr data-search="{{ (u.name ~ ' ' ~ u.email ~ ' ' ~ (u.phone or '') ~ ' ' ~ (u.unique_id or '') ~ ' ' ~ u.role)|lower }}">
-                    <td>
-                        <strong style="color:var(--red, #d71938);">{{ u.unique_id or '—' }}</strong>
+
+                    <!-- UNIQUE ID -->
+                    <td data-label="ID">
+                        <strong style="color:var(--red, #d71938); font-size:12px;">{{ u.unique_id or '—' }}</strong>
                     </td>
-                    <td>
+
+                    <!-- USER (avatar + name + email) -->
+                    <td data-label="User">
                         <div class="user-cell">
                             <div class="user-cell-avatar {% if u.photo_url %}has-photo{% endif %}">
                                 {% if u.photo_url %}
@@ -615,32 +890,35 @@
                                 {% endif %}
                             </div>
                             <div class="user-cell-meta">
-                                <strong>{{ u.name }}</strong>
-                                <small>{{ u.email }}</small>
+                                <strong title="{{ u.name }}">{{ u.name }}</strong>
+                                <small title="{{ u.email }}">{{ u.email }}</small>
                             </div>
                         </div>
                     </td>
-                    <td>
-                        <div style="font-size:12.5px; color:var(--muted, #65758a);">
+
+                    <!-- CONTACT -->
+                    <td data-label="Phone">
+                        <span style="font-size:12.5px; color:var(--muted, #65758a); white-space:nowrap;">
                             <i class="fa-solid fa-phone" style="font-size:10px; color:#94a3b8; margin-right:4px;"></i>
                             {{ u.phone or '—' }}
-                        </div>
-                    </td>
-                    <td>
-                        <form method="POST" action="{{ url_for('admin_change_role', user_id=u.id) }}" class="inline-form" style="margin:0;">
-                            <select name="role" class="role-select" onchange="this.form.submit()" title="Change role">
-                                <option value="teacher" {% if u.role=='teacher' %}selected{% endif %}>Teacher</option>
-                                <option value="admin"   {% if u.role=='admin'   %}selected{% endif %}>Admin</option>
-                                <option value="parent"  {% if u.role=='parent'  %}selected{% endif %}>Parent</option>
-                                <option value="student" {% if u.role=='student' %}selected{% endif %}>Student</option>
-                            </select>
-                        </form>
-                        <span class="user-role-pill {{ u.role }}" style="margin-top:6px; display:inline-flex;">
-                            <i class="fa-solid fa-{% if u.role=='admin' %}user-shield{% elif u.role=='teacher' %}chalkboard-user{% elif u.role=='parent' %}user-group{% else %}user-graduate{% endif %}"></i>
-                            {{ u.role|capitalize }}
                         </span>
                     </td>
-                    <td>
+
+                    <!-- ROLE (unified dropdown) -->
+                    <td data-label="Role">
+                        <form method="POST" action="{{ url_for('admin_change_role', user_id=u.id) }}" style="margin:0;">
+                            <select name="role" class="role-select {{ u.role }}" onchange="this.form.submit()" title="Change role">
+                                <option value="student"       {% if u.role=='student' %}selected{% endif %}>Student</option>
+                                <option value="parent"        {% if u.role=='parent' %}selected{% endif %}>Parent</option>
+                                <option value="teacher"       {% if u.role=='teacher' %}selected{% endif %}>Teacher</option>
+                                <option value="admin"         {% if u.role=='admin' %}selected{% endif %}>Admin</option>
+                                <option value="administrator" {% if u.role=='administrator' %}selected{% endif %}>Administrator</option>
+                            </select>
+                        </form>
+                    </td>
+
+                    <!-- STATUS -->
+                    <td data-label="Status">
                         {% if u.is_active %}
                         <span class="user-status-pill active">
                             <span class="user-status-dot"></span> Active
@@ -651,9 +929,10 @@
                         </span>
                         {% endif %}
                     </td>
-                    <td>
+
+                    <!-- ACTIONS -->
+                    <td data-label="Actions">
                         <div class="action-btn-group">
-                            <!-- Edit button (photo management integrated into its modal) -->
                             <button type="button"
                                     class="btn-icon-edit"
                                     title="Edit user details"
@@ -693,7 +972,7 @@
                                 </button>
                             </form>
                             {% else %}
-                            <span style="font-size:10px; color:var(--muted, #65758a); font-weight:700;">(You)</span>
+                            <span style="font-size:10px; color:var(--muted, #65758a); font-weight:700; padding:0 4px;">(You)</span>
                             {% endif %}
                         </div>
                     </td>
@@ -730,7 +1009,6 @@
             </button>
         </div>
 
-        <!-- === NEW: photo forms — top-level (not nested inside edit form) === -->
         <form id="eu_photo_form" method="POST" enctype="multipart/form-data" style="display:none;">
             <input type="file" name="photo" accept="image/*"
                    onchange="if(this.files.length) this.form.submit();">
@@ -740,7 +1018,6 @@
         <form method="POST" id="editUserForm" action="">
             <div class="user-modal-body">
 
-                <!-- NEW: profile photo block -->
                 <div class="user-photo-block">
                     <div class="user-photo-preview" id="eu_photo_preview">?</div>
                     <div class="user-photo-meta">
@@ -771,6 +1048,7 @@
                             <option value="parent">Parent</option>
                             <option value="teacher">Teacher</option>
                             <option value="admin">Admin</option>
+                            <option value="administrator">Administrator</option>
                         </select>
                     </label>
                 </div>
@@ -844,7 +1122,6 @@
         return (a + b).toUpperCase();
     }
 
-    // Expose globally for inline onclick
     window.openEditUser = function (btn) {
         const d = btn.dataset;
 
@@ -858,7 +1135,6 @@
 
         toggleChildFields();
 
-        // Photo preview
         const preview = document.getElementById('eu_photo_preview');
         const removeBtn = document.getElementById('eu_photo_remove_btn');
         if (d.photo) {
@@ -871,17 +1147,14 @@
             removeBtn.style.display = 'none';
         }
 
-        // Wire photo form actions
         const photoForm       = document.getElementById('eu_photo_form');
         const photoRemoveForm = document.getElementById('eu_photo_remove_form');
         if (d.photoUrl)       photoForm.action       = d.photoUrl;
         if (d.photoRemoveUrl) photoRemoveForm.action = d.photoRemoveUrl;
 
-        // Reset the file input so re-selecting the same file still triggers submit
         const fileInput = photoForm.querySelector('input[type=file]');
         if (fileInput) fileInput.value = '';
 
-        // Set main form action
         form.action = d.editUrl;
 
         modal.classList.add('active');
@@ -929,6 +1202,13 @@
             }
         });
     }
+
+    /* ---------------- Auto-submit confirm dialogs ---------------- */
+    document.querySelectorAll('form[data-confirm]').forEach(f => {
+        f.addEventListener('submit', function (e) {
+            if (!confirm(this.dataset.confirm)) e.preventDefault();
+        });
+    });
 })();
 </script>
 

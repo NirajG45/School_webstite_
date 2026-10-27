@@ -1425,56 +1425,69 @@
                     </button>
 
                     <div class="admin-user-dropdown" id="adminUserDropdown" role="menu">
-                        <div class="admin-user-head">
-                            {% if session.get('photo_url') %}
-                            <div class="admin-user-head-avatar has-photo">
-                                <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
-                            </div>
-                            {% else %}
-                            <div class="admin-user-head-avatar">
-                                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
-                                upper if session['user_name'].split()|length > 1 else '' }}
-                            </div>
-                            {% endif %}
-                            <div class="admin-user-head-text">
-                                <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
-                                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
-                                <span class="admin-user-role-tag">
-                                    {% if session.get('user_role') == 'administrator' %}Administrator{% else %}Admin{% endif %}
-                                </span>
-                            </div>
-                        </div>
-                        <hr class="admin-user-divider">
-                        <a href="{{ url_for('admin_dashboard') }}" role="menuitem"><i class="fa-solid fa-gauge"></i> Dashboard</a>
-                        <a href="{{ url_for('user_dashboard') }}" role="menuitem"><i class="fa-solid fa-id-card"></i> My Dashboard</a>
-                        <a href="{{ url_for('messages_inbox') }}" role="menuitem"><i class="fa-solid fa-inbox"></i> Inbox</a>
+    <div class="admin-user-head">
+        {% if session.get('photo_url') %}
+        <div class="admin-user-head-avatar has-photo">
+            <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+        </div>
+        {% else %}
+        <div class="admin-user-head-avatar">
+            {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
+            upper if session['user_name'].split()|length > 1 else '' }}
+        </div>
+        {% endif %}
+        <div class="admin-user-head-text">
+            <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
+            <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
+            <span class="admin-user-role-tag">
+                {% if session.get('user_role') == 'administrator' %}Administrator{% else %}Admin{% endif %}
+            </span>
+        </div>
+    </div>
+    <hr class="admin-user-divider">
 
-                        <a href="#" role="menuitem"
-                            onclick="event.preventDefault(); document.getElementById('adminUserProfile').classList.remove('dropdown-open'); document.getElementById('adminPhotoInput').click();">
-                            <i class="fa-solid fa-camera"></i> Change Photo
-                        </a>
+    <!-- NEW: Admin Panel — golden highlighted -->
+    <a href="{{ url_for('admin_dashboard') }}" role="menuitem" class="admin-panel-link">
+        <i class="fa-solid fa-user-gear"></i> <strong>Admin Panel</strong>
+    </a>
 
-                        {% if session.get('photo_url') %}
-                        <form method="POST" action="{{ url_for('remove_profile_photo') }}"
-                            onsubmit="return confirm('Remove your profile photo?');">
-                            <button type="submit" class="remove-photo-btn">
-                                <i class="fa-solid fa-trash"></i> Remove Photo
-                            </button>
-                        </form>
-                        {% endif %}
+    <a href="{{ url_for('user_dashboard') }}" role="menuitem">
+        <i class="fa-solid fa-id-card"></i> My Dashboard
+    </a>
+    <a href="{{ url_for('messages_inbox') }}" role="menuitem">
+        <i class="fa-solid fa-inbox"></i> Inbox
+    </a>
 
-                        <a href="{{ url_for('home') }}" target="_blank" rel="noopener" role="menuitem"><i class="fa-solid fa-globe"></i> View Website</a>
-                        
-                        <!-- REMOVED: Change Password link from Profile Dropdown as requested -->
+    <a href="#" role="menuitem"
+        onclick="event.preventDefault(); document.getElementById('adminUserProfile').classList.remove('dropdown-open'); document.getElementById('adminPhotoInput').click();">
+        <i class="fa-solid fa-camera"></i> Change Photo
+    </a>
 
-                        <a href="{{ url_for('logout') }}" class="admin-logout-link" role="menuitem"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    {% if session.get('photo_url') %}
+    <form method="POST" action="{{ url_for('remove_profile_photo') }}"
+        onsubmit="return confirm('Remove your profile photo?');">
+        <button type="submit" class="remove-photo-btn">
+            <i class="fa-solid fa-trash"></i> Remove Photo
+        </button>
+    </form>
+    {% endif %}
 
-                        <form id="adminPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
-                            enctype="multipart/form-data" style="display:none;">
-                            <input type="file" id="adminPhotoInput" name="photo" accept="image/*"
-                                onchange="document.getElementById('adminPhotoForm').submit();">
-                        </form>
-                    </div>
+    <a href="{{ url_for('home') }}" target="_blank" rel="noopener" role="menuitem">
+        <i class="fa-solid fa-globe"></i> View Website
+    </a>
+    <a href="{{ url_for('change_password') }}" role="menuitem">
+        <i class="fa-solid fa-key"></i> Change Password
+    </a>
+    <a href="{{ url_for('logout') }}" class="admin-logout-link" role="menuitem">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </a>
+
+    <form id="adminPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
+        enctype="multipart/form-data" style="display:none;">
+        <input type="file" id="adminPhotoInput" name="photo" accept="image/*"
+            onchange="document.getElementById('adminPhotoForm').submit();">
+    </form>
+</div>
                 </div>
             </div>
         </header>

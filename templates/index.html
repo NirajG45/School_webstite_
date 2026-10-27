@@ -91,7 +91,7 @@
 
         /* =========================================
            FOOTER ENHANCEMENT (Clean Grid + Hover)
-           ========================================= -->
+           ========================================= */
         .site-footer {
             background-color: var(--navy, #0b3562);
             color: #fff;
@@ -254,9 +254,9 @@
                             <i class="fa-solid fa-user-gear"></i> Admin Panel
                         </a>
                         {% endif %}
-                        <a href="{{ url_for('change_password') }}" role="menuitem">
+                        <!-- <a href="{{ url_for('change_password') }}" role="menuitem">
                             <i class="fa-solid fa-key"></i> Change Password
-                        </a>
+                        </a> -->
                         <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem">
                             <i class="fa-solid fa-right-from-bracket"></i> Logout
                         </a>

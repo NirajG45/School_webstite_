@@ -140,7 +140,7 @@ STUDENT_FIELDS = [
 ROLE_FIELDS = {
     'teacher': TEACHER_FIELDS,
     'admin': ADMIN_FIELDS,
-    'administrator': ADMIN_FIELDS, # UPGRADE: Administrator gets same fields as Admin
+    'administrator': ADMIN_FIELDS,
     'parent': PARENT_FIELDS,
     'student': STUDENT_FIELDS,
 }
@@ -319,6 +319,43 @@ def init_db():
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (faculty_id) REFERENCES faculty(id) ON DELETE CASCADE)''')
 
+        # =========================================
+        # 🚀 NEW: EXAM SYSTEM TABLES
+        # =========================================
+        db.execute('''CREATE TABLE IF NOT EXISTS subjects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            class_name TEXT NOT NULL,
+            subject_name TEXT NOT NULL,
+            max_marks REAL NOT NULL DEFAULT 50,
+            display_order INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+
+        db.execute('''CREATE TABLE IF NOT EXISTS exams (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            academic_year TEXT,
+            term_label TEXT DEFAULT '2nd TERM',
+            notice_text TEXT,
+            custom_message TEXT,
+            status TEXT DEFAULT 'draft',
+            created_by INTEGER,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            published_at TEXT)''')
+
+        db.execute('''CREATE TABLE IF NOT EXISTS exam_submissions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            exam_id INTEGER NOT NULL,
+            class_name TEXT NOT NULL,
+            teacher_id INTEGER,
+            status TEXT DEFAULT 'pending',
+            submitted_at TEXT,
+            UNIQUE(exam_id, class_name))''')
+
+        # Migrate existing exam_marks table — add exam_id column if missing
+        _mcols = {row[1] for row in db.execute("PRAGMA table_info(exam_marks)").fetchall()}
+        if 'exam_id' not in _mcols:
+            db.execute('ALTER TABLE exam_marks ADD COLUMN exam_id INTEGER')
+
         # Default school settings (required — not dummy data)
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('fee_qr_url', '')")
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('school_name', 'Residential Shanti Niketan')")
@@ -346,7 +383,6 @@ def get_user_by_unique_id(uid):
 def generate_unique_id(role):
     """Generate unique ID like SNVT00001, SNVP00001, SNVST00001"""
     db = get_db()
-    # 🚀 UPGRADE: Added 'administrator' mapping
     prefixes = {'admin': 'SNV', 'administrator': 'SNV', 'teacher': 'SNVT', 'parent': 'SNVP', 'student': 'SNVST'}
     prefix = prefixes.get(role, 'SNV')
 
@@ -385,7 +421,6 @@ def get_combined_faculty():
        so that faculty.id is always available for subject assignments."""
     db = get_db()
 
-    # --- Defensive sync: every active teacher must have a faculty row ---
     teachers = db.execute(
         "SELECT id, name, subject, qualification, experience, photo_url FROM users "
         "WHERE role='teacher' AND is_active = 1"
@@ -396,7 +431,6 @@ def get_combined_faculty():
         ).fetchone()
         if existing:
             continue
-        # Fallback: try matching by name (legacy rows without user_id)
         existing = db.execute(
             'SELECT id FROM faculty WHERE name = ?', (t['name'],)
         ).fetchone()
@@ -506,9 +540,8 @@ def compress_image(file_storage, target_kb=45, max_dim=1600,
     try:
         file_storage.stream.seek(0)
         img = Image.open(file_storage.stream)
-        img = ImageOps.exif_transpose(img)  # phone camera ka rotation fix
+        img = ImageOps.exif_transpose(img)
 
-        # RGBA / P / LA → RGB (JPEG alpha support nahi karta)
         if img.mode in ('RGBA', 'LA', 'P'):
             if img.mode == 'P':
                 img = img.convert('RGBA')
@@ -518,13 +551,11 @@ def compress_image(file_storage, target_kb=45, max_dim=1600,
         elif img.mode != 'RGB':
             img = img.convert('RGB')
 
-        # Bahut bada dimension ho to pehle resize
         if max(img.size) > max_dim:
             img.thumbnail((max_dim, max_dim), Image.LANCZOS)
 
         buf = io.BytesIO()
 
-        # Quality ghataate jao jab tak size ~target na ho jaye
         quality = quality_start
         while quality >= quality_min:
             buf.seek(0); buf.truncate()
@@ -534,7 +565,6 @@ def compress_image(file_storage, target_kb=45, max_dim=1600,
                 break
             quality -= 5
 
-        # Agar min quality par bhi bada hai, to progressively shrink
         while buf.tell() > target_kb * 1024 and max(img.size) > 400:
             new_size = (int(img.width * 0.85), int(img.height * 0.85))
             img = img.resize(new_size, Image.LANCZOS)
@@ -570,7 +600,6 @@ def admin_required(f):
         if not session.get('user_id'):
             flash('Please login to access admin panel.', 'error')
             return redirect(url_for('login_page'))
-        # 🚀 UPGRADE: Allowed both admin and administrator
         if session.get('user_role') not in ('admin', 'administrator'):
             flash('Access denied. Admin privileges required.', 'error')
             return redirect(url_for('user_dashboard'))
@@ -578,14 +607,12 @@ def admin_required(f):
     return decorated
 
 def get_dashboard_url(role):
-    # 🚀 UPGRADE: Allowed both admin and administrator
     return url_for('admin_dashboard') if role in ('admin', 'administrator') else url_for('user_dashboard')
 
 # === Context processor for admin sidebar pending counts ===
 @app.context_processor
 def inject_admin_sidebar_counts():
     """Make pending counts available to all admin templates."""
-    # 🚀 UPGRADE: Allowed both admin and administrator
     if not session.get('user_id') or session.get('user_role') not in ('admin', 'administrator'):
         return {}
     try:
@@ -609,6 +636,55 @@ def inject_admin_sidebar_counts():
         }
     except Exception:
         return {}
+
+# =========================================
+# 🚀 NEW: EXAM SYSTEM — GLOBAL PENDING COUNTS
+# =========================================
+@app.context_processor
+def inject_exam_pending_counts():
+    """
+    Provides pending_exam_submissions (admin) & pending_exam_marks (teacher)
+    globally so every template can show live badges without per-route changes.
+    """
+    if not session.get('user_id'):
+        return {'pending_exam_submissions': 0, 'pending_exam_marks': 0}
+
+    role = session.get('user_role')
+    try:
+        db = get_db()
+
+        if role in ('admin', 'administrator'):
+            pending = db.execute(
+                "SELECT COUNT(*) FROM exam_submissions es "
+                "JOIN exams e ON es.exam_id = e.id "
+                "WHERE e.status='published' AND es.status IN ('pending', 'in_progress')"
+            ).fetchone()[0] or 0
+            return {'pending_exam_submissions': pending, 'pending_exam_marks': 0}
+
+        if role == 'teacher':
+            user = db.execute(
+                'SELECT classes_assigned FROM users WHERE id = ?',
+                (session['user_id'],)
+            ).fetchone()
+            if not user or not user['classes_assigned']:
+                return {'pending_exam_submissions': 0, 'pending_exam_marks': 0}
+            classes = [c.strip() for c in user['classes_assigned'].split(',') if c.strip()]
+            if not classes:
+                return {'pending_exam_submissions': 0, 'pending_exam_marks': 0}
+            ph = ','.join(['?'] * len(classes))
+            count = db.execute(
+                f"SELECT COUNT(*) FROM exam_submissions es "
+                f"JOIN exams e ON es.exam_id = e.id "
+                f"WHERE e.status='published' "
+                f"AND es.status IN ('pending', 'in_progress') "
+                f"AND es.class_name IN ({ph})",
+                tuple(classes)
+            ).fetchone()[0] or 0
+            return {'pending_exam_submissions': 0, 'pending_exam_marks': count}
+    except Exception:
+        pass
+
+    return {'pending_exam_submissions': 0, 'pending_exam_marks': 0}
 
 # =========================================
 # 🚀 SESSION SYNC — Ensures DB photo_url is always in session
@@ -713,7 +789,6 @@ def admin_edit_profile(user_id):
         flash('Invalid email format.', 'error')
         return redirect(request.referrer or url_for('admin_users'))
 
-    # 🚀 UPGRADE: Added administrator
     if role not in ('teacher', 'admin', 'administrator', 'parent', 'student'):
         flash('Invalid role.', 'error')
         return redirect(request.referrer or url_for('admin_users'))
@@ -767,7 +842,6 @@ def admin_edit_profile(user_id):
                            (user_id, name, updates.get('subject') or 'General',
                             updates.get('qualification') or '', updates.get('experience') or '', updates.get('photo_url')))
         else:
-            # 🚀 CASCADE: remove faculty row AND its subject assignments
             fac_row = db.execute('SELECT id FROM faculty WHERE user_id = ?', (user_id,)).fetchone()
             if fac_row:
                 db.execute('DELETE FROM faculty_subject_assignments WHERE faculty_id = ?',
@@ -776,7 +850,6 @@ def admin_edit_profile(user_id):
 
         db.commit()
 
-        # 🚀 FIX: Session Update if Admin edits own profile
         if session['user_id'] == user_id:
             session['user_name'] = name
             session['user_role'] = role
@@ -817,7 +890,7 @@ def login():
         session['user_name'] = user['name']
         session['user_role'] = user['role']
         session['unique_id'] = user['unique_id']
-        session['photo_url'] = user['photo_url']  # 🚀 FIX: Photo URL saved on login
+        session['photo_url'] = user['photo_url']
 
         if user['force_password_change']:
             flash('Welcome! Please set a new password.', 'success')
@@ -1187,7 +1260,7 @@ def admin_users():
     )
 
 # =========================================
-# ADMIN DEDICATED PHOTO ROUTES (For Admin Users Page Modal)
+# ADMIN DEDICATED PHOTO ROUTES
 # =========================================
 @app.route('/admin/users/<int:user_id>/update-photo', methods=['POST'])
 @admin_required
@@ -1243,7 +1316,6 @@ def admin_remove_user_photo(user_id):
 
     flash('User photo removed.', 'success')
     return redirect(request.referrer or url_for('admin_users'))
-# =========================================
 
 @app.route('/admin/create-user', methods=['GET', 'POST'])
 @admin_required
@@ -1260,7 +1332,6 @@ def admin_create_user():
 
         if not role:
             errors['role'] = 'Please select a role'
-        # 🚀 UPGRADE: Added administrator
         elif role not in ('teacher', 'admin', 'administrator', 'parent', 'student'):
             errors['role'] = 'Invalid role selected'
 
@@ -1325,7 +1396,6 @@ def admin_create_user():
             if not (form.get('subject') or '').strip():
                 errors['subject'] = 'Primary Subject is required'
 
-        # 🚀 UPGRADE: Added administrator block
         elif role in ('admin', 'administrator'):
             if not (form.get('designation') or '').strip():
                 errors['designation'] = 'Designation is required'
@@ -1472,7 +1542,6 @@ def admin_delete_user(user_id):
         return redirect(url_for('admin_users'))
     db = get_db()
 
-    # 🚀 CASCADE: remove assignments before removing faculty row
     fac_row = db.execute('SELECT id FROM faculty WHERE user_id = ?', (user_id,)).fetchone()
     if fac_row:
         db.execute('DELETE FROM faculty_subject_assignments WHERE faculty_id = ?',
@@ -1488,7 +1557,6 @@ def admin_delete_user(user_id):
 @admin_required
 def admin_change_role(user_id):
     new_role = request.form.get('role', 'student')
-    # 🚀 UPGRADE: Added administrator
     if new_role not in ['teacher', 'admin', 'administrator', 'parent', 'student']:
         flash('Invalid role.', 'error')
         return redirect(url_for('admin_users'))
@@ -1506,7 +1574,6 @@ def admin_change_role(user_id):
             db.execute('INSERT INTO faculty (user_id, name, subject) VALUES (?, ?, ?)',
                        (user_id, user['name'], user['subject'] or 'General'))
     else:
-        # 🚀 CASCADE: remove faculty row AND its assignments
         fac_row = db.execute('SELECT id FROM faculty WHERE user_id = ?', (user_id,)).fetchone()
         if fac_row:
             db.execute('DELETE FROM faculty_subject_assignments WHERE faculty_id = ?',
@@ -1845,7 +1912,7 @@ def admin_delete_enquiry(eid):
 
 
 # =========================================
-# 10.5. ADMIN — NEW CONTENT MANAGEMENT ROUTES
+# 10.5. ADMIN — CONTENT MANAGEMENT ROUTES
 # =========================================
 
 # === FACULTY ===
@@ -1855,7 +1922,6 @@ def admin_faculty():
     db = get_db()
     faculty = get_combined_faculty()
 
-    # --- All subject assignments (with faculty name joined) ---
     rows = db.execute('''
         SELECT a.*, f.name AS faculty_name
         FROM faculty_subject_assignments a
@@ -1876,7 +1942,6 @@ def admin_faculty():
     ''').fetchall()
     assignments = [dict(r) for r in rows]
 
-    # --- Datalist suggestions ---
     classes = [
         r['class_name'] for r in db.execute(
             "SELECT DISTINCT class_name FROM users "
@@ -1902,7 +1967,6 @@ def admin_faculty():
     )
 
 
-# 🚀 NEW: Assign subject to faculty (class-wise + day-wise)
 @app.route('/admin/faculty/assign-subject', methods=['POST'])
 @admin_required
 def admin_assign_subject():
@@ -1928,7 +1992,6 @@ def admin_assign_subject():
         flash('Selected faculty not found.', 'error')
         return redirect(url_for('admin_faculty'))
 
-    # "All Days" → expand to Mon–Sat
     days_to_assign = (
         ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
         if day == 'All Days' else [day]
@@ -1967,7 +2030,6 @@ def admin_assign_subject():
     return redirect(url_for('admin_faculty'))
 
 
-# 🚀 NEW: Delete a specific assignment
 @app.route('/admin/faculty/assignment/<int:aid>/delete', methods=['POST'])
 @admin_required
 def admin_delete_assignment(aid):
@@ -2035,7 +2097,6 @@ def admin_edit_faculty(fid):
 @admin_required
 def admin_delete_faculty(fid):
     db = get_db()
-    # 🚀 CASCADE — remove all assignments tied to this faculty row
     db.execute('DELETE FROM faculty_subject_assignments WHERE faculty_id = ?', (fid,))
     db.execute('DELETE FROM faculty WHERE id = ?', (fid,))
     db.commit()
@@ -2136,7 +2197,7 @@ def admin_add_gallery():
             if compressed is None:
                 flash('Image process nahi ho payi. Doosri image try karein.', 'error')
                 return redirect(url_for('admin_gallery'))
-            filename = f"gallery_{secrets.token_hex(6)}.jpg"   # always .jpg
+            filename = f"gallery_{secrets.token_hex(6)}.jpg"
             images_folder = BASE_DIR / 'static' / 'images'
             images_folder.mkdir(parents=True, exist_ok=True)
             (images_folder / filename).write_bytes(compressed)
@@ -2334,7 +2395,6 @@ def admin_delete_homework(hid):
 @login_required
 def teacher_attendance():
     user = get_user_by_id(session['user_id'])
-    # 🚀 UPGRADE: Allowed both admin and administrator
     if not user or user['role'] not in ('teacher', 'admin', 'administrator'):
         flash('Only teachers can access this page.', 'error')
         return redirect(url_for('user_dashboard'))
@@ -2350,9 +2410,7 @@ def teacher_attendance():
     raw_classes = user['classes_assigned'] or ''
     assigned_classes = [c.strip() for c in raw_classes.split(',') if c.strip()]
 
-    # ---------- POST handler ----------
     if request.method == 'POST':
-        # 1) Self attendance
         self_status = request.form.get('teacher_self_status')
         if self_status in ('present', 'absent', 'leave', 'half-day'):
             existing = db.execute(
@@ -2371,7 +2429,6 @@ def teacher_attendance():
                     (user['id'], date, self_status, user['id'])
                 )
 
-        # 2) Classroom attendance — handles empty (reset) status too
         for key, val in request.form.items():
             if key.startswith('status_'):
                 try:
@@ -2406,7 +2463,6 @@ def teacher_attendance():
             date=date, subject=subject, class_filter=selected_class
         ))
 
-    # ---------- GET handler ----------
     self_rec = db.execute(
         "SELECT status FROM attendance WHERE user_id=? AND date=? AND subject='General'",
         (user['id'], date)
@@ -2475,7 +2531,6 @@ def teacher_attendance():
 @login_required
 def teacher_homework():
     user = get_user_by_id(session['user_id'])
-    # 🚀 UPGRADE: Allowed both admin and administrator
     if not user or user['role'] not in ('teacher', 'admin', 'administrator'):
         flash('Only teachers can access this page.', 'error')
         return redirect(url_for('user_dashboard'))
@@ -2560,7 +2615,6 @@ def teacher_homework():
 @login_required
 def teacher_add_homework():
     user = get_user_by_id(session['user_id'])
-    # 🚀 UPGRADE: Allowed both admin and administrator
     if not user or user['role'] not in ('teacher', 'admin', 'administrator'):
         flash('Only teachers can access this page.', 'error')
         return redirect(url_for('user_dashboard'))
@@ -2590,7 +2644,6 @@ def teacher_add_homework():
 @login_required
 def teacher_delete_homework(hid):
     user = get_user_by_id(session['user_id'])
-    # 🚀 UPGRADE: Allowed both admin and administrator
     if not user or user['role'] not in ('teacher', 'admin', 'administrator'):
         flash('Only teachers can access this page.', 'error')
         return redirect(url_for('user_dashboard'))
@@ -2641,12 +2694,10 @@ def update_profile_photo():
     db.execute('UPDATE users SET photo_url = ? WHERE id = ?', (photo_url, user['id']))
     db.commit()
 
-    # Sync to faculty table for teachers so public faculty page reflects new photo
     if user['role'] == 'teacher':
         db.execute('UPDATE faculty SET photo_url = ? WHERE user_id = ?', (photo_url, user['id']))
         db.commit()
 
-    # Refresh session so it appears immediately everywhere
     session['photo_url'] = photo_url
 
     flash('Profile photo updated successfully!', 'success')
@@ -2678,20 +2729,11 @@ def remove_profile_photo():
 # MESSAGING SYSTEM — ROLE-BASED
 # =========================================
 def _allowed_recipients(db, user):
-    """
-    Returns list of dicts {id, name, unique_id, role} this user can message.
-
-    Rules:
-      admin / administrator   → everyone (students, teachers, parents, other admins)
-      teacher → admin, teachers, their students, parents of those students
-      parent  → admin, teachers
-      student → admin, teachers
-    """
+    """Returns list of dicts {id, name, unique_id, role} this user can message."""
     role = user['role']
     uid = user['id']
     recipients = []
 
-    # 🚀 UPGRADE: Allowed both admin and administrator
     if role in ('admin', 'administrator'):
         rows = db.execute(
             "SELECT id, name, unique_id, role FROM users "
@@ -2765,7 +2807,7 @@ def messages_inbox():
         return redirect(url_for('login_page'))
 
     db = get_db()
-    view = request.args.get('view', 'inbox')  # inbox | sent
+    view = request.args.get('view', 'inbox')
     search_q = (request.args.get('q') or '').strip().lower()
 
     if view == 'sent':
@@ -2958,7 +3000,6 @@ def messages_delete(msg_id):
         flash('Message not found.', 'error')
         return redirect(url_for('messages_inbox'))
 
-    # 🚀 UPGRADE: Allowed both admin and administrator
     if msg['from_user_id'] != user['id'] and user['role'] not in ('admin', 'administrator'):
         flash('You can only delete messages you sent.', 'error')
         return redirect(url_for('messages_inbox'))
@@ -3187,35 +3228,560 @@ def add_headers(response):
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     return response
 
+
 # =========================================
-# MISSING ADMIN ROUTES (For Sidebar Links)
+# 🚀 EXAM SYSTEM — ADMIN ROUTES
 # =========================================
 
+# ----- Backward-compat stubs → redirect to new system -----
 @app.route('/admin/enter-marks')
 @admin_required
 def admin_enter_marks():
-    # यहाँ आप मार्क्स एंटर करने का लॉजिक बाद में जोड़ सकते हैं
-    return render_template('admin_enter_marks.html', active_page='enter_marks')
+    """Legacy link → new exams list."""
+    return redirect(url_for('admin_exams_list'))
 
 @app.route('/admin/bulk-marks')
 @admin_required
 def admin_bulk_marks():
-    return render_template('admin_bulk_marks.html', active_page='bulk_marks')
+    """Legacy link → reports dashboard where bulk entry lives."""
+    return redirect(url_for('admin_reports_dashboard'))
 
 @app.route('/admin/reports')
 @admin_required
 def admin_reports():
-    return render_template('admin_reports.html', active_page='reports')
+    """Legacy link → reports dashboard."""
+    return redirect(url_for('admin_reports_dashboard'))
 
+
+# ---------- EXAM CRUD ----------
+@app.route('/admin/exams')
+@admin_required
+def admin_exams_list():
+    db = get_db()
+    exams = db.execute('SELECT * FROM exams ORDER BY id DESC').fetchall()
+    return render_template('admin_exams_list.html', exams=exams, active_page='exams')
+
+
+@app.route('/admin/exams/create', methods=['GET', 'POST'])
+@admin_required
+def admin_exam_create():
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        if not title:
+            flash('Exam title is required.', 'error')
+            return redirect(url_for('admin_exam_create'))
+
+        db = get_db()
+        cur = db.execute('''INSERT INTO exams
+            (title, academic_year, term_label, notice_text, custom_message, created_by)
+            VALUES (?, ?, ?, ?, ?, ?)''',
+            (title,
+             request.form.get('academic_year', '').strip(),
+             request.form.get('term_label', '2nd TERM').strip(),
+             request.form.get('notice_text', '').strip(),
+             request.form.get('custom_message', '').strip(),
+             session['user_id']))
+        db.commit()
+        flash('Exam saved as draft. Add subjects below, then publish.', 'success')
+        return redirect(url_for('admin_exam_edit', eid=cur.lastrowid))
+
+    return render_template('admin_exam_form.html', exam=None,
+                           subjects_by_class={}, class_list=[], active_page='exams')
+
+
+@app.route('/admin/exams/<int:eid>/edit', methods=['GET', 'POST'])
+@admin_required
+def admin_exam_edit(eid):
+    db = get_db()
+    exam = db.execute('SELECT * FROM exams WHERE id = ?', (eid,)).fetchone()
+    if not exam:
+        flash('Exam not found.', 'error')
+        return redirect(url_for('admin_exams_list'))
+
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        if not title:
+            flash('Exam title is required.', 'error')
+            return redirect(url_for('admin_exam_edit', eid=eid))
+
+        db.execute('''UPDATE exams SET
+            title = ?, academic_year = ?, term_label = ?,
+            notice_text = ?, custom_message = ?
+            WHERE id = ?''',
+            (title,
+             request.form.get('academic_year', '').strip(),
+             request.form.get('term_label', '2nd TERM').strip(),
+             request.form.get('notice_text', '').strip(),
+             request.form.get('custom_message', '').strip(),
+             eid))
+        db.commit()
+        flash('Exam updated.', 'success')
+        return redirect(url_for('admin_exam_edit', eid=eid))
+
+    subjects_by_class = {}
+    for row in db.execute('SELECT * FROM subjects ORDER BY class_name, display_order, id').fetchall():
+        subjects_by_class.setdefault(row['class_name'], []).append(row)
+
+    class_list = [r['c'] for r in db.execute(
+        "SELECT DISTINCT COALESCE(class_name, child_class) AS c FROM users "
+        "WHERE role='student' AND COALESCE(class_name, child_class) IS NOT NULL "
+        "AND COALESCE(class_name, child_class) != '' ORDER BY c"
+    ).fetchall() if r['c']]
+
+    return render_template('admin_exam_form.html', exam=exam,
+                           subjects_by_class=subjects_by_class,
+                           class_list=class_list, active_page='exams')
+
+
+@app.route('/admin/exams/<int:eid>/publish', methods=['POST'])
+@admin_required
+def admin_exam_publish(eid):
+    db = get_db()
+    if not db.execute('SELECT 1 FROM exams WHERE id=?', (eid,)).fetchone():
+        flash('Exam not found.', 'error')
+        return redirect(url_for('admin_exams_list'))
+
+    sub_count = db.execute('SELECT COUNT(*) FROM subjects').fetchone()[0]
+    if not sub_count:
+        flash('Add at least one subject before publishing.', 'error')
+        return redirect(url_for('admin_exam_edit', eid=eid))
+
+    db.execute("UPDATE exams SET status='published', published_at=? WHERE id=?",
+               (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), eid))
+
+    classes = db.execute('SELECT DISTINCT class_name FROM subjects').fetchall()
+    for row in classes:
+        db.execute('''INSERT OR IGNORE INTO exam_submissions
+                     (exam_id, class_name, status) VALUES (?, ?, 'pending')''',
+                   (eid, row['class_name']))
+    db.commit()
+    flash(f'Exam published! {len(classes)} class(es) notified to teachers.', 'success')
+    return redirect(url_for('admin_exams_list'))
+
+
+@app.route('/admin/exams/<int:eid>/unpublish', methods=['POST'])
+@admin_required
+def admin_exam_unpublish(eid):
+    db = get_db()
+    db.execute("UPDATE exams SET status='draft' WHERE id=?", (eid,))
+    db.commit()
+    flash('Exam unpublished.', 'success')
+    return redirect(url_for('admin_exams_list'))
+
+
+@app.route('/admin/exams/<int:eid>/delete', methods=['POST'])
+@admin_required
+def admin_exam_delete(eid):
+    db = get_db()
+    db.execute('DELETE FROM exam_marks WHERE exam_id = ?', (eid,))
+    db.execute('DELETE FROM exam_submissions WHERE exam_id = ?', (eid,))
+    db.execute('DELETE FROM exams WHERE id = ?', (eid,))
+    db.commit()
+    flash('Exam and all its marks deleted.', 'success')
+    return redirect(url_for('admin_exams_list'))
+
+
+# ---------- SUBJECTS MANAGEMENT ----------
+@app.route('/admin/subjects/add', methods=['POST'])
+@admin_required
+def admin_add_subject():
+    class_name = request.form.get('class_name', '').strip()
+    subject_name = request.form.get('subject_name', '').strip().upper()
+    try:
+        max_marks = float(request.form.get('max_marks', '50'))
+    except ValueError:
+        max_marks = 50.0
+
+    if not class_name or not subject_name:
+        flash('Class and Subject name are required.', 'error')
+        return redirect(request.referrer or url_for('admin_reports_dashboard'))
+
+    db = get_db()
+    if db.execute('SELECT 1 FROM subjects WHERE class_name=? AND subject_name=?',
+                  (class_name, subject_name)).fetchone():
+        flash(f'{subject_name} already exists for {class_name}.', 'error')
+        return redirect(request.referrer or url_for('admin_reports_dashboard'))
+
+    db.execute('INSERT INTO subjects (class_name, subject_name, max_marks) VALUES (?, ?, ?)',
+               (class_name, subject_name, max_marks))
+    db.commit()
+    flash(f'{subject_name} added to {class_name}.', 'success')
+    return redirect(request.referrer or url_for('admin_reports_dashboard'))
+
+
+@app.route('/admin/subjects/<int:sid>/delete', methods=['POST'])
+@admin_required
+def admin_delete_subject(sid):
+    db = get_db()
+    sub = db.execute('SELECT * FROM subjects WHERE id = ?', (sid,)).fetchone()
+    if sub:
+        db.execute('''DELETE FROM exam_marks WHERE subject = ? AND student_id IN (
+                        SELECT id FROM users WHERE role='student'
+                        AND COALESCE(class_name, child_class) = ?)''',
+                   (sub['subject_name'], sub['class_name']))
+        db.execute('DELETE FROM subjects WHERE id = ?', (sid,))
+        db.commit()
+    flash('Subject deleted (and its marks).', 'success')
+    return redirect(request.referrer or url_for('admin_reports_dashboard'))
+
+
+# ---------- REPORTS DASHBOARD ----------
 @app.route('/admin/reports-dashboard')
 @admin_required
 def admin_reports_dashboard():
-    return render_template('admin_generate_reports.html', active_page='reports_dashboard')
+    db = get_db()
+    selected_class = request.args.get('class', '').strip()
+    selected_exam_id = request.args.get('exam_id', type=int)
 
+    class_list = [r['c'] for r in db.execute(
+        "SELECT DISTINCT COALESCE(class_name, child_class) AS c FROM users "
+        "WHERE role='student' AND COALESCE(class_name, child_class) IS NOT NULL "
+        "AND COALESCE(class_name, child_class) != '' ORDER BY c"
+    ).fetchall() if r['c']]
+
+    subjects = []
+    if selected_class:
+        subjects = db.execute(
+            'SELECT * FROM subjects WHERE class_name = ? ORDER BY display_order, id',
+            (selected_class,)).fetchall()
+
+    all_exams = db.execute('SELECT * FROM exams ORDER BY id DESC').fetchall()
+    if not selected_exam_id and all_exams:
+        selected_exam_id = all_exams[0]['id']
+
+    selected_exam = None
+    if selected_exam_id:
+        selected_exam = db.execute('SELECT * FROM exams WHERE id = ?', (selected_exam_id,)).fetchone()
+
+    return render_template('admin_reports_dashboard.html',
+                           class_list=class_list,
+                           selected_class=selected_class,
+                           subjects=subjects,
+                           all_exams=all_exams,
+                           selected_exam=selected_exam,
+                           selected_exam_id=selected_exam_id,
+                           active_page='reports_dashboard')
+
+
+# ---------- BULK MARKS ENTRY (admin) ----------
+@app.route('/admin/bulk-marks-entry', methods=['GET', 'POST'])
+@admin_required
+def admin_bulk_marks_entry():
+    db = get_db()
+    class_name = (request.args.get('class') or request.form.get('class_name') or '').strip()
+    exam_id = request.args.get('exam_id', type=int) or request.form.get('exam_id', type=int)
+
+    if request.method == 'POST':
+        exam = db.execute('SELECT * FROM exams WHERE id = ?', (exam_id,)).fetchone()
+        if not exam:
+            flash('Exam not found.', 'error')
+            return redirect(url_for('admin_reports_dashboard'))
+
+        students = db.execute(
+            "SELECT * FROM users WHERE role='student' "
+            "AND (class_name = ? OR child_class = ?) ORDER BY name",
+            (class_name, class_name)).fetchall()
+        subjects = db.execute(
+            'SELECT * FROM subjects WHERE class_name = ?', (class_name,)).fetchall()
+
+        for s in students:
+            for sub in subjects:
+                key = f"mark_{s['id']}_{sub['id']}"
+                val = request.form.get(key, '').strip()
+                existing = db.execute(
+                    'SELECT id FROM exam_marks WHERE student_id=? AND subject=? AND exam_id=?',
+                    (s['id'], sub['subject_name'], exam_id)).fetchone()
+
+                if val == '':
+                    if existing:
+                        db.execute('DELETE FROM exam_marks WHERE id=?', (existing['id'],))
+                else:
+                    try:
+                        m = float(val)
+                    except ValueError:
+                        continue
+                    if existing:
+                        db.execute('UPDATE exam_marks SET marks_obtained=?, total_marks=? WHERE id=?',
+                                   (m, sub['max_marks'], existing['id']))
+                    else:
+                        db.execute('''INSERT INTO exam_marks
+                            (student_id, exam_type, subject, marks_obtained, total_marks, exam_id)
+                            VALUES (?, ?, ?, ?, ?, ?)''',
+                                   (s['id'], exam['title'], sub['subject_name'],
+                                    m, sub['max_marks'], exam_id))
+
+        db.execute('''INSERT OR IGNORE INTO exam_submissions (exam_id, class_name, status)
+                     VALUES (?, ?, 'in_progress')''', (exam_id, class_name))
+        db.execute('''UPDATE exam_submissions SET status='in_progress', teacher_id=?
+                     WHERE exam_id=? AND class_name=?''',
+                   (session['user_id'], exam_id, class_name))
+        db.commit()
+        flash('Marks saved successfully.', 'success')
+        return redirect(url_for('admin_bulk_marks_entry', **{'class': class_name, 'exam_id': exam_id}))
+
+    exam = db.execute('SELECT * FROM exams WHERE id = ?', (exam_id,)).fetchone() if exam_id else None
+    students = db.execute(
+        "SELECT * FROM users WHERE role='student' "
+        "AND (class_name = ? OR child_class = ?) ORDER BY name",
+        (class_name, class_name)).fetchall() if class_name else []
+    subjects = db.execute(
+        'SELECT * FROM subjects WHERE class_name = ? ORDER BY display_order, id',
+        (class_name,)).fetchall() if class_name else []
+
+    existing_marks = {}
+    if exam_id and students and subjects:
+        marks = db.execute('SELECT * FROM exam_marks WHERE exam_id = ?', (exam_id,)).fetchall()
+        sub_by_name = {s['subject_name']: s for s in subjects}
+        for m in marks:
+            if m['subject'] in sub_by_name:
+                existing_marks[f"{m['student_id']}_{sub_by_name[m['subject']]['id']}"] = m['marks_obtained']
+
+    return render_template('admin_bulk_marks_entry.html',
+                           class_name=class_name, exam=exam, exam_id=exam_id,
+                           exam_type=exam['title'] if exam else '',
+                           students=students, subjects=subjects,
+                           existing_marks=existing_marks,
+                           active_page='reports_dashboard')
+
+
+# ---------- GENERATE REPORTS (individual preview) ----------
 @app.route('/admin/generate-reports')
 @admin_required
 def admin_generate_reports():
-    return render_template('admin_generate_reports.html', active_page='generate_reports')
+    db = get_db()
+    selected_class = request.args.get('class', '').strip()
+    exam_id = request.args.get('exam_id', type=int)
+
+    class_list = [r['c'] for r in db.execute(
+        "SELECT DISTINCT COALESCE(class_name, child_class) AS c FROM users "
+        "WHERE role='student' AND COALESCE(class_name, child_class) IS NOT NULL "
+        "AND COALESCE(class_name, child_class) != '' ORDER BY c"
+    ).fetchall() if r['c']]
+
+    all_exams = db.execute('SELECT * FROM exams ORDER BY id DESC').fetchall()
+    if not exam_id and all_exams:
+        exam_id = all_exams[0]['id']
+
+    exam = db.execute('SELECT * FROM exams WHERE id = ?', (exam_id,)).fetchone() if exam_id else None
+
+    students = db.execute(
+        "SELECT * FROM users WHERE role='student' "
+        "AND (class_name = ? OR child_class = ?) ORDER BY name",
+        (selected_class, selected_class)).fetchall() if selected_class else []
+
+    return render_template('admin_generate_reports.html',
+                           class_list=class_list, selected_class=selected_class,
+                           students=students, all_exams=all_exams,
+                           exam=exam, exam_id=exam_id,
+                           active_page='generate_reports')
+
+
+# ---------- REPORT CARD PRINT (individual) ----------
+@app.route('/admin/print-report/<int:student_id>')
+@admin_required
+def print_report_card(student_id):
+    db = get_db()
+    student = db.execute("SELECT * FROM users WHERE id=? AND role='student'", (student_id,)).fetchone()
+    if not student:
+        flash('Student not found.', 'error')
+        return redirect(url_for('admin_reports_dashboard'))
+
+    exam_id = request.args.get('exam_id', type=int)
+    if exam_id:
+        exam = db.execute('SELECT * FROM exams WHERE id=?', (exam_id,)).fetchone()
+    else:
+        exam = db.execute("SELECT * FROM exams WHERE status='published' ORDER BY id DESC LIMIT 1").fetchone()
+    if not exam:
+        flash('No exam selected or published.', 'error')
+        return redirect(url_for('admin_reports_dashboard'))
+
+    cls = student['class_name'] or student['child_class']
+    subjects = db.execute('SELECT * FROM subjects WHERE class_name=? ORDER BY display_order, id',
+                          (cls,)).fetchall()
+    marks = db.execute('SELECT * FROM exam_marks WHERE student_id=? AND exam_id=?',
+                       (student_id, exam['id'])).fetchall()
+    marks_map = {m['subject']: m['marks_obtained'] for m in marks}
+
+    return render_template('report_card_print.html',
+                           students=[student], exam=exam,
+                           subjects=subjects, class_name=cls,
+                           marks_by_student={student_id: marks_map})
+
+
+# ---------- REPORT CARD PRINT (bulk, 2 per A4 landscape page) ----------
+@app.route('/admin/print-all-reports')
+@admin_required
+def admin_print_all_reports():
+    db = get_db()
+    cls = request.args.get('class', '').strip()
+    exam_id = request.args.get('exam_id', type=int)
+    if not cls:
+        flash('Class is required.', 'error')
+        return redirect(url_for('admin_reports_dashboard'))
+
+    if exam_id:
+        exam = db.execute('SELECT * FROM exams WHERE id=?', (exam_id,)).fetchone()
+    else:
+        exam = db.execute("SELECT * FROM exams WHERE status='published' ORDER BY id DESC LIMIT 1").fetchone()
+    if not exam:
+        flash('No exam selected.', 'error')
+        return redirect(url_for('admin_reports_dashboard'))
+
+    students = db.execute(
+        "SELECT * FROM users WHERE role='student' "
+        "AND (class_name = ? OR child_class = ?) ORDER BY name",
+        (cls, cls)).fetchall()
+    subjects = db.execute('SELECT * FROM subjects WHERE class_name=? ORDER BY display_order, id',
+                          (cls,)).fetchall()
+    marks = db.execute('SELECT * FROM exam_marks WHERE exam_id=?', (exam['id'],)).fetchall()
+
+    marks_by_student = {}
+    for m in marks:
+        marks_by_student.setdefault(m['student_id'], {})[m['subject']] = m['marks_obtained']
+
+    return render_template('report_card_print.html',
+                           students=students, exam=exam,
+                           subjects=subjects, class_name=cls,
+                           marks_by_student=marks_by_student)
+
+
+# =========================================
+# 🚀 EXAM SYSTEM — TEACHER ROUTES
+# =========================================
+
+@app.route('/teacher/exams')
+@login_required
+def teacher_exams():
+    user = get_user_by_id(session['user_id'])
+    if not user or user['role'] != 'teacher':
+        flash('Access denied.', 'error')
+        return redirect(url_for('user_dashboard'))
+
+    db = get_db()
+    exams = db.execute(
+        "SELECT * FROM exams WHERE status='published' ORDER BY published_at DESC").fetchall()
+
+    raw = user['classes_assigned'] or ''
+    teacher_classes = [c.strip() for c in raw.split(',') if c.strip()]
+
+    exam_info = []
+    for exam in exams:
+        subs = []
+        for cls in teacher_classes:
+            sub = db.execute(
+                'SELECT * FROM exam_submissions WHERE exam_id=? AND class_name=?',
+                (exam['id'], cls)).fetchone()
+            if sub:
+                subs.append({'class_name': cls, 'status': sub['status'], 'sub': sub})
+        if subs:
+            exam_info.append({'exam': exam, 'subs': subs})
+
+    return render_template('teacher_exams.html', user=user, exam_info=exam_info)
+
+
+@app.route('/teacher/exams/<int:eid>/marks', methods=['GET', 'POST'])
+@login_required
+def teacher_marks_entry(eid):
+    user = get_user_by_id(session['user_id'])
+    if not user or user['role'] != 'teacher':
+        flash('Access denied.', 'error')
+        return redirect(url_for('user_dashboard'))
+
+    db = get_db()
+    exam = db.execute('SELECT * FROM exams WHERE id=?', (eid,)).fetchone()
+    if not exam:
+        flash('Exam not found.', 'error')
+        return redirect(url_for('teacher_exams'))
+
+    raw = user['classes_assigned'] or ''
+    teacher_classes = [c.strip() for c in raw.split(',') if c.strip()]
+
+    class_name = request.args.get('class', '').strip()
+    if not class_name:
+        class_name = teacher_classes[0] if teacher_classes else ''
+    if not class_name:
+        flash('No class assigned.', 'error')
+        return redirect(url_for('teacher_exams'))
+
+    if request.method == 'POST':
+        students = db.execute(
+            "SELECT * FROM users WHERE role='student' "
+            "AND (class_name = ? OR child_class = ?) ORDER BY name",
+            (class_name, class_name)).fetchall()
+        subjects = db.execute(
+            'SELECT * FROM subjects WHERE class_name = ?', (class_name,)).fetchall()
+
+        for s in students:
+            for sub in subjects:
+                key = f"mark_{s['id']}_{sub['id']}"
+                val = request.form.get(key, '').strip()
+                existing = db.execute(
+                    'SELECT id FROM exam_marks WHERE student_id=? AND subject=? AND exam_id=?',
+                    (s['id'], sub['subject_name'], eid)).fetchone()
+
+                if val == '':
+                    if existing:
+                        db.execute('DELETE FROM exam_marks WHERE id=?', (existing['id'],))
+                else:
+                    try:
+                        m = float(val)
+                    except ValueError:
+                        continue
+                    if existing:
+                        db.execute('UPDATE exam_marks SET marks_obtained=?, total_marks=? WHERE id=?',
+                                   (m, sub['max_marks'], existing['id']))
+                    else:
+                        db.execute('''INSERT INTO exam_marks
+                            (student_id, exam_type, subject, marks_obtained, total_marks, exam_id)
+                            VALUES (?, ?, ?, ?, ?, ?)''',
+                                   (s['id'], exam['title'], sub['subject_name'],
+                                    m, sub['max_marks'], eid))
+
+        action = request.form.get('action', 'draft')
+        new_status = 'submitted' if action == 'submit' else 'in_progress'
+        db.execute('''INSERT OR IGNORE INTO exam_submissions
+                     (exam_id, class_name, teacher_id, status)
+                     VALUES (?, ?, ?, ?)''', (eid, class_name, user['id'], new_status))
+        db.execute('''UPDATE exam_submissions SET status=?, teacher_id=?
+                     WHERE exam_id=? AND class_name=?''',
+                   (new_status, user['id'], eid, class_name))
+        if action == 'submit':
+            db.execute("UPDATE exam_submissions SET submitted_at=? WHERE exam_id=? AND class_name=?",
+                       (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), eid, class_name))
+        db.commit()
+
+        flash('Marks submitted to admin!' if action == 'submit' else 'Draft saved.',
+              'success')
+        if action == 'submit':
+            return redirect(url_for('teacher_exams'))
+        return redirect(url_for('teacher_marks_entry', eid=eid, **{'class': class_name}))
+
+    students = db.execute(
+        "SELECT * FROM users WHERE role='student' "
+        "AND (class_name = ? OR child_class = ?) ORDER BY name",
+        (class_name, class_name)).fetchall()
+    subjects = db.execute(
+        'SELECT * FROM subjects WHERE class_name = ? ORDER BY display_order, id',
+        (class_name,)).fetchall()
+    marks = db.execute('SELECT * FROM exam_marks WHERE exam_id=?', (eid,)).fetchall()
+
+    sub_by_name = {s['subject_name']: s for s in subjects}
+    existing_marks = {}
+    for m in marks:
+        if m['subject'] in sub_by_name:
+            existing_marks[f"{m['student_id']}_{sub_by_name[m['subject']]['id']}"] = m['marks_obtained']
+
+    submission = db.execute(
+        'SELECT * FROM exam_submissions WHERE exam_id=? AND class_name=?',
+        (eid, class_name)).fetchone()
+
+    return render_template('teacher_marks_entry.html',
+                           user=user, exam=exam, class_name=class_name,
+                           students=students, subjects=subjects,
+                           existing_marks=existing_marks,
+                           submission=submission,
+                           teacher_classes=teacher_classes)
+
 
 # =========================================
 # INIT

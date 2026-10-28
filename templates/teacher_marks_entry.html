@@ -1,0 +1,112 @@
+{% extends "teacher_base.html" %}
+{% block title %}Marks Entry - {{ exam.title }}{% endblock %}
+{% block page_title %}Marks Entry: {{ class_name }}{% endblock %}
+{% block content %}
+<div class="admin-panel">
+    <div class="admin-panel-head">
+        <h3><i class="fa-solid fa-table"></i> {{ exam.title }} - {{ class_name }}</h3>
+        <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+            {% if teacher_classes|length > 1 %}
+            <form method="GET" action="{{ url_for('teacher_marks_entry', eid=exam.id) }}"
+                  style="display:inline;">
+                <select name="class" onchange="this.form.submit()"
+                        style="padding:8px; border-radius:5px; border:1px solid #ddd;">
+                    {% for c in teacher_classes %}
+                    <option value="{{ c }}" {% if c == class_name %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+            {% endif %}
+            <a href="{{ url_for('teacher_exams') }}" class="btn-admin-secondary"
+               style="text-decoration:none; padding:8px 15px; background:#eee;
+                      border-radius:5px; color:#333;">Back</a>
+        </div>
+    </div>
+
+    {% if submission and submission.status == 'submitted' %}
+    <div style="background:#dcfce7; border:1px solid #16a34a; padding:12px;
+                border-radius:6px; margin-bottom:15px; color:#166534;">
+        <i class="fa-solid fa-check-circle"></i>
+        <strong>Submitted to admin</strong> on {{ submission.submitted_at }}.
+        Edits are visible to admin immediately.
+    </div>
+    {% endif %}
+
+    {% if students and subjects %}
+    <form method="POST" action="{{ url_for('teacher_marks_entry', eid=exam.id, class=class_name) }}">
+        <div style="overflow-x:auto; padding-bottom:90px;">
+            <table class="admin-table"
+                   style="width:100%; border-collapse:collapse; text-align:left; white-space:nowrap;">
+                <thead style="position:sticky; top:0; background:#f1f5f9; z-index:10;">
+                    <tr>
+                        <th style="padding:12px; border:1px solid #cbd5e1; width:200px;">Student</th>
+                        {% for sub in subjects %}
+                        <th style="padding:12px; border:1px solid #cbd5e1; text-align:center;">
+                            {{ sub.subject_name }}<br><small class="muted">Max: {{ sub.max_marks }}</small>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in students %}
+                    <tr>
+                        <td style="padding:8px 12px; border:1px solid #cbd5e1; background:#f8fafc;">
+                            <strong style="font-size:15px;">{{ s.name }}</strong><br>
+                            <small class="muted">Roll: {{ s.roll_no or s.admission_no or '-' }}</small>
+                        </td>
+                        {% for sub in subjects %}
+                        <td style="padding:4px; border:1px solid #cbd5e1; text-align:center;">
+                            <input type="number" step="0.5" min="0" max="{{ sub.max_marks }}"
+                                   name="mark_{{ s.id }}_{{ sub.id }}"
+                                   value="{{ existing_marks.get(s.id|string + '_' + sub.id|string, '') }}"
+                                   class="mark-input" placeholder="-"
+                                   style="width:70px; padding:8px; text-align:center; font-size:16px;
+                                          border:2px solid #e2e8f0; border-radius:6px;">
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="position:fixed; bottom:20px; right:20px; background:white; padding:15px;
+                    border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.2); z-index:100;
+                    display:flex; gap:10px;">
+            <button type="submit" name="action" value="draft"
+                    class="btn-admin-secondary"
+                    style="padding:15px 20px; background:#f59e0b; color:#fff;">
+                <i class="fa-solid fa-save"></i> Save Draft
+            </button>
+            <button type="submit" name="action" value="submit"
+                    class="btn-admin-primary"
+                    style="padding:15px 30px; background:#16a34a;"
+                    onclick="return confirm('Submit marks to admin?');">
+                <i class="fa-solid fa-paper-plane"></i> Submit to Admin
+            </button>
+        </div>
+    </form>
+    {% else %}
+    <p class="empty-row">No students or subjects found for {{ class_name }}.</p>
+    {% endif %}
+</div>
+
+<style>
+.mark-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
+    outline: none;
+}
+</style>
+
+<script>
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.target.classList.contains('mark-input')) {
+        e.preventDefault();
+        const inputs = Array.from(document.querySelectorAll('.mark-input'));
+        const i = inputs.indexOf(e.target);
+        if (i > -1 && i + 1 < inputs.length) inputs[i + 1].focus();
+    }
+});
+</script>
+{% endblock %}

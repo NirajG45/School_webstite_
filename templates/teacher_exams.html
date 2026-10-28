@@ -1,0 +1,51 @@
+{% extends "teacher_base.html" %}
+{% block title %}My Exams{% endblock %}
+{% block page_title %}Examinations{% endblock %}
+{% block content %}
+<div class="admin-panel">
+    <div class="admin-panel-head">
+        <h3><i class="fa-solid fa-pen-to-square"></i> Active Examinations</h3>
+    </div>
+
+    {% if exam_info %}
+        {% for item in exam_info %}
+        <div class="admin-notice-item" style="padding:15px; margin-bottom:10px; display:block;">
+            <div style="margin-bottom:10px;">
+                <h4 style="margin:0 0 5px;">{{ item.exam.title }}</h4>
+                {% if item.exam.notice_text %}
+                <p class="muted" style="font-size:13px; margin:0;">{{ item.exam.notice_text }}</p>
+                {% endif %}
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                {% for s in item.subs %}
+                <div style="display:flex; justify-content:space-between; align-items:center;
+                            padding:10px; background:#f9f9f9; border-radius:6px;">
+                    <div>
+                        <strong>{{ s.class_name }}</strong>
+                        {% if s.status == 'submitted' %}
+                        <span class="status-pill approved">Submitted ✓</span>
+                        {% elif s.status == 'in_progress' %}
+                        <span class="status-pill pending">In Progress</span>
+                        {% else %}
+                        <span class="status-pill pending">Pending</span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <a href="{{ url_for('teacher_marks_entry', eid=item.exam.id, class=s.class_name) }}"
+                           class="btn-admin-primary"
+                           style="text-decoration:none; padding:8px 15px;
+                                  {% if s.status=='submitted' %}background:#2563eb;{% else %}background:#16a34a;{% endif %}">
+                            <i class="fa-solid fa-{% if s.status=='submitted' %}eye{% else %}pen{% endif %}"></i>
+                            {% if s.status == 'submitted' %}View{% else %}Enter Marks{% endif %}
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <p class="empty-row">No active exams assigned to your classes right now.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1372,8 +1372,21 @@
                     Inbox <i class="fa-solid fa-arrow-right"></i>
                 </a>
             </div>
+
+            
             <div class="dash-panel-body">
                 <div class="notif-list-compact">
+                    <!-- Exam submissions pending -->
+<a href="{{ url_for('admin_exams_list') }}" class="notif-item-compact">
+    <div class="notif-icon amber"><i class="fa-solid fa-file-pen"></i></div>
+    <div class="notif-body-compact">
+        <strong>Exam marks pending</strong>
+        <small>{{ pending_exam_submissions or 0 }} class(es) yet to submit</small>
+    </div>
+    <span class="notif-badge-count {% if not pending_exam_submissions %}zero{% endif %}">
+        {{ pending_exam_submissions or 0 }}
+    </span>
+</a>
                     <!-- Fee payments -->
                     <a href="{{ url_for('admin_fees') }}" class="notif-item-compact">
                         <div class="notif-icon green"><i class="fa-solid fa-indian-rupee-sign"></i></div>

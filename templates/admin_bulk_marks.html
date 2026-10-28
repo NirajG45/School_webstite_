@@ -5,17 +5,21 @@
 <div class="admin-panel">
     <div class="admin-panel-head">
         <h3><i class="fa-solid fa-table"></i> {{ exam_type }} - {{ class_name }}</h3>
-        <a href="{{ url_for('admin_reports_dashboard', class=class_name) }}" class="btn-admin-secondary" style="margin-left:auto; text-decoration:none; padding:8px 15px; background:#eee; border-radius:5px; color:#333;">Back</a>
+        <a href="{{ url_for('admin_reports_dashboard', class=class_name, exam_id=exam_id) }}"
+           class="btn-admin-secondary"
+           style="margin-left:auto; text-decoration:none; padding:8px 15px; background:#eee; border-radius:5px; color:#333;">Back</a>
     </div>
 
     {% if students and subjects %}
     <form method="POST" action="{{ url_for('admin_bulk_marks_entry') }}">
         <input type="hidden" name="class_name" value="{{ class_name }}">
-        <input type="hidden" name="exam_type" value="{{ exam_type }}">
-        
+        <input type="hidden" name="exam_id" value="{{ exam_id }}">
+
         <div style="overflow-x:auto; padding-bottom:80px;">
-            <table class="admin-table" style="width:100%; border-collapse:collapse; text-align:left; white-space:nowrap;">
-                <thead style="position:sticky; top:0; background:#f1f5f9; z-index:10; box-shadow:0 2px 2px -1px rgba(0,0,0,0.1);">
+            <table class="admin-table"
+                   style="width:100%; border-collapse:collapse; text-align:left; white-space:nowrap;">
+                <thead style="position:sticky; top:0; background:#f1f5f9; z-index:10;
+                              box-shadow:0 2px 2px -1px rgba(0,0,0,0.1);">
                     <tr>
                         <th style="padding:12px; border:1px solid #cbd5e1; width:200px;">Student Name</th>
                         {% for sub in subjects %}
@@ -30,17 +34,17 @@
                     <tr>
                         <td style="padding:8px 12px; border:1px solid #cbd5e1; background:#f8fafc;">
                             <strong style="font-size:15px;">{{ s.name }}</strong><br>
-                            <small class="muted">Roll: {{ s.roll_no or s.admission_no or '-' }} | Sec: {{ s.section or s.child_section or '-' }}</small>
+                            <small class="muted">Roll: {{ s.roll_no or s.admission_no or '-' }}
+                                | Sec: {{ s.section or s.child_section or '-' }}</small>
                         </td>
                         {% for sub in subjects %}
                         <td style="padding:4px; border:1px solid #cbd5e1; text-align:center;">
-                            <!-- Number input with auto-jump feature via JS -->
-                            <input type="number" step="0.5" min="0" max="{{ sub.max_marks }}" 
-                                   name="mark_{{ s.id }}_{{ sub.id }}" 
+                            <input type="number" step="0.5" min="0" max="{{ sub.max_marks }}"
+                                   name="mark_{{ s.id }}_{{ sub.id }}"
                                    value="{{ existing_marks.get(s.id|string + '_' + sub.id|string, '') }}"
-                                   class="mark-input"
-                                   placeholder="-"
-                                   style="width:70px; padding:8px; text-align:center; font-size:16px; border:2px solid #e2e8f0; border-radius:6px; transition:0.2s;">
+                                   class="mark-input" placeholder="-"
+                                   style="width:70px; padding:8px; text-align:center; font-size:16px;
+                                          border:2px solid #e2e8f0; border-radius:6px;">
                         </td>
                         {% endfor %}
                     </tr>
@@ -48,10 +52,11 @@
                 </tbody>
             </table>
         </div>
-        
-        <!-- Floating Save Button -->
-        <div style="position:fixed; bottom:20px; right:20px; background:white; padding:15px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.2); z-index:100;">
-            <button type="submit" class="btn-admin-primary" style="padding:15px 30px; font-size:16px; background:#16a34a;">
+
+        <div style="position:fixed; bottom:20px; right:20px; background:white; padding:15px;
+                    border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.2); z-index:100;">
+            <button type="submit" class="btn-admin-primary"
+                    style="padding:15px 30px; font-size:16px; background:#16a34a;">
                 <i class="fa-solid fa-save"></i> Save All Marks
             </button>
         </div>
@@ -62,25 +67,21 @@
 </div>
 
 <style>
-    /* Highlight on focus for faster entry */
-    .mark-input:focus {
-        border-color: #2563eb;
-        box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
-        outline: none;
-    }
+.mark-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
+    outline: none;
+}
 </style>
 
 <script>
-    // Advanced: Press Enter to jump to the next student's same subject input
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && e.target.classList.contains('mark-input')) {
-            e.preventDefault(); // Stop form submit
-            const inputs = Array.from(document.querySelectorAll('.mark-input'));
-            const index = inputs.indexOf(e.target);
-            if (index > -1 && index + 1 < inputs.length) {
-                inputs[index + 1].focus();
-            }
-        }
-    });
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.target.classList.contains('mark-input')) {
+        e.preventDefault();
+        const inputs = Array.from(document.querySelectorAll('.mark-input'));
+        const i = inputs.indexOf(e.target);
+        if (i > -1 && i + 1 < inputs.length) inputs[i + 1].focus();
+    }
+});
 </script>
 {% endblock %}

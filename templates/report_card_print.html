@@ -1,395 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Report Card - {{ student.name }}</title>
-    <style>
-        /* PRINTING SPECIFIC CSS FOR 2 CARDS PER PAGE */
-        @page {
-            size: A4 portrait;
-            margin: 0;
-        }
-        
-        * {
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<title>Report Cards — {{ exam.title }}</title>
+<style>
+  @page { size: A4 landscape; margin: 4mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Times New Roman', serif; background: #fff; color: #000; }
 
-        body {
-            background: #525659;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            font-family: 'Times New Roman', Times, serif; /* Using standard school font */
-        }
+  .page {
+    width: 289mm; height: 202mm;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4mm; page-break-after: always;
+  }
+  .page:last-child { page-break-after: auto; }
 
-        /* A4 Paper Container */
-        .a4-page {
-            width: 210mm;
-            height: 297mm;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            page-break-after: always;
-        }
+  .rcard {
+    width: 100%; height: 100%;
+    border: 2.4px solid #000; border-radius: 6px;
+    padding: 4mm 4mm 2.5mm;
+    display: flex; flex-direction: column;
+    font-size: 9.5px; background: #fff; position: relative;
+  }
 
-        /* Individual Report Card (148mm is roughly half of 297mm) */
-        .report-card {
-            width: 100%;
-            height: 148.5mm;
-            padding: 8mm;
-            border-bottom: 2px dashed #ccc; /* Cut line */
-            position: relative;
-        }
-        
-        /* Remove border and cut line for the last card in print */
-        .report-card:last-child {
-            border-bottom: none;
-        }
+  .rc-header { display: grid; grid-template-columns: 22mm 1fr 22mm;
+               align-items: center; gap: 2mm; margin-bottom: 1.5mm; }
+  .rc-logo { width: 22mm; height: 22mm; object-fit: contain; }
+  .rc-school { text-align: center; line-height: 1.15; }
+  .rc-school h1 { font-size: 12px; font-weight: 900; letter-spacing: 0.2px; text-transform: uppercase; }
+  .rc-school h2 { font-size: 10.5px; font-weight: 800; margin-top: 1px; }
+  .rc-school .rc-exam { font-size: 9px; font-weight: 700; margin-top: 2px;
+                        text-decoration: underline; text-underline-offset: 2px; }
 
-        /* Outer Box Design */
-        .border-box {
-            border: 2px solid #000;
-            padding: 2px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        .inner-box {
-            border: 1px solid #000;
-            padding: 10px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
+  .rc-badge-row { display: flex; align-items: center; gap: 3mm; margin: 1.5mm 0; }
+  .rc-rule { flex: 1; height: 1.2px; background: #000; }
+  .rc-badge { border: 1.8px solid #000; border-radius: 20px; padding: 0.8mm 6mm;
+              font-size: 11px; font-weight: 900; letter-spacing: 1px;
+              text-transform: uppercase; white-space: nowrap; }
 
-        /* HEADER */
-        .header {
-            text-align: center;
-            position: relative;
-            margin-bottom: 10px;
-        }
-        .header h1 {
-            font-size: 22px;
-            margin: 0;
-            text-transform: uppercase;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-        }
-        .header h2 {
-            font-size: 18px;
-            margin: 2px 0;
-            font-weight: bold;
-        }
-        .header h3 {
-            font-size: 14px;
-            margin: 2px 0 8px 0;
-            border-bottom: 1.5px solid #000;
-            display: inline-block;
-            padding-bottom: 2px;
-        }
-        
-        /* Logo (Red one provided) */
-        .logo {
-            position: absolute;
-            top: -5px;
-            width: 70px;
-            height: 70px;
-            object-fit: contain;
-        }
-        .logo.left { left: 0; }
-        .logo.right { right: 0; }
+  .rc-info { border: 1.4px solid #000; border-radius: 6px; padding: 2mm 3mm;
+             display: grid; grid-template-columns: 1fr 1fr; gap: 1.2mm 5mm; font-size: 9.5px; }
+  .rc-info .row { display: flex; gap: 2mm; align-items: baseline; }
+  .rc-info .lbl { font-weight: 700; min-width: 15mm; }
+  .rc-info .val { flex: 1; border-bottom: 1.1px dotted #000; padding-bottom: 0.3mm;
+                  font-weight: 600; min-height: 4mm; }
 
-        /* TITLE */
-        .title-box {
-            text-align: center;
-            margin: 5px 0 10px 0;
-            position: relative;
-        }
-        .title-box::before, .title-box::after {
-            content: "";
-            position: absolute;
-            top: 50%;
-            width: 32%;
-            height: 1.5px;
-            background: #000;
-        }
-        .title-box::before { left: 0; }
-        .title-box::after { right: 0; }
-        .title-text {
-            display: inline-block;
-            border: 2px solid #000;
-            border-radius: 15px;
-            padding: 3px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            background: white;
-            position: relative;
-            z-index: 1;
-        }
+  .rc-table { width: 100%; border-collapse: collapse; margin-top: 2mm;
+              font-size: 9.5px; flex: 1; }
+  .rc-table th, .rc-table td { border: 1.1px solid #000; padding: 1mm 2mm; }
+  .rc-table th { background: #f2f2f2; font-weight: 900; text-transform: uppercase;
+                 font-size: 9.5px; text-align: center; }
+  .rc-table td.num { text-align: center; }
+  .rc-table td.subj { text-transform: uppercase; font-weight: 600; }
+  .rc-table tr.total td { background: #f7f7f7; font-weight: 900; font-size: 10px; }
 
-        /* STUDENT INFO */
-        .info-box {
-            border: 2px solid #000;
-            border-radius: 8px;
-            padding: 8px 15px;
-            margin-bottom: 10px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .info-box span {
-            font-weight: normal;
-            border-bottom: 1px dotted #000;
-            display: inline-block;
-            width: 70%;
-            padding-left: 5px;
-        }
+  .rc-signs { display: flex; justify-content: space-between; align-items: flex-end;
+              margin-top: 3mm; font-size: 9px; font-weight: 700; gap: 4mm; }
+  .rc-signs .line { flex: 1; border-bottom: 1.2px solid #000; height: 5mm; margin-bottom: 1mm; }
 
-        /* TABLE */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: auto;
-            font-size: 13px;
-        }
-        th, td {
-            border: 1px solid #000;
-            padding: 4px 8px;
-            text-align: left;
-        }
-        th {
-            background: #eee;
-            font-weight: bold;
-            text-align: center;
-            text-transform: uppercase;
-        }
-        td.center { text-align: center; }
-        
-        .total-row td {
-            background: #eee;
-            font-weight: bold;
-            font-size: 15px;
-        }
+  .rc-tagline { display: flex; align-items: center; gap: 3mm;
+                justify-content: center; margin-top: 2mm; font-size: 8.5px;
+                font-style: italic; font-weight: 700; }
+  .rc-tagline .rule { width: 12mm; height: 1.1px; background: #000; }
 
-        /* SIGNATURES */
-        .signatures {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-            font-size: 13px;
-            font-weight: bold;
-            padding-bottom: 5px;
-        }
-        .sign-box {
-            border-bottom: 1px solid #000;
-            width: 35%;
-            padding-bottom: 2px;
-        }
-
-        .footer-text {
-            text-align: center;
-            font-style: italic;
-            font-size: 12px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-top: auto;
-        }
-        .footer-text::before, .footer-text::after {
-            content: "";
-            display: inline-block;
-            width: 40px;
-            height: 1px;
-            background: #000;
-        }
-
-        /* PRINT BUTTON (Hidden on print) */
-        .print-action {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 999;
-        }
-        .print-btn {
-            background: #2563eb;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-
-        /* Media Print Overrides */
-        @media print {
-            body { background: white; padding: 0; margin: 0; display: block; }
-            .a4-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; }
-            .report-card { border-bottom: none; } /* Remove cut lines for clean print */
-            .print-action { display: none; }
-        }
-    </style>
+  .rc-custom-msg { text-align: center; font-size: 8px; font-style: italic;
+                   margin-top: 1mm; color: #222; }
+</style>
 </head>
 <body>
 
-    <div class="print-action">
-        <button class="print-btn" onclick="window.print()">
-            🖨️ Print Report Cards
-        </button>
+{% for pair in students|batch(2) %}
+<div class="page">
+  {% for s in pair %}
+  {% set marks = marks_by_student.get(s.id, {}) %}
+  {% set total_obtained = marks.values()|sum %}
+  {% set total_max = subjects|sum(attribute='max_marks') %}
+  {% set pct = (total_obtained / total_max * 100)|round(2) if total_max else 0 %}
+
+  <div class="rcard">
+    <div class="rc-header">
+      <img src="{{ url_for('static', filename='img/school_logo.png') }}" class="rc-logo" alt="logo">
+      <div class="rc-school">
+        <h1>RES. SHANTI NIKETAN SHISHU VIDYA MANDIR</h1>
+        <h2>NAVINAGAR ( JAMUI )</h2>
+        <div class="rc-exam">{{ exam.title|upper }}</div>
+      </div>
+      <img src="{{ url_for('static', filename='img/school_logo.png') }}" class="rc-logo" alt="logo">
     </div>
 
-    <!-- A4 PAGE WRAPPER -->
-    <div class="a4-page">
-        
-        <!-- ================= REPORT CARD 1 (TOP) ================= -->
-        <div class="report-card">
-            <div class="border-box">
-                <div class="inner-box">
-                    
-                    <div class="header">
-                        <!-- Naya Logo integrate kiya gaya hai -->
-                        <img src="{{ url_for('static', filename='images/school_logo.png') }}" class="logo left" alt="Logo">
-                        <img src="{{ url_for('static', filename='images/school_logo.png') }}" class="logo right" alt="Logo">
-                        
-                        <h1>RES. SHANTI NIKETAN SHISHU VIDYA MANDIR</h1>
-                        <h2>NAVINAGAR ( JAMUI )</h2>
-                        <h3>{{ exam_type|upper }}</h3>
-                    </div>
-
-                    <div class="title-box">
-                        <div class="title-text">PROGRESS REPORT</div>
-                    </div>
-
-                    <div class="info-box">
-                        <div>Name &nbsp;&nbsp;&nbsp;&nbsp;: <span>{{ student.name }}</span></div>
-                        <div>Class &nbsp;&nbsp;&nbsp;&nbsp;: <span>{{ class_name }}</span></div>
-                        <div>Roll No. : <span>{{ student.roll_no or student.admission_no or '-' }}</span></div>
-                        <div>Sec. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span>{{ student.section or student.child_section or '-' }}</span></div>
-                    </div>
-
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width: 45%;">SUBJECT</th>
-                                <th style="width: 25%;">MAX MARKS</th>
-                                <th style="width: 30%;">MARKS OBTAINED</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for sub in subjects %}
-                            <tr>
-                                <td>{{ sub.subject_name|upper }}</td>
-                                <td class="center">{{ sub.max_marks }}</td>
-                                <td class="center"><strong>{{ marks_data[sub.id] }}</strong></td>
-                            </tr>
-                            {% else %}
-                            <tr><td colspan="3" class="center">No subjects configured.</td></tr>
-                            {% endfor %}
-                            
-                            <tr class="total-row">
-                                <td>TOTAL</td>
-                                <td class="center">{{ total_max }}</td>
-                                <td class="center">{{ total_obtained }}</td>
-                            </tr>
-                            <tr class="total-row">
-                                <td>PERCENTAGE</td>
-                                <td class="center">100%</td>
-                                <td class="center">{{ percentage }}%</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div class="signatures">
-                        <div class="sign-box">Principal's Sign:</div>
-                        <div class="sign-box">Teacher's Sign:</div>
-                    </div>
-
-                    <div class="footer-text">
-                        Learn &bull; Grow &bull; Build a Better Future
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ================= REPORT CARD 2 (BOTTOM) ================= -->
-        <!-- Green Environment: Same student ka duplicate copy ya dusre student ka card yahan aa sakta hai.
-             Abhi ke liye hum same student ka ek aur copy render kar rahe hain taaki half page waste na ho. -->
-        <div class="report-card">
-            <div class="border-box">
-                <div class="inner-box">
-                    
-                    <div class="header">
-                        <img src="{{ url_for('static', filename='images/school_logo.png') }}" class="logo left" alt="Logo">
-                        <img src="{{ url_for('static', filename='images/school_logo.png') }}" class="logo right" alt="Logo">
-                        
-                        <h1>RES. SHANTI NIKETAN SHISHU VIDYA MANDIR</h1>
-                        <h2>NAVINAGAR ( JAMUI )</h2>
-                        <h3>{{ exam_type|upper }}</h3>
-                    </div>
-
-                    <div class="title-box">
-                        <div class="title-text">PROGRESS REPORT</div>
-                    </div>
-
-                    <div class="info-box">
-                        <div>Name &nbsp;&nbsp;&nbsp;&nbsp;: <span>{{ student.name }}</span></div>
-                        <div>Class &nbsp;&nbsp;&nbsp;&nbsp;: <span>{{ class_name }}</span></div>
-                        <div>Roll No. : <span>{{ student.roll_no or student.admission_no or '-' }}</span></div>
-                        <div>Sec. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span>{{ student.section or student.child_section or '-' }}</span></div>
-                    </div>
-
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width: 45%;">SUBJECT</th>
-                                <th style="width: 25%;">MAX MARKS</th>
-                                <th style="width: 30%;">MARKS OBTAINED</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for sub in subjects %}
-                            <tr>
-                                <td>{{ sub.subject_name|upper }}</td>
-                                <td class="center">{{ sub.max_marks }}</td>
-                                <td class="center"><strong>{{ marks_data[sub.id] }}</strong></td>
-                            </tr>
-                            {% else %}
-                            <tr><td colspan="3" class="center">No subjects configured.</td></tr>
-                            {% endfor %}
-                            
-                            <tr class="total-row">
-                                <td>TOTAL</td>
-                                <td class="center">{{ total_max }}</td>
-                                <td class="center">{{ total_obtained }}</td>
-                            </tr>
-                            <tr class="total-row">
-                                <td>PERCENTAGE</td>
-                                <td class="center">100%</td>
-                                <td class="center">{{ percentage }}%</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div class="signatures">
-                        <div class="sign-box">Principal's Sign:</div>
-                        <div class="sign-box">Teacher's Sign:</div>
-                    </div>
-
-                    <div class="footer-text">
-                        Learn &bull; Grow &bull; Build a Better Future
-                    </div>
-                </div>
-            </div>
-        </div>
-
+    <div class="rc-badge-row">
+      <div class="rc-rule"></div>
+      <div class="rc-badge">Progress Report</div>
+      <div class="rc-rule"></div>
     </div>
 
+    <div class="rc-info">
+      <div class="row"><span class="lbl">Name</span><span class="val">{{ s.name }}</span></div>
+      <div class="row"><span class="lbl">Class</span>
+        <span class="val">{{ s.class_name or s.child_class or class_name }}</span></div>
+      <div class="row"><span class="lbl">Roll No.</span>
+        <span class="val">{{ s.roll_no or s.admission_no or '—' }}</span></div>
+      <div class="row"><span class="lbl">Sec.</span>
+        <span class="val">{{ s.section or s.child_section or '—' }}</span></div>
+    </div>
+
+    <table class="rc-table">
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th style="width:22mm;">Max Marks</th>
+          <th style="width:26mm;">{{ exam.term_label or '2nd TERM' }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sub in subjects %}
+        <tr>
+          <td class="subj">{{ sub.subject_name }}</td>
+          <td class="num">{{ sub.max_marks|int }}</td>
+          <td class="num">{{ marks.get(sub.subject_name, '') }}</td>
+        </tr>
+        {% endfor %}
+        <tr class="total">
+          <td>Total</td>
+          <td class="num">{{ total_max|int }}</td>
+          <td class="num">{{ total_obtained|round(1) if total_obtained else '' }}</td>
+        </tr>
+        <tr class="total">
+          <td>Percentage</td>
+          <td class="num">100%</td>
+          <td class="num">{{ pct }}%</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="rc-signs">
+      <div style="flex:1;"><div class="line"></div>Principal's Sign</div>
+      <div style="width:1.5px; height:10mm; background:#000;"></div>
+      <div style="flex:1;"><div class="line"></div>Teacher's Sign</div>
+    </div>
+
+    <div class="rc-tagline">
+      <span class="rule"></span>
+      <span>Learn &nbsp;•&nbsp; Grow &nbsp;•&nbsp; Build a Better Future</span>
+      <span class="rule"></span>
+    </div>
+
+    {% if exam.custom_message %}
+    <div class="rc-custom-msg">{{ exam.custom_message }}</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% if pair|length == 1 %}<div></div>{% endif %}
+</div>
+{% endfor %}
+
+<script>
+  window.addEventListener('load', () => setTimeout(() => window.print(), 400));
+</script>
 </body>
 </html>

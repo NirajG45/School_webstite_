@@ -1,0 +1,93 @@
+{% extends "admin_base.html" %}
+{% block title %}{{ 'Edit' if exam else 'Create' }} Exam{% endblock %}
+{% block page_title %}{{ 'Edit' if exam else 'Create' }} Examination{% endblock %}
+{% block content %}
+<div style="max-width:1100px; margin:0 auto; display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+    <div class="admin-panel">
+        <div class="admin-panel-head"><h3><i class="fa-solid fa-file-pen"></i> Exam Details</h3></div>
+        <form method="POST" class="admin-form">
+            <label>Exam Title (appears on report card header)
+                <input type="text" name="title" required
+                       value="{{ exam.title if exam else 'Half Yearly Examination 2026-2027' }}">
+            </label>
+            <div class="form-row-2col">
+                <label>Academic Year
+                    <input type="text" name="academic_year"
+                           value="{{ exam.academic_year if exam else '2026-2027' }}">
+                </label>
+                <label>Column Header on Report Card
+                    <input type="text" name="term_label"
+                           value="{{ exam.term_label if exam else '2nd TERM' }}">
+                </label>
+            </div>
+            <label>Notice to Teachers & Students
+                <textarea name="notice_text" rows="5"
+                    placeholder="Dear Teachers, please enter marks before 25th March 2026.">{{ exam.notice_text if exam else '' }}</textarea>
+            </label>
+            <label>Custom Footer Message on Report Card
+                <input type="text" name="custom_message"
+                       placeholder="e.g. Congratulations! Keep up the good work."
+                       value="{{ exam.custom_message if exam else '' }}">
+            </label>
+            <button type="submit" class="btn-admin-primary">
+                <i class="fa-solid fa-save"></i> {{ 'Update' if exam else 'Create Draft' }}
+            </button>
+            {% if exam %}
+            <a href="{{ url_for('admin_exams_list') }}" class="btn-admin-secondary"
+               style="margin-left:10px;">Back</a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if exam %}
+    <div class="admin-panel">
+        <div class="admin-panel-head"><h3><i class="fa-solid fa-book"></i> Subjects per Class</h3></div>
+
+        <form method="POST" action="{{ url_for('admin_add_subject') }}" class="admin-form"
+              style="background:#f9f9f9; padding:15px; border-radius:8px; margin-bottom:15px;">
+            <div class="form-row-2col">
+                <label>Class
+                    <select name="class_name" required>
+                        <option value="">-- Select --</option>
+                        {% for c in class_list %}
+                        <option value="{{ c }}">{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>Max Marks
+                    <input type="number" name="max_marks" value="50" required>
+                </label>
+            </div>
+            <label>Subject Name
+                <input type="text" name="subject_name" required
+                       placeholder="e.g. HINDI" style="text-transform:uppercase;">
+            </label>
+            <button type="submit" class="btn-admin-primary">
+                <i class="fa-solid fa-plus"></i> Add Subject
+            </button>
+        </form>
+
+        {% for cls, subs in subjects_by_class.items() %}
+        <div style="margin-bottom:15px;">
+            <h4 style="color:#e11d48; margin-bottom:8px;">{{ cls }}</h4>
+            {% for sub in subs %}
+            <div style="display:flex; justify-content:space-between; align-items:center;
+                        padding:8px 12px; background:#f9f9f9; border-radius:6px; margin-bottom:5px;">
+                <span><strong>{{ sub.subject_name }}</strong>
+                    <small class="muted">(Max: {{ sub.max_marks }})</small></span>
+                <form method="POST" action="{{ url_for('admin_delete_subject', sid=sub.id) }}"
+                      data-confirm="Delete subject and its marks?" style="display:inline;">
+                    <button type="submit" class="btn-icon-danger">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-row">No subjects added. Select a class above to add subjects.</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

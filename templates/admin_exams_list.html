@@ -1,0 +1,61 @@
+{% extends "admin_base.html" %}
+{% block title %}Examinations{% endblock %}
+{% block page_title %}Examination Management{% endblock %}
+{% block content %}
+<div class="admin-panel">
+    <div class="admin-panel-head">
+        <h3><i class="fa-solid fa-file-pen"></i> All Examinations</h3>
+        <a href="{{ url_for('admin_exam_create') }}" class="btn-admin-primary" style="margin-left:auto;">
+            <i class="fa-solid fa-plus"></i> Create Exam
+        </a>
+    </div>
+
+    {% if exams %}
+    <div class="admin-notice-list">
+        {% for e in exams %}
+        <div class="admin-notice-item" style="padding:15px;">
+            <div class="notice-item-body" style="flex:1;">
+                <p style="font-size:15px; margin-bottom:5px;">
+                    <strong>{{ e.title }}</strong>
+                    {% if e.status == 'published' %}
+                    <span class="status-pill approved">Published</span>
+                    {% else %}
+                    <span class="status-pill pending">Draft</span>
+                    {% endif %}
+                </p>
+                <p class="muted" style="font-size:12px;">
+                    {{ e.academic_year or '' }}{% if e.published_at %} · Published: {{ e.published_at }}{% endif %}
+                </p>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <a href="{{ url_for('admin_exam_edit', eid=e.id) }}" class="btn-admin-secondary"
+                   style="text-decoration:none; padding:8px 12px;">
+                    <i class="fa-solid fa-pen"></i> Edit
+                </a>
+                {% if e.status == 'draft' %}
+                <form method="POST" action="{{ url_for('admin_exam_publish', eid=e.id) }}"
+                      style="display:inline;" data-confirm="Publish to teachers?">
+                    <button type="submit" class="btn-admin-primary" style="background:#16a34a;">
+                        <i class="fa-solid fa-paper-plane"></i> Publish
+                    </button>
+                </form>
+                {% else %}
+                <form method="POST" action="{{ url_for('admin_exam_unpublish', eid=e.id) }}" style="display:inline;">
+                    <button type="submit" class="btn-admin-secondary">
+                        <i class="fa-solid fa-eye-slash"></i> Unpublish
+                    </button>
+                </form>
+                {% endif %}
+                <form method="POST" action="{{ url_for('admin_exam_delete', eid=e.id) }}"
+                      style="display:inline;" data-confirm="Delete this exam and ALL its marks?">
+                    <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-row">No exams yet. <a href="{{ url_for('admin_exam_create') }}">Create your first exam</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

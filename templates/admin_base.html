@@ -15,12 +15,28 @@
 
     <style>
         /* ============================================================
-           1. SIDEBAR USER BOX FIX
+           GLOBAL DESIGN TOKENS — upgrades shadows, transitions, radius
+           ============================================================ */
+        :root {
+            --sn-radius-sm: 8px;
+            --sn-radius: 10px;
+            --sn-radius-lg: 14px;
+            --sn-shadow-xs: 0 1px 2px rgba(11, 53, 98, 0.04);
+            --sn-shadow-sm: 0 2px 8px rgba(11, 53, 98, 0.06);
+            --sn-shadow: 0 6px 20px rgba(11, 53, 98, 0.08);
+            --sn-shadow-lg: 0 18px 48px rgba(11, 53, 98, 0.14);
+            --sn-shadow-xl: 0 24px 60px rgba(11, 53, 98, 0.20);
+            --sn-transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            --sn-transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ============================================================
+           1. SIDEBAR USER BOX — refined
            ============================================================ */
         .admin-user-box {
             margin: 16px 16px 12px;
             padding: 14px 16px;
-            border-radius: 12px;
+            border-radius: var(--sn-radius-lg);
             background: linear-gradient(135deg, rgba(255, 212, 71, 0.12), rgba(215, 25, 56, 0.12));
             border: 1px solid rgba(255, 212, 71, 0.3);
             display: flex;
@@ -29,7 +45,12 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             position: relative;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all var(--sn-transition);
+        }
+
+        .admin-user-box:hover {
+            background: linear-gradient(135deg, rgba(255, 212, 71, 0.18), rgba(215, 25, 56, 0.16));
+            border-color: rgba(255, 212, 71, 0.45);
         }
 
         .admin-user-box::before {
@@ -55,9 +76,14 @@
             font-weight: 800;
             font-size: 14px;
             border: 2px solid var(--yellow, #ffd447);
-            box-shadow: 0 3px 8px rgba(215, 25, 56, 0.3);
+            box-shadow: 0 3px 10px rgba(215, 25, 56, 0.35);
             position: relative;
             z-index: 1;
+            transition: transform var(--sn-transition);
+        }
+
+        .admin-user-box:hover .admin-user-avatar {
+            transform: scale(1.04);
         }
 
         .admin-user-text {
@@ -109,10 +135,11 @@
             letter-spacing: 0.5px;
             align-self: flex-start;
             margin-top: 4px;
+            box-shadow: 0 2px 6px rgba(255, 212, 71, 0.35);
         }
 
         /* ============================================================
-           NEW: SIDEBAR HEADER + COLLAPSE TOGGLE
+           SIDEBAR HEADER + COLLAPSE TOGGLE — refined
            ============================================================ */
         .admin-sidebar-head {
             display: flex;
@@ -125,7 +152,7 @@
             flex: 0 0 28px;
             width: 28px;
             height: 28px;
-            border-radius: 8px;
+            border-radius: var(--sn-radius-sm);
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: rgba(255, 255, 255, 0.75);
@@ -134,7 +161,7 @@
             justify-content: center;
             cursor: pointer;
             font-size: 11px;
-            transition: all 0.2s ease;
+            transition: all var(--sn-transition);
             padding: 0;
         }
 
@@ -142,10 +169,16 @@
             background: rgba(255, 212, 71, 0.18);
             color: var(--yellow, #ffd447);
             border-color: rgba(255, 212, 71, 0.35);
+            transform: scale(1.06);
+        }
+
+        .admin-sidebar-collapse-btn:focus-visible {
+            outline: 2px solid var(--yellow, #ffd447);
+            outline-offset: 2px;
         }
 
         /* ============================================================
-           NEW: SIDEBAR SEARCH
+           SIDEBAR SEARCH — refined
            ============================================================ */
         .admin-sidebar-search {
             margin: 12px 16px 4px;
@@ -154,10 +187,10 @@
             gap: 8px;
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 9px;
+            border-radius: var(--sn-radius-sm);
             padding: 0 12px;
-            height: 36px;
-            transition: all 0.2s ease;
+            height: 38px;
+            transition: all var(--sn-transition);
         }
 
         .admin-sidebar-search:focus-within {
@@ -169,6 +202,11 @@
         .admin-sidebar-search i {
             color: rgba(255, 255, 255, 0.5);
             font-size: 11px;
+            transition: color var(--sn-transition);
+        }
+
+        .admin-sidebar-search:focus-within i {
+            color: var(--yellow, #ffd447);
         }
 
         .admin-sidebar-search input {
@@ -188,11 +226,11 @@
         }
 
         /* ============================================================
-           NEW: QUICK STATS PANEL
+           QUICK STATS — now 4 columns, better visuals
            ============================================================ */
         .admin-quick-stats {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 6px;
             margin: 12px 16px 8px;
             padding: 0;
@@ -203,33 +241,49 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 2px;
-            padding: 8px 4px;
-            border-radius: 9px;
+            gap: 3px;
+            padding: 9px 4px;
+            border-radius: var(--sn-radius-sm);
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.08);
             text-decoration: none;
             color: #fff;
-            transition: all 0.2s ease;
+            transition: all var(--sn-transition);
             position: relative;
+            overflow: hidden;
+        }
+
+        .admin-qstat::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 60%, rgba(255, 255, 255, 0.03));
+            opacity: 0;
+            transition: opacity var(--sn-transition);
         }
 
         .admin-qstat:hover {
             background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
             border-color: rgba(255, 212, 71, 0.3);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
         }
 
+        .admin-qstat:hover::before { opacity: 1; }
+
         .admin-qstat strong {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 800;
             color: var(--yellow, #ffd447);
             line-height: 1;
+            transition: transform var(--sn-transition);
         }
+
+        .admin-qstat:hover strong { transform: scale(1.08); }
 
         .admin-qstat small {
             font-size: 8.5px;
-            color: rgba(255, 255, 255, 0.55);
+            color: rgba(255, 255, 255, 0.6);
             text-transform: uppercase;
             letter-spacing: 0.06em;
             font-weight: 700;
@@ -238,10 +292,11 @@
         .admin-qstat.amber strong { color: #ffb454; }
         .admin-qstat.green strong { color: #4ade80; }
         .admin-qstat.purple strong { color: #c4b5fd; }
+        .admin-qstat.blue strong { color: #7dd3fc; }
         .admin-qstat.zero strong { color: rgba(255, 255, 255, 0.4); }
 
         /* ============================================================
-           NEW: SIDEBAR FOOTER (sticky)
+           SIDEBAR FOOTER (sticky) — refined
            ============================================================ */
         .admin-sidebar-foot {
             position: sticky;
@@ -260,25 +315,28 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 8px 10px;
-            border-radius: 8px;
+            padding: 9px 10px;
+            border-radius: var(--sn-radius-sm);
             color: rgba(255, 255, 255, 0.72);
             font-size: 12px;
             font-weight: 700;
             text-decoration: none;
-            transition: all 0.18s ease;
+            transition: all var(--sn-transition-fast);
         }
 
         .admin-sidebar-foot-link i {
             width: 16px;
             text-align: center;
             font-size: 12px;
+            transition: transform var(--sn-transition-fast);
         }
 
         .admin-sidebar-foot-link:hover {
             background: rgba(255, 255, 255, 0.08);
             color: #fff;
         }
+
+        .admin-sidebar-foot-link:hover i { transform: translateX(2px); }
 
         .admin-sidebar-foot-link.logout { color: #ff8c9e; }
         .admin-sidebar-foot-link.logout:hover {
@@ -287,7 +345,7 @@
         }
 
         /* ============================================================
-           2. CUSTOM SLIM SCROLLBAR
+           CUSTOM SLIM SCROLLBAR
            ============================================================ */
         .admin-sidebar::-webkit-scrollbar { width: 6px; }
         .admin-sidebar::-webkit-scrollbar-track { background: transparent; }
@@ -300,15 +358,21 @@
         }
 
         /* ============================================================
-           NAV LINK ENHANCEMENTS
+           NAV LINK ENHANCEMENTS — refined
            ============================================================ */
         .admin-nav-link {
             position: relative;
             display: flex;
             align-items: center;
             gap: 10px;
-            transition: all 0.18s ease;
+            transition: all var(--sn-transition-fast);
         }
+
+        .admin-nav-link i {
+            transition: transform var(--sn-transition-fast);
+        }
+
+        .admin-nav-link:hover i { transform: scale(1.1); }
 
         .admin-nav-link .nav-badge {
             margin-left: auto;
@@ -329,11 +393,18 @@
         .admin-nav-link .nav-badge.danger {
             background: rgba(215, 25, 56, 0.35);
             color: #ffb5c2;
+            animation: pulseBadge 2.4s ease-in-out infinite;
+        }
+
+        @keyframes pulseBadge {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(215, 25, 56, 0.45); }
+            50% { box-shadow: 0 0 0 4px rgba(215, 25, 56, 0); }
         }
 
         .admin-nav-link.active .nav-badge {
             background: rgba(255, 255, 255, 0.25);
             color: #fff;
+            animation: none;
         }
 
         .admin-nav-link.active::before {
@@ -345,10 +416,11 @@
             width: 3px;
             background: var(--yellow, #ffd447);
             border-radius: 0 3px 3px 0;
+            box-shadow: 2px 0 6px rgba(255, 212, 71, 0.4);
         }
 
         /* ============================================================
-           COLLAPSED STATE
+           COLLAPSED STATE — refined with smoother animation
            ============================================================ */
         .admin-sidebar.collapsed {
             width: 78px !important;
@@ -408,9 +480,9 @@
             white-space: nowrap;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.15s, transform 0.15s;
+            transition: opacity var(--sn-transition-fast), transform var(--sn-transition-fast);
             z-index: 100;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+            box-shadow: var(--sn-shadow-lg);
         }
 
         .admin-sidebar.collapsed .admin-nav-link:hover::after {
@@ -438,7 +510,7 @@
         }
 
         /* ============================================================
-           3. TOPBAR
+           TOPBAR — refined
            ============================================================ */
         .admin-topbar {
             display: flex;
@@ -459,14 +531,18 @@
             gap: 8px;
             background: #fff;
             border: 1px solid #e1e8f0;
-            border-radius: 10px;
+            border-radius: var(--sn-radius);
             padding: 0 14px;
             height: 42px;
-            transition: all 0.2s ease;
+            transition: all var(--sn-transition);
             margin: 0 16px;
         }
 
-        .admin-search i { color: #65758a; font-size: 14px; }
+        .admin-search i {
+            color: #65758a;
+            font-size: 14px;
+            transition: color var(--sn-transition-fast);
+        }
 
         .admin-search input {
             border: none;
@@ -483,7 +559,10 @@
         .admin-search:focus-within {
             border-color: #b0c4d8;
             box-shadow: 0 0 0 3px rgba(11, 53, 98, 0.06);
+            background: #fafcff;
         }
+
+        .admin-search:focus-within i { color: #0a2340; }
 
         .admin-topbar-icon {
             position: relative;
@@ -494,11 +573,11 @@
             justify-content: center;
             background: #fff;
             border: 1px solid #e1e8f0;
-            border-radius: 10px;
+            border-radius: var(--sn-radius);
             color: #0a2340;
             font-size: 15px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all var(--sn-transition);
             flex: 0 0 auto;
             padding: 0;
         }
@@ -507,10 +586,16 @@
             background: #f4f8fc;
             border-color: #b0c4d8;
             transform: translateY(-1px);
+            box-shadow: var(--sn-shadow-sm);
+        }
+
+        .admin-topbar-icon:focus-visible {
+            outline: 2px solid #124d82;
+            outline-offset: 2px;
         }
 
         /* ============================================================
-           NEW: MY DASHBOARD TOPBAR BUTTON
+           MY DASHBOARD TOPBAR BUTTON
            ============================================================ */
         .admin-my-dash-btn {
             background: linear-gradient(135deg, #124d82, #1a5fa0) !important;
@@ -543,9 +628,9 @@
             white-space: nowrap;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.15s, transform 0.15s;
+            transition: opacity var(--sn-transition-fast), transform var(--sn-transition-fast);
             z-index: 200;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+            box-shadow: var(--sn-shadow-lg);
         }
 
         .admin-my-dash-btn:hover::after {
@@ -587,18 +672,18 @@
             position: absolute;
             top: calc(100% + 10px);
             right: 0;
-            width: 320px;
+            width: 340px;
             background: #fff;
-            border-radius: 14px;
+            border-radius: var(--sn-radius-lg);
             border: 1px solid #e4eaf1;
-            box-shadow: 0 18px 45px rgba(11, 53, 98, 0.15), 0 4px 12px rgba(11, 53, 98, 0.06);
+            box-shadow: var(--sn-shadow-lg);
             padding: 0;
             opacity: 0;
             visibility: hidden;
             transform: translateY(-6px) scale(0.97);
             transform-origin: top right;
             pointer-events: none;
-            transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s;
+            transition: opacity var(--sn-transition), transform var(--sn-transition), visibility var(--sn-transition);
             z-index: 1300;
             overflow: hidden;
         }
@@ -629,10 +714,15 @@
             align-items: center;
             padding: 14px 16px;
             border-bottom: 1px solid #e4eaf1;
-            background: #fafcff;
+            background: linear-gradient(to bottom, #fafcff, #f5f9fd);
         }
 
-        .notif-head strong { font-size: 13px; font-weight: 800; color: #0a2340; }
+        .notif-head strong {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0a2340;
+            letter-spacing: -0.2px;
+        }
 
         .notif-head-tag {
             font-size: 9.5px;
@@ -645,19 +735,28 @@
             letter-spacing: 0.5px;
         }
 
-        .notif-list { padding: 6px; max-height: 340px; overflow-y: auto; }
+        .notif-list { padding: 6px; max-height: 380px; overflow-y: auto; }
+
+        .notif-list::-webkit-scrollbar { width: 4px; }
+        .notif-list::-webkit-scrollbar-thumb {
+            background: #d0dbe7;
+            border-radius: 10px;
+        }
 
         .notif-item {
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 11px 12px;
-            border-radius: 10px;
+            border-radius: var(--sn-radius-sm);
             text-decoration: none;
-            transition: all 0.18s ease;
+            transition: all var(--sn-transition-fast);
         }
 
-        .notif-item:hover { background: #f0f7ff; transform: translateX(2px); }
+        .notif-item:hover {
+            background: #f0f7ff;
+            transform: translateX(2px);
+        }
 
         .notif-icon {
             width: 36px;
@@ -665,20 +764,35 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 9px;
+            border-radius: var(--sn-radius-sm);
             font-size: 14px;
             flex: 0 0 36px;
+            transition: transform var(--sn-transition-fast);
         }
+
+        .notif-item:hover .notif-icon { transform: scale(1.08); }
 
         .notif-icon.amber { background: #fff1d6; color: #a86a00; }
         .notif-icon.green { background: #e3f5eb; color: #168254; }
         .notif-icon.blue { background: #e1f1ff; color: #1768a7; }
         .notif-icon.red { background: #ffeaee; color: var(--red, #d71938); }
         .notif-icon.purple { background: #f0e7ff; color: #7439b2; }
+        .notif-icon.teal { background: #d1fae5; color: #0f766e; }
 
         .notif-body { flex: 1; min-width: 0; }
-        .notif-body strong { display: block; font-size: 12.5px; font-weight: 700; color: #0a2340; margin-bottom: 1px; }
-        .notif-body small { display: block; font-size: 10.5px; color: #65758a; line-height: 1.3; }
+        .notif-body strong {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0a2340;
+            margin-bottom: 1px;
+        }
+        .notif-body small {
+            display: block;
+            font-size: 10.5px;
+            color: #65758a;
+            line-height: 1.3;
+        }
 
         .notif-count {
             display: inline-flex;
@@ -693,17 +807,30 @@
             font-size: 10px;
             font-weight: 800;
             line-height: 1;
+            box-shadow: 0 2px 6px rgba(215, 25, 56, 0.25);
         }
 
-        .notif-count.zero { background: #cbd5e1; color: #475569; }
+        .notif-count.zero {
+            background: #cbd5e1;
+            color: #475569;
+            box-shadow: none;
+        }
 
-        .notif-arrow { color: #b1c2d4; font-size: 10px; transition: all 0.2s ease; }
-        .notif-item:hover .notif-arrow { color: var(--red, #d71938); transform: translateX(3px); }
+        .notif-arrow {
+            color: #b1c2d4;
+            font-size: 10px;
+            transition: all var(--sn-transition-fast);
+        }
+
+        .notif-item:hover .notif-arrow {
+            color: var(--red, #d71938);
+            transform: translateX(3px);
+        }
 
         .notif-footer {
             padding: 10px 16px;
             border-top: 1px solid #e4eaf1;
-            background: #fafcff;
+            background: linear-gradient(to top, #fafcff, #f5f9fd);
             text-align: center;
         }
 
@@ -715,7 +842,7 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: gap 0.2s ease;
+            transition: gap var(--sn-transition-fast);
         }
 
         .notif-footer a:hover { gap: 10px; }
@@ -737,7 +864,7 @@
             cursor: pointer;
             font: inherit;
             color: inherit;
-            transition: all 0.25s ease;
+            transition: all var(--sn-transition);
             max-width: 52px;
             overflow: hidden;
             white-space: nowrap;
@@ -750,7 +877,12 @@
             padding: 4px 14px 4px 4px;
             background: rgba(11, 53, 98, 0.06);
             border-color: rgba(11, 53, 98, 0.12);
-            box-shadow: 0 6px 20px rgba(11, 53, 98, 0.08);
+            box-shadow: var(--sn-shadow);
+        }
+
+        .admin-user-btn:focus-visible {
+            outline: 2px solid #124d82;
+            outline-offset: 2px;
         }
 
         .admin-user-btn .admin-user-avatar {
@@ -801,7 +933,7 @@
             color: #0a2340;
             opacity: 0;
             max-width: 0;
-            transition: opacity 0.25s, max-width 0.25s, transform 0.3s;
+            transition: opacity var(--sn-transition), max-width var(--sn-transition), transform 0.3s;
         }
 
         .admin-user-btn:hover .admin-user-chevron,
@@ -818,18 +950,18 @@
             position: absolute;
             top: calc(100% + 10px);
             right: 0;
-            min-width: 260px;
+            min-width: 270px;
             background: #fff;
-            border-radius: 14px;
+            border-radius: var(--sn-radius-lg);
             border: 1px solid #e4eaf1;
-            box-shadow: 0 18px 50px rgba(11, 53, 98, 0.18), 0 4px 14px rgba(11, 53, 98, 0.08);
+            box-shadow: var(--sn-shadow-xl);
             padding: 12px;
             opacity: 0;
             visibility: hidden;
             transform: translateY(-8px) scale(0.97);
             transform-origin: top right;
             pointer-events: none;
-            transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s;
+            transition: opacity var(--sn-transition), transform var(--sn-transition), visibility var(--sn-transition);
             z-index: 1300;
         }
 
@@ -859,7 +991,7 @@
             gap: 12px;
             padding: 12px;
             background: linear-gradient(135deg, #f0f7ff, #e6f1fb);
-            border-radius: 12px;
+            border-radius: var(--sn-radius);
             margin-bottom: 6px;
         }
 
@@ -936,12 +1068,12 @@
             align-items: center;
             gap: 11px;
             padding: 10px 14px;
-            border-radius: 9px;
+            border-radius: var(--sn-radius-sm);
             color: #26445f;
             font-size: 13px;
             font-weight: 700;
             text-decoration: none;
-            transition: all 0.18s ease;
+            transition: all var(--sn-transition-fast);
             margin-bottom: 2px;
         }
 
@@ -950,7 +1082,7 @@
             text-align: center;
             color: #0a2340;
             font-size: 13px;
-            transition: all 0.18s ease;
+            transition: all var(--sn-transition-fast);
         }
 
         .admin-user-dropdown>a:hover {
@@ -971,6 +1103,7 @@
         .admin-nav-link.active {
             background: linear-gradient(135deg, var(--red, #d71938), #b9102c) !important;
             color: #fff !important;
+            box-shadow: 0 4px 12px rgba(215, 25, 56, 0.28);
         }
 
         .admin-nav-link.active i { color: #fff !important; }
@@ -1000,7 +1133,7 @@
             .admin-user-btn { max-width: 44px; }
             .admin-user-btn:hover,
             .admin-user-profile.dropdown-open .admin-user-btn { max-width: 220px; }
-            .admin-notif-dropdown { width: 280px; right: -8px; }
+            .admin-notif-dropdown { width: 300px; right: -8px; }
             .admin-user-dropdown { min-width: 240px; right: -8px; }
             .admin-search { display: none; }
             .admin-sidebar-collapse-btn { display: none; }
@@ -1008,7 +1141,7 @@
         }
 
         @media (max-width: 640px) {
-            .admin-notif-dropdown { width: 260px; }
+            .admin-notif-dropdown { width: 280px; }
             .admin-user-info { gap: 6px; }
         }
 
@@ -1041,12 +1174,12 @@
             align-items: center;
             gap: 11px;
             padding: 10px 14px;
-            border-radius: 9px;
+            border-radius: var(--sn-radius-sm);
             color: #26445f;
             font-size: 13px;
             font-weight: 700;
             text-decoration: none;
-            transition: all 0.18s ease;
+            transition: all var(--sn-transition-fast);
             margin-bottom: 2px;
             background: transparent;
             border: 0;
@@ -1067,7 +1200,7 @@
             text-align: center;
             color: #0a2340;
             font-size: 13px;
-            transition: all 0.18s ease;
+            transition: all var(--sn-transition-fast);
         }
 
         .admin-user-dropdown>form>button:hover i {
@@ -1078,6 +1211,42 @@
         .admin-user-dropdown>form>button.remove-photo-btn { color: var(--red, #d71938); }
         .admin-user-dropdown>form>button.remove-photo-btn i { color: var(--red, #d71938); }
         .admin-user-dropdown>form>button.remove-photo-btn:hover { background: #ffeaee; }
+
+        /* ============================================================
+           NEW: Admin Panel highlighted link in user dropdown
+           ============================================================ */
+        .admin-user-dropdown>a.admin-panel-link {
+            background: linear-gradient(135deg, rgba(255, 212, 71, 0.16), rgba(215, 25, 56, 0.10));
+            color: #0a2340;
+            border: 1px solid rgba(255, 212, 71, 0.35);
+        }
+
+        .admin-user-dropdown>a.admin-panel-link i { color: var(--red, #d71938); }
+
+        .admin-user-dropdown>a.admin-panel-link:hover {
+            background: linear-gradient(135deg, rgba(255, 212, 71, 0.28), rgba(215, 25, 56, 0.18));
+            border-color: rgba(255, 212, 71, 0.55);
+        }
+
+        /* ============================================================
+           ACCESSIBILITY — Focus states
+           ============================================================ */
+        .admin-nav-link:focus-visible,
+        .admin-sidebar-foot-link:focus-visible,
+        .admin-user-dropdown>a:focus-visible,
+        .notif-item:focus-visible {
+            outline: 2px solid var(--yellow, #ffd447);
+            outline-offset: 2px;
+            border-radius: var(--sn-radius-sm);
+        }
+
+        /* ============================================================
+           FLASH MESSAGE POLISH
+           ============================================================ */
+        .flash {
+            box-shadow: var(--sn-shadow-lg);
+            border-radius: var(--sn-radius);
+        }
     </style>
 
     {% block extra_head %}{% endblock %}
@@ -1085,7 +1254,7 @@
 
 <body class="admin-body">
 
-    <!-- SIDEBAR (upgraded) -->
+    <!-- SIDEBAR (upgraded with exam system) -->
     <aside class="admin-sidebar" id="adminSidebar" aria-label="Admin sidebar">
         <div class="admin-sidebar-head">
             <a href="{{ url_for('admin_dashboard') }}" class="admin-logo" aria-label="Admin home">
@@ -1145,6 +1314,11 @@
                 <strong>{{ total_homework or 0 }}</strong>
                 <small>HW</small>
             </a>
+            <a href="{{ url_for('admin_exams_list') }}" class="admin-qstat blue {% if not pending_exam_submissions %}zero{% endif %}"
+                title="Pending exam submissions">
+                <strong>{{ pending_exam_submissions or 0 }}</strong>
+                <small>Exams</small>
+            </a>
         </div>
 
         <nav class="admin-nav">
@@ -1174,13 +1348,26 @@
                 data-label="Attendance">
                 <i class="fa-solid fa-clipboard-check"></i><span class="nav-label">Attendance</span>
             </a>
-            <!-- ADDED: Enter Marks -->
+            <!-- NEW: Examinations -->
+            <a href="{{ url_for('admin_exams_list') }}"
+                class="admin-nav-link {% if active_page == 'exams' %}active{% endif %}"
+                data-label="Examinations">
+                <i class="fa-solid fa-file-pen"></i><span class="nav-label">Examinations</span>
+                {% if pending_exam_submissions and pending_exam_submissions > 0 %}
+                <span class="nav-badge danger">{{ pending_exam_submissions }}</span>
+                {% endif %}
+            </a>
+            <!-- NEW: Reports Dashboard (subject + exam management) -->
+            <a href="{{ url_for('admin_reports_dashboard') }}"
+                class="admin-nav-link {% if active_page == 'reports_dashboard' %}active{% endif %}"
+                data-label="Reports Dashboard">
+                <i class="fa-solid fa-chart-line"></i><span class="nav-label">Reports Dashboard</span>
+            </a>
             <a href="{{ url_for('admin_enter_marks') }}"
                 class="admin-nav-link {% if active_page == 'enter_marks' %}active{% endif %}"
                 data-label="Enter Marks">
                 <i class="fa-solid fa-pen-to-square"></i><span class="nav-label">Enter Marks</span>
             </a>
-            <!-- ADDED: Bulk Marks -->
             <a href="{{ url_for('admin_bulk_marks') }}"
                 class="admin-nav-link {% if active_page == 'bulk_marks' %}active{% endif %}"
                 data-label="Bulk Marks">
@@ -1194,19 +1381,16 @@
                 <span class="nav-badge">{{ total_homework }}</span>
                 {% endif %}
             </a>
-            <!-- ADDED: Study Materials -->
             <a href="{{ url_for('admin_study_materials') }}"
                 class="admin-nav-link {% if active_page == 'study_materials' %}active{% endif %}"
                 data-label="Study Materials">
                 <i class="fa-solid fa-folder-open"></i><span class="nav-label">Study Materials</span>
             </a>
-            <!-- ADDED: Reports -->
             <a href="{{ url_for('admin_reports') }}"
                 class="admin-nav-link {% if active_page == 'reports' %}active{% endif %}"
                 data-label="Reports">
                 <i class="fa-solid fa-chart-pie"></i><span class="nav-label">Reports</span>
             </a>
-            <!-- ADDED: Generate Reports -->
             <a href="{{ url_for('admin_generate_reports') }}"
                 class="admin-nav-link {% if active_page == 'generate_reports' %}active{% endif %}"
                 data-label="Generate Reports">
@@ -1245,7 +1429,6 @@
             </a>
 
             <div class="admin-nav-group-label">Content</div>
-            <!-- ADDED: Notices -->
             <a href="{{ url_for('admin_notices') }}"
                 class="admin-nav-link {% if active_page == 'notices' %}active{% endif %}"
                 data-label="Notices">
@@ -1327,7 +1510,7 @@
                         aria-haspopup="true" aria-expanded="false" aria-controls="adminNotifDropdown"
                         aria-label="Notifications" title="Notifications">
                         <i class="fa-regular fa-bell"></i>
-                        {% set total_notifs = (pending_leaves or 0) + (pending_fees or 0) + (total_homework or 0) %}
+                        {% set total_notifs = (pending_leaves or 0) + (pending_fees or 0) + (total_homework or 0) + (pending_exam_submissions or 0) %}
                         {% if total_notifs > 0 %}
                         <span class="notif-dot-badge" aria-hidden="true"></span>
                         {% endif %}
@@ -1339,14 +1522,23 @@
                             <span class="notif-head-tag">Admin</span>
                         </div>
                         <div class="notif-list">
+                            <!-- NEW: Exam submissions pending -->
+                            <a href="{{ url_for('admin_exams_list') }}" class="notif-item" role="menuitem">
+                                <div class="notif-icon teal"><i class="fa-solid fa-file-pen"></i></div>
+                                <div class="notif-body">
+                                    <strong>Exam marks</strong>
+                                    <small>{{ pending_exam_submissions or 0 }} class(es) yet to submit</small>
+                                </div>
+                                <span class="notif-count {% if not pending_exam_submissions %}zero{% endif %}">{{ pending_exam_submissions or 0 }}</span>
+                                <i class="fa-solid fa-chevron-right notif-arrow"></i>
+                            </a>
                             <a href="{{ url_for('admin_homework') }}" class="notif-item" role="menuitem">
                                 <div class="notif-icon purple"><i class="fa-solid fa-book-open"></i></div>
                                 <div class="notif-body">
                                     <strong>Homework assigned</strong>
                                     <small>{{ total_homework or 0 }} total assignments</small>
                                 </div>
-                                <span class="notif-count {% if not total_homework %}zero{% endif %}">{{ total_homework
-                                    or 0 }}</span>
+                                <span class="notif-count {% if not total_homework %}zero{% endif %}">{{ total_homework or 0 }}</span>
                                 <i class="fa-solid fa-chevron-right notif-arrow"></i>
                             </a>
                             <a href="{{ url_for('admin_leaves') }}" class="notif-item" role="menuitem">
@@ -1355,8 +1547,7 @@
                                     <strong>Leave requests</strong>
                                     <small>Review pending approvals</small>
                                 </div>
-                                <span class="notif-count {% if not pending_leaves %}zero{% endif %}">{{ pending_leaves
-                                    or 0 }}</span>
+                                <span class="notif-count {% if not pending_leaves %}zero{% endif %}">{{ pending_leaves or 0 }}</span>
                                 <i class="fa-solid fa-chevron-right notif-arrow"></i>
                             </a>
                             <a href="{{ url_for('admin_fees') }}" class="notif-item" role="menuitem">
@@ -1365,8 +1556,7 @@
                                     <strong>Fee payments</strong>
                                     <small>Verify submitted payments</small>
                                 </div>
-                                <span class="notif-count {% if not pending_fees %}zero{% endif %}">{{ pending_fees or 0
-                                    }}</span>
+                                <span class="notif-count {% if not pending_fees %}zero{% endif %}">{{ pending_fees or 0 }}</span>
                                 <i class="fa-solid fa-chevron-right notif-arrow"></i>
                             </a>
                             <a href="{{ url_for('admin_enquiries') }}" class="notif-item" role="menuitem">
@@ -1425,69 +1615,68 @@
                     </button>
 
                     <div class="admin-user-dropdown" id="adminUserDropdown" role="menu">
-    <div class="admin-user-head">
-        {% if session.get('photo_url') %}
-        <div class="admin-user-head-avatar has-photo">
-            <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
-        </div>
-        {% else %}
-        <div class="admin-user-head-avatar">
-            {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
-            upper if session['user_name'].split()|length > 1 else '' }}
-        </div>
-        {% endif %}
-        <div class="admin-user-head-text">
-            <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
-            <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
-            <span class="admin-user-role-tag">
-                {% if session.get('user_role') == 'administrator' %}Administrator{% else %}Admin{% endif %}
-            </span>
-        </div>
-    </div>
-    <hr class="admin-user-divider">
+                        <div class="admin-user-head">
+                            {% if session.get('photo_url') %}
+                            <div class="admin-user-head-avatar has-photo">
+                                <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+                            </div>
+                            {% else %}
+                            <div class="admin-user-head-avatar">
+                                {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] |
+                                upper if session['user_name'].split()|length > 1 else '' }}
+                            </div>
+                            {% endif %}
+                            <div class="admin-user-head-text">
+                                <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
+                                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
+                                <span class="admin-user-role-tag">
+                                    {% if session.get('user_role') == 'administrator' %}Administrator{% else %}Admin{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <hr class="admin-user-divider">
 
-    <!-- NEW: Admin Panel — golden highlighted -->
-    <a href="{{ url_for('admin_dashboard') }}" role="menuitem" class="admin-panel-link">
-        <i class="fa-solid fa-user-gear"></i> <strong>Admin Panel</strong>
-    </a>
+                        <a href="{{ url_for('admin_dashboard') }}" role="menuitem" class="admin-panel-link">
+                            <i class="fa-solid fa-user-gear"></i> <strong>Admin Panel</strong>
+                        </a>
 
-    <a href="{{ url_for('user_dashboard') }}" role="menuitem">
-        <i class="fa-solid fa-id-card"></i> My Dashboard
-    </a>
-    <a href="{{ url_for('messages_inbox') }}" role="menuitem">
-        <i class="fa-solid fa-inbox"></i> Inbox
-    </a>
+                        <a href="{{ url_for('user_dashboard') }}" role="menuitem">
+                            <i class="fa-solid fa-id-card"></i> My Dashboard
+                        </a>
+                        <a href="{{ url_for('messages_inbox') }}" role="menuitem">
+                            <i class="fa-solid fa-inbox"></i> Inbox
+                        </a>
 
-    <a href="#" role="menuitem"
-        onclick="event.preventDefault(); document.getElementById('adminUserProfile').classList.remove('dropdown-open'); document.getElementById('adminPhotoInput').click();">
-        <i class="fa-solid fa-camera"></i> Change Photo
-    </a>
+                        <a href="#" role="menuitem"
+                            onclick="event.preventDefault(); document.getElementById('adminUserProfile').classList.remove('dropdown-open'); document.getElementById('adminPhotoInput').click();">
+                            <i class="fa-solid fa-camera"></i> Change Photo
+                        </a>
 
-    {% if session.get('photo_url') %}
-    <form method="POST" action="{{ url_for('remove_profile_photo') }}"
-        onsubmit="return confirm('Remove your profile photo?');">
-        <button type="submit" class="remove-photo-btn">
-            <i class="fa-solid fa-trash"></i> Remove Photo
-        </button>
-    </form>
-    {% endif %}
+                        {% if session.get('photo_url') %}
+                        <form method="POST" action="{{ url_for('remove_profile_photo') }}"
+                            onsubmit="return confirm('Remove your profile photo?');">
+                            <button type="submit" class="remove-photo-btn">
+                                <i class="fa-solid fa-trash"></i> Remove Photo
+                            </button>
+                        </form>
+                        {% endif %}
 
-    <a href="{{ url_for('home') }}" target="_blank" rel="noopener" role="menuitem">
-        <i class="fa-solid fa-globe"></i> View Website
-    </a>
-    <a href="{{ url_for('change_password') }}" role="menuitem">
-        <i class="fa-solid fa-key"></i> Change Password
-    </a>
-    <a href="{{ url_for('logout') }}" class="admin-logout-link" role="menuitem">
-        <i class="fa-solid fa-right-from-bracket"></i> Logout
-    </a>
+                        <a href="{{ url_for('home') }}" target="_blank" rel="noopener" role="menuitem">
+                            <i class="fa-solid fa-globe"></i> View Website
+                        </a>
+                        <a href="{{ url_for('change_password') }}" role="menuitem">
+                            <i class="fa-solid fa-key"></i> Change Password
+                        </a>
+                        <a href="{{ url_for('logout') }}" class="admin-logout-link" role="menuitem">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        </a>
 
-    <form id="adminPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
-        enctype="multipart/form-data" style="display:none;">
-        <input type="file" id="adminPhotoInput" name="photo" accept="image/*"
-            onchange="document.getElementById('adminPhotoForm').submit();">
-    </form>
-</div>
+                        <form id="adminPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
+                            enctype="multipart/form-data" style="display:none;">
+                            <input type="file" id="adminPhotoInput" name="photo" accept="image/*"
+                                onchange="document.getElementById('adminPhotoForm').submit();">
+                        </form>
+                    </div>
                 </div>
             </div>
         </header>

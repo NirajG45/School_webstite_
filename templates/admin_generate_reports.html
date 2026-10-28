@@ -7,8 +7,10 @@
         <h3><i class="fa-solid fa-print"></i> Select Student for Report Card</h3>
     </div>
 
-    <form method="GET" action="{{ url_for('admin_generate_reports') }}" class="admin-form" style="display:flex; gap:15px; align-items:flex-end; background:#f8fafc; padding:20px; border-radius:8px; margin-bottom:20px;">
-        <label style="flex:1;">Select Class
+    <form method="GET" action="{{ url_for('admin_generate_reports') }}" class="admin-form"
+          style="display:flex; gap:15px; align-items:flex-end; background:#f8fafc;
+                 padding:20px; border-radius:8px; margin-bottom:20px; flex-wrap:wrap;">
+        <label style="flex:1; min-width:180px;">Select Class
             <select name="class" required style="width:100%;">
                 <option value="" disabled {% if not selected_class %}selected{% endif %}>-- Select Class --</option>
                 {% for c in class_list %}
@@ -16,7 +18,23 @@
                 {% endfor %}
             </select>
         </label>
-        <button type="submit" class="btn-admin-primary" style="height:42px;"><i class="fa-solid fa-search"></i> Load Students</button>
+        <label style="flex:1; min-width:180px;">Select Exam
+            <select name="exam_id" required style="width:100%;">
+                {% for e in all_exams %}
+                <option value="{{ e.id }}" {% if exam_id == e.id %}selected{% endif %}>{{ e.title }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit" class="btn-admin-primary" style="height:42px;">
+            <i class="fa-solid fa-search"></i> Load Students
+        </button>
+        {% if students %}
+        <a href="{{ url_for('admin_print_all_reports', class=selected_class, exam_id=exam_id) }}"
+           target="_blank" class="btn-admin-primary"
+           style="height:42px; text-decoration:none; background:#16a34a;">
+            <i class="fa-solid fa-print"></i> Bulk Print (2/page)
+        </a>
+        {% endif %}
     </form>
 
     {% if selected_class %}
@@ -25,10 +43,15 @@
             {% for s in students %}
             <div class="admin-notice-item" style="align-items:center;">
                 <div class="notice-item-body">
-                    <p style="font-size:16px; margin:0;"><strong>{{ s.name }}</strong> <span class="muted" style="font-size:13px; margin-left:10px;">Roll: {{ s.roll_no or '-' }} | Sec: {{ s.section or '-' }}</span></p>
+                    <p style="font-size:16px; margin:0;"><strong>{{ s.name }}</strong>
+                        <span class="muted" style="font-size:13px; margin-left:10px;">
+                            Roll: {{ s.roll_no or '-' }} | Sec: {{ s.section or '-' }}
+                        </span></p>
                 </div>
                 <div style="display:flex; gap:10px;">
-                    <a href="{{ url_for('print_report_card', student_id=s.id) }}" target="_blank" class="btn-admin-primary" style="text-decoration:none; padding:8px 15px; background:#2563eb;">
+                    <a href="{{ url_for('print_report_card', student_id=s.id, exam_id=exam_id) }}"
+                       target="_blank" class="btn-admin-primary"
+                       style="text-decoration:none; padding:8px 15px; background:#2563eb;">
                         <i class="fa-solid fa-eye"></i> Preview & Print
                     </a>
                 </div>

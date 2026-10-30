@@ -1852,6 +1852,11 @@
             </a>
             <a href="#materials" class="pd-nav-link"><i class="fa-solid fa-book-open"></i> Study Materials</a>
             <a href="#exams" class="pd-nav-link"><i class="fa-solid fa-file-lines"></i> Examinations & Results</a>
+            
+            <!-- NEW: EXAM FORM SIDEBAR LINK -->
+            <a href="{{ url_for('exam_form') }}" class="pd-nav-link" style="color: #ffd447;">
+                <i class="fa-solid fa-file-signature"></i> Fill Exam Form
+            </a>
 
             <div class="pd-nav-label">Communication</div>
             <a href="#notices" class="pd-nav-link"><i class="fa-solid fa-bullhorn"></i> Notices & Announcements</a>
@@ -2327,6 +2332,11 @@
                                     <i class="fa-solid fa-chart-simple"></i>
                                     <span>Results</span>
                                 </a>
+                                <!-- NEW: EXAM FORM QUICK LINK -->
+                                <a href="{{ url_for('exam_form') }}" class="pd-ql" style="border: 1px solid #c5e2f8; background: #f0f7ff;">
+                                    <i class="fa-solid fa-file-signature" style="color: #1768a7;"></i>
+                                    <span style="color: #1768a7;">Exam Form</span>
+                                </a>
                                 <a href="#events" class="pd-ql">
                                     <i class="fa-regular fa-calendar"></i>
                                     <span>Timetable</span>
@@ -2334,10 +2344,6 @@
                                 <a href="{{ url_for('faq_page') }}" class="pd-ql">
                                     <i class="fa-solid fa-circle-question"></i>
                                     <span>Help &amp; Support</span>
-                                </a>
-                                <a href="{{ url_for('messages_inbox') }}" class="pd-ql">
-                                    <i class="fa-regular fa-comments"></i>
-                                    <span>Messages</span>
                                 </a>
                             </div>
                         </div>

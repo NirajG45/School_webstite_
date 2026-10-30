@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Online Examination Form | Shanti Niketan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}" media="print">
+    <style>
+        /* Chhota sa CSS fix print/preview ke liye */
+        .page-shell.hidden, .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="page-shell">
+        <header class="school-header">
+            <img class="school-logo" src="{{ url_for('static', filename='assets/school-logo-left.svg') }}" alt="Logo">
+            <div class="school-heading">
+                <h1>RES. SHANTI NIKETAN SHISHU VIDYA MANDIR</h1>
+                <p>NAVINAGAR (JAMUI)</p>
+                <p class="exam-session">HALF YEARLY EXAMINATION 2026–2027</p>
+                <h2>ONLINE EXAMINATION FORM</h2>
+            </div>
+            <img class="school-logo" src="{{ url_for('static', filename='assets/school-logo-right.svg') }}" alt="Logo">
+        </header>
+
+        <div class="notice"><b>Instructions:</b> Enter details carefully. <b>*</b> Required fields.</div>
+        
+        <div class="meta-strip">
+            <div><span>Academic Session</span><strong>2026–2027</strong></div>
+            <div><span>Examination</span><strong id="metaExam">Half Yearly</strong></div>
+            <div><span>Form No.</span><strong id="formNumber">SN-2026</strong></div>
+        </div>
+
+        <main>
+            <!-- ACTUAL FORM START -->
+            <form id="examForm" method="POST" action="{{ url_for('exam_form') }}">
+                <section class="form-section">
+                    <h3>STUDENT DETAILS</h3>
+                    <div class="form-grid">
+                        <div class="field"><label>Student's Full Name *</label><input id="studentName" name="studentName" required value="{{ prefill.studentName }}"><small id="studentNameError" class="error"></small></div>
+                        <div class="field"><label>Father's Name *</label><input id="fatherName" name="fatherName" required value="{{ prefill.fatherName }}"><small id="fatherNameError" class="error"></small></div>
+                        <div class="field"><label>Mother's Name</label><input id="motherName" name="motherName" value="{{ prefill.motherName }}"><small id="motherNameError" class="error"></small></div>
+                        <div class="field"><label>Date of Birth *</label><input id="dob" name="dob" type="date" required value="{{ prefill.dob }}"><small id="dobError" class="error"></small></div>
+                        <div class="field"><label>Gender *</label><select id="gender" name="gender" required>
+                            <option value="">Select gender</option>
+                            <option {% if prefill.gender == 'Female' %}selected{% endif %}>Female</option>
+                            <option {% if prefill.gender == 'Male' %}selected{% endif %}>Male</option>
+                        </select><small id="genderError" class="error"></small></div>
+                        <div class="field"><label>Class *</label><select id="className" name="className" required>
+                            <option value="">Select class</option>
+                            {% for c in classes %}
+                                <option value="{{ c }}" {% if prefill.className == c %}selected{% endif %}>{{ c }}</option>
+                            {% endfor %}
+                        </select><small id="classNameError" class="error"></small></div>
+                        <div class="field"><label>Section *</label><input id="section" name="section" value="{{ prefill.section }}" required><small id="sectionError" class="error"></small></div>
+                        <div class="field"><label>Roll Number</label><input id="rollNumber" name="rollNumber" value="{{ prefill.rollNumber }}"></div>
+                        <div class="field"><label>Admission Number</label><input id="admissionNumber" name="admissionNumber" value="{{ prefill.admissionNumber }}"></div>
+                        <div class="field"><label>Student Mobile</label><input id="studentMobile" name="studentMobile" maxlength="10" value="{{ prefill.studentMobile }}"><small id="studentMobileError" class="error"></small></div>
+                        <div class="field"><label>Parent Mobile *</label><input id="parentMobile" name="parentMobile" maxlength="10" required value="{{ prefill.parentMobile }}"><small id="parentMobileError" class="error"></small></div>
+                        <div class="field wide"><label>Full Address *</label><textarea id="address" name="address" rows="2" required>{{ prefill.address }}</textarea><small id="addressError" class="error"></small></div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h3>EXAMINATION DETAILS</h3>
+                    <div class="form-grid">
+                        <div class="field"><label>Academic Session</label><input value="2026–2027" readonly></div>
+                        <div class="field"><label>Examination Type *</label><select id="examType" name="examType" required>
+                            <option>Half Yearly</option>
+                            <option>Annual</option>
+                        </select><small id="examTypeError" class="error"></small></div>
+                    </div>
+                    
+                    <div class="subject-heading">
+                        <div><b>SUBJECT SELECTION *</b></div><b><span id="subjectCount">0</span> selected</b>
+                    </div>
+                    <div id="subjects" class="subjects-grid"></div>
+                    <small id="subjectsError" class="error"></small>
+                </section>
+
+                <section class="form-section">
+                    <h3>PARENT / GUARDIAN DECLARATION</h3>
+                    <label class="declaration"><input id="declaration" type="checkbox"> I confirm that the information provided is correct to the best of my knowledge.</label>
+                    <small id="declarationError" class="error"></small>
+                </section>
+
+                <div class="actions no-print">
+                    <button type="button" id="previewForm" class="dark">Preview Form</button>
+                    <!-- YEH HAI ACTUAL SUBMIT BUTTON -->
+                    <button type="submit" id="submitForm" class="dark">Submit Form</button>
+                    <button type="button" id="printForm">Print Form</button>
+                    <a href="{{ url_for('user_dashboard') }}" style="margin-left:auto; padding:10px; text-decoration:none; color:#111; font-weight:bold; border:1px solid #111;">Back to Dashboard</a>
+                </div>
+            </form>
+
+            <!-- PREVIEW PANEL -->
+            <section id="previewPanel" hidden>
+                <div class="preview-toolbar no-print">
+                    <h3>FORM PREVIEW</h3>
+                    <button id="editForm" type="button">Edit Form</button>
+                    <button id="previewSubmit" type="button" class="dark">Confirm & Submit</button>
+                    <button id="previewPrint" type="button">Print</button>
+                </div>
+                <div id="previewContent" class="preview-document"></div>
+            </section>
+            
+            <div id="notification" class="notification no-print" hidden></div>
+        </main>
+    </div>
+
+    <!-- Pass dynamic subjects to JS -->
+    <script>
+        // Safe way to pass data from Jinja to JS
+        const DB_SUBJECTS = {{ subjects_dict | safe }};
+    </script>
+    
+    <script src="{{ url_for('static', filename='js/storage.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/validation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/preview.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

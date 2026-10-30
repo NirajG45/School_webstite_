@@ -4,6 +4,7 @@ import os
 import sqlite3
 import re
 import secrets
+import json  # <--- NEW IMPORT ADDED
 from functools import wraps
 from datetime import timedelta, datetime
 from flask import (Flask, render_template, request, redirect, url_for, flash, jsonify, g, session)
@@ -350,6 +351,27 @@ def init_db():
             status TEXT DEFAULT 'pending',
             submitted_at TEXT,
             UNIQUE(exam_id, class_name))''')
+
+        # 🚀 NEW: EXAM FORM REGISTRATIONS TABLE
+        db.execute('''CREATE TABLE IF NOT EXISTS exam_registrations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id INTEGER,
+            student_name TEXT NOT NULL,
+            father_name TEXT NOT NULL,
+            mother_name TEXT,
+            dob TEXT,
+            gender TEXT,
+            class_name TEXT,
+            section TEXT,
+            roll_no TEXT,
+            admission_no TEXT,
+            student_mobile TEXT,
+            parent_mobile TEXT NOT NULL,
+            address TEXT,
+            exam_type TEXT,
+            selected_subjects TEXT,
+            status TEXT DEFAULT 'pending',
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
 
         # Migrate existing exam_marks table — add exam_id column if missing
         _mcols = {row[1] for row in db.execute("PRAGMA table_info(exam_marks)").fetchall()}
@@ -1651,7 +1673,29 @@ def admin_attendance():
     role         = request.args.get('role', 'student')
     date         = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     class_filter = request.args.get('class_filter', 'all')
-    subject_filter = request.args.get('subject_filter', 'General')
+    # If the admin opens Attendance without choosing a subject, automatically
+    # show the subject that has the most student attendance records for this date.
+    # Teacher student attendance is saved under the teacher's subject, while
+    # teacher self-attendance is saved under 'General'. Defaulting to General
+    # therefore hid student records on the admin page.
+    requested_subject = (request.args.get('subject_filter') or '').strip()
+    if requested_subject:
+        subject_filter = requested_subject
+    else:
+        latest_student_subject = db.execute("""
+            SELECT a.subject
+            FROM attendance AS a
+            JOIN users AS u ON u.id = a.user_id
+            WHERE a.date = ?
+              AND u.role = 'student'
+              AND u.is_active = 1
+              AND a.subject IS NOT NULL
+              AND TRIM(a.subject) != ''
+            GROUP BY a.subject
+            ORDER BY COUNT(*) DESC, a.subject ASC
+            LIMIT 1
+        """, (date,)).fetchone()
+        subject_filter = latest_student_subject['subject'] if latest_student_subject else 'General'
 
     query = "SELECT * FROM users WHERE role = ? AND is_active = 1"
     params = [role]
@@ -2394,117 +2438,224 @@ def admin_delete_homework(hid):
 @app.route('/teacher/attendance', methods=['GET', 'POST'])
 @login_required
 def teacher_attendance():
+    """
+    Teacher self-attendance and class attendance.
+
+    POST processing is transactional. Student IDs and status values are
+    validated before writing, so malformed form data cannot create attendance
+    for unrelated users.
+    """
     user = get_user_by_id(session['user_id'])
     if not user or user['role'] not in ('teacher', 'admin', 'administrator'):
         flash('Only teachers can access this page.', 'error')
         return redirect(url_for('user_dashboard'))
 
     db = get_db()
-    date = (request.args.get('date') or request.form.get('date')
-            or datetime.now().strftime('%Y-%m-%d'))
-    subject = (request.args.get('subject') or request.form.get('subject')
-               or (user['subject'] or 'General'))
-    selected_class = (request.args.get('class_filter')
-                      or request.form.get('class_filter') or 'all')
+
+    date = (
+        request.args.get('date')
+        or request.form.get('date')
+        or datetime.now().strftime('%Y-%m-%d')
+    )
+    subject = (
+        request.args.get('subject')
+        or request.form.get('subject')
+        or (user['subject'] or 'General')
+    )
+    selected_class = (
+        request.args.get('class_filter')
+        or request.form.get('class_filter')
+        or 'all'
+    )
+
+    # Validate date and normalize filter values.
+    try:
+        datetime.strptime(date, '%Y-%m-%d')
+    except (TypeError, ValueError):
+        date = datetime.now().strftime('%Y-%m-%d')
+        flash('Invalid attendance date. Today\'s date has been selected.', 'error')
+
+    subject = str(subject).strip()[:100] or 'General'
+    selected_class = str(selected_class).strip() or 'all'
 
     raw_classes = user['classes_assigned'] or ''
     assigned_classes = [c.strip() for c in raw_classes.split(',') if c.strip()]
 
+    # Build the same student list for both GET display and POST validation.
+    student_query = "SELECT * FROM users WHERE role='student' AND is_active=1"
+    student_params = []
+
+    if selected_class != 'all':
+        student_query += " AND (class_name = ? OR child_class = ?)"
+        student_params.extend([selected_class, selected_class])
+    elif assigned_classes:
+        class_conditions = []
+        for class_name in assigned_classes:
+            class_conditions.append("(class_name LIKE ? OR child_class LIKE ?)")
+            student_params.extend([f'%{class_name}%', f'%{class_name}%'])
+        student_query += " AND (" + " OR ".join(class_conditions) + ")"
+
+    student_query += " ORDER BY COALESCE(class_name, child_class), name"
+    students = db.execute(student_query, tuple(student_params)).fetchall()
+    allowed_student_ids = {int(student['id']) for student in students}
+
     if request.method == 'POST':
-        self_status = request.form.get('teacher_self_status')
-        if self_status in ('present', 'absent', 'leave', 'half-day'):
-            existing = db.execute(
-                "SELECT id FROM attendance WHERE user_id=? AND date=? AND subject='General'",
-                (user['id'], date)
-            ).fetchone()
-            if existing:
-                db.execute(
-                    'UPDATE attendance SET status=?, marked_by=? WHERE id=?',
-                    (self_status, user['id'], existing['id'])
-                )
-            else:
-                db.execute(
-                    'INSERT INTO attendance (user_id, date, status, subject, marked_by) '
-                    "VALUES (?,?,?,'General',?)",
-                    (user['id'], date, self_status, user['id'])
-                )
+        valid_statuses = {'present', 'absent', 'leave', 'half-day'}
+        saved_count = 0
 
-        for key, val in request.form.items():
-            if key.startswith('status_'):
-                try:
-                    uid = int(key.replace('status_', ''))
-                except ValueError:
-                    continue
-                val = (val or '').strip()
+        # Collect only valid student attendance fields.
+        submitted_statuses = []
+        for key, value in request.form.items():
+            if not key.startswith('status_'):
+                continue
 
-                existing = db.execute(
-                    'SELECT id FROM attendance WHERE user_id=? AND date=? AND subject=?',
-                    (uid, date, subject)
+            try:
+                student_id = int(key[len('status_'):])
+            except (TypeError, ValueError):
+                continue
+
+            # A submitted ID must belong to the currently displayed student set.
+            if student_id not in allowed_student_ids:
+                continue
+
+            status = (value or '').strip().lower()
+            if status and status not in valid_statuses:
+                continue
+
+            submitted_statuses.append((student_id, status))
+
+        self_status = (request.form.get('teacher_self_status') or '').strip().lower()
+        if self_status not in valid_statuses:
+            self_status = None
+
+        try:
+            # One atomic transaction: either all attendance writes succeed or none do.
+            db.execute('BEGIN IMMEDIATE')
+
+            if self_status:
+                existing_self = db.execute(
+                    "SELECT id FROM attendance "
+                    "WHERE user_id=? AND date=? AND subject='General' "
+                    "ORDER BY id DESC LIMIT 1",
+                    (user['id'], date)
                 ).fetchone()
 
-                if not val:
-                    if existing:
-                        db.execute('DELETE FROM attendance WHERE id = ?', (existing['id'],))
-                elif existing:
+                if existing_self:
                     db.execute(
                         'UPDATE attendance SET status=?, marked_by=? WHERE id=?',
-                        (val, user['id'], existing['id'])
+                        (self_status, user['id'], existing_self['id'])
                     )
                 else:
                     db.execute(
-                        'INSERT INTO attendance (user_id, date, status, subject, marked_by) '
-                        'VALUES (?,?,?,?,?)',
-                        (uid, date, val, subject, user['id'])
+                        "INSERT INTO attendance "
+                        "(user_id, date, status, subject, marked_by) "
+                        "VALUES (?, ?, ?, 'General', ?)",
+                        (user['id'], date, self_status, user['id'])
                     )
-        db.commit()
-        flash(f'Attendance saved for {date} ({subject}).', 'success')
+
+            for student_id, status in submitted_statuses:
+                existing = db.execute(
+                    "SELECT id FROM attendance "
+                    "WHERE user_id=? AND date=? AND subject=? "
+                    "ORDER BY id DESC LIMIT 1",
+                    (student_id, date, subject)
+                ).fetchone()
+
+                if not status:
+                    # Keep the original clear/toggle-off behavior.
+                    if existing:
+                        db.execute(
+                            'DELETE FROM attendance WHERE id=?',
+                            (existing['id'],)
+                        )
+                    continue
+
+                if existing:
+                    db.execute(
+                        'UPDATE attendance SET status=?, marked_by=? WHERE id=?',
+                        (status, user['id'], existing['id'])
+                    )
+                else:
+                    db.execute(
+                        'INSERT INTO attendance '
+                        '(user_id, date, status, subject, marked_by) '
+                        'VALUES (?, ?, ?, ?, ?)',
+                        (student_id, date, status, subject, user['id'])
+                    )
+
+                saved_count += 1
+
+            db.commit()
+
+        except Exception:
+            db.rollback()
+            app.logger.exception(
+                "Attendance save failed for teacher_id=%s date=%s subject=%s",
+                user['id'], date, subject
+            )
+            flash('Attendance could not be saved. Please try again.', 'error')
+            return redirect(url_for(
+                'teacher_attendance',
+                date=date,
+                subject=subject,
+                class_filter=selected_class
+            ))
+
+        if saved_count:
+            flash(
+                f'Attendance saved successfully for {saved_count} student(s) '
+                f'on {date} ({subject}).',
+                'success'
+            )
+        else:
+            flash(
+                f'No student attendance changes were received for {date} ({subject}). '
+                'Please mark students and try again.',
+                'warning'
+            )
+
         return redirect(url_for(
             'teacher_attendance',
-            date=date, subject=subject, class_filter=selected_class
+            date=date,
+            subject=subject,
+            class_filter=selected_class
         ))
 
     self_rec = db.execute(
-        "SELECT status FROM attendance WHERE user_id=? AND date=? AND subject='General'",
+        "SELECT status FROM attendance "
+        "WHERE user_id=? AND date=? AND subject='General' "
+        "ORDER BY id DESC LIMIT 1",
         (user['id'], date)
     ).fetchone()
     self_status = self_rec['status'] if self_rec else 'not-marked'
 
-    sq = "SELECT * FROM users WHERE role='student' AND is_active=1"
-    sp = []
-    if selected_class != 'all':
-        sq += " AND (class_name = ? OR child_class = ?)"
-        sp.extend([selected_class, selected_class])
-    elif assigned_classes:
-        ors = []
-        for c in assigned_classes:
-            ors.append("(class_name LIKE ? OR child_class LIKE ?)")
-            sp.extend([f'%{c}%', f'%{c}%'])
-        sq += " AND (" + " OR ".join(ors) + ")"
-    sq += " ORDER BY COALESCE(class_name, child_class), name"
-    students = db.execute(sq, tuple(sp)).fetchall()
-
     student_att_map = {}
     if students:
-        ids = [s['id'] for s in students]
-        ph = ','.join(['?'] * len(ids))
-        rows = db.execute(
+        student_ids = [int(student['id']) for student in students]
+        placeholders = ','.join(['?'] * len(student_ids))
+        attendance_rows = db.execute(
             f"SELECT user_id, status FROM attendance "
-            f"WHERE date=? AND subject=? AND user_id IN ({ph})",
-            (date, subject, *ids)
+            f"WHERE date=? AND subject=? AND user_id IN ({placeholders})",
+            (date, subject, *student_ids)
         ).fetchall()
-        student_att_map = {r['user_id']: r['status'] for r in rows}
+        student_att_map = {
+            row['user_id']: row['status'] for row in attendance_rows
+        }
 
     class_rows = db.execute(
         "SELECT DISTINCT COALESCE(class_name, child_class) AS c FROM users "
-        "WHERE role='student' AND COALESCE(class_name, child_class) IS NOT NULL "
+        "WHERE role='student' "
+        "AND COALESCE(class_name, child_class) IS NOT NULL "
         "AND COALESCE(class_name, child_class) != '' ORDER BY c"
     ).fetchall()
-    class_list = [r['c'] for r in class_rows if r['c']]
+    class_list = [row['c'] for row in class_rows if row['c']]
 
-    subject_rows = [row['subject'] for row in db.execute(
-        "SELECT DISTINCT subject FROM attendance "
-        "WHERE subject IS NOT NULL AND subject != '' ORDER BY subject"
-    ).fetchall()]
+    subject_rows = [
+        row['subject'] for row in db.execute(
+            "SELECT DISTINCT subject FROM attendance "
+            "WHERE subject IS NOT NULL AND subject != '' ORDER BY subject"
+        ).fetchall()
+    ]
     subjects = []
     if user['subject'] and user['subject'] not in subject_rows:
         subjects.append(user['subject'])
@@ -2514,11 +2665,15 @@ def teacher_attendance():
 
     return render_template(
         'teacher_attendance.html',
-        user=user, date=date, subject=subject,
+        user=user,
+        date=date,
+        subject=subject,
         selected_class=selected_class,
         assigned_classes=assigned_classes,
-        class_list=class_list, subjects=subjects,
-        students=students, student_att_map=student_att_map,
+        class_list=class_list,
+        subjects=subjects,
+        students=students,
+        student_att_map=student_att_map,
         self_status=self_status,
         total_students=len(students)
     )
@@ -3151,6 +3306,91 @@ def results_page():
 
 
 # =========================================
+# 🚀 NEW: ONLINE EXAM FORM ROUTE
+# =========================================
+@app.route('/exam-form', methods=['GET', 'POST'])
+@login_required
+def exam_form():
+    user = get_user_by_id(session['user_id'])
+    if not user:
+        return redirect(url_for('login_page'))
+
+    db = get_db()
+    
+    # Agar form submit hua hai
+    if request.method == 'POST':
+        selected_subjects = request.form.getlist('subjects')
+        
+        db.execute('''INSERT INTO exam_registrations 
+                      (student_id, student_name, father_name, mother_name, dob, gender, 
+                       class_name, section, roll_no, admission_no, student_mobile, 
+                       parent_mobile, address, exam_type, selected_subjects)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                   (user['id'], request.form.get('studentName'), request.form.get('fatherName'),
+                    request.form.get('motherName'), request.form.get('dob'), request.form.get('gender'),
+                    request.form.get('className'), request.form.get('section'), request.form.get('rollNumber'),
+                    request.form.get('admissionNumber'), request.form.get('studentMobile'),
+                    request.form.get('parentMobile'), request.form.get('address'), request.form.get('examType'),
+                    json.dumps(selected_subjects)))
+        db.commit()
+        flash('Exam form submitted successfully!', 'success')
+        return redirect(url_for('user_dashboard'))
+
+    # Agar page open kiya hai (GET)
+    classes = ['Pre', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th']
+    
+    # Admin dwara add kiye gaye subjects fetch karein
+    subjects_raw = db.execute('SELECT class_name, subject_name FROM subjects').fetchall()
+    subjects_dict = {}
+    for row in subjects_raw:
+        cls = row['class_name']
+        if cls not in subjects_dict:
+            subjects_dict[cls] = []
+        subjects_dict[cls].append(row['subject_name'])
+
+    # Auto-fill ke liye data taiyar karein
+    prefill = {
+        'studentName': '', 'fatherName': '', 'motherName': '', 'dob': '',
+        'gender': '', 'className': '', 'section': '', 'rollNumber': '',
+        'admissionNumber': '', 'studentMobile': '', 'parentMobile': '', 'address': ''
+    }
+
+    if user['role'] == 'student':
+        prefill['studentName'] = user['name']
+        prefill['fatherName'] = user['father_name'] or ''
+        prefill['motherName'] = user['mother_name'] or ''
+        prefill['dob'] = user['dob'] or ''
+        prefill['gender'] = user['gender'] or ''
+        prefill['className'] = user['class_name'] or user['child_class'] or ''
+        prefill['section'] = user['section'] or ''
+        prefill['rollNumber'] = user['roll_no'] or ''
+        prefill['admissionNumber'] = user['admission_no'] or ''
+        prefill['studentMobile'] = user['phone'] or ''
+        prefill['parentMobile'] = user['father_mobile'] or ''
+        prefill['address'] = user['address'] or ''
+    elif user['role'] == 'parent':
+        child = get_parent_child(db, user)
+        if child:
+            prefill['studentName'] = child['name']
+            prefill['fatherName'] = child['father_name'] or ''
+            prefill['motherName'] = child['mother_name'] or ''
+            prefill['dob'] = child['dob'] or ''
+            prefill['gender'] = child['gender'] or ''
+            prefill['className'] = child['class_name'] or ''
+            prefill['section'] = child['section'] or ''
+            prefill['rollNumber'] = child['roll_no'] or ''
+            prefill['admissionNumber'] = child['admission_no'] or ''
+            prefill['parentMobile'] = child['father_mobile'] or ''
+            prefill['address'] = child['address'] or ''
+            
+    return render_template('exam_form.html', 
+                           user=user, 
+                           classes=classes, 
+                           subjects_dict=json.dumps(subjects_dict),
+                           prefill=prefill)
+
+
+# =========================================
 # 10.10. SETTINGS PAGE
 # =========================================
 @app.route('/settings')
@@ -3461,6 +3701,28 @@ def admin_reports_dashboard():
                            selected_exam=selected_exam,
                            selected_exam_id=selected_exam_id,
                            active_page='reports_dashboard')
+
+
+# 🚀 NEW: ADMIN VIEW SUBMITTED EXAM FORMS
+@app.route('/admin/exam-forms')
+@admin_required
+def admin_exam_forms():
+    db = get_db()
+    forms = db.execute('''SELECT er.*, u.unique_id as student_uid 
+                          FROM exam_registrations er 
+                          LEFT JOIN users u ON er.student_id = u.id 
+                          ORDER BY er.id DESC''').fetchall()
+    
+    parsed_forms = []
+    for f in forms:
+        f_dict = dict(f)
+        try:
+            f_dict['subjects_list'] = json.loads(f_dict['selected_subjects'])
+        except:
+            f_dict['subjects_list'] = []
+        parsed_forms.append(f_dict)
+
+    return render_template('admin_exam_forms.html', forms=parsed_forms, active_page='exam_forms')
 
 
 # ---------- BULK MARKS ENTRY (admin) ----------

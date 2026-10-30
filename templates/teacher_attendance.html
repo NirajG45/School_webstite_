@@ -118,7 +118,7 @@
             cursor: pointer;
         }
 
-        /* NEW: Avatar with photo + camera overlay */
+        /* Avatar with photo + camera overlay */
         .ta-self-avatar-wrap {
             position: relative;
             flex: 0 0 52px;
@@ -483,6 +483,15 @@
         </div>
     </section>
 
+    <!-- Hidden photo upload form — MUST be outside the attendance form
+         (nested forms are invalid HTML and silently break submission) -->
+    <form id="taPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
+          enctype="multipart/form-data" style="display:none;">
+        <input type="file" id="taPhotoInput" name="photo" accept="image/*"
+               onchange="document.getElementById('taPhotoForm').submit();">
+    </form>
+
+    <!-- Main attendance form -->
     <form method="POST" action="{{ url_for('teacher_attendance') }}" id="attendanceForm">
         <input type="hidden" name="date" value="{{ date }}">
         <input type="hidden" name="subject" value="{{ subject }}">
@@ -507,7 +516,6 @@
                             {{ user.name.split()[0][0]|upper }}{{ user.name.split()[-1][0]|upper if user.name.split()|length > 1 else '' }}
                         </div>
                         {% endif %}
-                        <!-- NEW: Quick camera button to change photo -->
                         <button type="button" class="ta-avatar-cam" title="Change profile photo"
                                 onclick="document.getElementById('taPhotoInput').click();">
                             <i class="fa-solid fa-camera"></i>
@@ -531,13 +539,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- NEW: Hidden photo upload form (submits outside the attendance form) -->
-        <form id="taPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
-              enctype="multipart/form-data" style="display:none;">
-            <input type="file" id="taPhotoInput" name="photo" accept="image/*"
-                   onchange="document.getElementById('taPhotoForm').submit();">
-        </form>
 
         <!-- Filters -->
         <div class="ta-filter-bar">
@@ -760,7 +761,8 @@
             if (match) visible++;
         });
 
-        document.getElementById('visibleCount').textContent = visible;
+        const visibleCount = document.getElementById('visibleCount');
+        if (visibleCount) visibleCount.textContent = visible;
     };
 
     /* ---- Update all live counters ---- */

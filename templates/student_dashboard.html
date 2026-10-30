@@ -328,7 +328,6 @@
         /* ============================================================
            NEW — PROFILE PHOTO SUPPORT
            ============================================================ */
-        /* Generic has-photo: avatar variants render an <img> instead of initials */
         .user-avatar.has-photo,
         .user-info-avatar.has-photo,
         .mobile-user-avatar.has-photo,
@@ -575,6 +574,7 @@
             <a href="{{ url_for('messages_inbox') }}"><i class="fa-regular fa-comments"></i> Messages</a>
             <a href="{{ url_for('study_materials_page') }}"><i class="fa-solid fa-book-open"></i> Study Materials</a>
             <a href="{{ url_for('results_page') }}"><i class="fa-solid fa-file-lines"></i> My Results</a>
+            <a href="{{ url_for('exam_form') }}"><i class="fa-solid fa-file-signature"></i> Online Exam Form</a>
             <a href="{{ url_for('faculty_page') }}"><i class="fa-solid fa-chalkboard-user"></i> Our Faculty</a>
             <a href="{{ url_for('events_page') }}"><i class="fa-regular fa-calendar-days"></i> Events & News</a>
             <a href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i> Achievements</a>
@@ -918,6 +918,10 @@
                     <span class="panel-title-icon" style="background:#fef3c7; color:#b45309;"><i
                             class="fa-solid fa-file-pen"></i></span>
                     <h2>Exam Results</h2>
+                    <!-- NEW: EXAM FORM BUTTON -->
+                    <a href="{{ url_for('exam_form') }}" style="margin-left:auto; display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; text-decoration:none; background:#0b3562; color:#fff; padding:6px 10px; border-radius:6px;">
+                        <i class="fa-solid fa-file-signature"></i> Fill Exam Form
+                    </a>
                 </div>
                 <div style="padding: 20px;">
                     <select class="exam-select" id="examTypeFilter" onchange="filterExams()">
@@ -973,7 +977,7 @@
                     <h2>Quick Links</h2>
                 </div>
                 <div style="padding: 15px 20px;">
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
                         <a href="{{ url_for('messages_inbox') }}"
                             style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border-radius: 10px; background: #f8fafc; text-decoration: none; text-align: center; transition: all .2s;">
                             <i class="fa-regular fa-comments" style="font-size: 16px; color: #0b3562;"></i>
@@ -988,6 +992,12 @@
                             style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border-radius: 10px; background: #f8fafc; text-decoration: none; text-align: center; transition: all .2s;">
                             <i class="fa-solid fa-chart-simple" style="font-size: 16px; color: #0b3562;"></i>
                             <span style="font-size: 10px; font-weight: 700; color: #0b3562;">Results</span>
+                        </a>
+                        <!-- NEW: EXAM FORM LINK -->
+                        <a href="{{ url_for('exam_form') }}"
+                            style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border-radius: 10px; background: #f0f7ff; text-decoration: none; text-align: center; transition: all .2s; border: 1px solid #c5e2f8;">
+                            <i class="fa-solid fa-file-signature" style="font-size: 16px; color: #1768a7;"></i>
+                            <span style="font-size: 10px; font-weight: 700; color: #1768a7;">Exam Form</span>
                         </a>
                     </div>
                 </div>

@@ -426,7 +426,7 @@
                 </select>
             </label>
             <label>Date
-                <input type="date" name="date" value="{{ date }}" onchange="this.form.submit()">
+                <input type="date" name="date" value="{{ date }}" onchange="this.form.elements['subject_filter'].disabled = true; this.form.submit()">
             </label>
             <label>Subject
                 <select name="subject_filter" onchange="this.form.submit()">
@@ -533,7 +533,8 @@
                 </thead>
                 <tbody id="attendanceRows">
                     {% for u in users %}
-                    {% set st = attendance_map.get(u.id, '') %}
+                    {% set raw_st = attendance_map.get(u.id, '') %}
+                    {% set st = raw_st if raw_st in ['present', 'absent', 'leave', 'half-day'] else '' %}
                     <tr class="att-row-item {% if st %}att-row-marked-{{ st }}{% endif %}"
                         data-uid="{{ u.id }}"
                         data-name="{{ u.name|lower }}"

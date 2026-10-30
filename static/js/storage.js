@@ -1,0 +1,1 @@
+const DraftStorage=(()=>{const KEY="snsvm_exam_form_draft_v1";return{save(data){try{localStorage.setItem(KEY,JSON.stringify(data));return true}catch(e){return false}},load(){try{return JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){return null}},clear(){try{localStorage.removeItem(KEY);return true}catch(e){return false}}}})();

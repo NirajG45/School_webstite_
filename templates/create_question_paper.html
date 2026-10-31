@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Create Question Paper</h2>
+    <form method="POST" class="card p-4 shadow-sm">
+        <div class="mb-3">
+            <label>Exam Title (e.g., HALF YEARLY EXAMINATION 2026 - 2027)</label>
+            <input type="text" name="title" class="form-control" required>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label>Class</label>
+                <input type="text" name="class_name" class="form-control" placeholder="e.g., IV" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Subject</label>
+                <input type="text" name="subject" class="form-control" placeholder="e.g., Computer" required>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label>Max Marks (F.M.)</label>
+                <input type="number" name="max_marks" class="form-control" placeholder="e.g., 50" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label>Time Allowed</label>
+                <input type="text" name="time_allowed" class="form-control" placeholder="e.g., 2 HOURS" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label>Exam Year</label>
+                <input type="text" name="exam_year" class="form-control" placeholder="e.g., 2026 - 2027" required>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-success">Create & Add Questions</button>
+    </form>
+</div>
+{% endblock %}

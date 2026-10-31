@@ -1697,6 +1697,9 @@
                 data-label="Reports Dashboard">
                 <i class="fa-solid fa-chart-line"></i><span class="nav-label">Reports Dashboard</span>
             </a>
+            <a href="{{ url_for('teacher_question_papers') }}" class="nav-link">
+    <i class="fas fa-file-alt"></i> Question Papers
+</a>
             <a href="{{ url_for('admin_enter_marks') }}"
                 class="admin-nav-link {% if active_page == 'enter_marks' %}active{% endif %}"
                 data-label="Enter Marks">

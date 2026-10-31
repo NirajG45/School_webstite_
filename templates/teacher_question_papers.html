@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Question Papers</h2>
+        <a href="{{ url_for('create_question_paper') }}" class="btn btn-primary">+ Create New Paper</a>
+    </div>
+    <div class="row">
+        {% for p in papers %}
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ p['title'] }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ p['class_name'] }} - {{ p['subject'] }}</h6>
+                    <p class="card-text">Max Marks: {{ p['max_marks'] }} | Time: {{ p['time_allowed'] }}</p>
+                    <a href="{{ url_for('edit_question_paper', paper_id=p['id']) }}" class="btn btn-sm btn-outline-primary">Edit Questions</a>
+                    <a href="{{ url_for('print_question_paper', paper_id=p['id']) }}" target="_blank" class="btn btn-sm btn-outline-success">Print Paper</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12"><p>No papers created yet.</p></div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>{{ paper['title'] }} - {{ paper['class_name'] }} ({{ paper['subject'] }})</h3>
+        <a href="{{ url_for('print_question_paper', paper_id=paper['id']) }}" target="_blank" class="btn btn-warning">Print Preview</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">Add New Question</div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-2">
+                            <label>Section Name</label>
+                            <input type="text" name="section_name" class="form-control form-control-sm" placeholder="e.g., Q1. Fill in the blanks" required>
+                        </div>
+                        <div class="mb-2">
+                            <label>Question Text</label>
+                            <textarea name="question_text" class="form-control form-control-sm" rows="2" required></textarea>
+                        </div>
+                        <div class="mb-2">
+                            <label>Options (Optional - comma separated)</label>
+                            <textarea name="options" class="form-control form-control-sm" rows="2" placeholder="e.g., a) Key, b) Mouse, c) Monitor"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label>Marks</label>
+                            <input type="number" name="marks" class="form-control form-control-sm" value="1" required>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-success w-100">Add Question</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">Added Questions</div>
+                <div class="card-body">
+                    {% for section, qs in grouped_questions.items() %}
+                    <h5 class="text-primary mt-3">{{ section }}</h5>
+                    <ul class="list-group mb-3">
+                        {% for q in qs %}
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ loop.index }}.</strong> {{ q['question_text'] }} <small class="text-muted">({{ q['marks'] }} marks)</small>
+                                {% if q['options'] %}
+                                <br><small class="text-secondary">Options: {{ q['options'] }}</small>
+                                {% endif %}
+                            </div>
+                            <form method="POST" action="{{ url_for('delete_question', paper_id=paper['id'], q_id=q['id']) }}">
+                                <button type="submit" class="btn btn-sm btn-danger">x</button>
+                            </form>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted">No questions added yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

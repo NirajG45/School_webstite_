@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Print - {{ paper['title'] }}</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 0; background: #fff; }
+            .no-print { display: none !important; }
+            .page { box-shadow: none; border: none; margin: 0; padding: 10mm; }
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+        }
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            padding: 15mm;
+            box-sizing: border-box;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            margin: 20px 0;
+        }
+        .header-table {
+            width: 100%;
+            text-align: center;
+            border-collapse: collapse;
+        }
+        .header-table td {
+            vertical-align: middle;
+        }
+        .logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid #d9534f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #d9534f;
+            margin: auto;
+        }
+        .school-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #000;
+        }
+        .school-address {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .exam-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 0;
+            text-decoration: underline;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .student-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-top: 10px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+        }
+        .instruction {
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 15px 0;
+            text-transform: uppercase;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .question-list {
+            font-size: 14px;
+            line-height: 1.8;
+            margin-top: 10px;
+        }
+        .question-item {
+            display: flex;
+            margin-bottom: 5px;
+        }
+        .q-num {
+            width: 25px;
+            font-weight: bold;
+        }
+        .options-row {
+            display: flex;
+            gap: 20px;
+            margin-left: 25px;
+            margin-bottom: 10px;
+        }
+        .blank-line {
+            border-bottom: 1px dotted #000;
+            display: inline-block;
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page">
+        <!-- Print Button (Hidden on Print) -->
+        <div class="no-print" style="text-align: right; margin-bottom: 20px;">
+            <button onclick="window.print()" style="padding: 10px 20px; background: #28a745; color: white; border: none; cursor: pointer; font-size: 16px;">🖨️ Print Paper</button>
+        </div>
+
+        <!-- Header -->
+        <table class="header-table">
+            <tr>
+                <td style="width: 15%;"><div class="logo">LOGO</div></td>
+                <td style="width: 70%;">
+                    <div class="school-name">RES. SHANTI NIKETAN SHISHU VIDYA MANDIR</div>
+                    <div class="school-address">NAVINAGAR (JAMUI)</div>
+                    <div class="exam-title">{{ paper['title'] }}</div>
+                </td>
+                <td style="width: 15%;"><div class="logo">LOGO</div></td>
+            </tr>
+        </table>
+
+        <!-- Info Row -->
+        <div class="info-row">
+            <span>CLASS - {{ paper['class_name'] }}</span>
+            <span>SUB - {{ paper['subject'] }}</span>
+            <span>F.M. - {{ paper['max_marks'] }}</span>
+            <span>TIME - {{ paper['time_allowed'] }}</span>
+        </div>
+
+        <!-- Student Info -->
+        <div class="student-info">
+            <span>Name: _________________________</span>
+            <span>Roll No.: _________________________</span>
+            <span>Date: _________________________</span>
+            <span>Section: _________________________</span>
+        </div>
+
+        <!-- Instruction -->
+        <div class="instruction">
+            ANSWER ALL THE QUESTIONS<br>
+            <span style="font-size: 11px; font-style: italic;">TEACHER IS REQUESTED TO EXPLAIN THE QUESTION TO THE STUDENTS</span>
+        </div>
+
+        <!-- Questions Loop -->
+        {% for section, qs in grouped_questions.items() %}
+            <div class="section-title">
+                <span>{{ section }}</span>
+                <span>( {{ qs|sum(attribute='marks') }} Marks )</span>
+            </div>
+            
+            <div class="question-list">
+                {% for q in qs %}
+                <div class="question-item">
+                    <div class="q-num">{{ loop.index }}.</div>
+                    <div>
+                        {{ q['question_text'] }}
+                        {% if q['options'] %}
+                            <!-- Simple logic to split options by comma -->
+                            <div class="options-row">
+                                {% for opt in q['options'].split(',') %}
+                                    <span>{{ opt.strip() }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="text-align: center; margin-top: 50px;">No questions added yet.</p>
+        {% endfor %}
+
+    </div>
+
+</body>
+</html>

@@ -372,6 +372,28 @@ def init_db():
             selected_subjects TEXT,
             status TEXT DEFAULT 'pending',
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        
+                # 🚀 NEW: Question Paper Generator Tables
+        db.execute('''CREATE TABLE IF NOT EXISTS exam_papers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            class_name TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            time_allowed TEXT,
+            max_marks INTEGER,
+            exam_year TEXT,
+            teacher_id INTEGER NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+
+        db.execute('''CREATE TABLE IF NOT EXISTS exam_questions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            paper_id INTEGER NOT NULL,
+            section_name TEXT NOT NULL,
+            question_text TEXT NOT NULL,
+            options TEXT,
+            marks INTEGER DEFAULT 1,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(paper_id) REFERENCES exam_papers(id) ON DELETE CASCADE)''')
 
         # Migrate existing exam_marks table — add exam_id column if missing
         _mcols = {row[1] for row in db.execute("PRAGMA table_info(exam_marks)").fetchall()}
@@ -2765,6 +2787,194 @@ def teacher_homework():
         stats=stats
     )
 
+
+# =========================================
+# 🚀 TEACHER — QUESTION PAPER GENERATOR ROUTES
+# =========================================
+
+@app.route('/teacher/question-papers')
+@login_required
+def teacher_question_papers():
+    """List all question papers created by the logged-in teacher."""
+    user = get_user_by_id(session['user_id'])
+    if not user or user['role'] != 'teacher':
+        flash('Access denied. Only teachers can access this page.', 'error')
+        return redirect(url_for('user_dashboard'))
+
+    db = get_db()
+    papers = db.execute(
+        'SELECT * FROM exam_papers WHERE teacher_id = ? ORDER BY id DESC',
+        (user['id'],)
+    ).fetchall()
+    
+    return render_template('teacher_question_papers.html', user=user, papers=papers)
+
+
+@app.route('/teacher/question-papers/create', methods=['GET', 'POST'])
+@login_required
+def create_question_paper():
+    """Create the basic details of a new question paper."""
+    user = get_user_by_id(session['user_id'])
+    if not user or user['role'] != 'teacher':
+        flash('Access denied.', 'error')
+        return redirect(url_for('user_dashboard'))
+
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        class_name = request.form.get('class_name', '').strip()
+        subject = request.form.get('subject', '').strip()
+        time_allowed = request.form.get('time_allowed', '').strip()
+        max_marks = request.form.get('max_marks', '0').strip()
+        exam_year = request.form.get('exam_year', '').strip()
+
+        if not title or not class_name or not subject:
+            flash('Title, Class, and Subject are required.', 'error')
+            return redirect(url_for('create_question_paper'))
+
+        db = get_db()
+        cur = db.execute('''INSERT INTO exam_papers 
+                          (title, class_name, subject, time_allowed, max_marks, exam_year, teacher_id) 
+                          VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                       (title, class_name, subject, time_allowed, max_marks, exam_year, user['id']))
+        db.commit()
+        
+        flash('Question paper created! Now add questions.', 'success')
+        return redirect(url_for('edit_question_paper', paper_id=cur.lastrowid))
+
+    return render_template('create_question_paper.html', user=user)
+
+
+@app.route('/teacher/question-papers/<int:paper_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_question_paper(paper_id):
+    """Add questions to a specific paper and view existing ones."""
+    user = get_user_by_id(session['user_id'])
+    db = get_db()
+    
+    # Ensure the teacher owns this paper
+    paper = db.execute(
+        'SELECT * FROM exam_papers WHERE id = ? AND teacher_id = ?', 
+        (paper_id, user['id'])
+    ).fetchone()
+    
+    if not paper:
+        flash('Paper not found or you do not have permission to edit it.', 'error')
+        return redirect(url_for('teacher_question_papers'))
+
+    if request.method == 'POST':
+        section_name = request.form.get('section_name', '').strip()
+        question_text = request.form.get('question_text', '').strip()
+        options = request.form.get('options', '').strip()
+        marks = request.form.get('marks', '1').strip()
+
+        if not section_name or not question_text:
+            flash('Section name and Question text are required.', 'error')
+        else:
+            db.execute('''INSERT INTO exam_questions 
+                          (paper_id, section_name, question_text, options, marks) 
+                          VALUES (?, ?, ?, ?, ?)''',
+                       (paper_id, section_name, question_text, options, int(marks)))
+            db.commit()
+            flash('Question added successfully!', 'success')
+            
+        return redirect(url_for('edit_question_paper', paper_id=paper_id))
+
+    # Fetch all questions for this paper
+    questions = db.execute(
+        'SELECT * FROM exam_questions WHERE paper_id = ? ORDER BY id', 
+        (paper_id,)
+    ).fetchall()
+    
+    # Group questions by section (e.g., "Q1. Fill in the blanks")
+    grouped_questions = {}
+    for q in questions:
+        grouped_questions.setdefault(q['section_name'], []).append(q)
+
+    return render_template('edit_question_paper.html', 
+                           user=user, 
+                           paper=paper, 
+                           grouped_questions=grouped_questions)
+
+
+@app.route('/teacher/question-papers/<int:paper_id>/delete-question/<int:q_id>', methods=['POST'])
+@login_required
+def delete_question(paper_id, q_id):
+    """Delete a specific question from a paper."""
+    user = get_user_by_id(session['user_id'])
+    db = get_db()
+    
+    # Verify ownership before deleting
+    paper = db.execute(
+        'SELECT id FROM exam_papers WHERE id = ? AND teacher_id = ?', 
+        (paper_id, user['id'])
+    ).fetchone()
+    
+    if not paper:
+        flash('Unauthorized action.', 'error')
+        return redirect(url_for('teacher_question_papers'))
+
+    db.execute('DELETE FROM exam_questions WHERE id = ? AND paper_id = ?', (q_id, paper_id))
+    db.commit()
+    flash('Question deleted.', 'success')
+    return redirect(url_for('edit_question_paper', paper_id=paper_id))
+
+
+@app.route('/teacher/question-papers/<int:paper_id>/delete-paper', methods=['POST'])
+@login_required
+def delete_question_paper(paper_id):
+    """Delete the entire paper and its questions."""
+    user = get_user_by_id(session['user_id'])
+    db = get_db()
+    
+    paper = db.execute(
+        'SELECT id FROM exam_papers WHERE id = ? AND teacher_id = ?', 
+        (paper_id, user['id'])
+    ).fetchone()
+    
+    if not paper:
+        flash('Unauthorized action.', 'error')
+        return redirect(url_for('teacher_question_papers'))
+
+    # SQLite ON DELETE CASCADE will delete questions automatically if configured, 
+    # but to be safe, we delete questions first.
+    db.execute('DELETE FROM exam_questions WHERE paper_id = ?', (paper_id,))
+    db.execute('DELETE FROM exam_papers WHERE id = ?', (paper_id,))
+    db.commit()
+    flash('Question paper deleted entirely.', 'success')
+    return redirect(url_for('teacher_question_papers'))
+
+
+@app.route('/teacher/question-papers/<int:paper_id>/print')
+@login_required
+def print_question_paper(paper_id):
+    """Render the final printable format exactly like the school's physical paper."""
+    user = get_user_by_id(session['user_id'])
+    db = get_db()
+    
+    # Allow any teacher/admin to print, but fetch the paper
+    paper = db.execute('SELECT * FROM exam_papers WHERE id = ?', (paper_id,)).fetchone()
+    
+    if not paper:
+        flash('Paper not found.', 'error')
+        return redirect(url_for('teacher_question_papers'))
+
+    questions = db.execute(
+        'SELECT * FROM exam_questions WHERE paper_id = ? ORDER BY id', 
+        (paper_id,)
+    ).fetchall()
+    
+    # Group and calculate total marks
+    grouped_questions = {}
+    total_marks = 0
+    for q in questions:
+        grouped_questions.setdefault(q['section_name'], []).append(q)
+        total_marks += q['marks']
+
+    return render_template('print_question_paper.html', 
+                           paper=paper, 
+                           grouped_questions=grouped_questions,
+                           total_marks=total_marks)
+    
 
 @app.route('/teacher/homework/add', methods=['POST'])
 @login_required

@@ -1,37 +1,335 @@
-{% extends "base.html" %}
+{% extends "admin_base.html" %}
+
+{% block title %}Create Question Paper{% endblock %}
+{% block page_title %}Create Question Paper{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <h2>Create Question Paper</h2>
-    <form method="POST" class="card p-4 shadow-sm">
-        <div class="mb-3">
-            <label>Exam Title (e.g., HALF YEARLY EXAMINATION 2026 - 2027)</label>
-            <input type="text" name="title" class="form-control" required>
+
+<style>
+.create-page {
+    max-width: 1050px;
+    margin: auto;
+    color: #26364a;
+}
+
+.create-hero {
+    padding: 23px 25px;
+    margin-bottom: 20px;
+    background: linear-gradient(120deg, #edf6ff, white);
+    border: 1px solid #e1eaf2;
+    border-radius: 14px;
+}
+
+.create-hero h2 {
+    color: #10375d;
+    font-size: 23px;
+    font-weight: 800;
+    margin: 0;
+}
+
+.create-hero p {
+    margin: 7px 0 0;
+    color: #718096;
+    font-size: 13px;
+}
+
+.create-panel {
+    background: white;
+    border: 1px solid #e3eaf1;
+    border-radius: 13px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.create-panel-header {
+    padding: 17px 21px;
+    background: #f8fbfe;
+    border-bottom: 1px solid #e8edf3;
+}
+
+.create-panel-header h3 {
+    margin: 0;
+    color: #10375d;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.create-panel-body {
+    padding: 23px;
+}
+
+.form-field {
+    margin-bottom: 19px;
+}
+
+.form-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: #31465d;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.form-field input {
+    width: 100%;
+    min-height: 43px;
+    padding: 10px 12px;
+    border: 1px solid #dce5ee;
+    border-radius: 8px;
+    outline: none;
+    color: #173b60;
+    background: #fff;
+    font-size: 13px;
+}
+
+.form-field input:focus {
+    border-color: #7eafd5;
+    box-shadow: 0 0 0 3px rgba(23,105,170,.08);
+}
+
+.form-field small {
+    display: block;
+    color: #8995a4;
+    font-size: 10px;
+    margin-top: 5px;
+}
+
+.create-actions {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.create-btn {
+    border: 0;
+    padding: 12px 19px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.create-btn-primary {
+    background: #12649f;
+    color: white;
+}
+
+.create-btn-primary:hover {
+    background: #0b4b7b;
+    color: white;
+}
+
+.create-btn-secondary {
+    background: #f1f5f9;
+    color: #526276;
+}
+
+@media(max-width:650px) {
+    .create-panel-body {
+        padding: 17px;
+    }
+
+    .create-hero {
+        padding: 19px;
+    }
+
+    .create-actions {
+        flex-direction: column-reverse;
+    }
+
+    .create-btn {
+        text-align: center;
+        width: 100%;
+    }
+}
+</style>
+
+<div class="create-page">
+
+    <section class="create-hero">
+
+        <h2>
+            <i class="fa-solid fa-file-circle-plus"></i>
+            Create New Question Paper
+        </h2>
+
+        <p>
+            Configure examination details before adding questions.
+        </p>
+
+    </section>
+
+    <form method="POST" id="createPaperForm">
+
+        <div class="create-panel">
+
+            <div class="create-panel-header">
+                <h3>
+                    <i class="fa-solid fa-file-lines"></i>
+                    Examination Information
+                </h3>
+            </div>
+
+            <div class="create-panel-body">
+
+                <div class="form-field">
+
+                    <label>Examination Title *</label>
+
+                    <input type="text"
+                           name="title"
+                           placeholder="HALF YEARLY EXAMINATION 2026 - 2027"
+                           required
+                           maxlength="200">
+
+                    <small>Enter the complete examination name.</small>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-6">
+
+                        <div class="form-field">
+
+                            <label>Class *</label>
+
+                            <input type="text"
+                                   name="class_name"
+                                   placeholder="e.g. V"
+                                   required>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <div class="form-field">
+
+                            <label>Subject *</label>
+
+                            <input type="text"
+                                   name="subject"
+                                   placeholder="e.g. Computer"
+                                   required>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-4">
+
+                        <div class="form-field">
+
+                            <label>Full Marks *</label>
+
+                            <input type="number"
+                                   name="max_marks"
+                                   min="1"
+                                   placeholder="50"
+                                   required>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <div class="form-field">
+
+                            <label>Time Allowed *</label>
+
+                            <input type="text"
+                                   name="time_allowed"
+                                   placeholder="2 HOURS"
+                                   required>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <div class="form-field">
+
+                            <label>Exam Year *</label>
+
+                            <input type="text"
+                                   name="exam_year"
+                                   placeholder="2026 - 2027"
+                                   required>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label>Class</label>
-                <input type="text" name="class_name" class="form-control" placeholder="e.g., IV" required>
+
+        <div class="create-panel">
+
+            <div class="create-panel-header">
+                <h3>
+                    <i class="fa-solid fa-circle-info"></i>
+                    Before Creating
+                </h3>
             </div>
-            <div class="col-md-6 mb-3">
-                <label>Subject</label>
-                <input type="text" name="subject" class="form-control" placeholder="e.g., Computer" required>
+
+            <div class="create-panel-body">
+
+                <ul class="mb-0 small text-muted">
+
+                    <li class="mb-2">
+                        Check the examination title and class carefully.
+                    </li>
+
+                    <li class="mb-2">
+                        Enter the correct full marks and examination duration.
+                    </li>
+
+                    <li>
+                        After creating the paper, you can add multiple questions together.
+                    </li>
+
+                </ul>
+
             </div>
+
         </div>
-        <div class="row">
-            <div class="col-md-4 mb-3">
-                <label>Max Marks (F.M.)</label>
-                <input type="number" name="max_marks" class="form-control" placeholder="e.g., 50" required>
-            </div>
-            <div class="col-md-4 mb-3">
-                <label>Time Allowed</label>
-                <input type="text" name="time_allowed" class="form-control" placeholder="e.g., 2 HOURS" required>
-            </div>
-            <div class="col-md-4 mb-3">
-                <label>Exam Year</label>
-                <input type="text" name="exam_year" class="form-control" placeholder="e.g., 2026 - 2027" required>
-            </div>
+
+        <div class="create-actions">
+
+            <a href="{{ url_for('teacher_question_papers') }}"
+               class="create-btn create-btn-secondary">
+
+                <i class="fa-solid fa-arrow-left"></i>
+                Back to Papers
+
+            </a>
+
+            <button type="submit"
+                    class="create-btn create-btn-primary">
+
+                <i class="fa-solid fa-arrow-right"></i>
+                Create & Add Questions
+
+            </button>
+
         </div>
-        <button type="submit" class="btn btn-success">Create & Add Questions</button>
+
     </form>
+
 </div>
+
 {% endblock %}

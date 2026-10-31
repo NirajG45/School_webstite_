@@ -1912,6 +1912,13 @@
                 <i class="fa-solid fa-book-open"></i> Assign Homework
             </a>
 
+            <a href="{{ url_for('teacher_question_papers') }}" class="td-nav-link">
+    <i class="fa-solid fa-file-signature"></i> Question Papers
+    {% if my_question_papers > 0 %}
+    <span class="td-nav-badge">{{ my_question_papers }}</span>
+    {% endif %}
+</a>
+
             <div class="td-nav-label">Leave</div>
             <a href="#leave" class="td-nav-link">
                 <i class="fa-solid fa-calendar-plus"></i> Apply for Leave

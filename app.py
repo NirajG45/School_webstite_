@@ -308,7 +308,7 @@ def init_db():
             uploaded_by INTEGER,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
 
-        # 🚀 NEW: Faculty subject assignments (class-wise + day-wise)
+        # NEW: Faculty subject assignments (class-wise + day-wise)
         db.execute('''CREATE TABLE IF NOT EXISTS faculty_subject_assignments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             faculty_id INTEGER NOT NULL,
@@ -321,7 +321,7 @@ def init_db():
             FOREIGN KEY (faculty_id) REFERENCES faculty(id) ON DELETE CASCADE)''')
 
         # =========================================
-        # 🚀 NEW: EXAM SYSTEM TABLES
+        # NEW: EXAM SYSTEM TABLES
         # =========================================
         db.execute('''CREATE TABLE IF NOT EXISTS subjects (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -352,7 +352,7 @@ def init_db():
             submitted_at TEXT,
             UNIQUE(exam_id, class_name))''')
 
-        # 🚀 NEW: EXAM FORM REGISTRATIONS TABLE
+        # NEW: EXAM FORM REGISTRATIONS TABLE
         db.execute('''CREATE TABLE IF NOT EXISTS exam_registrations (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             student_id INTEGER,
@@ -373,7 +373,7 @@ def init_db():
             status TEXT DEFAULT 'pending',
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
         
-                # 🚀 NEW: Question Paper Generator Tables
+                # NEW: Question Paper Generator Tables
         db.execute('''CREATE TABLE IF NOT EXISTS exam_papers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
@@ -682,39 +682,82 @@ def inject_admin_sidebar_counts():
         return {}
 
 # =========================================
-# 🚀 NEW: EXAM SYSTEM — GLOBAL PENDING COUNTS
+# NEW: EXAM SYSTEM + QUESTION PAPERS — GLOBAL PENDING COUNTS
 # =========================================
 @app.context_processor
 def inject_exam_pending_counts():
     """
     Provides pending_exam_submissions (admin) & pending_exam_marks (teacher)
     globally so every template can show live badges without per-route changes.
+    
+    NEW: Also provides question paper counts:
+       - Admin/Administrator: total_question_papers (sabhi teachers ke)
+       - Teacher: my_question_papers (apne banaye hue)
     """
+    default = {
+        'pending_exam_submissions': 0,
+        'pending_exam_marks': 0,
+        'total_question_papers': 0,
+        'my_question_papers': 0,
+    }
+
     if not session.get('user_id'):
-        return {'pending_exam_submissions': 0, 'pending_exam_marks': 0}
+        return default
 
     role = session.get('user_role')
     try:
         db = get_db()
 
+        # ---------- ADMIN / ADMINISTRATOR ----------
         if role in ('admin', 'administrator'):
             pending = db.execute(
                 "SELECT COUNT(*) FROM exam_submissions es "
                 "JOIN exams e ON es.exam_id = e.id "
                 "WHERE e.status='published' AND es.status IN ('pending', 'in_progress')"
             ).fetchone()[0] or 0
-            return {'pending_exam_submissions': pending, 'pending_exam_marks': 0}
 
+            # Total question papers created by all teachers
+            total_qp = db.execute(
+                "SELECT COUNT(*) FROM exam_papers"
+            ).fetchone()[0] or 0
+
+            return {
+                'pending_exam_submissions': pending,
+                'pending_exam_marks': 0,
+                'total_question_papers': total_qp,
+                'my_question_papers': 0,
+            }
+
+        # ---------- TEACHER ----------
         if role == 'teacher':
             user = db.execute(
                 'SELECT classes_assigned FROM users WHERE id = ?',
                 (session['user_id'],)
             ).fetchone()
+
+            # Teacher ke apne banaye hue question papers ka count
+            my_qp = db.execute(
+                "SELECT COUNT(*) FROM exam_papers WHERE teacher_id = ?",
+                (session['user_id'],)
+            ).fetchone()[0] or 0
+
             if not user or not user['classes_assigned']:
-                return {'pending_exam_submissions': 0, 'pending_exam_marks': 0}
+                return {
+                    'pending_exam_submissions': 0,
+                    'pending_exam_marks': 0,
+                    'total_question_papers': 0,
+                    'my_question_papers': my_qp,
+                }
+
             classes = [c.strip() for c in user['classes_assigned'].split(',') if c.strip()]
             if not classes:
-                return {'pending_exam_submissions': 0, 'pending_exam_marks': 0}
+                return {
+                    'pending_exam_submissions': 0,
+                    'pending_exam_marks': 0,
+                    'total_question_papers': 0,
+                    'my_question_papers': my_qp,
+                }
+
             ph = ','.join(['?'] * len(classes))
             count = db.execute(
                 f"SELECT COUNT(*) FROM exam_submissions es "
@@ -724,14 +767,20 @@ def inject_exam_pending_counts():
                 f"AND es.class_name IN ({ph})",
                 tuple(classes)
             ).fetchone()[0] or 0
-            return {'pending_exam_submissions': 0, 'pending_exam_marks': count}
+
+            return {
+                'pending_exam_submissions': 0,
+                'pending_exam_marks': count,
+                'total_question_papers': 0,
+                'my_question_papers': my_qp,
+            }
+
     except Exception:
         pass
 
-    return {'pending_exam_submissions': 0, 'pending_exam_marks': 0}
-
+    return default
 # =========================================
-# 🚀 SESSION SYNC — Ensures DB photo_url is always in session
+# SESSION SYNC — Ensures DB photo_url is always in session
 # =========================================
 @app.before_request
 def sync_session_user_info():
@@ -2787,35 +2836,51 @@ def teacher_homework():
         stats=stats
     )
 
-
 # =========================================
-# 🚀 TEACHER — QUESTION PAPER GENERATOR ROUTES
+# QUESTION PAPER GENERATOR ROUTES (Teacher & Admin)
 # =========================================
 
 @app.route('/teacher/question-papers')
+@app.route('/question-papers')
 @login_required
 def teacher_question_papers():
-    """List all question papers created by the logged-in teacher."""
+    """List all question papers. 
+       Admin sees ALL, Teachers see only THEIR OWN."""
     user = get_user_by_id(session['user_id'])
-    if not user or user['role'] != 'teacher':
-        flash('Access denied. Only teachers can access this page.', 'error')
+    if not user or user['role'] not in ('teacher', 'admin', 'administrator'):
+        flash('Access denied.', 'error')
         return redirect(url_for('user_dashboard'))
 
     db = get_db()
-    papers = db.execute(
-        'SELECT * FROM exam_papers WHERE teacher_id = ? ORDER BY id DESC',
-        (user['id'],)
-    ).fetchall()
     
-    return render_template('teacher_question_papers.html', user=user, papers=papers)
+    if user['role'] in ('admin', 'administrator'):
+        # Admin dekhega sabhi teachers ke papers
+        papers = db.execute('''
+            SELECT p.*, u.name as teacher_name, u.unique_id as teacher_uid 
+            FROM exam_papers p 
+            JOIN users u ON p.teacher_id = u.id 
+            ORDER BY p.id DESC
+        ''').fetchall()
+        is_admin = True
+    else:
+        # Teacher dekhega sirf apne papers
+        papers = db.execute(
+            'SELECT * FROM exam_papers WHERE teacher_id = ? ORDER BY id DESC',
+            (user['id'],)
+        ).fetchall()
+        is_admin = False
+        
+    return render_template('teacher_question_papers.html', 
+                           user=user, 
+                           papers=papers, 
+                           is_admin=is_admin)
 
 
-@app.route('/teacher/question-papers/create', methods=['GET', 'POST'])
+@app.route('/question-papers/create', methods=['GET', 'POST'])
 @login_required
 def create_question_paper():
-    """Create the basic details of a new question paper."""
     user = get_user_by_id(session['user_id'])
-    if not user or user['role'] != 'teacher':
+    if not user or user['role'] not in ('teacher', 'admin', 'administrator'):
         flash('Access denied.', 'error')
         return redirect(url_for('user_dashboard'))
 
@@ -2844,18 +2909,17 @@ def create_question_paper():
     return render_template('create_question_paper.html', user=user)
 
 
-@app.route('/teacher/question-papers/<int:paper_id>/edit', methods=['GET', 'POST'])
+@app.route('/question-papers/<int:paper_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_question_paper(paper_id):
-    """Add questions to a specific paper and view existing ones."""
     user = get_user_by_id(session['user_id'])
     db = get_db()
     
-    # Ensure the teacher owns this paper
-    paper = db.execute(
-        'SELECT * FROM exam_papers WHERE id = ? AND teacher_id = ?', 
-        (paper_id, user['id'])
-    ).fetchone()
+    # Check authorization
+    if user['role'] in ('admin', 'administrator'):
+        paper = db.execute('SELECT * FROM exam_papers WHERE id = ?', (paper_id,)).fetchone()
+    else:
+        paper = db.execute('SELECT * FROM exam_papers WHERE id = ? AND teacher_id = ?', (paper_id, user['id'])).fetchone()
     
     if not paper:
         flash('Paper not found or you do not have permission to edit it.', 'error')
@@ -2879,13 +2943,8 @@ def edit_question_paper(paper_id):
             
         return redirect(url_for('edit_question_paper', paper_id=paper_id))
 
-    # Fetch all questions for this paper
-    questions = db.execute(
-        'SELECT * FROM exam_questions WHERE paper_id = ? ORDER BY id', 
-        (paper_id,)
-    ).fetchall()
+    questions = db.execute('SELECT * FROM exam_questions WHERE paper_id = ? ORDER BY id', (paper_id,)).fetchall()
     
-    # Group questions by section (e.g., "Q1. Fill in the blanks")
     grouped_questions = {}
     for q in questions:
         grouped_questions.setdefault(q['section_name'], []).append(q)
@@ -2896,22 +2955,18 @@ def edit_question_paper(paper_id):
                            grouped_questions=grouped_questions)
 
 
-@app.route('/teacher/question-papers/<int:paper_id>/delete-question/<int:q_id>', methods=['POST'])
+@app.route('/question-papers/<int:paper_id>/delete-question/<int:q_id>', methods=['POST'])
 @login_required
 def delete_question(paper_id, q_id):
-    """Delete a specific question from a paper."""
     user = get_user_by_id(session['user_id'])
     db = get_db()
     
-    # Verify ownership before deleting
-    paper = db.execute(
-        'SELECT id FROM exam_papers WHERE id = ? AND teacher_id = ?', 
-        (paper_id, user['id'])
-    ).fetchone()
-    
-    if not paper:
-        flash('Unauthorized action.', 'error')
-        return redirect(url_for('teacher_question_papers'))
+    # Authorization check
+    if user['role'] not in ('admin', 'administrator'):
+        paper = db.execute('SELECT id FROM exam_papers WHERE id = ? AND teacher_id = ?', (paper_id, user['id'])).fetchone()
+        if not paper:
+            flash('Unauthorized action.', 'error')
+            return redirect(url_for('teacher_question_papers'))
 
     db.execute('DELETE FROM exam_questions WHERE id = ? AND paper_id = ?', (q_id, paper_id))
     db.commit()
@@ -2919,24 +2974,19 @@ def delete_question(paper_id, q_id):
     return redirect(url_for('edit_question_paper', paper_id=paper_id))
 
 
-@app.route('/teacher/question-papers/<int:paper_id>/delete-paper', methods=['POST'])
+@app.route('/question-papers/<int:paper_id>/delete-paper', methods=['POST'])
 @login_required
 def delete_question_paper(paper_id):
-    """Delete the entire paper and its questions."""
     user = get_user_by_id(session['user_id'])
     db = get_db()
     
-    paper = db.execute(
-        'SELECT id FROM exam_papers WHERE id = ? AND teacher_id = ?', 
-        (paper_id, user['id'])
-    ).fetchone()
-    
-    if not paper:
-        flash('Unauthorized action.', 'error')
-        return redirect(url_for('teacher_question_papers'))
+    # Authorization check
+    if user['role'] not in ('admin', 'administrator'):
+        paper = db.execute('SELECT id FROM exam_papers WHERE id = ? AND teacher_id = ?', (paper_id, user['id'])).fetchone()
+        if not paper:
+            flash('Unauthorized action.', 'error')
+            return redirect(url_for('teacher_question_papers'))
 
-    # SQLite ON DELETE CASCADE will delete questions automatically if configured, 
-    # but to be safe, we delete questions first.
     db.execute('DELETE FROM exam_questions WHERE paper_id = ?', (paper_id,))
     db.execute('DELETE FROM exam_papers WHERE id = ?', (paper_id,))
     db.commit()
@@ -2944,26 +2994,24 @@ def delete_question_paper(paper_id):
     return redirect(url_for('teacher_question_papers'))
 
 
-@app.route('/teacher/question-papers/<int:paper_id>/print')
+@app.route('/question-papers/<int:paper_id>/print')
 @login_required
 def print_question_paper(paper_id):
-    """Render the final printable format exactly like the school's physical paper."""
     user = get_user_by_id(session['user_id'])
     db = get_db()
     
-    # Allow any teacher/admin to print, but fetch the paper
+    if user['role'] not in ('teacher', 'admin', 'administrator'):
+        flash('Access denied.', 'error')
+        return redirect(url_for('user_dashboard'))
+
     paper = db.execute('SELECT * FROM exam_papers WHERE id = ?', (paper_id,)).fetchone()
     
     if not paper:
         flash('Paper not found.', 'error')
         return redirect(url_for('teacher_question_papers'))
 
-    questions = db.execute(
-        'SELECT * FROM exam_questions WHERE paper_id = ? ORDER BY id', 
-        (paper_id,)
-    ).fetchall()
+    questions = db.execute('SELECT * FROM exam_questions WHERE paper_id = ? ORDER BY id', (paper_id,)).fetchall()
     
-    # Group and calculate total marks
     grouped_questions = {}
     total_marks = 0
     for q in questions:
@@ -2974,7 +3022,6 @@ def print_question_paper(paper_id):
                            paper=paper, 
                            grouped_questions=grouped_questions,
                            total_marks=total_marks)
-    
 
 @app.route('/teacher/homework/add', methods=['POST'])
 @login_required
@@ -3516,7 +3563,7 @@ def results_page():
 
 
 # =========================================
-# 🚀 NEW: ONLINE EXAM FORM ROUTE
+# NEW: ONLINE EXAM FORM ROUTE
 # =========================================
 @app.route('/exam-form', methods=['GET', 'POST'])
 @login_required
@@ -3680,7 +3727,7 @@ def add_headers(response):
 
 
 # =========================================
-# 🚀 EXAM SYSTEM — ADMIN ROUTES
+# EXAM SYSTEM — ADMIN ROUTES
 # =========================================
 
 # ----- Backward-compat stubs → redirect to new system -----
@@ -3913,7 +3960,7 @@ def admin_reports_dashboard():
                            active_page='reports_dashboard')
 
 
-# 🚀 NEW: ADMIN VIEW SUBMITTED EXAM FORMS
+# NEW: ADMIN VIEW SUBMITTED EXAM FORMS
 @app.route('/admin/exam-forms')
 @admin_required
 def admin_exam_forms():
@@ -4118,7 +4165,7 @@ def admin_print_all_reports():
 
 
 # =========================================
-# 🚀 EXAM SYSTEM — TEACHER ROUTES
+# EXAM SYSTEM — TEACHER ROUTES
 # =========================================
 
 @app.route('/teacher/exams')

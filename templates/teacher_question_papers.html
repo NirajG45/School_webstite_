@@ -1,26 +1,466 @@
-{% extends "base.html" %}
+{% extends "admin_base.html" %}
+
+{% block title %}Question Papers{% endblock %}
+{% block page_title %}Question Paper Management{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>My Question Papers</h2>
-        <a href="{{ url_for('create_question_paper') }}" class="btn btn-primary">+ Create New Paper</a>
-    </div>
-    <div class="row">
-        {% for p in papers %}
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">{{ p['title'] }}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">{{ p['class_name'] }} - {{ p['subject'] }}</h6>
-                    <p class="card-text">Max Marks: {{ p['max_marks'] }} | Time: {{ p['time_allowed'] }}</p>
-                    <a href="{{ url_for('edit_question_paper', paper_id=p['id']) }}" class="btn btn-sm btn-outline-primary">Edit Questions</a>
-                    <a href="{{ url_for('print_question_paper', paper_id=p['id']) }}" target="_blank" class="btn btn-sm btn-outline-success">Print Paper</a>
-                </div>
-            </div>
+
+<style>
+.qp-page {
+    --qp-navy: #10375d;
+    --qp-blue: #1769aa;
+    --qp-muted: #718096;
+    --qp-border: #e4eaf1;
+    color: #26364a;
+}
+
+.qp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 18px;
+    padding: 25px;
+    margin-bottom: 22px;
+    background: linear-gradient(120deg, #edf6ff, #fff);
+    border: 1px solid var(--qp-border);
+    border-radius: 15px;
+}
+
+.qp-header h2 {
+    color: var(--qp-navy);
+    font-size: 25px;
+    font-weight: 800;
+    margin: 0;
+}
+
+.qp-header p {
+    color: var(--qp-muted);
+    font-size: 13px;
+    margin: 7px 0 0;
+}
+
+.qp-create-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 12px 18px;
+    background: #125d99;
+    color: #fff;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 750;
+    text-decoration: none;
+    transition: .2s;
+}
+
+.qp-create-btn:hover {
+    background: #0c4778;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.qp-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.qp-search {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    height: 42px;
+    width: min(340px, 100%);
+    padding: 0 13px;
+    background: #fff;
+    border: 1px solid var(--qp-border);
+    border-radius: 9px;
+}
+
+.qp-search input {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: 13px;
+}
+
+.qp-filter {
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid var(--qp-border);
+    border-radius: 9px;
+    background: #fff;
+    color: var(--qp-navy);
+}
+
+.qp-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 17px;
+}
+
+.qp-card {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border: 1px solid var(--qp-border);
+    border-radius: 13px;
+    overflow: hidden;
+    transition: .2s;
+}
+
+.qp-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(20, 50, 80, .09);
+}
+
+.qp-card-top {
+    padding: 17px 17px 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.qp-tag {
+    display: inline-block;
+    padding: 5px 10px;
+    background: #eef5fc;
+    color: #1b6097;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.qp-card-body {
+    padding: 16px 17px;
+    flex: 1;
+}
+
+.qp-card-body h3 {
+    color: var(--qp-navy);
+    font-size: 17px;
+    font-weight: 800;
+    margin: 0 0 10px;
+    overflow-wrap: anywhere;
+}
+
+.qp-teacher {
+    color: var(--qp-muted);
+    font-size: 11px;
+    margin-bottom: 13px;
+}
+
+.qp-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 13px;
+    color: #607187;
+    font-size: 11px;
+    font-weight: 650;
+}
+
+.qp-details i {
+    color: #2375b1;
+    margin-right: 4px;
+}
+
+.qp-card-actions {
+    display: flex;
+    gap: 8px;
+    padding: 13px 17px;
+    border-top: 1px solid #edf1f5;
+    background: #fbfcfe;
+}
+
+.qp-action {
+    flex: 1;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 8px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 750;
+    text-decoration: none;
+}
+
+.qp-edit {
+    color: #1769aa;
+    background: #edf6ff;
+    border: 1px solid #d7eafa;
+}
+
+.qp-print {
+    color: #167346;
+    background: #eaf8ef;
+    border: 1px solid #d0ecda;
+}
+
+.qp-empty {
+    grid-column: 1/-1;
+    padding: 55px 20px;
+    text-align: center;
+    border: 1px dashed #cbd6e2;
+    border-radius: 14px;
+    background: #fbfdff;
+}
+
+.qp-empty i {
+    font-size: 42px;
+    color: #aab8c7;
+    margin-bottom: 15px;
+}
+
+.qp-empty h3 {
+    font-size: 18px;
+    color: var(--qp-navy);
+    font-weight: 800;
+}
+
+.qp-empty p {
+    color: var(--qp-muted);
+    font-size: 13px;
+}
+
+.qp-hidden {
+    display: none !important;
+}
+
+@media(max-width:1050px) {
+    .qp-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media(max-width:650px) {
+    .qp-header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 19px;
+    }
+
+    .qp-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .qp-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .qp-search {
+        width: 100%;
+    }
+}
+</style>
+
+<div class="qp-page">
+
+    <section class="qp-header">
+        <div>
+            <h2>
+                <i class="fa-solid fa-file-signature"></i>
+                {% if is_admin %}
+                    All Teachers' Question Papers
+                {% else %}
+                    My Question Papers
+                {% endif %}
+            </h2>
+
+            <p>
+                Create, manage, edit and print examination question papers.
+            </p>
         </div>
-        {% else %}
-        <div class="col-12"><p>No papers created yet.</p></div>
-        {% endfor %}
+
+        <a href="{{ url_for('create_question_paper') }}"
+           class="qp-create-btn">
+
+            <i class="fa-solid fa-plus"></i>
+            Create New Paper
+
+        </a>
+    </section>
+
+    <div class="qp-toolbar">
+
+        <div>
+            <strong id="paperCount">{{ papers|length }}</strong>
+            <span class="text-muted small">Question Papers</span>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+
+            <div class="qp-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input type="search"
+                       id="paperSearch"
+                       placeholder="Search title, subject, class...">
+            </div>
+
+            <select id="classFilter" class="qp-filter">
+                <option value="">All Classes</option>
+
+                {% for p in papers %}
+                    {% if p['class_name'] %}
+                    <option value="{{ p['class_name']|lower }}">
+                        Class {{ p['class_name'] }}
+                    </option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+
+        </div>
     </div>
+
+    <div class="qp-grid" id="paperGrid">
+
+        {% for p in papers %}
+
+        <article class="qp-card"
+                 data-search="{{ (p['title'] or '')|lower }} {{ (p['subject'] or '')|lower }} {{ (p['class_name'] or '')|lower }}"
+                 data-class="{{ (p['class_name'] or '')|lower }}">
+
+            <div class="qp-card-top">
+
+                <span class="qp-tag">
+                    CLASS {{ p['class_name'] }}
+                </span>
+
+                <span class="qp-tag">
+                    {{ p['subject'] }}
+                </span>
+
+            </div>
+
+            <div class="qp-card-body">
+
+                <h3>{{ p['title'] }}</h3>
+
+                {% if is_admin %}
+                <div class="qp-teacher">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    {{ p['teacher_name'] }}
+                    ({{ p['teacher_uid'] }})
+                </div>
+                {% endif %}
+
+                <div class="qp-details">
+
+                    <span>
+                        <i class="fa-solid fa-star"></i>
+                        F.M. {{ p['max_marks'] }}
+                    </span>
+
+                    <span>
+                        <i class="fa-regular fa-clock"></i>
+                        {{ p['time_allowed'] }}
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="qp-card-actions">
+
+                <a href="{{ url_for('edit_question_paper', paper_id=p['id']) }}"
+                   class="qp-action qp-edit">
+
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    Manage Questions
+
+                </a>
+
+                <a href="{{ url_for('print_question_paper', paper_id=p['id']) }}"
+                   target="_blank"
+                   class="qp-action qp-print">
+
+                    <i class="fa-solid fa-print"></i>
+                    Print
+
+                </a>
+
+            </div>
+
+        </article>
+
+        {% else %}
+
+        <div class="qp-empty">
+
+            <i class="fa-solid fa-file-circle-xmark"></i>
+
+            <h3>No Question Papers Yet</h3>
+
+            <p>Create your first examination question paper.</p>
+
+            <a href="{{ url_for('create_question_paper') }}"
+               class="qp-create-btn">
+
+                <i class="fa-solid fa-plus"></i>
+                Create Question Paper
+
+            </a>
+
+        </div>
+
+        {% endfor %}
+
+        <div class="qp-empty qp-hidden" id="noPaperResults">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <h3>No Matching Papers</h3>
+            <p>Try another search keyword or class.</p>
+        </div>
+
+    </div>
+
 </div>
+
+<script>
+(function () {
+
+    const search = document.getElementById("paperSearch");
+    const classFilter = document.getElementById("classFilter");
+    const cards = document.querySelectorAll(".qp-card");
+    const count = document.getElementById("paperCount");
+    const noResults = document.getElementById("noPaperResults");
+
+    function filterPapers() {
+
+        const query = search.value.toLowerCase().trim();
+        const selectedClass = classFilter.value.toLowerCase();
+
+        let visible = 0;
+
+        cards.forEach(card => {
+
+            const text = card.dataset.search || "";
+            const cls = card.dataset.class || "";
+
+            const match =
+                text.includes(query) &&
+                (!selectedClass || cls === selectedClass);
+
+            card.classList.toggle("qp-hidden", !match);
+
+            if (match) visible++;
+
+        });
+
+        count.textContent = visible;
+
+        noResults.classList.toggle("qp-hidden", visible !== 0);
+    }
+
+    search.addEventListener("input", filterPapers);
+    classFilter.addEventListener("change", filterPapers);
+
+})();
+</script>
+
 {% endblock %}

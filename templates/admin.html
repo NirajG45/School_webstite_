@@ -1337,9 +1337,10 @@
                 <div style="font-size:11.5px; color:var(--muted); font-weight:600; margin-bottom:16px;">
                     <i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}
                     <span
-                        style="display:inline-block; margin-left:6px; background:var(--yellow); color:#0a2340; padding:2px 8px; border-radius:4px; font-size:9px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">{% if session.get('user_role') == 'administrator' %}Administrator{% else %}Admin{% endif %}</span>
+                        style="display:inline-block; margin-left:6px; background:var(--yellow); color:#0a2340; padding:2px 8px; border-radius:4px; font-size:9px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">{%
+                        if session.get('user_role') == 'administrator' %}Administrator{% else %}Admin{% endif %}</span>
                 </div>
-                <div class="admin-profile-actions">
+                <!-- <div class="admin-profile-actions">
                     <button type="button" class="admin-photo-btn"
                         onclick="document.getElementById('adminDashPhotoInput').click();">
                         <i class="fa-solid fa-camera"></i> Change
@@ -1350,7 +1351,7 @@
                         <i class="fa-solid fa-trash"></i> Remove
                     </button>
                     {% endif %}
-                </div>
+                </div> -->
                 <form id="adminDashPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
                     enctype="multipart/form-data" style="display:none;">
                     <input type="file" id="adminDashPhotoInput" name="photo" accept="image/*"
@@ -1373,20 +1374,20 @@
                 </a>
             </div>
 
-            
+
             <div class="dash-panel-body">
                 <div class="notif-list-compact">
                     <!-- Exam submissions pending -->
-<a href="{{ url_for('admin_exams_list') }}" class="notif-item-compact">
-    <div class="notif-icon amber"><i class="fa-solid fa-file-pen"></i></div>
-    <div class="notif-body-compact">
-        <strong>Exam marks pending</strong>
-        <small>{{ pending_exam_submissions or 0 }} class(es) yet to submit</small>
-    </div>
-    <span class="notif-badge-count {% if not pending_exam_submissions %}zero{% endif %}">
-        {{ pending_exam_submissions or 0 }}
-    </span>
-</a>
+                    <a href="{{ url_for('admin_exams_list') }}" class="notif-item-compact">
+                        <div class="notif-icon amber"><i class="fa-solid fa-file-pen"></i></div>
+                        <div class="notif-body-compact">
+                            <strong>Exam marks pending</strong>
+                            <small>{{ pending_exam_submissions or 0 }} class(es) yet to submit</small>
+                        </div>
+                        <span class="notif-badge-count {% if not pending_exam_submissions %}zero{% endif %}">
+                            {{ pending_exam_submissions or 0 }}
+                        </span>
+                    </a>
                     <!-- Fee payments -->
                     <a href="{{ url_for('admin_fees') }}" class="notif-item-compact">
                         <div class="notif-icon green"><i class="fa-solid fa-indian-rupee-sign"></i></div>

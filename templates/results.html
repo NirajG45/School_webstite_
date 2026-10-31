@@ -1,0 +1,55 @@
+{% extends "admin_base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Exam Results</h2>
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-body bg-light">
+            <h5 class="mb-1"><strong>Student Name:</strong> {{ student_name }}</h5>
+            <h6 class="text-muted"><strong>Class:</strong> {{ student_class }}</h6>
+        </div>
+    </div>
+
+    {% if grouped %}
+        {% for exam_type, marks in grouped.items() %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">{{ exam_type }}</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Subject</th>
+                                <th>Marks Obtained</th>
+                                <th>Total Marks</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in marks %}
+                            <tr>
+                                <td>{{ m['subject'] }}</td>
+                                <td>{{ m['marks_obtained'] }}</td>
+                                <td>{{ m['total_marks'] }}</td>
+                                <td>
+                                    {% if m['total_marks'] > 0 %}
+                                        {{ ((m['marks_obtained'] / m['total_marks']) * 100) | round(2) }}%
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info shadow-sm">No exam results found for this student.</div>
+    {% endif %}
+</div>
+{% endblock %}

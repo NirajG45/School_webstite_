@@ -1,0 +1,147 @@
+{% extends "admin_base.html" %}
+{% block title %}Study Materials{% endblock %}
+{% block page_title %}Study Materials{% endblock %}
+{% block content %}
+<style>
+.materials-page{--mnavy:var(--navy,#123456);--mmuted:var(--muted,#64748b);--mline:var(--line,#e5eaf0);color:var(--ink,#1e293b)}
+.materials-hero{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:24px 26px;margin-bottom:20px;border:1px solid var(--mline);border-radius:16px;background:linear-gradient(120deg,#eff7ff,#fff)}
+.materials-eyebrow{margin:0 0 7px;color:#24699c;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.materials-hero h2{margin:0;color:var(--mnavy);font-size:clamp(22px,3vw,29px);font-weight:800}
+.materials-hero p{margin:7px 0 0;color:var(--mmuted);font-size:13px}
+.materials-class-chip{display:flex;align-items:center;gap:9px;padding:10px 15px;border:1px solid #d8e7f5;border-radius:11px;background:#fff;color:var(--mnavy);font-size:13px;font-weight:750;white-space:nowrap}
+.materials-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+.materials-count{color:var(--mmuted);font-size:13px;font-weight:650}.materials-count strong{color:var(--mnavy)}
+.materials-controls{display:flex;align-items:center;flex-wrap:wrap;gap:9px}
+.materials-search{display:flex;align-items:center;gap:9px;width:min(310px,70vw);height:41px;padding:0 12px;border:1px solid var(--mline);border-radius:10px;background:#fff;color:#8290a0}
+.materials-search:focus-within{border-color:#9dbbd5;box-shadow:0 0 0 3px rgba(28,102,158,.08)}
+.materials-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:var(--mnavy);font-size:13px}
+.materials-filter{height:41px;min-width:135px;padding:0 12px;border:1px solid var(--mline);border-radius:10px;background:#fff;color:var(--mnavy);font-size:13px}
+.materials-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}
+.material-card{display:flex;flex-direction:column;min-width:0;overflow:hidden;border:1px solid var(--mline);border-radius:14px;background:#fff;box-shadow:0 3px 12px rgba(15,40,70,.035);transition:transform .18s,box-shadow .18s,border-color .18s}
+.material-card:hover{transform:translateY(-3px);border-color:#c8d9e8;box-shadow:0 12px 26px rgba(15,40,70,.08)}
+.material-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:17px 17px 0}
+.material-icon{display:grid;place-items:center;width:43px;height:43px;flex:0 0 43px;border-radius:12px;background:#edf5fc;color:#1d6599;font-size:18px}
+.material-type{display:inline-flex;max-width:58%;padding:5px 9px;border-radius:20px;background:#f1f5f9;color:#526276;font-size:10px;font-weight:800;letter-spacing:.045em;text-transform:uppercase;overflow-wrap:anywhere}
+.material-card-body{flex:1;padding:15px 17px 17px}
+.material-title{margin:0 0 7px;color:var(--mnavy);font-size:16px;font-weight:800;line-height:1.4;overflow-wrap:anywhere}
+.material-subject{display:inline-flex;align-items:center;gap:6px;margin-bottom:11px;color:#286b9d;font-size:11px;font-weight:750}
+.material-description{margin:0;color:#667589;font-size:12.5px;line-height:1.65;overflow-wrap:anywhere;white-space:pre-line}
+.material-card-footer{display:flex;flex-wrap:wrap;gap:9px;padding:13px 17px;border-top:1px solid #edf1f5;background:#fcfdff}
+.material-action{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:35px;padding:8px 11px;border:1px solid transparent;border-radius:8px;font-size:11.5px;font-weight:750;text-decoration:none!important;transition:background .15s,transform .15s}
+.material-action:hover{transform:translateY(-1px)}.material-action.link{border-color:#d6e8f8;background:#eef6fd;color:#1c659b}.material-action.link:hover{background:#e0effb}
+.material-action.download{border-color:#ccebd9;background:#edf9f1;color:#187447}.material-action.download:hover{background:#def3e6}
+.material-no-action{align-self:center;color:#8793a1;font-size:11px;font-weight:600}
+.materials-empty{grid-column:1/-1;padding:42px 20px;border:1px dashed #cbd7e3;border-radius:14px;background:#fbfdff;text-align:center}
+.materials-empty-icon{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 13px;border-radius:16px;background:#edf5fc;color:#3778a8;font-size:22px}
+.materials-empty h3{margin:0 0 6px;color:var(--mnavy);font-size:16px;font-weight:800}.materials-empty p{margin:0;color:var(--mmuted);font-size:12.5px}
+.material-hidden{display:none!important}
+@media(max-width:1050px){.materials-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.materials-hero{align-items:flex-start;flex-direction:column;padding:20px}.materials-toolbar{align-items:stretch;flex-direction:column}.materials-controls{width:100%}.materials-search{flex:1;width:auto}.materials-filter{flex:0 0 125px;min-width:0}.materials-grid{grid-template-columns:1fr;gap:13px}}
+</style>
+
+<div class="materials-page">
+    <section class="materials-hero">
+        <div>
+            <p class="materials-eyebrow"><i class="fa-solid fa-book-open"></i> Learning resources</p>
+            <h2>Study Materials</h2>
+            <p>Access your class notes, learning links and downloadable resources in one place.</p>
+        </div>
+        <div class="materials-class-chip"><i class="fa-solid fa-graduation-cap"></i><span>Class: {{ target_class or 'Not assigned' }}</span></div>
+    </section>
+
+    <div class="materials-toolbar">
+        <div class="materials-count"><strong id="materialCount">{{ materials|length }}</strong><span id="materialCountLabel"> learning resource{% if materials|length != 1 %}s{% endif %} available</span></div>
+        {% if materials %}
+        <div class="materials-controls">
+            <label class="materials-search" aria-label="Search study materials">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" id="materialSearch" placeholder="Search title, subject or description..." autocomplete="off">
+            </label>
+            <select class="materials-filter" id="materialTypeFilter" aria-label="Filter by material type">
+                <option value="">All types</option>
+                {% set type_values = materials | map(attribute='material_type') | select | unique | list %}
+                {% for type_name in type_values %}<option value="{{ type_name|lower }}">{{ type_name|replace('-', ' ')|capitalize }}</option>{% endfor %}
+            </select>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="materials-grid" id="materialsGrid">
+        {% for material in materials %}
+        {% set material_type = material['material_type'] or 'Resource' %}
+        <article class="material-card" data-search="{{ (material['title'] or '')|lower }} {{ (material['subject'] or 'General')|lower }} {{ (material['description'] or '')|lower }} {{ material_type|lower }}">
+            <div class="material-card-top">
+                <div class="material-icon">
+                    {% if material_type|lower in ['pdf','document','notes'] %}<i class="fa-solid fa-file-pdf"></i>
+                    {% elif material_type|lower in ['video','lecture'] %}<i class="fa-solid fa-circle-play"></i>
+                    {% elif material_type|lower in ['link','website','url'] %}<i class="fa-solid fa-globe"></i>
+                    {% elif material_type|lower in ['image','photo'] %}<i class="fa-solid fa-image"></i>
+                    {% else %}<i class="fa-solid fa-book"></i>{% endif %}
+                </div>
+                <span class="material-type">{{ material_type|replace('-', ' ')|capitalize }}</span>
+            </div>
+            <div class="material-card-body">
+                <h3 class="material-title">{{ material['title'] or 'Untitled material' }}</h3>
+                <div class="material-subject"><i class="fa-solid fa-bookmark"></i>{{ material['subject'] or 'General' }}</div>
+                <p class="material-description">{{ material['description'] or 'No description provided.' }}</p>
+            </div>
+            <div class="material-card-footer">
+                {% if material['external_link'] %}
+                <a href="{{ material['external_link'] }}" target="_blank" rel="noopener noreferrer" class="material-action link"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open Resource</a>
+                {% endif %}
+                {% if material['file_url'] %}
+                <a href="{{ material['file_url'] }}" target="_blank" rel="noopener noreferrer" class="material-action download"><i class="fa-solid fa-download"></i> View / Download</a>
+                {% endif %}
+                {% if not material['external_link'] and not material['file_url'] %}
+                <span class="material-no-action"><i class="fa-solid fa-circle-info"></i> No file or link attached</span>
+                {% endif %}
+            </div>
+        </article>
+        {% else %}
+        <div class="materials-empty" id="materialsEmpty">
+            <div class="materials-empty-icon"><i class="fa-solid fa-folder-open"></i></div>
+            <h3>No study materials available</h3>
+            <p>Your teacher has not shared any resources for this class yet. Please check again later.</p>
+        </div>
+        {% endfor %}
+        {% if materials %}
+        <div class="materials-empty material-hidden" id="noSearchResults">
+            <div class="materials-empty-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <h3>No matching materials found</h3>
+            <p>Try a different keyword or select another material type.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if materials %}
+<script>
+(function () {
+    const searchInput = document.getElementById('materialSearch');
+    const typeFilter = document.getElementById('materialTypeFilter');
+    const cards = Array.from(document.querySelectorAll('.material-card'));
+    const count = document.getElementById('materialCount');
+    const countLabel = document.getElementById('materialCountLabel');
+    const noResults = document.getElementById('noSearchResults');
+
+    function filterMaterials() {
+        const query = (searchInput.value || '').trim().toLowerCase();
+        const selectedType = (typeFilter.value || '').toLowerCase();
+        let visible = 0;
+        cards.forEach(function (card) {
+            const text = card.dataset.search || '';
+            const type = (card.querySelector('.material-type')?.textContent || '').trim().toLowerCase();
+            const matches = text.includes(query) && (!selectedType || type === selectedType);
+            card.classList.toggle('material-hidden', !matches);
+            if (matches) visible++;
+        });
+        count.textContent = visible;
+        countLabel.textContent = visible === 1 ? ' learning resource shown' : ' learning resources shown';
+        noResults.classList.toggle('material-hidden', visible !== 0);
+    }
+    searchInput.addEventListener('input', filterMaterials);
+    typeFilter.addEventListener('change', filterMaterials);
+})();
+</script>
+{% endif %}
+{% endblock %}

@@ -1,66 +1,794 @@
-{% extends "base.html" %}
+{% extends "admin_base.html" %}
+
+{% block title %}Manage Question Paper{% endblock %}
+{% block page_title %}Manage Question Paper{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>{{ paper['title'] }} - {{ paper['class_name'] }} ({{ paper['subject'] }})</h3>
-        <a href="{{ url_for('print_question_paper', paper_id=paper['id']) }}" target="_blank" class="btn btn-warning">Print Preview</a>
-    </div>
 
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">Add New Question</div>
-                <div class="card-body">
-                    <form method="POST">
-                        <div class="mb-2">
-                            <label>Section Name</label>
-                            <input type="text" name="section_name" class="form-control form-control-sm" placeholder="e.g., Q1. Fill in the blanks" required>
-                        </div>
-                        <div class="mb-2">
-                            <label>Question Text</label>
-                            <textarea name="question_text" class="form-control form-control-sm" rows="2" required></textarea>
-                        </div>
-                        <div class="mb-2">
-                            <label>Options (Optional - comma separated)</label>
-                            <textarea name="options" class="form-control form-control-sm" rows="2" placeholder="e.g., a) Key, b) Mouse, c) Monitor"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label>Marks</label>
-                            <input type="number" name="marks" class="form-control form-control-sm" value="1" required>
-                        </div>
-                        <button type="submit" class="btn btn-sm btn-success w-100">Add Question</button>
-                    </form>
-                </div>
-            </div>
+<style>
+.edit-page {
+    color: #26364a;
+}
+
+.edit-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 21px;
+    margin-bottom: 20px;
+    background: linear-gradient(120deg, #edf6ff, white);
+    border: 1px solid #e1eaf2;
+    border-radius: 13px;
+}
+
+.edit-hero h2 {
+    margin: 0;
+    color: #10375d;
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.edit-hero p {
+    color: #718096;
+    font-size: 12px;
+    margin: 7px 0 0;
+}
+
+.edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.edit-btn-blue {
+    color: white;
+    background: #12649f;
+}
+
+.edit-btn-green {
+    color: white;
+    background: #168254;
+}
+
+.edit-btn-light {
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+}
+
+.edit-btn-red {
+    color: #c62828;
+    background: #fff0f0;
+    border: 1px solid #ffdada;
+}
+
+.edit-panel {
+    background: white;
+    border: 1px solid #e3eaf1;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.edit-panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 15px 19px;
+    background: #f8fbfe;
+    border-bottom: 1px solid #e7edf3;
+}
+
+.edit-panel-head h3 {
+    color: #10375d;
+    font-size: 14px;
+    font-weight: 800;
+    margin: 0;
+}
+
+.edit-panel-body {
+    padding: 18px;
+}
+
+.bulk-box {
+    padding: 17px;
+    margin-bottom: 18px;
+    border: 1px solid #dce8f3;
+    border-radius: 10px;
+    background: #f7fbff;
+}
+
+.bulk-box label {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    color: #234663;
+    margin-bottom: 8px;
+}
+
+.bulk-box textarea {
+    width: 100%;
+    min-height: 125px;
+    padding: 12px;
+    border: 1px solid #d9e4ef;
+    border-radius: 8px;
+    outline: none;
+    resize: vertical;
+    font-size: 12px;
+}
+
+.bulk-help {
+    color: #718096;
+    font-size: 11px;
+    margin: 8px 0 10px;
+    line-height: 1.6;
+}
+
+.question-row {
+    padding: 15px;
+    margin-bottom: 12px;
+    border: 1px solid #e2e9f0;
+    border-radius: 10px;
+    background: white;
+}
+
+.question-row-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.question-row-number {
+    font-size: 12px;
+    font-weight: 800;
+    color: #1769aa;
+}
+
+.question-row label {
+    display: block;
+    color: #526276;
+    font-size: 10px;
+    font-weight: 800;
+    margin-bottom: 5px;
+}
+
+.question-row input {
+    width: 100%;
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 1px solid #dce5ee;
+    border-radius: 7px;
+    outline: none;
+    font-size: 12px;
+}
+
+.question-row input:focus {
+    border-color: #85afd0;
+    box-shadow: 0 0 0 3px rgba(23,105,170,.07);
+}
+
+.question-text-input {
+    font-weight: 600;
+}
+
+.question-count {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.existing-question {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 13px;
+    border: 1px solid #e7edf3;
+    border-radius: 9px;
+    margin-bottom: 9px;
+}
+
+.existing-question-text {
+    min-width: 0;
+    font-size: 12px;
+    color: #34465a;
+    overflow-wrap: anywhere;
+}
+
+.existing-question-text strong {
+    color: #10375d;
+}
+
+.existing-question-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 5px;
+}
+
+.existing-question-meta span {
+    padding: 3px 7px;
+    border-radius: 5px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 10px;
+}
+
+.question-delete-form {
+    flex-shrink: 0;
+}
+
+@media(max-width:650px) {
+    .edit-panel-body {
+        padding: 12px;
+    }
+
+    .edit-hero {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .existing-question {
+        align-items: flex-start;
+    }
+}
+</style>
+
+<div class="edit-page">
+
+    <section class="edit-hero">
+
+        <div>
+            <h2>
+                <i class="fa-solid fa-file-pen"></i>
+                {{ paper['title'] }}
+            </h2>
+
+            <p>
+                Class: {{ paper['class_name'] }}
+                &nbsp; | &nbsp;
+                Subject: {{ paper['subject'] }}
+                &nbsp; | &nbsp;
+                Full Marks: {{ paper['max_marks'] }}
+                &nbsp; | &nbsp;
+                Time: {{ paper['time_allowed'] }}
+            </p>
         </div>
 
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark text-white">Added Questions</div>
-                <div class="card-body">
-                    {% for section, qs in grouped_questions.items() %}
-                    <h5 class="text-primary mt-3">{{ section }}</h5>
-                    <ul class="list-group mb-3">
-                        {% for q in qs %}
-                        <li class="list-group-item d-flex justify-content-between align-items-start">
-                            <div>
-                                <strong>{{ loop.index }}.</strong> {{ q['question_text'] }} <small class="text-muted">({{ q['marks'] }} marks)</small>
-                                {% if q['options'] %}
-                                <br><small class="text-secondary">Options: {{ q['options'] }}</small>
-                                {% endif %}
-                            </div>
-                            <form method="POST" action="{{ url_for('delete_question', paper_id=paper['id'], q_id=q['id']) }}">
-                                <button type="submit" class="btn btn-sm btn-danger">x</button>
-                            </form>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                    <p class="text-muted">No questions added yet.</p>
-                    {% endfor %}
-                </div>
+        <a href="{{ url_for('print_question_paper', paper_id=paper['id']) }}"
+           target="_blank"
+           class="edit-btn edit-btn-green">
+
+            <i class="fa-solid fa-print"></i>
+            Preview / Print
+
+        </a>
+
+    </section>
+
+    <!-- BULK ADD FORM -->
+
+    <form method="POST"
+          action="{{ url_for('edit_question_paper', paper_id=paper['id']) }}"
+          id="questionForm">
+
+        <div class="edit-panel">
+
+            <div class="edit-panel-head">
+
+                <h3>
+                    <i class="fa-solid fa-layer-group"></i>
+                    Bulk Question Entry
+                </h3>
+
+                <span class="question-count">
+                    <span id="rowCount">0</span> Questions
+                </span>
+
             </div>
+
+            <div class="edit-panel-body">
+
+                <!-- BULK PASTE -->
+
+                <div class="bulk-box">
+
+                    <label>
+                        <i class="fa-solid fa-paste"></i>
+                        Add Multiple Questions at Once
+                    </label>
+
+                    <textarea id="bulkQuestions"
+                              placeholder="Paste one question per line here...&#10;&#10;Example:&#10;What is a computer?&#10;What is a machine?&#10;Name four input devices."></textarea>
+
+                    <p class="bulk-help">
+                        Each new line becomes a separate question.
+                        The selected section, marks and answer lines will be applied to all generated rows.
+                    </p>
+
+                    <div class="row g-2 align-items-end">
+
+                        <div class="col-md-4">
+
+                            <label>Default Section</label>
+
+                            <input type="text"
+                                   id="bulkSection"
+                                   class="form-control form-control-sm"
+                                   value="A. Answer the following">
+
+                        </div>
+
+                        <div class="col-md-2">
+
+                            <label>Marks / Question</label>
+
+                            <input type="number"
+                                   id="bulkMarks"
+                                   class="form-control form-control-sm"
+                                   value="1"
+                                   min="1">
+
+                        </div>
+
+                        <div class="col-md-2">
+
+                            <label>Answer Lines</label>
+
+                            <input type="number"
+                                   id="bulkLines"
+                                   class="form-control form-control-sm"
+                                   value="1"
+                                   min="0">
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <button type="button"
+                                    class="edit-btn edit-btn-blue w-100"
+                                    onclick="generateBulkQuestions()">
+
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                Generate Question Rows
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- QUESTION ROWS -->
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+                    <div>
+                        <strong class="small text-dark">
+                            Question Builder
+                        </strong>
+
+                        <div class="text-muted" style="font-size:10px">
+                            Fill multiple questions and save them together.
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 flex-wrap">
+
+                        <button type="button"
+                                class="edit-btn edit-btn-light"
+                                onclick="addMultipleRows(5)">
+
+                            <i class="fa-solid fa-plus"></i>
+                            Add 5 Rows
+
+                        </button>
+
+                        <button type="button"
+                                class="edit-btn edit-btn-blue"
+                                onclick="addRow()">
+
+                            <i class="fa-solid fa-plus"></i>
+                            Add One Row
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div id="questionRows"></div>
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
+
+                    <button type="button"
+                            class="edit-btn edit-btn-light"
+                            onclick="clearEmptyRows()">
+
+                        <i class="fa-solid fa-broom"></i>
+                        Remove Empty Rows
+
+                    </button>
+
+                    <button type="submit"
+                            class="edit-btn edit-btn-green">
+
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Save All Questions
+
+                    </button>
+
+                </div>
+
+            </div>
+
         </div>
+
+    </form>
+
+    <!-- EXISTING QUESTIONS -->
+
+    <div class="edit-panel">
+
+        <div class="edit-panel-head">
+
+            <h3>
+                <i class="fa-solid fa-list-check"></i>
+                Existing Questions
+            </h3>
+
+            <span class="question-count">
+                {{ total_questions }} Questions Added
+            </span>
+
+        </div>
+
+        <div class="edit-panel-body">
+
+            {% for section, qs in grouped_questions.items() %}
+
+            <h5 class="text-primary fw-bold mt-3 mb-3">
+                {{ section }}
+            </h5>
+
+            {% for q in qs %}
+
+            <div class="existing-question">
+
+                <div class="existing-question-text">
+
+                    <strong>{{ loop.index }}.</strong>
+                    {{ q['question_text'] }}
+
+                    <div class="existing-question-meta">
+
+                        <span>
+                            {{ q['marks'] }} Marks
+                        </span>
+
+                        <span>
+                            {{ q['lines'] }} Answer Lines
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <form method="POST"
+                      action="{{ url_for('delete_question', paper_id=paper['id'], q_id=q['id']) }}"
+                      class="question-delete-form"
+                      onsubmit="return confirm('Delete this question?')">
+
+                    <button type="submit"
+                            class="edit-btn edit-btn-red">
+
+                        <i class="fa-solid fa-trash"></i>
+
+                    </button>
+
+                </form>
+
+            </div>
+
+            {% endfor %}
+
+            {% else %}
+
+            <div class="text-center py-5 text-muted">
+
+                <i class="fa-solid fa-file-circle-question fa-2x mb-3"></i>
+
+                <h5>No Questions Added Yet</h5>
+
+                <p class="small">
+                    Start adding questions using the question builder above.
+                </p>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
     </div>
+
 </div>
+
+<script>
+(function () {
+
+    const container = document.getElementById("questionRows");
+    const rowCount = document.getElementById("rowCount");
+
+    let nextId = 0;
+
+    function updateCount() {
+
+        const rows = container.querySelectorAll(".question-row");
+
+        rowCount.textContent = rows.length;
+
+        rows.forEach((row, index) => {
+
+            row.querySelector(".question-row-number").textContent =
+                "QUESTION " + (index + 1);
+
+        });
+
+    }
+
+    window.addRow = function (data = {}) {
+
+        nextId++;
+
+        const row = document.createElement("div");
+
+        row.className = "question-row";
+
+        const id = nextId;
+
+        row.innerHTML = `
+            <div class="question-row-head">
+
+                <span class="question-row-number">
+                    QUESTION ${id}
+                </span>
+
+                <button type="button"
+                        class="edit-btn edit-btn-red"
+                        data-remove-row>
+
+                    <i class="fa-solid fa-xmark"></i>
+                    Remove
+
+                </button>
+
+            </div>
+
+            <div class="row g-2">
+
+                <div class="col-lg-3 col-md-6">
+
+                    <label>Section Name</label>
+
+                    <input type="text"
+                           name="section[]"
+                           placeholder="A. Answer in One Word"
+                           required>
+
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+
+                    <label>Question Text</label>
+
+                    <input type="text"
+                           name="question[]"
+                           class="question-text-input"
+                           placeholder="Enter question..."
+                           required>
+
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+
+                    <label>Options</label>
+
+                    <input type="text"
+                           name="options[]"
+                           placeholder="a) Yes, b) No">
+
+                </div>
+
+                <div class="col-lg-1 col-md-2">
+
+                    <label>Marks</label>
+
+                    <input type="number"
+                           name="marks[]"
+                           value="1"
+                           min="1"
+                           required>
+
+                </div>
+
+                <div class="col-lg-1 col-md-2">
+
+                    <label>Lines</label>
+
+                    <input type="number"
+                           name="lines[]"
+                           value="1"
+                           min="0"
+                           required>
+
+                </div>
+
+            </div>
+        `;
+
+        row.querySelector('[name="section[]"]').value =
+            data.section || "";
+
+        row.querySelector('[name="question[]"]').value =
+            data.question || "";
+
+        row.querySelector('[name="options[]"]').value =
+            data.options || "";
+
+        row.querySelector('[name="marks[]"]').value =
+            data.marks || 1;
+
+        row.querySelector('[name="lines[]"]').value =
+            data.lines !== undefined ? data.lines : 1;
+
+        row.querySelector("[data-remove-row]").addEventListener(
+            "click",
+            function () {
+
+                row.remove();
+                updateCount();
+
+            }
+        );
+
+        container.appendChild(row);
+
+        updateCount();
+
+    };
+
+    window.addMultipleRows = function (amount) {
+
+        for (let i = 0; i < amount; i++) {
+            addRow();
+        }
+
+    };
+
+    window.generateBulkQuestions = function () {
+
+        const text = document.getElementById("bulkQuestions").value;
+
+        const section = document.getElementById("bulkSection").value.trim();
+
+        const marks = document.getElementById("bulkMarks").value;
+
+        const lines = document.getElementById("bulkLines").value;
+
+        const questions = text
+            .split(/\r?\n/)
+            .map(q => q.trim())
+            .filter(q => q.length > 0);
+
+        if (!questions.length) {
+            alert("Please paste questions first.");
+            return;
+        }
+
+        if (!section) {
+            alert("Please enter a section name.");
+            return;
+        }
+
+        questions.forEach(question => {
+
+            addRow({
+                section: section,
+                question: question,
+                marks: marks,
+                lines: lines
+            });
+
+        });
+
+        document.getElementById("bulkQuestions").value = "";
+
+        alert(questions.length + " question rows generated.");
+
+    };
+
+    window.clearEmptyRows = function () {
+
+        const rows = container.querySelectorAll(".question-row");
+
+        let removed = 0;
+
+        rows.forEach(row => {
+
+            const question = row.querySelector('[name="question[]"]').value.trim();
+
+            if (!question) {
+
+                row.remove();
+                removed++;
+
+            }
+
+        });
+
+        updateCount();
+
+        alert(removed + " empty rows removed.");
+
+    };
+
+    document.getElementById("questionForm").addEventListener(
+        "submit",
+        function (event) {
+
+            const rows = container.querySelectorAll(".question-row");
+
+            if (!rows.length) {
+
+                event.preventDefault();
+
+                alert("Please add at least one question.");
+
+                return;
+
+            }
+
+            let valid = true;
+
+            rows.forEach(row => {
+
+                const question =
+                    row.querySelector('[name="question[]"]').value.trim();
+
+                if (!question) valid = false;
+
+            });
+
+            if (!valid) {
+
+                event.preventDefault();
+
+                alert("Please fill all question text fields or remove empty rows.");
+
+            }
+
+        }
+    );
+
+    // Start with five blank rows.
+    addMultipleRows(5);
+
+})();
+</script>
+
 {% endblock %}

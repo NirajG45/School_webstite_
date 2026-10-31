@@ -269,7 +269,9 @@
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
         }
 
-        .admin-qstat:hover::before { opacity: 1; }
+        .admin-qstat:hover::before {
+            opacity: 1;
+        }
 
         .admin-qstat strong {
             font-size: 16px;
@@ -279,7 +281,9 @@
             transition: transform var(--sn-transition);
         }
 
-        .admin-qstat:hover strong { transform: scale(1.08); }
+        .admin-qstat:hover strong {
+            transform: scale(1.08);
+        }
 
         .admin-qstat small {
             font-size: 8.5px;
@@ -289,11 +293,25 @@
             font-weight: 700;
         }
 
-        .admin-qstat.amber strong { color: #ffb454; }
-        .admin-qstat.green strong { color: #4ade80; }
-        .admin-qstat.purple strong { color: #c4b5fd; }
-        .admin-qstat.blue strong { color: #7dd3fc; }
-        .admin-qstat.zero strong { color: rgba(255, 255, 255, 0.4); }
+        .admin-qstat.amber strong {
+            color: #ffb454;
+        }
+
+        .admin-qstat.green strong {
+            color: #4ade80;
+        }
+
+        .admin-qstat.purple strong {
+            color: #c4b5fd;
+        }
+
+        .admin-qstat.blue strong {
+            color: #7dd3fc;
+        }
+
+        .admin-qstat.zero strong {
+            color: rgba(255, 255, 255, 0.4);
+        }
 
         /* ============================================================
            SIDEBAR FOOTER (sticky) — refined
@@ -336,9 +354,14 @@
             color: #fff;
         }
 
-        .admin-sidebar-foot-link:hover i { transform: translateX(2px); }
+        .admin-sidebar-foot-link:hover i {
+            transform: translateX(2px);
+        }
 
-        .admin-sidebar-foot-link.logout { color: #ff8c9e; }
+        .admin-sidebar-foot-link.logout {
+            color: #ff8c9e;
+        }
+
         .admin-sidebar-foot-link.logout:hover {
             background: rgba(215, 25, 56, 0.18);
             color: #fff;
@@ -347,12 +370,19 @@
         /* ============================================================
            CUSTOM SLIM SCROLLBAR
            ============================================================ */
-        .admin-sidebar::-webkit-scrollbar { width: 6px; }
-        .admin-sidebar::-webkit-scrollbar-track { background: transparent; }
+        .admin-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .admin-sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
         .admin-sidebar::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.15);
             border-radius: 10px;
         }
+
         .admin-sidebar::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.3);
         }
@@ -372,7 +402,9 @@
             transition: transform var(--sn-transition-fast);
         }
 
-        .admin-nav-link:hover i { transform: scale(1.1); }
+        .admin-nav-link:hover i {
+            transform: scale(1.1);
+        }
 
         .admin-nav-link .nav-badge {
             margin-left: auto;
@@ -397,8 +429,15 @@
         }
 
         @keyframes pulseBadge {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(215, 25, 56, 0.45); }
-            50% { box-shadow: 0 0 0 4px rgba(215, 25, 56, 0); }
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(215, 25, 56, 0.45);
+            }
+
+            50% {
+                box-shadow: 0 0 0 4px rgba(215, 25, 56, 0);
+            }
         }
 
         .admin-nav-link.active .nav-badge {
@@ -452,7 +491,9 @@
             margin: 12px 8px;
         }
 
-        .admin-sidebar.collapsed .admin-user-box::before { display: none; }
+        .admin-sidebar.collapsed .admin-user-box::before {
+            display: none;
+        }
 
         .admin-sidebar.collapsed .admin-nav-link {
             justify-content: center;
@@ -554,7 +595,9 @@
             width: 100%;
         }
 
-        .admin-search input::placeholder { color: #a0aec0; }
+        .admin-search input::placeholder {
+            color: #a0aec0;
+        }
 
         .admin-search:focus-within {
             border-color: #b0c4d8;
@@ -562,7 +605,9 @@
             background: #fafcff;
         }
 
-        .admin-search:focus-within i { color: #0a2340; }
+        .admin-search:focus-within i {
+            color: #0a2340;
+        }
 
         .admin-topbar-icon {
             position: relative;
@@ -658,9 +703,17 @@
         }
 
         @keyframes notifBellPulse {
-            0% { box-shadow: 0 0 0 0 rgba(215, 25, 56, 0.5); }
-            70% { box-shadow: 0 0 0 6px rgba(215, 25, 56, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(215, 25, 56, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(215, 25, 56, 0.5);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(215, 25, 56, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(215, 25, 56, 0);
+            }
         }
 
         .admin-topbar-notif {
@@ -735,9 +788,16 @@
             letter-spacing: 0.5px;
         }
 
-        .notif-list { padding: 6px; max-height: 380px; overflow-y: auto; }
+        .notif-list {
+            padding: 6px;
+            max-height: 380px;
+            overflow-y: auto;
+        }
 
-        .notif-list::-webkit-scrollbar { width: 4px; }
+        .notif-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
         .notif-list::-webkit-scrollbar-thumb {
             background: #d0dbe7;
             border-radius: 10px;
@@ -770,16 +830,45 @@
             transition: transform var(--sn-transition-fast);
         }
 
-        .notif-item:hover .notif-icon { transform: scale(1.08); }
+        .notif-item:hover .notif-icon {
+            transform: scale(1.08);
+        }
 
-        .notif-icon.amber { background: #fff1d6; color: #a86a00; }
-        .notif-icon.green { background: #e3f5eb; color: #168254; }
-        .notif-icon.blue { background: #e1f1ff; color: #1768a7; }
-        .notif-icon.red { background: #ffeaee; color: var(--red, #d71938); }
-        .notif-icon.purple { background: #f0e7ff; color: #7439b2; }
-        .notif-icon.teal { background: #d1fae5; color: #0f766e; }
+        .notif-icon.amber {
+            background: #fff1d6;
+            color: #a86a00;
+        }
 
-        .notif-body { flex: 1; min-width: 0; }
+        .notif-icon.green {
+            background: #e3f5eb;
+            color: #168254;
+        }
+
+        .notif-icon.blue {
+            background: #e1f1ff;
+            color: #1768a7;
+        }
+
+        .notif-icon.red {
+            background: #ffeaee;
+            color: var(--red, #d71938);
+        }
+
+        .notif-icon.purple {
+            background: #f0e7ff;
+            color: #7439b2;
+        }
+
+        .notif-icon.teal {
+            background: #d1fae5;
+            color: #0f766e;
+        }
+
+        .notif-body {
+            flex: 1;
+            min-width: 0;
+        }
+
         .notif-body strong {
             display: block;
             font-size: 12.5px;
@@ -787,6 +876,7 @@
             color: #0a2340;
             margin-bottom: 1px;
         }
+
         .notif-body small {
             display: block;
             font-size: 10.5px;
@@ -845,7 +935,9 @@
             transition: gap var(--sn-transition-fast);
         }
 
-        .notif-footer a:hover { gap: 10px; }
+        .notif-footer a:hover {
+            gap: 10px;
+        }
 
         .admin-user-profile {
             position: relative;
@@ -1096,9 +1188,17 @@
             transform: scale(1.1);
         }
 
-        .admin-user-dropdown>a.admin-logout-link { color: var(--red, #d71938); }
-        .admin-user-dropdown>a.admin-logout-link i { color: var(--red, #d71938); }
-        .admin-user-dropdown>a.admin-logout-link:hover { background: #ffeaee; }
+        .admin-user-dropdown>a.admin-logout-link {
+            color: var(--red, #d71938);
+        }
+
+        .admin-user-dropdown>a.admin-logout-link i {
+            color: var(--red, #d71938);
+        }
+
+        .admin-user-dropdown>a.admin-logout-link:hover {
+            background: #ffeaee;
+        }
 
         .admin-nav-link.active {
             background: linear-gradient(135deg, var(--red, #d71938), #b9102c) !important;
@@ -1106,7 +1206,9 @@
             box-shadow: 0 4px 12px rgba(215, 25, 56, 0.28);
         }
 
-        .admin-nav-link.active i { color: #fff !important; }
+        .admin-nav-link.active i {
+            color: #fff !important;
+        }
 
         .admin-nav-group-label {
             font-size: 9px;
@@ -1129,24 +1231,59 @@
         }
 
         @media (max-width: 900px) {
-            .admin-topbar-icon { width: 38px; height: 38px; font-size: 14px; }
-            .admin-user-btn { max-width: 44px; }
+            .admin-topbar-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 14px;
+            }
+
+            .admin-user-btn {
+                max-width: 44px;
+            }
+
             .admin-user-btn:hover,
-            .admin-user-profile.dropdown-open .admin-user-btn { max-width: 220px; }
-            .admin-notif-dropdown { width: 300px; right: -8px; }
-            .admin-user-dropdown { min-width: 240px; right: -8px; }
-            .admin-search { display: none; }
-            .admin-sidebar-collapse-btn { display: none; }
-            .admin-my-dash-btn::after { display: none; }
+            .admin-user-profile.dropdown-open .admin-user-btn {
+                max-width: 220px;
+            }
+
+            .admin-notif-dropdown {
+                width: 300px;
+                right: -8px;
+            }
+
+            .admin-user-dropdown {
+                min-width: 240px;
+                right: -8px;
+            }
+
+            .admin-search {
+                display: none;
+            }
+
+            .admin-sidebar-collapse-btn {
+                display: none;
+            }
+
+            .admin-my-dash-btn::after {
+                display: none;
+            }
         }
 
         @media (max-width: 640px) {
-            .admin-notif-dropdown { width: 280px; }
-            .admin-user-info { gap: 6px; }
+            .admin-notif-dropdown {
+                width: 280px;
+            }
+
+            .admin-user-info {
+                gap: 6px;
+            }
         }
 
         @media (max-width: 400px) {
-            .admin-notif-dropdown { width: calc(100vw - 32px); right: -8px; }
+            .admin-notif-dropdown {
+                width: calc(100vw - 32px);
+                right: -8px;
+            }
         }
 
         /* ============================================================
@@ -1167,7 +1304,10 @@
             display: block;
         }
 
-        .admin-user-dropdown>form { margin: 0; padding: 0; }
+        .admin-user-dropdown>form {
+            margin: 0;
+            padding: 0;
+        }
 
         .admin-user-dropdown>form>button {
             display: flex;
@@ -1208,9 +1348,17 @@
             transform: scale(1.1);
         }
 
-        .admin-user-dropdown>form>button.remove-photo-btn { color: var(--red, #d71938); }
-        .admin-user-dropdown>form>button.remove-photo-btn i { color: var(--red, #d71938); }
-        .admin-user-dropdown>form>button.remove-photo-btn:hover { background: #ffeaee; }
+        .admin-user-dropdown>form>button.remove-photo-btn {
+            color: var(--red, #d71938);
+        }
+
+        .admin-user-dropdown>form>button.remove-photo-btn i {
+            color: var(--red, #d71938);
+        }
+
+        .admin-user-dropdown>form>button.remove-photo-btn:hover {
+            background: #ffeaee;
+        }
 
         /* ============================================================
            NEW: Admin Panel highlighted link in user dropdown
@@ -1221,7 +1369,9 @@
             border: 1px solid rgba(255, 212, 71, 0.35);
         }
 
-        .admin-user-dropdown>a.admin-panel-link i { color: var(--red, #d71938); }
+        .admin-user-dropdown>a.admin-panel-link i {
+            color: var(--red, #d71938);
+        }
 
         .admin-user-dropdown>a.admin-panel-link:hover {
             background: linear-gradient(135deg, rgba(255, 212, 71, 0.28), rgba(215, 25, 56, 0.18));
@@ -1267,7 +1417,10 @@
             --admin-shadow: 0 8px 28px rgba(20, 45, 75, .07);
         }
 
-        html { scroll-behavior: smooth; }
+        html {
+            scroll-behavior: smooth;
+        }
+
         body.admin-body {
             background: var(--admin-canvas);
             color: var(--admin-ink);
@@ -1280,17 +1433,23 @@
             background: linear-gradient(180deg, var(--admin-navy) 0%, var(--admin-navy-deep) 100%);
             width: 272px;
             min-width: 272px;
-            border-right: 1px solid rgba(255,255,255,.07);
+            border-right: 1px solid rgba(255, 255, 255, .07);
             box-shadow: 8px 0 30px rgba(8, 27, 49, .08);
             scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,.2) transparent;
+            scrollbar-color: rgba(255, 255, 255, .2) transparent;
         }
+
         .admin-sidebar-head {
             min-height: 76px;
             padding: 15px 17px;
-            border-bottom: 1px solid rgba(255,255,255,.09);
+            border-bottom: 1px solid rgba(255, 255, 255, .09);
         }
-        .admin-logo { gap: 11px; min-width: 0; }
+
+        .admin-logo {
+            gap: 11px;
+            min-width: 0;
+        }
+
         .admin-logo .school-logo {
             width: 43px;
             height: 43px;
@@ -1298,65 +1457,85 @@
             border-radius: 12px;
             background: #fff;
             padding: 4px;
-            box-shadow: 0 4px 14px rgba(0,0,0,.16);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .16);
         }
+
         .admin-logo .brand-text strong {
             font-size: 14px;
             letter-spacing: -.25px;
             color: #fff;
         }
+
         .admin-logo .brand-text small {
             color: #a9bdd2;
             font-size: 10px;
             letter-spacing: .11em;
             text-transform: uppercase;
         }
+
         .admin-user-box {
             margin: 15px 13px 12px;
             padding: 12px;
-            background: rgba(255,255,255,.075);
-            border: 1px solid rgba(255,255,255,.11);
+            background: rgba(255, 255, 255, .075);
+            border: 1px solid rgba(255, 255, 255, .11);
             border-radius: 13px;
             box-shadow: none;
         }
+
         .admin-user-box:hover {
-            background: rgba(255,255,255,.10);
-            border-color: rgba(255,255,255,.18);
+            background: rgba(255, 255, 255, .10);
+            border-color: rgba(255, 255, 255, .18);
         }
+
         .admin-user-avatar {
             width: 40px;
             height: 40px;
             flex-basis: 40px;
-            border: 2px solid rgba(243,198,78,.9);
+            border: 2px solid rgba(243, 198, 78, .9);
             box-shadow: none;
         }
+
         .admin-role-badge {
-            background: rgba(243,198,78,.16);
+            background: rgba(243, 198, 78, .16);
             color: #ffdc78;
-            border: 1px solid rgba(243,198,78,.25);
+            border: 1px solid rgba(243, 198, 78, .25);
             box-shadow: none;
             border-radius: 5px;
         }
+
         .admin-sidebar-search {
             margin: 12px 13px 13px;
             height: 40px;
             border-radius: 9px;
-            background: rgba(4,18,35,.28);
-            border-color: rgba(255,255,255,.12);
+            background: rgba(4, 18, 35, .28);
+            border-color: rgba(255, 255, 255, .12);
         }
+
         .admin-quick-stats {
             margin: 0 13px 16px;
             gap: 7px;
         }
+
         .admin-qstat {
             min-height: 57px;
             border-radius: 9px;
-            background: rgba(255,255,255,.055);
-            border-color: rgba(255,255,255,.075);
+            background: rgba(255, 255, 255, .055);
+            border-color: rgba(255, 255, 255, .075);
         }
-        .admin-qstat strong { font-size: 17px; }
-        .admin-qstat small { font-size: 9px; letter-spacing: .08em; }
-        .admin-nav { padding: 2px 10px 14px; }
+
+        .admin-qstat strong {
+            font-size: 17px;
+        }
+
+        .admin-qstat small {
+            font-size: 9px;
+            letter-spacing: .08em;
+        }
+
+        .admin-nav {
+            padding: 2px 10px 14px;
+        }
+
         .admin-nav-group-label {
             margin: 17px 10px 7px;
             color: #829bb6;
@@ -1365,6 +1544,7 @@
             letter-spacing: .13em;
             text-transform: uppercase;
         }
+
         .admin-nav-link {
             min-height: 41px;
             margin: 2px 0;
@@ -1376,24 +1556,34 @@
             font-size: 12.5px;
             font-weight: 600;
         }
+
         .admin-nav-link i {
             width: 18px;
             color: #91a9c2;
             font-size: 14px;
             text-align: center;
         }
+
         .admin-nav-link:hover {
-            background: rgba(255,255,255,.075);
+            background: rgba(255, 255, 255, .075);
             color: #fff;
         }
-        .admin-nav-link:hover i { color: #fff; }
+
+        .admin-nav-link:hover i {
+            color: #fff;
+        }
+
         .admin-nav-link.active {
-            background: rgba(54,129,194,.24);
-            border-color: rgba(119,177,226,.18);
+            background: rgba(54, 129, 194, .24);
+            border-color: rgba(119, 177, 226, .18);
             color: #fff;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,.025);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .025);
         }
-        .admin-nav-link.active i { color: #ffda72; }
+
+        .admin-nav-link.active i {
+            color: #ffda72;
+        }
+
         .admin-nav-link.active::before {
             left: -1px;
             top: 8px;
@@ -1402,16 +1592,19 @@
             background: var(--admin-gold);
             box-shadow: none;
         }
+
         .admin-nav-link .nav-badge {
             min-width: 19px;
             height: 19px;
             font-size: 9px;
         }
+
         .admin-sidebar-foot {
-            background: linear-gradient(180deg, rgba(11,32,59,.92), #091b32);
-            border-top-color: rgba(255,255,255,.09);
+            background: linear-gradient(180deg, rgba(11, 32, 59, .92), #091b32);
+            border-top-color: rgba(255, 255, 255, .09);
             padding: 12px 13px 15px;
         }
+
         .admin-sidebar-foot-link {
             min-height: 39px;
             border-radius: 9px;
@@ -1423,6 +1616,7 @@
             min-width: 0;
             background: var(--admin-canvas);
         }
+
         .admin-topbar {
             position: sticky;
             top: 0;
@@ -1430,11 +1624,12 @@
             min-height: 76px;
             padding: 12px 28px;
             gap: 17px;
-            background: rgba(255,255,255,.94);
+            background: rgba(255, 255, 255, .94);
             border-bottom: 1px solid var(--admin-line);
-            box-shadow: 0 3px 14px rgba(25,48,75,.035);
+            box-shadow: 0 3px 14px rgba(25, 48, 75, .035);
             backdrop-filter: blur(14px);
         }
+
         .admin-page-title {
             color: var(--admin-ink);
             font-size: clamp(18px, 1.7vw, 22px);
@@ -1442,6 +1637,7 @@
             letter-spacing: -.65px;
             line-height: 1.2;
         }
+
         .admin-search {
             max-width: 440px;
             height: 42px;
@@ -1450,11 +1646,13 @@
             border-color: #e8edf3;
             border-radius: 10px;
         }
+
         .admin-search:focus-within {
             background: #fff;
             border-color: #9bb9d7;
-            box-shadow: 0 0 0 3px rgba(35,103,165,.09);
+            box-shadow: 0 0 0 3px rgba(35, 103, 165, .09);
         }
+
         .admin-topbar-icon {
             width: 40px;
             height: 40px;
@@ -1462,13 +1660,24 @@
             border-color: #e7edf4;
             color: #40566e;
         }
+
         .admin-user-btn {
             border-radius: 11px;
             padding: 5px 9px;
         }
-        .admin-user-btn:hover { background: #f5f8fc; }
-        .admin-user-btn-info strong { color: var(--admin-ink); }
-        .admin-user-btn-info small { color: var(--admin-muted); }
+
+        .admin-user-btn:hover {
+            background: #f5f8fc;
+        }
+
+        .admin-user-btn-info strong {
+            color: var(--admin-ink);
+        }
+
+        .admin-user-btn-info small {
+            color: var(--admin-muted);
+        }
+
         .admin-content {
             width: 100%;
             max-width: 1680px;
@@ -1477,21 +1686,40 @@
         }
 
         /* Popovers, notices and feedback */
-        .admin-notif-dropdown, .admin-user-dropdown {
+        .admin-notif-dropdown,
+        .admin-user-dropdown {
             border: 1px solid var(--admin-line);
             border-radius: 14px;
-            box-shadow: 0 18px 50px rgba(16,43,78,.16);
+            box-shadow: 0 18px 50px rgba(16, 43, 78, .16);
         }
-        .notif-head { padding: 15px 17px; }
-        .notif-item { border-radius: 9px; }
-        .flash-stack { margin-bottom: 18px; }
+
+        .notif-head {
+            padding: 15px 17px;
+        }
+
+        .notif-item {
+            border-radius: 9px;
+        }
+
+        .flash-stack {
+            margin-bottom: 18px;
+        }
+
         .flash {
-            border: 1px solid rgba(35,103,165,.10);
-            box-shadow: 0 6px 20px rgba(20,45,75,.07);
+            border: 1px solid rgba(35, 103, 165, .10);
+            box-shadow: 0 6px 20px rgba(20, 45, 75, .07);
         }
-        button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+
+        button,
+        a,
+        input,
+        select,
+        textarea {
+            -webkit-tap-highlight-color: transparent;
+        }
+
         :focus-visible {
-            outline: 3px solid rgba(35,103,165,.35);
+            outline: 3px solid rgba(35, 103, 165, .35);
             outline-offset: 2px;
         }
 
@@ -1501,7 +1729,12 @@
             border-color: var(--admin-line);
             box-shadow: var(--admin-shadow);
         }
-        .admin-content :is(table) { border-collapse: separate; border-spacing: 0; }
+
+        .admin-content :is(table) {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
         .admin-content :is(th) {
             color: #52677e;
             background: #f6f8fb;
@@ -1510,22 +1743,41 @@
             letter-spacing: .045em;
             text-transform: uppercase;
         }
+
         .admin-content :is(input, select, textarea) {
             border-radius: 9px;
         }
 
         /* Collapsed sidebar */
-        .admin-sidebar.collapsed { width: 78px; min-width: 78px; }
-        .admin-sidebar.collapsed .admin-sidebar-head { padding: 13px 8px; }
+        .admin-sidebar.collapsed {
+            width: 78px;
+            min-width: 78px;
+        }
+
+        .admin-sidebar.collapsed .admin-sidebar-head {
+            padding: 13px 8px;
+        }
+
         .admin-sidebar.collapsed .admin-logo .school-logo {
-            width: 40px; height: 40px;
+            width: 40px;
+            height: 40px;
         }
 
         /* Tablet */
         @media (max-width: 1100px) {
-            .admin-topbar { padding-inline: 20px; gap: 12px; }
-            .admin-content { padding: 22px 20px 34px; }
-            .admin-search { max-width: 330px; margin-inline: 4px; }
+            .admin-topbar {
+                padding-inline: 20px;
+                gap: 12px;
+            }
+
+            .admin-content {
+                padding: 22px 20px 34px;
+            }
+
+            .admin-search {
+                max-width: 330px;
+                margin-inline: 4px;
+            }
         }
 
         /* Mobile */
@@ -1533,13 +1785,15 @@
             .admin-sidebar {
                 width: min(290px, 86vw);
                 min-width: min(290px, 86vw);
-                box-shadow: 18px 0 45px rgba(5,20,38,.22);
+                box-shadow: 18px 0 45px rgba(5, 20, 38, .22);
             }
+
             .admin-topbar {
                 min-height: 64px;
                 padding: 10px 14px;
                 gap: 10px;
             }
+
             .admin-page-title {
                 flex: 1;
                 min-width: 0;
@@ -1548,15 +1802,29 @@
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
+
             .admin-search {
                 display: none;
             }
-            .admin-user-btn-info, .admin-user-chevron {
+
+            .admin-user-btn-info,
+            .admin-user-chevron {
                 display: none;
             }
-            .admin-user-btn { padding: 3px; }
-            .admin-topbar-icon { width: 38px; height: 38px; }
-            .admin-content { padding: 17px 14px 28px; }
+
+            .admin-user-btn {
+                padding: 3px;
+            }
+
+            .admin-topbar-icon {
+                width: 38px;
+                height: 38px;
+            }
+
+            .admin-content {
+                padding: 17px 14px 28px;
+            }
+
             .admin-notif-dropdown {
                 position: fixed;
                 top: 60px;
@@ -1564,17 +1832,36 @@
                 width: min(340px, calc(100vw - 20px));
             }
         }
+
         @media (max-width: 480px) {
-            .admin-topbar { gap: 7px; padding-inline: 10px; }
-            .admin-page-title { font-size: 15px; }
-            .admin-content { padding: 13px 10px 24px; }
-            .admin-topbar-icon { width: 35px; height: 35px; }
+            .admin-topbar {
+                gap: 7px;
+                padding-inline: 10px;
+            }
+
+            .admin-page-title {
+                font-size: 15px;
+            }
+
+            .admin-content {
+                padding: 13px 10px 24px;
+            }
+
+            .admin-topbar-icon {
+                width: 35px;
+                height: 35px;
+            }
+
             .admin-content :is(.card, .panel, .content-card, .stat-card, .table-container, .form-card) {
                 border-radius: 11px;
             }
         }
+
         @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
+
+            *,
+            *::before,
+            *::after {
                 scroll-behavior: auto !important;
                 animation-duration: .01ms !important;
                 animation-iteration-count: 1 !important;
@@ -1643,12 +1930,13 @@
                 <strong>{{ pending_fees or 0 }}</strong>
                 <small>Fees</small>
             </a>
-            <a href="{{ url_for('admin_homework') }}" class="admin-qstat purple {% if not total_homework %}zero{% endif %}"
-                title="Total homework">
+            <a href="{{ url_for('admin_homework') }}"
+                class="admin-qstat purple {% if not total_homework %}zero{% endif %}" title="Total homework">
                 <strong>{{ total_homework or 0 }}</strong>
                 <small>HW</small>
             </a>
-            <a href="{{ url_for('admin_exams_list') }}" class="admin-qstat blue {% if not pending_exam_submissions %}zero{% endif %}"
+            <a href="{{ url_for('admin_exams_list') }}"
+                class="admin-qstat blue {% if not pending_exam_submissions %}zero{% endif %}"
                 title="Pending exam submissions">
                 <strong>{{ pending_exam_submissions or 0 }}</strong>
                 <small>Exams</small>
@@ -1658,18 +1946,15 @@
         <nav class="admin-nav">
             <div class="admin-nav-group-label">Main</div>
             <a href="{{ url_for('admin_dashboard') }}"
-                class="admin-nav-link {% if active_page == 'dashboard' %}active{% endif %}"
-                data-label="Dashboard">
+                class="admin-nav-link {% if active_page == 'dashboard' %}active{% endif %}" data-label="Dashboard">
                 <i class="fa-solid fa-gauge"></i><span class="nav-label">Dashboard</span>
             </a>
             <a href="{{ url_for('admin_users') }}"
-                class="admin-nav-link {% if active_page == 'users' %}active{% endif %}"
-                data-label="All Users">
+                class="admin-nav-link {% if active_page == 'users' %}active{% endif %}" data-label="All Users">
                 <i class="fa-solid fa-users"></i><span class="nav-label">All Users</span>
             </a>
             <a href="{{ url_for('admin_create_user') }}"
-                class="admin-nav-link {% if active_page == 'create_user' %}active{% endif %}"
-                data-label="Create User">
+                class="admin-nav-link {% if active_page == 'create_user' %}active{% endif %}" data-label="Create User">
                 <i class="fa-solid fa-user-plus"></i><span class="nav-label">Create User</span>
             </a>
             <a href="{{ url_for('user_dashboard') }}" class="admin-nav-link" data-label="My Dashboard">
@@ -1678,14 +1963,12 @@
 
             <div class="admin-nav-group-label">Academics</div>
             <a href="{{ url_for('admin_attendance') }}"
-                class="admin-nav-link {% if active_page == 'attendance' %}active{% endif %}"
-                data-label="Attendance">
+                class="admin-nav-link {% if active_page == 'attendance' %}active{% endif %}" data-label="Attendance">
                 <i class="fa-solid fa-clipboard-check"></i><span class="nav-label">Attendance</span>
             </a>
             <!-- NEW: Examinations -->
             <a href="{{ url_for('admin_exams_list') }}"
-                class="admin-nav-link {% if active_page == 'exams' %}active{% endif %}"
-                data-label="Examinations">
+                class="admin-nav-link {% if active_page == 'exams' %}active{% endif %}" data-label="Examinations">
                 <i class="fa-solid fa-file-pen"></i><span class="nav-label">Examinations</span>
                 {% if pending_exam_submissions and pending_exam_submissions > 0 %}
                 <span class="nav-badge danger">{{ pending_exam_submissions }}</span>
@@ -1697,22 +1980,26 @@
                 data-label="Reports Dashboard">
                 <i class="fa-solid fa-chart-line"></i><span class="nav-label">Reports Dashboard</span>
             </a>
-            <a href="{{ url_for('teacher_question_papers') }}" class="nav-link">
-    <i class="fas fa-file-alt"></i> Question Papers
-</a>
+
+            <!-- QUESTION PAPERS LINK (Sahi CSS ke saath) -->
+            <a href="{{ url_for('teacher_question_papers') }}"
+                class="admin-nav-link {% if active_page == 'question_papers' %}active{% endif %}"
+                data-label="Question Papers">
+                <i class="fa-solid fa-file-signature"></i><span class="nav-label">Question Papers</span>
+                {% if total_question_papers and total_question_papers > 0 %}
+                <span class="nav-badge">{{ total_question_papers }}</span>
+                {% endif %}
+            </a>
             <a href="{{ url_for('admin_enter_marks') }}"
-                class="admin-nav-link {% if active_page == 'enter_marks' %}active{% endif %}"
-                data-label="Enter Marks">
+                class="admin-nav-link {% if active_page == 'enter_marks' %}active{% endif %}" data-label="Enter Marks">
                 <i class="fa-solid fa-pen-to-square"></i><span class="nav-label">Enter Marks</span>
             </a>
             <a href="{{ url_for('admin_bulk_marks') }}"
-                class="admin-nav-link {% if active_page == 'bulk_marks' %}active{% endif %}"
-                data-label="Bulk Marks">
+                class="admin-nav-link {% if active_page == 'bulk_marks' %}active{% endif %}" data-label="Bulk Marks">
                 <i class="fa-solid fa-file-import"></i><span class="nav-label">Bulk Marks</span>
             </a>
             <a href="{{ url_for('admin_homework') }}"
-                class="admin-nav-link {% if active_page == 'homework' %}active{% endif %}"
-                data-label="Homework">
+                class="admin-nav-link {% if active_page == 'homework' %}active{% endif %}" data-label="Homework">
                 <i class="fa-solid fa-book-open"></i><span class="nav-label">Homework</span>
                 {% if total_homework and total_homework > 0 %}
                 <span class="nav-badge">{{ total_homework }}</span>
@@ -1724,8 +2011,7 @@
                 <i class="fa-solid fa-folder-open"></i><span class="nav-label">Study Materials</span>
             </a>
             <a href="{{ url_for('admin_reports') }}"
-                class="admin-nav-link {% if active_page == 'reports' %}active{% endif %}"
-                data-label="Reports">
+                class="admin-nav-link {% if active_page == 'reports' %}active{% endif %}" data-label="Reports">
                 <i class="fa-solid fa-chart-pie"></i><span class="nav-label">Reports</span>
             </a>
             <a href="{{ url_for('admin_generate_reports') }}"
@@ -1734,15 +2020,13 @@
                 <i class="fa-solid fa-file-invoice"></i><span class="nav-label">Generate Reports</span>
             </a>
             <a href="{{ url_for('admin_leaves') }}"
-                class="admin-nav-link {% if active_page == 'leaves' %}active{% endif %}"
-                data-label="Leave Requests">
+                class="admin-nav-link {% if active_page == 'leaves' %}active{% endif %}" data-label="Leave Requests">
                 <i class="fa-solid fa-calendar-minus"></i><span class="nav-label">Leave Requests</span>
                 {% if pending_leaves and pending_leaves > 0 %}
                 <span class="nav-badge danger">{{ pending_leaves }}</span>
                 {% endif %}
             </a>
-            <a href="{{ url_for('admin_fees') }}"
-                class="admin-nav-link {% if active_page == 'fees' %}active{% endif %}"
+            <a href="{{ url_for('admin_fees') }}" class="admin-nav-link {% if active_page == 'fees' %}active{% endif %}"
                 data-label="Fee Payments">
                 <i class="fa-solid fa-indian-rupee-sign"></i><span class="nav-label">Fee Payments</span>
                 {% if pending_fees and pending_fees > 0 %}
@@ -1760,30 +2044,25 @@
                 <i class="fa-solid fa-paper-plane"></i><span class="nav-label">Send / Broadcast</span>
             </a>
             <a href="{{ url_for('admin_enquiries') }}"
-                class="admin-nav-link {% if active_page == 'enquiries' %}active{% endif %}"
-                data-label="Enquiries">
+                class="admin-nav-link {% if active_page == 'enquiries' %}active{% endif %}" data-label="Enquiries">
                 <i class="fa-solid fa-envelope"></i><span class="nav-label">Enquiries</span>
             </a>
 
             <div class="admin-nav-group-label">Content</div>
             <a href="{{ url_for('admin_notices') }}"
-                class="admin-nav-link {% if active_page == 'notices' %}active{% endif %}"
-                data-label="Notices">
+                class="admin-nav-link {% if active_page == 'notices' %}active{% endif %}" data-label="Notices">
                 <i class="fa-solid fa-bullhorn"></i><span class="nav-label">Notices</span>
             </a>
             <a href="{{ url_for('admin_faculty') }}"
-                class="admin-nav-link {% if active_page == 'faculty' %}active{% endif %}"
-                data-label="Faculty">
+                class="admin-nav-link {% if active_page == 'faculty' %}active{% endif %}" data-label="Faculty">
                 <i class="fa-solid fa-chalkboard-user"></i><span class="nav-label">Faculty</span>
             </a>
             <a href="{{ url_for('admin_events') }}"
-                class="admin-nav-link {% if active_page == 'events' %}active{% endif %}"
-                data-label="Events">
+                class="admin-nav-link {% if active_page == 'events' %}active{% endif %}" data-label="Events">
                 <i class="fa-regular fa-calendar-days"></i><span class="nav-label">Events</span>
             </a>
             <a href="{{ url_for('admin_gallery') }}"
-                class="admin-nav-link {% if active_page == 'gallery' %}active{% endif %}"
-                data-label="Gallery">
+                class="admin-nav-link {% if active_page == 'gallery' %}active{% endif %}" data-label="Gallery">
                 <i class="fa-regular fa-images"></i><span class="nav-label">Gallery</span>
             </a>
             <a href="{{ url_for('admin_achievements') }}"
@@ -1796,8 +2075,7 @@
                 data-label="Testimonials">
                 <i class="fa-solid fa-quote-left"></i><span class="nav-label">Testimonials</span>
             </a>
-            <a href="{{ url_for('admin_faq') }}"
-                class="admin-nav-link {% if active_page == 'faq' %}active{% endif %}"
+            <a href="{{ url_for('admin_faq') }}" class="admin-nav-link {% if active_page == 'faq' %}active{% endif %}"
                 data-label="FAQ">
                 <i class="fa-solid fa-circle-question"></i><span class="nav-label">FAQ</span>
             </a>
@@ -1847,7 +2125,8 @@
                         aria-haspopup="true" aria-expanded="false" aria-controls="adminNotifDropdown"
                         aria-label="Notifications" title="Notifications">
                         <i class="fa-regular fa-bell"></i>
-                        {% set total_notifs = (pending_leaves or 0) + (pending_fees or 0) + (total_homework or 0) + (pending_exam_submissions or 0) %}
+                        {% set total_notifs = (pending_leaves or 0) + (pending_fees or 0) + (total_homework or 0) +
+                        (pending_exam_submissions or 0) %}
                         {% if total_notifs > 0 %}
                         <span class="notif-dot-badge" aria-hidden="true"></span>
                         {% endif %}
@@ -1866,7 +2145,8 @@
                                     <strong>Exam marks</strong>
                                     <small>{{ pending_exam_submissions or 0 }} class(es) yet to submit</small>
                                 </div>
-                                <span class="notif-count {% if not pending_exam_submissions %}zero{% endif %}">{{ pending_exam_submissions or 0 }}</span>
+                                <span class="notif-count {% if not pending_exam_submissions %}zero{% endif %}">{{
+                                    pending_exam_submissions or 0 }}</span>
                                 <i class="fa-solid fa-chevron-right notif-arrow"></i>
                             </a>
                             <a href="{{ url_for('admin_homework') }}" class="notif-item" role="menuitem">
@@ -1875,7 +2155,8 @@
                                     <strong>Homework assigned</strong>
                                     <small>{{ total_homework or 0 }} total assignments</small>
                                 </div>
-                                <span class="notif-count {% if not total_homework %}zero{% endif %}">{{ total_homework or 0 }}</span>
+                                <span class="notif-count {% if not total_homework %}zero{% endif %}">{{ total_homework
+                                    or 0 }}</span>
                                 <i class="fa-solid fa-chevron-right notif-arrow"></i>
                             </a>
                             <a href="{{ url_for('admin_leaves') }}" class="notif-item" role="menuitem">
@@ -1884,7 +2165,8 @@
                                     <strong>Leave requests</strong>
                                     <small>Review pending approvals</small>
                                 </div>
-                                <span class="notif-count {% if not pending_leaves %}zero{% endif %}">{{ pending_leaves or 0 }}</span>
+                                <span class="notif-count {% if not pending_leaves %}zero{% endif %}">{{ pending_leaves
+                                    or 0 }}</span>
                                 <i class="fa-solid fa-chevron-right notif-arrow"></i>
                             </a>
                             <a href="{{ url_for('admin_fees') }}" class="notif-item" role="menuitem">
@@ -1893,7 +2175,8 @@
                                     <strong>Fee payments</strong>
                                     <small>Verify submitted payments</small>
                                 </div>
-                                <span class="notif-count {% if not pending_fees %}zero{% endif %}">{{ pending_fees or 0 }}</span>
+                                <span class="notif-count {% if not pending_fees %}zero{% endif %}">{{ pending_fees or 0
+                                    }}</span>
                                 <i class="fa-solid fa-chevron-right notif-arrow"></i>
                             </a>
                             <a href="{{ url_for('admin_enquiries') }}" class="notif-item" role="menuitem">
@@ -1922,10 +2205,8 @@
                 </div>
 
                 <!-- MY DASHBOARD TOPBAR BUTTON -->
-                <a href="{{ url_for('user_dashboard') }}"
-                   class="admin-topbar-icon admin-my-dash-btn"
-                   aria-label="My Dashboard"
-                   title="My Dashboard">
+                <a href="{{ url_for('user_dashboard') }}" class="admin-topbar-icon admin-my-dash-btn"
+                    aria-label="My Dashboard" title="My Dashboard">
                     <i class="fa-solid fa-id-card"></i>
                 </a>
 
@@ -1946,7 +2227,8 @@
                         {% endif %}
                         <div class="admin-user-btn-info">
                             <strong>{{ session['user_name'].split()[0] }}</strong>
-                            <small>{% if session.get('user_role') == 'administrator' %}Administrator{% else %}Admin{% endif %}</small>
+                            <small>{% if session.get('user_role') == 'administrator' %}Administrator{% else %}Admin{%
+                                endif %}</small>
                         </div>
                         <i class="fa-solid fa-chevron-down admin-user-chevron"></i>
                     </button>
@@ -1965,9 +2247,11 @@
                             {% endif %}
                             <div class="admin-user-head-text">
                                 <strong>Hello, {{ session['user_name'].split()[0] }}!</strong>
-                                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
+                                <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A')
+                                    }}</small>
                                 <span class="admin-user-role-tag">
-                                    {% if session.get('user_role') == 'administrator' %}Administrator{% else %}Admin{% endif %}
+                                    {% if session.get('user_role') == 'administrator' %}Administrator{% else %}Admin{%
+                                    endif %}
                                 </span>
                             </div>
                         </div>

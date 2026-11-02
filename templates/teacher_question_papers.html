@@ -258,10 +258,8 @@
             </label>
             <select id="classFilter" class="qpl-filter" aria-label="Filter by class">
                 <option value="">All classes</option>
-                {% for p in papers %}
-                {% if p['class_name'] %}
-                <option value="{{ p['class_name']|lower }}">Class {{ p['class_name'] }}</option>
-                {% endif %}
+                {% for c in class_list %}
+                <option value="{{ c|lower }}">Class {{ c }}</option>
                 {% endfor %}
             </select>
         </div>

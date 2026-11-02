@@ -373,215 +373,190 @@ body {
 {% block page_title %}Question Paper Preview{% endblock %}
 {% block content %}
 <style>
-    /* Screen preview */
+    /* --- Screen & Print Base --- */
     .qp-toolbar {
         max-width: 900px;
-        margin: 0 auto 14px;
+        margin: 0 auto 16px;
         display: flex;
         justify-content: flex-end;
-        gap: 8px;
+        gap: 10px;
     }
     .qp-print-btn {
         border: 0;
-        border-radius: 7px;
-        padding: 10px 16px;
-        background: #174f7a;
+        border-radius: 8px;
+        padding: 12px 20px;
+        background: #0f766e;
         color: #fff;
         font-weight: 700;
         cursor: pointer;
+        transition: 0.2s;
     }
+    .qp-print-btn:hover { background: #115e59; }
+
+    /* --- The Paper Sheet --- */
     .qp-sheet {
         width: 210mm;
         min-height: 297mm;
-        margin: 0 auto 24px;
-        padding: 11mm 12mm;
+        margin: 0 auto 30px;
+        padding: 12mm 15mm;
         background: #fff;
-        color: #111;
-        box-shadow: 0 2px 18px rgba(0,0,0,.15);
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 10.5pt;
-        line-height: 1.32;
+        color: #000;
+        box-shadow: 0 4px 24px rgba(0,0,0,.1);
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 11pt;
+        line-height: 1.4;
     }
+
+    /* --- Header --- */
     .qp-header {
-        display: grid;
-        grid-template-columns: 48px minmax(0,1fr) 48px;
+        display: flex;
+        justify-content: space-between;
         align-items: center;
-        gap: 10px;
         text-align: center;
-        margin-bottom: 7px;
+        margin-bottom: 12px;
     }
-    .qp-logo {
-        width: 43px;
-        height: 43px;
-        object-fit: contain;
-        justify-self: center;
+    .qp-logo { width: 60px; height: 60px; object-fit: contain; }
+    .qp-header-text { flex: 1; padding: 0 10px; }
+    
+    .qp-school { font-size: 18pt; font-weight: bold; margin: 0 0 2px; text-transform: uppercase; }
+    .qp-place { font-size: 12pt; font-weight: bold; margin: 0 0 6px; text-transform: uppercase; }
+    .qp-exam { font-size: 14pt; font-weight: bold; margin: 0; text-transform: uppercase; }
+
+    /* --- Meta Info --- */
+    .qp-meta-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11pt;
+        font-weight: bold;
+        margin-top: 15px;
     }
-    .qp-school {
-        font-size: 15pt;
-        line-height: 1.15;
-        font-weight: 800;
-        text-transform: uppercase;
-        margin: 0 0 3px;
+    .qp-student-row {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+        font-size: 11pt;
     }
-    .qp-place {
-        font-size: 10pt;
-        font-weight: 700;
-        margin: 0 0 5px;
-        text-transform: uppercase;
-    }
-    .qp-exam {
-        font-size: 12pt;
-        font-weight: 800;
-        text-transform: uppercase;
-        margin: 0;
-    }
-    .qp-meta {
-        display: grid;
-        grid-template-columns: 1fr 1.35fr 1fr 1fr;
-        gap: 7px 12px;
-        margin-top: 9px;
-        font-size: 9.5pt;
-    }
-    .qp-meta div { white-space: nowrap; }
-    .qp-student-meta {
-        display: grid;
-        grid-template-columns: 1.5fr 1fr 1fr .7fr;
-        gap: 7px 12px;
-        margin-top: 5px;
-        font-size: 9.5pt;
-    }
-    .qp-rule {
-        border: 0;
-        border-top: 1px solid #222;
-        margin: 7px 0 5px;
-    }
-    .qp-instruction {
-        text-align: center;
-        font-weight: 800;
-        font-size: 10pt;
-        margin: 4px 0 2px;
-        text-transform: uppercase;
-    }
-    .qp-subinstruction {
-        text-align: center;
-        font-size: 8pt;
-        font-style: italic;
-        margin: 0 0 8px;
-    }
+    .qp-rule { border: 0; border-top: 1.5px solid #000; margin: 12px 0; }
+    
+    .qp-instruction { text-align: center; font-weight: bold; font-size: 12pt; margin: 8px 0 2px; text-transform: uppercase; }
+    .qp-subinstruction { text-align: center; font-size: 9pt; font-style: italic; margin: 0 0 15px; }
+
+    /* --- Two Column Layout --- */
     .qp-columns {
         column-count: 2;
-        column-gap: 22px;
-        column-rule: 0;
-        column-fill: auto;
+        column-gap: 30px;
+        column-rule: 1px solid #ccc; /* Optional vertical line */
     }
+
+    /* --- Sections & Questions --- */
     .qp-section {
-        break-inside: avoid-column;
+        break-inside: avoid;
         page-break-inside: avoid;
-        margin: 0 0 10px;
+        margin-bottom: 15px;
     }
     .qp-section-heading {
         display: flex;
         justify-content: space-between;
-        align-items: baseline;
-        gap: 7px;
-        font-weight: 800;
-        font-size: 10pt;
-        margin: 0 0 5px;
+        font-weight: bold;
+        font-size: 11pt;
+        margin: 0 0 8px;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 3px;
     }
-    .qp-section-total { white-space: nowrap; }
     .qp-question {
-        display: grid;
-        grid-template-columns: 19px minmax(0,1fr);
-        gap: 3px;
-        margin: 0 0 6px;
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
         break-inside: avoid;
         page-break-inside: avoid;
     }
-    .qp-qtext { overflow-wrap: anywhere; white-space: pre-wrap; }
-    .qp-options {
-        white-space: pre-wrap;
-        margin: 3px 0 0;
-        padding-left: 2px;
-        font-size: 9.5pt;
+    .qp-q-num { font-weight: bold; width: 20px; flex-shrink: 0; }
+    .qp-q-content { flex: 1; }
+    .qp-q-text { margin-bottom: 4px; }
+    
+    /* --- Options (MCQs) --- */
+    .qp-options-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* 2 columns for options */
+        gap: 6px;
+        margin-top: 6px;
+        font-size: 10.5pt;
     }
-    .qp-answer-lines {
-        margin-top: 3px;
-        overflow: hidden;
-        white-space: nowrap;
-        letter-spacing: 1px;
-        color: #222;
+    .qp-option-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
     }
-    .qp-marks { white-space: nowrap; }
-    .qp-empty {
-        text-align: center;
-        padding: 30px 10px;
-        border: 1px dashed #aaa;
+
+    /* --- Answer Lines --- */
+    .qp-answer-line {
+        border-bottom: 1px dotted #000;
+        height: 20px;
+        margin-top: 4px;
+        width: 100%;
     }
-    @media screen and (max-width: 850px) {
-        .qp-sheet { width: 100%; min-height: 0; padding: 18px; }
-    }
+
+    /* --- Print Specific Magic --- */
     @media print {
         @page { size: A4 portrait; margin: 0; }
-        html, body { background: #fff !important; }
-        body * { visibility: hidden; }
-        .qp-sheet, .qp-sheet * { visibility: visible; }
+        body { background: #fff !important; margin: 0; padding: 0; }
+        
+        /* Hide UI elements properly */
+        header, aside, nav, footer, .qp-toolbar { display: none !important; }
+        
+        /* Reset margins for the sheet */
         .qp-sheet {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 210mm;
-            min-height: 297mm;
+            width: 100%;
+            min-height: 100vh;
             margin: 0;
-            padding: 11mm 12mm;
+            padding: 15mm;
             box-shadow: none;
-            font-size: 10pt;
         }
-        .qp-toolbar, nav, aside, header, footer { display: none !important; }
+        
+        /* Ensure colors and columns print correctly */
         .qp-columns { column-count: 2; }
+        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
 </style>
 
 <div class="qp-toolbar">
     <button class="qp-print-btn" type="button" onclick="window.print()">
-        <i class="fa-solid fa-print"></i> Print Question Paper
+        <i class="fa-solid fa-print"></i> Print / Save as PDF
     </button>
 </div>
 
 <main class="qp-sheet">
+    <!-- HEADER -->
     <header class="qp-header">
-        {% if school_logo %}
-        <img class="qp-logo" src="{{ school_logo }}" alt="School logo">
-        {% else %}
-        <span></span>
-        {% endif %}
-        <div>
+        <img class="qp-logo" src="{{ school_logo or url_for('static', filename='images/school-logo.png') }}" alt="Logo">
+        <div class="qp-header-text">
             <h1 class="qp-school">{{ school_name or 'RES. SHANTI NIKETAN SHISHU VIDYA MANDIR' }}</h1>
             <p class="qp-place">{{ school_address or 'NAVINAGAR (JAMUI)' }}</p>
             <p class="qp-exam">{{ paper['title'] }}{% if paper['exam_year'] %} {{ paper['exam_year'] }}{% endif %}</p>
         </div>
-        {% if school_logo %}
-        <img class="qp-logo" src="{{ school_logo }}" alt="School logo">
-        {% else %}
-        <span></span>
-        {% endif %}
+        <img class="qp-logo" src="{{ school_logo or url_for('static', filename='images/school-logo.png') }}" alt="Logo">
     </header>
 
-    <div class="qp-meta">
+    <!-- META INFO -->
+    <div class="qp-meta-row">
         <div>CLASS – {{ paper['class_name'] }}</div>
         <div>SUB – {{ paper['subject'] }}</div>
         <div>F.M. – {{ paper['max_marks'] }}</div>
         <div>TIME – {{ paper['time_allowed'] }}</div>
     </div>
-    <div class="qp-student-meta">
-        <div>Name: __________________</div>
-        <div>Roll No.: __________</div>
-        <div>Date: __________</div>
-        <div>Section: _____</div>
+    <div class="qp-student-row">
+        <div>Name: _______________________</div>
+        <div>Roll No.: ___________</div>
+        <div>Date: ___________</div>
+        <div>Section: _______</div>
     </div>
+    
     <hr class="qp-rule">
-    <p class="qp-instruction">ANSWER ALL THE QUESTIONS</p>
-    <p class="qp-subinstruction">TEACHER IS REQUESTED TO EXPLAIN THE QUESTION TO THE STUDENTS</p>
+    
+    <div class="qp-instruction">ANSWER ALL THE QUESTIONS</div>
+    <div class="qp-subinstruction">TEACHER IS REQUESTED TO EXPLAIN THE QUESTION TO THE STUDENTS</div>
 
+    <!-- QUESTIONS BODY -->
     {% if grouped_questions %}
     <div class="qp-columns">
         {% for section, qs in grouped_questions.items() %}
@@ -589,31 +564,43 @@ body {
         {% for q in qs %}
             {% set section_marks.total = section_marks.total + (q['marks']|int) %}
         {% endfor %}
+        
         <section class="qp-section">
-            <h2 class="qp-section-heading">
+            <div class="qp-section-heading">
                 <span>{{ section }}</span>
-                <span class="qp-section-total">
+                <span>
                     {% if qs|map(attribute='marks')|unique|list|length == 1 %}
                     ({{ qs|length }} × {{ qs[0]['marks'] }} = {{ section_marks.total }})
                     {% else %}
-                    ({{ qs|length }} Questions = {{ section_marks.total }} Marks)
+                    ({{ qs|length }} Qs = {{ section_marks.total }} Marks)
                     {% endif %}
                 </span>
-            </h2>
+            </div>
+            
             {% for q in qs %}
             <div class="qp-question">
-                <span>{{ loop.index }}.</span>
-                <div class="qp-qtext">
-                    {{ q['question_text'] }}
+                <div class="qp-q-num">{{ loop.index }}.</div>
+                <div class="qp-q-content">
+                    <div class="qp-q-text">{{ q['question_text'] }}</div>
+                    
+                    <!-- OPTIONS LOGIC: Agar options hain toh grid me dikhao -->
                     {% if q['options'] %}
-                    <div class="qp-options">{{ q['options'] }}</div>
+                        {% set opt_list = q['options'].split(',') if q['options'] is string else q['options'] %}
+                        <div class="qp-options-grid">
+                            {% for opt in opt_list %}
+                            <div class="qp-option-item">
+                                <span>◯</span> 
+                                <span>{{ opt.strip() }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
                     {% endif %}
+
+                    <!-- ANSWER LINES LOGIC -->
                     {% if q['lines']|int > 0 %}
-                    <div class="qp-answer-lines">
-                        {% for line in range(q['lines']|int) %}
-                        ______________________________________________
+                        {% for _ in range(q['lines']|int) %}
+                        <div class="qp-answer-line"></div>
                         {% endfor %}
-                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -622,7 +609,9 @@ body {
         {% endfor %}
     </div>
     {% else %}
-    <div class="qp-empty">No questions have been added to this paper yet.</div>
+    <div class="qp-empty" style="text-align: center; padding: 40px; border: 2px dashed #ccc;">
+        <h3>No questions have been added yet.</h3>
+    </div>
     {% endif %}
 </main>
 {% endblock %}

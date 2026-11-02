@@ -2910,10 +2910,8 @@ def teacher_homework():
 # =========================================
 # QUESTION PAPER GENERATOR ROUTES (Teacher & Admin)
 # =========================================
-
 @app.route('/teacher/question-papers')
 @app.route('/question-papers')
-@app.route('/teacher/question-papers')
 @login_required
 def teacher_question_papers():
     """List papers: teachers see their own; admins see all."""
@@ -2945,13 +2943,16 @@ def teacher_question_papers():
             ORDER BY p.id DESC
         """, (user['id'],)).fetchall()
 
+    # 🚀 Dropdown ke liye saari standard classes nikalain
+    class_list = get_all_classes(db)
+
     return render_template(
         'teacher_question_papers.html',
         user=user,
         papers=papers,
-        is_admin=is_admin
+        is_admin=is_admin,
+        class_list=class_list  # Naya variable pass kiya
     )
-
 
 # =========================================
 # QUESTION PAPER GENERATOR — CLASS-WISE SUBJECT SELECTION
@@ -2959,23 +2960,15 @@ def teacher_question_papers():
 
 def get_question_paper_classes(db, user):
     """
-    Admin: subjects table se available classes.
-    Teacher: classes_assigned + faculty subject assignments se classes.
+    Admin: Standard + Dynamic classes.
+    Teacher: Assigned classes + Dynamic classes.
     """
     role = user['role']
-    classes = set()
-
+    
     if role in ('admin', 'administrator'):
-        rows = db.execute("""
-            SELECT DISTINCT class_name
-            FROM subjects
-            WHERE TRIM(class_name) != ''
-            ORDER BY class_name
-        """).fetchall()
-
-        classes.update(row['class_name'].strip() for row in rows)
-
+        return get_all_classes(db)  # 🚀 Saari classes (Pre-Nursery se 8th tak) return karega
     else:
+        classes = set()
         # Teacher ke directly assigned classes
         raw_classes = user['classes_assigned'] or ''
         classes.update(
@@ -2983,26 +2976,17 @@ def get_question_paper_classes(db, user):
             for cls in raw_classes.split(',')
             if cls.strip()
         )
-
         # Faculty subject assignments se additional classes
-        faculty = db.execute("""
-            SELECT id
-            FROM faculty
-            WHERE user_id = ?
-            LIMIT 1
-        """, (user['id'],)).fetchone()
-
+        faculty = db.execute("SELECT id FROM faculty WHERE user_id = ? LIMIT 1", (user['id'],)).fetchone()
         if faculty:
-            rows = db.execute("""
-                SELECT DISTINCT class_name
-                FROM faculty_subject_assignments
-                WHERE faculty_id = ?
-                  AND TRIM(class_name) != ''
-            """, (faculty['id'],)).fetchall()
-
+            rows = db.execute("SELECT DISTINCT class_name FROM faculty_subject_assignments WHERE faculty_id = ? AND TRIM(class_name) != ''", (faculty['id'],)).fetchall()
             classes.update(row['class_name'].strip() for row in rows)
-
-    return sorted(classes)
+            
+        # 🚀 Agar koi teacher ki class assigned nahi hai, toh usko standard classes show karo (optional)
+        if not classes:
+            return get_all_classes(db)
+            
+        return sorted(classes)
 
 
 def get_question_paper_subjects(db, class_name):

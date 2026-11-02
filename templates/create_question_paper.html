@@ -1,335 +1,560 @@
 {% extends "admin_base.html" %}
 
 {% block title %}Create Question Paper{% endblock %}
-{% block page_title %}Create Question Paper{% endblock %}
 
 {% block content %}
 
 <style>
-.create-page {
-    max-width: 1050px;
-    margin: auto;
-    color: #26364a;
-}
-
-.create-hero {
-    padding: 23px 25px;
-    margin-bottom: 20px;
-    background: linear-gradient(120deg, #edf6ff, white);
-    border: 1px solid #e1eaf2;
-    border-radius: 14px;
-}
-
-.create-hero h2 {
-    color: #10375d;
-    font-size: 23px;
-    font-weight: 800;
-    margin: 0;
-}
-
-.create-hero p {
-    margin: 7px 0 0;
-    color: #718096;
-    font-size: 13px;
-}
-
-.create-panel {
-    background: white;
-    border: 1px solid #e3eaf1;
-    border-radius: 13px;
-    overflow: hidden;
-    margin-bottom: 20px;
-}
-
-.create-panel-header {
-    padding: 17px 21px;
-    background: #f8fbfe;
-    border-bottom: 1px solid #e8edf3;
-}
-
-.create-panel-header h3 {
-    margin: 0;
-    color: #10375d;
-    font-size: 15px;
-    font-weight: 800;
-}
-
-.create-panel-body {
-    padding: 23px;
-}
-
-.form-field {
-    margin-bottom: 19px;
-}
-
-.form-field label {
-    display: block;
-    margin-bottom: 7px;
-    color: #31465d;
-    font-size: 12px;
-    font-weight: 800;
-}
-
-.form-field input {
-    width: 100%;
-    min-height: 43px;
-    padding: 10px 12px;
-    border: 1px solid #dce5ee;
-    border-radius: 8px;
-    outline: none;
-    color: #173b60;
-    background: #fff;
-    font-size: 13px;
-}
-
-.form-field input:focus {
-    border-color: #7eafd5;
-    box-shadow: 0 0 0 3px rgba(23,105,170,.08);
-}
-
-.form-field small {
-    display: block;
-    color: #8995a4;
-    font-size: 10px;
-    margin-top: 5px;
-}
-
-.create-actions {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 12px;
-}
-
-.create-btn {
-    border: 0;
-    padding: 12px 19px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 800;
-    cursor: pointer;
-    text-decoration: none;
-}
-
-.create-btn-primary {
-    background: #12649f;
-    color: white;
-}
-
-.create-btn-primary:hover {
-    background: #0b4b7b;
-    color: white;
-}
-
-.create-btn-secondary {
-    background: #f1f5f9;
-    color: #526276;
-}
-
-@media(max-width:650px) {
-    .create-panel-body {
-        padding: 17px;
+    .qp-container {
+        max-width: 900px;
+        margin: 25px auto;
+        padding: 0 15px;
     }
 
-    .create-hero {
-        padding: 19px;
+    .qp-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 28px;
+        box-shadow: 0 5px 20px rgba(0,0,0,.04);
     }
 
-    .create-actions {
-        flex-direction: column-reverse;
+    .qp-heading {
+        margin-bottom: 25px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid #e5e7eb;
     }
 
-    .create-btn {
-        text-align: center;
+    .qp-heading h2 {
+        margin: 0 0 7px;
+        color: #172033;
+        font-size: 25px;
+    }
+
+    .qp-heading p {
+        margin: 0;
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .qp-form-group {
+        margin-bottom: 21px;
+    }
+
+    .qp-form-group label,
+    .qp-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #263247;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .qp-required {
+        color: #dc2626;
+    }
+
+    .qp-input,
+    .qp-select {
         width: 100%;
+        min-height: 45px;
+        padding: 10px 13px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background: #fff;
+        color: #1e293b;
+        font-size: 14px;
+        outline: none;
     }
-}
+
+    .qp-input:focus,
+    .qp-select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37,99,235,.10);
+    }
+
+    .qp-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .qp-subject-panel {
+        margin-top: 10px;
+        padding: 17px;
+        border: 1px solid #dbe3ee;
+        border-radius: 10px;
+        background: #f8fafc;
+    }
+
+    .qp-subject-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .qp-subject-header strong {
+        color: #1e293b;
+        font-size: 15px;
+    }
+
+    .qp-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .qp-small-btn {
+        padding: 7px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        background: #fff;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .qp-small-btn:hover {
+        background: #eff6ff;
+        border-color: #93c5fd;
+    }
+
+    .qp-subject-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .qp-subject-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 46px;
+        padding: 10px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .qp-subject-option:hover {
+        border-color: #93c5fd;
+        background: #f8fbff;
+    }
+
+    .qp-subject-option input {
+        width: 17px;
+        height: 17px;
+        accent-color: #2563eb;
+    }
+
+    .qp-subject-option span {
+        color: #334155;
+    }
+
+    .qp-subject-count {
+        margin-top: 13px;
+        color: #64748b;
+        font-size: 13px;
+    }
+
+    .qp-message {
+        padding: 14px;
+        border-radius: 8px;
+        color: #64748b;
+        background: #fff;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    .qp-info {
+        margin-top: 20px;
+        padding: 13px 15px;
+        border-left: 4px solid #2563eb;
+        border-radius: 5px;
+        background: #eff6ff;
+        color: #1e40af;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .qp-submit-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .qp-submit {
+        padding: 12px 22px;
+        border: none;
+        border-radius: 8px;
+        background: #1d4ed8;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .qp-submit:hover {
+        background: #1e40af;
+    }
+
+    .qp-submit:disabled {
+        opacity: .6;
+        cursor: not-allowed;
+    }
+
+    .qp-cancel {
+        display: inline-flex;
+        align-items: center;
+        padding: 12px 18px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        color: #334155;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    @media (max-width: 650px) {
+        .qp-card {
+            padding: 18px;
+        }
+
+        .qp-grid,
+        .qp-subject-list {
+            grid-template-columns: 1fr;
+        }
+
+        .qp-submit-row {
+            flex-direction: column-reverse;
+        }
+
+        .qp-submit-row a,
+        .qp-submit-row button {
+            width: 100%;
+            justify-content: center;
+            text-align: center;
+        }
+    }
 </style>
 
-<div class="create-page">
+<div class="qp-container">
 
-    <section class="create-hero">
+    <div class="qp-card">
 
-        <h2>
-            <i class="fa-solid fa-file-circle-plus"></i>
-            Create New Question Paper
-        </h2>
+        <div class="qp-heading">
+            <h2>Create Question Paper</h2>
+            <p>Select a class and choose one or more subjects for paper creation.</p>
+        </div>
 
-        <p>
-            Configure examination details before adding questions.
-        </p>
+        <form method="POST"
+              action="{{ url_for('create_question_paper') }}"
+              id="questionPaperForm">
 
-    </section>
+            <div class="qp-form-group">
+                <label for="title">
+                    Examination Title <span class="qp-required">*</span>
+                </label>
 
-    <form method="POST" id="createPaperForm">
-
-        <div class="create-panel">
-
-            <div class="create-panel-header">
-                <h3>
-                    <i class="fa-solid fa-file-lines"></i>
-                    Examination Information
-                </h3>
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    class="qp-input"
+                    maxlength="200"
+                    placeholder="e.g. Half Yearly Examination 2026"
+                    value="{{ request.form.get('title', '') }}"
+                    required
+                >
             </div>
 
-            <div class="create-panel-body">
+            <div class="qp-grid">
 
-                <div class="form-field">
+                <div class="qp-form-group">
+                    <label for="class_name">
+                        Select Class <span class="qp-required">*</span>
+                    </label>
 
-                    <label>Examination Title *</label>
+                    <select
+                        id="class_name"
+                        name="class_name"
+                        class="qp-select"
+                        required
+                    >
+                        <option value="">-- Select Class --</option>
 
-                    <input type="text"
-                           name="title"
-                           placeholder="HALF YEARLY EXAMINATION 2026 - 2027"
-                           required
-                           maxlength="200">
-
-                    <small>Enter the complete examination name.</small>
-
+                        {% for class_item in classes %}
+                            <option
+                                value="{{ class_item }}"
+                                {% if selected_class == class_item %}selected{% endif %}
+                            >
+                                {{ class_item }}
+                            </option>
+                        {% endfor %}
+                    </select>
                 </div>
 
-                <div class="row">
+                <div class="qp-form-group">
+                    <label for="max_marks">
+                        Full Marks <span class="qp-required">*</span>
+                    </label>
 
-                    <div class="col-md-6">
-
-                        <div class="form-field">
-
-                            <label>Class *</label>
-
-                            <input type="text"
-                                   name="class_name"
-                                   placeholder="e.g. V"
-                                   required>
-
-                        </div>
-
-                    </div>
-
-                    <div class="col-md-6">
-
-                        <div class="form-field">
-
-                            <label>Subject *</label>
-
-                            <input type="text"
-                                   name="subject"
-                                   placeholder="e.g. Computer"
-                                   required>
-
-                        </div>
-
-                    </div>
-
+                    <input
+                        type="number"
+                        id="max_marks"
+                        name="max_marks"
+                        class="qp-input"
+                        min="1"
+                        max="1000"
+                        value="{{ request.form.get('max_marks', '100') }}"
+                        required
+                    >
                 </div>
 
-                <div class="row">
+                <div class="qp-form-group">
+                    <label for="time_allowed">
+                        Examination Duration <span class="qp-required">*</span>
+                    </label>
 
-                    <div class="col-md-4">
+                    <input
+                        type="text"
+                        id="time_allowed"
+                        name="time_allowed"
+                        class="qp-input"
+                        maxlength="40"
+                        placeholder="e.g. 3 Hours"
+                        value="{{ request.form.get('time_allowed', '') }}"
+                        required
+                    >
+                </div>
 
-                        <div class="form-field">
+                <div class="qp-form-group">
+                    <label for="exam_year">
+                        Academic / Examination Year <span class="qp-required">*</span>
+                    </label>
 
-                            <label>Full Marks *</label>
-
-                            <input type="number"
-                                   name="max_marks"
-                                   min="1"
-                                   placeholder="50"
-                                   required>
-
-                        </div>
-
-                    </div>
-
-                    <div class="col-md-4">
-
-                        <div class="form-field">
-
-                            <label>Time Allowed *</label>
-
-                            <input type="text"
-                                   name="time_allowed"
-                                   placeholder="2 HOURS"
-                                   required>
-
-                        </div>
-
-                    </div>
-
-                    <div class="col-md-4">
-
-                        <div class="form-field">
-
-                            <label>Exam Year *</label>
-
-                            <input type="text"
-                                   name="exam_year"
-                                   placeholder="2026 - 2027"
-                                   required>
-
-                        </div>
-
-                    </div>
-
+                    <input
+                        type="text"
+                        id="exam_year"
+                        name="exam_year"
+                        class="qp-input"
+                        maxlength="30"
+                        placeholder="e.g. 2026-2027"
+                        value="{{ request.form.get('exam_year', '') }}"
+                        required
+                    >
                 </div>
 
             </div>
 
-        </div>
+            <div class="qp-form-group">
 
-        <div class="create-panel">
+                <div class="qp-subject-header">
+                    <strong>
+                        Select Subjects <span class="qp-required">*</span>
+                    </strong>
 
-            <div class="create-panel-header">
-                <h3>
-                    <i class="fa-solid fa-circle-info"></i>
-                    Before Creating
-                </h3>
+                    <div class="qp-actions">
+                        <button type="button" class="qp-small-btn" id="selectAllBtn">
+                            Select All
+                        </button>
+
+                        <button type="button" class="qp-small-btn" id="clearBtn">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+
+                <div class="qp-subject-panel">
+
+                    <div id="subjectMessage" class="qp-message">
+                        Please select a class to load its subjects.
+                    </div>
+
+                    <div id="subjectList" class="qp-subject-list"></div>
+
+                    <div class="qp-subject-count" id="subjectCount">
+                        0 subjects selected
+                    </div>
+
+                </div>
+
             </div>
 
-            <div class="create-panel-body">
-
-                <ul class="mb-0 small text-muted">
-
-                    <li class="mb-2">
-                        Check the examination title and class carefully.
-                    </li>
-
-                    <li class="mb-2">
-                        Enter the correct full marks and examination duration.
-                    </li>
-
-                    <li>
-                        After creating the paper, you can add multiple questions together.
-                    </li>
-
-                </ul>
-
+            <div class="qp-info">
+                <strong>Note:</strong>
+                Every selected subject will create a separate question paper.
+                The examination title, duration, full marks and academic year
+                entered above will be used for all selected subjects.
             </div>
 
-        </div>
+            <div class="qp-submit-row">
+                <a href="{{ url_for('teacher_question_papers') }}" class="qp-cancel">
+                    Cancel
+                </a>
 
-        <div class="create-actions">
+                <button type="submit" class="qp-submit" id="submitBtn">
+                    Create Question Papers
+                </button>
+            </div>
 
-            <a href="{{ url_for('teacher_question_papers') }}"
-               class="create-btn create-btn-secondary">
-
-                <i class="fa-solid fa-arrow-left"></i>
-                Back to Papers
-
-            </a>
-
-            <button type="submit"
-                    class="create-btn create-btn-primary">
-
-                <i class="fa-solid fa-arrow-right"></i>
-                Create & Add Questions
-
-            </button>
-
-        </div>
-
-    </form>
-
+        </form>
+    </div>
 </div>
+
+<script>
+(function () {
+    const classSelect = document.getElementById('class_name');
+    const subjectList = document.getElementById('subjectList');
+    const subjectMessage = document.getElementById('subjectMessage');
+    const subjectCount = document.getElementById('subjectCount');
+
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const form = document.getElementById('questionPaperForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    const initialSelectedClass = {{ selected_class|tojson }};
+    const initiallySelectedSubjects = {{ selected_subjects|tojson }};
+
+    function updateCount() {
+        const selected = subjectList.querySelectorAll(
+            'input[name="subject[]"]:checked'
+        ).length;
+
+        subjectCount.textContent =
+            selected + (selected === 1 ? ' subject selected' : ' subjects selected');
+    }
+
+    function showMessage(message) {
+        subjectMessage.textContent = message;
+        subjectMessage.style.display = 'block';
+    }
+
+    function renderSubjects(subjects, selectedSubjects = []) {
+        subjectList.replaceChildren();
+
+        if (!subjects.length) {
+            showMessage('No subjects are registered for this class.');
+            updateCount();
+            return;
+        }
+
+        subjectMessage.style.display = 'none';
+
+        subjects.forEach(function (subject, index) {
+            const label = document.createElement('label');
+            label.className = 'qp-subject-option';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = 'subject[]';
+            checkbox.value = subject.subject_name;
+            checkbox.checked = selectedSubjects.includes(subject.subject_name);
+
+            checkbox.addEventListener('change', updateCount);
+
+            const text = document.createElement('span');
+            text.textContent = subject.subject_name;
+
+            label.appendChild(checkbox);
+            label.appendChild(text);
+
+            subjectList.appendChild(label);
+        });
+
+        updateCount();
+    }
+
+    async function loadSubjects(className, selectedSubjects = []) {
+        subjectList.replaceChildren();
+        updateCount();
+
+        if (!className) {
+            showMessage('Please select a class to load its subjects.');
+            return;
+        }
+
+        showMessage('Loading subjects...');
+
+        try {
+            const response = await fetch(
+                "{{ url_for('question_paper_subjects_api') }}" +
+                '?class_name=' + encodeURIComponent(className),
+                {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || 'Unable to load subjects.');
+            }
+
+            renderSubjects(data.subjects, selectedSubjects);
+
+        } catch (error) {
+            subjectList.replaceChildren();
+            showMessage(error.message || 'Something went wrong.');
+        }
+    }
+
+    classSelect.addEventListener('change', function () {
+        loadSubjects(this.value);
+    });
+
+    selectAllBtn.addEventListener('click', function () {
+        subjectList.querySelectorAll('input[name="subject[]"]').forEach(function (item) {
+            item.checked = true;
+        });
+
+        updateCount();
+    });
+
+    clearBtn.addEventListener('click', function () {
+        subjectList.querySelectorAll('input[name="subject[]"]').forEach(function (item) {
+            item.checked = false;
+        });
+
+        updateCount();
+    });
+
+    form.addEventListener('submit', function (event) {
+        const selected = subjectList.querySelectorAll(
+            'input[name="subject[]"]:checked'
+        );
+
+        if (!classSelect.value) {
+            event.preventDefault();
+            alert('Please select a class.');
+            classSelect.focus();
+            return;
+        }
+
+        if (selected.length === 0) {
+            event.preventDefault();
+            alert('Please select at least one subject.');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating Papers...';
+    });
+
+    // Restore selected subjects after a validation error or page reload.
+    if (initialSelectedClass) {
+        loadSubjects(initialSelectedClass, initiallySelectedSubjects);
+    }
+})();
+</script>
 
 {% endblock %}

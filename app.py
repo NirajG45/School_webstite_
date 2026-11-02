@@ -343,6 +343,35 @@ def init_db():
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             published_at TEXT)''')
 
+        # Subjects selected for each exam/class, with exam-specific max marks.
+        db.execute('''CREATE TABLE IF NOT EXISTS exam_subjects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            exam_id INTEGER NOT NULL,
+            class_name TEXT NOT NULL,
+            subject_id INTEGER NOT NULL,
+            max_marks REAL NOT NULL DEFAULT 50,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(exam_id, class_name, subject_id),
+            FOREIGN KEY(exam_id) REFERENCES exams(id) ON DELETE CASCADE,
+            FOREIGN KEY(subject_id) REFERENCES subjects(id) ON DELETE CASCADE
+        )''')
+        
+        # Migration: add max_marks to existing exam_subjects table
+        _exam_subjects_cols = {
+            row[1]
+            for row in db.execute(
+                "PRAGMA table_info(exam_subjects)"
+            ).fetchall()
+        }
+
+        if 'max_marks' not in _exam_subjects_cols:
+            db.execute("""
+                ALTER TABLE exam_subjects
+                ADD COLUMN max_marks REAL NOT NULL DEFAULT 50
+            """)
+        
+        db.execute('CREATE INDEX IF NOT EXISTS idx_exam_subjects_exam_class ON exam_subjects(exam_id, class_name)')
+
         db.execute('''CREATE TABLE IF NOT EXISTS exam_submissions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             exam_id INTEGER NOT NULL,
@@ -391,9 +420,22 @@ def init_db():
             section_name TEXT NOT NULL,
             question_text TEXT NOT NULL,
             options TEXT,
-            marks INTEGER DEFAULT 1,
+            marks INTEGER NOT NULL DEFAULT 1,
+            lines INTEGER NOT NULL DEFAULT 1,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(paper_id) REFERENCES exam_papers(id) ON DELETE CASCADE)''')
+
+        # Safe migration for databases created before answer-lines support.
+        _question_cols = {
+            row[1] for row in db.execute("PRAGMA table_info(exam_questions)").fetchall()
+        }
+        if 'lines' not in _question_cols:
+            db.execute("ALTER TABLE exam_questions ADD COLUMN lines INTEGER NOT NULL DEFAULT 1")
+
+        db.execute(
+            "CREATE INDEX IF NOT EXISTS idx_exam_questions_paper_id "
+            "ON exam_questions(paper_id, id)"
+        )
 
         # Migrate existing exam_marks table — add exam_id column if missing
         _mcols = {row[1] for row in db.execute("PRAGMA table_info(exam_marks)").fetchall()}
@@ -406,6 +448,35 @@ def init_db():
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('upi_link', '')")
 
         db.commit()
+
+# =========================================
+# 🚀 HELPER: Get All Standard + Dynamic Classes
+# =========================================
+def get_all_classes(db):
+    """Hamesha standard classes (Pre-Nursery se 8th) dikhata hai, 
+       aur agar database me koi custom class ho toh use bhi add karta hai."""
+    standard_classes = [
+        'Pre-Nursery', 'Nursery', 'LKG', 'UKG', 
+        '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th'
+    ]
+    
+    class_rows = db.execute(
+        '''SELECT class_name AS c FROM subjects
+           UNION
+           SELECT COALESCE(class_name, child_class) AS c FROM users
+             WHERE role='student'
+               AND COALESCE(class_name, child_class) IS NOT NULL
+               AND COALESCE(class_name, child_class) != ''
+        '''
+    ).fetchall()
+    
+    dynamic_classes = {row['c'] for row in class_rows if row['c']}
+    
+    # Standard classes (case-insensitive) ko ignore karke sirf nayi classes nikalna
+    standard_lower = {c.lower() for c in standard_classes}
+    extra_classes = sorted([c for c in dynamic_classes if c.lower() not in standard_lower])
+    
+    return standard_classes + extra_classes
 
 # =========================================
 # 3. UTILITY HELPERS
@@ -2842,186 +2913,578 @@ def teacher_homework():
 
 @app.route('/teacher/question-papers')
 @app.route('/question-papers')
+@app.route('/teacher/question-papers')
 @login_required
 def teacher_question_papers():
-    """List all question papers. 
-       Admin sees ALL, Teachers see only THEIR OWN."""
-    user = get_user_by_id(session['user_id'])
+    """List papers: teachers see their own; admins see all."""
+    user = get_user_by_id(session.get('user_id'))
     if not user or user['role'] not in ('teacher', 'admin', 'administrator'):
         flash('Access denied.', 'error')
         return redirect(url_for('user_dashboard'))
 
     db = get_db()
-    
-    if user['role'] in ('admin', 'administrator'):
-        # Admin dekhega sabhi teachers ke papers
-        papers = db.execute('''
-            SELECT p.*, u.name as teacher_name, u.unique_id as teacher_uid 
-            FROM exam_papers p 
-            JOIN users u ON p.teacher_id = u.id 
+    is_admin = user['role'] in ('admin', 'administrator')
+
+    if is_admin:
+        papers = db.execute("""
+            SELECT p.*, u.name AS teacher_name, u.unique_id AS teacher_uid,
+                   COUNT(q.id) AS question_count
+            FROM exam_papers p
+            LEFT JOIN users u ON u.id = p.teacher_id
+            LEFT JOIN exam_questions q ON q.paper_id = p.id
+            GROUP BY p.id
             ORDER BY p.id DESC
-        ''').fetchall()
-        is_admin = True
+        """).fetchall()
     else:
-        # Teacher dekhega sirf apne papers
-        papers = db.execute(
-            'SELECT * FROM exam_papers WHERE teacher_id = ? ORDER BY id DESC',
-            (user['id'],)
-        ).fetchall()
-        is_admin = False
-        
-    return render_template('teacher_question_papers.html', 
-                           user=user, 
-                           papers=papers, 
-                           is_admin=is_admin)
+        papers = db.execute("""
+            SELECT p.*, COUNT(q.id) AS question_count
+            FROM exam_papers p
+            LEFT JOIN exam_questions q ON q.paper_id = p.id
+            WHERE p.teacher_id = ?
+            GROUP BY p.id
+            ORDER BY p.id DESC
+        """, (user['id'],)).fetchall()
+
+    return render_template(
+        'teacher_question_papers.html',
+        user=user,
+        papers=papers,
+        is_admin=is_admin
+    )
+
+
+# =========================================
+# QUESTION PAPER GENERATOR — CLASS-WISE SUBJECT SELECTION
+# =========================================
+
+def get_question_paper_classes(db, user):
+    """
+    Admin: subjects table se available classes.
+    Teacher: classes_assigned + faculty subject assignments se classes.
+    """
+    role = user['role']
+    classes = set()
+
+    if role in ('admin', 'administrator'):
+        rows = db.execute("""
+            SELECT DISTINCT class_name
+            FROM subjects
+            WHERE TRIM(class_name) != ''
+            ORDER BY class_name
+        """).fetchall()
+
+        classes.update(row['class_name'].strip() for row in rows)
+
+    else:
+        # Teacher ke directly assigned classes
+        raw_classes = user['classes_assigned'] or ''
+        classes.update(
+            cls.strip()
+            for cls in raw_classes.split(',')
+            if cls.strip()
+        )
+
+        # Faculty subject assignments se additional classes
+        faculty = db.execute("""
+            SELECT id
+            FROM faculty
+            WHERE user_id = ?
+            LIMIT 1
+        """, (user['id'],)).fetchone()
+
+        if faculty:
+            rows = db.execute("""
+                SELECT DISTINCT class_name
+                FROM faculty_subject_assignments
+                WHERE faculty_id = ?
+                  AND TRIM(class_name) != ''
+            """, (faculty['id'],)).fetchall()
+
+            classes.update(row['class_name'].strip() for row in rows)
+
+    return sorted(classes)
+
+
+def get_question_paper_subjects(db, class_name):
+    """Selected class ke registered subjects return karta hai."""
+    return db.execute("""
+        SELECT subject_name, MAX(max_marks) AS max_marks
+        FROM subjects
+        WHERE class_name = ?
+          AND TRIM(subject_name) != ''
+        GROUP BY subject_name
+        ORDER BY MIN(display_order), subject_name
+    """, (class_name,)).fetchall()
+
+
+@app.route('/api/question-papers/subjects')
+@login_required
+def question_paper_subjects_api():
+    """AJAX API: selected class ke subjects load karna."""
+
+    user = get_user_by_id(session.get('user_id'))
+
+    if not user or user['role'] not in (
+        'teacher', 'admin', 'administrator'
+    ):
+        return jsonify({
+            'success': False,
+            'message': 'Access denied.',
+            'subjects': []
+        }), 403
+
+    class_name = request.args.get('class_name', '').strip()
+
+    if not class_name:
+        return jsonify({
+            'success': False,
+            'message': 'Please select a class.',
+            'subjects': []
+        }), 400
+
+    db = get_db()
+
+    allowed_classes = get_question_paper_classes(db, user)
+
+    if class_name not in allowed_classes:
+        return jsonify({
+            'success': False,
+            'message': 'You are not allowed to access this class.',
+            'subjects': []
+        }), 403
+
+    subjects = get_question_paper_subjects(db, class_name)
+
+    return jsonify({
+        'success': True,
+        'subjects': [
+            {
+                'subject_name': row['subject_name'],
+                'max_marks': row['max_marks']
+            }
+            for row in subjects
+        ]
+    })
 
 
 @app.route('/question-papers/create', methods=['GET', 'POST'])
 @login_required
 def create_question_paper():
-    user = get_user_by_id(session['user_id'])
-    if not user or user['role'] not in ('teacher', 'admin', 'administrator'):
+
+    user = get_user_by_id(session.get('user_id'))
+
+    if not user or user['role'] not in (
+        'teacher', 'admin', 'administrator'
+    ):
         flash('Access denied.', 'error')
         return redirect(url_for('user_dashboard'))
 
+    db = get_db()
+    classes = get_question_paper_classes(db, user)
+
     if request.method == 'POST':
+
         title = request.form.get('title', '').strip()
         class_name = request.form.get('class_name', '').strip()
-        subject = request.form.get('subject', '').strip()
+
+        # Multiple selected subjects
+        selected_subjects = list(dict.fromkeys(
+            subject.strip()
+            for subject in request.form.getlist('subject[]')
+            if subject.strip()
+        ))
+
         time_allowed = request.form.get('time_allowed', '').strip()
-        max_marks = request.form.get('max_marks', '0').strip()
         exam_year = request.form.get('exam_year', '').strip()
+        max_marks_raw = request.form.get('max_marks', '').strip()
 
-        if not title or not class_name or not subject:
-            flash('Title, Class, and Subject are required.', 'error')
-            return redirect(url_for('create_question_paper'))
+        errors = []
 
-        db = get_db()
-        cur = db.execute('''INSERT INTO exam_papers 
-                          (title, class_name, subject, time_allowed, max_marks, exam_year, teacher_id) 
-                          VALUES (?, ?, ?, ?, ?, ?, ?)''',
-                       (title, class_name, subject, time_allowed, max_marks, exam_year, user['id']))
-        db.commit()
-        
-        flash('Question paper created! Now add questions.', 'success')
-        return redirect(url_for('edit_question_paper', paper_id=cur.lastrowid))
+        if not title or len(title) > 200:
+            errors.append(
+                'Enter an examination title (maximum 200 characters).'
+            )
 
-    return render_template('create_question_paper.html', user=user)
+        if not class_name or class_name not in classes:
+            errors.append('Please select a valid assigned class.')
+
+        if not selected_subjects:
+            errors.append('Please select at least one subject.')
+
+        if len(selected_subjects) > 50:
+            errors.append('You can select a maximum of 50 subjects.')
+
+        if not time_allowed or len(time_allowed) > 40:
+            errors.append('Enter the examination duration.')
+
+        if not exam_year or len(exam_year) > 30:
+            errors.append('Enter the academic/examination year.')
+
+        try:
+            max_marks = int(max_marks_raw)
+
+            if not 1 <= max_marks <= 1000:
+                raise ValueError
+
+        except (TypeError, ValueError):
+            max_marks = 0
+            errors.append(
+                'Full marks must be a number between 1 and 1000.'
+            )
+
+        # Verify every subject belongs to the selected class.
+        valid_subject_rows = []
+
+        if class_name in classes and selected_subjects:
+
+            placeholders = ','.join('?' for _ in selected_subjects)
+
+            valid_subject_rows = db.execute(
+                f"""
+                SELECT DISTINCT subject_name
+                FROM subjects
+                WHERE class_name = ?
+                  AND subject_name IN ({placeholders})
+                """,
+                [class_name] + selected_subjects
+            ).fetchall()
+
+            valid_subject_names = {
+                row['subject_name'] for row in valid_subject_rows
+            }
+
+            invalid_subjects = [
+                subject for subject in selected_subjects
+                if subject not in valid_subject_names
+            ]
+
+            if invalid_subjects:
+                errors.append(
+                    'Some selected subjects do not belong to this class. '
+                    'Please select the subjects again.'
+                )
+
+        if errors:
+            for message in errors:
+                flash(message, 'error')
+
+            subjects = (
+                get_question_paper_subjects(db, class_name)
+                if class_name in classes else []
+            )
+
+            return render_template(
+                'create_question_paper.html',
+                user=user,
+                classes=classes,
+                subjects=subjects,
+                selected_class=class_name,
+                selected_subjects=selected_subjects
+            ), 400
+
+        # Create one paper for every selected subject.
+        created_paper_ids = []
+
+        try:
+            db.execute('BEGIN')
+
+            for subject in selected_subjects:
+
+                cursor = db.execute("""
+                    INSERT INTO exam_papers
+                    (
+                        title,
+                        class_name,
+                        subject,
+                        time_allowed,
+                        max_marks,
+                        exam_year,
+                        teacher_id
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    title,
+                    class_name,
+                    subject,
+                    time_allowed,
+                    max_marks,
+                    exam_year,
+                    user['id']
+                ))
+
+                created_paper_ids.append(cursor.lastrowid)
+
+            db.commit()
+
+        except Exception:
+            db.rollback()
+            app.logger.exception(
+                'Question paper creation failed.'
+            )
+
+            flash(
+                'Question papers could not be created. Please try again.',
+                'error'
+            )
+
+            subjects = get_question_paper_subjects(db, class_name)
+
+            return render_template(
+                'create_question_paper.html',
+                user=user,
+                classes=classes,
+                subjects=subjects,
+                selected_class=class_name,
+                selected_subjects=selected_subjects
+            ), 500
+
+        if len(created_paper_ids) == 1:
+            flash(
+                'Question paper created successfully. Now add your questions.',
+                'success'
+            )
+
+            return redirect(url_for(
+                'edit_question_paper',
+                paper_id=created_paper_ids[0]
+            ))
+
+        flash(
+            f'{len(created_paper_ids)} question papers created successfully.',
+            'success'
+        )
+
+        return redirect(url_for('teacher_question_papers'))
+
+    # GET request
+    selected_class = request.args.get('class_name', '').strip()
+
+    if selected_class not in classes:
+        selected_class = ''
+
+    subjects = (
+        get_question_paper_subjects(db, selected_class)
+        if selected_class else []
+    )
+
+    return render_template(
+        'create_question_paper.html',
+        user=user,
+        classes=classes,
+        subjects=subjects,
+        selected_class=selected_class,
+        selected_subjects=[]
+    )
+
+def _get_accessible_question_paper(db, user, paper_id):
+    """Return a paper only if the signed-in user is allowed to manage it."""
+    if not user or user['role'] not in ('teacher', 'admin', 'administrator'):
+        return None
+
+    if user['role'] in ('admin', 'administrator'):
+        return db.execute(
+            'SELECT * FROM exam_papers WHERE id = ?', (paper_id,)
+        ).fetchone()
+
+    return db.execute(
+        'SELECT * FROM exam_papers WHERE id = ? AND teacher_id = ?',
+        (paper_id, user['id'])
+    ).fetchone()
 
 
 @app.route('/question-papers/<int:paper_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_question_paper(paper_id):
-    user = get_user_by_id(session['user_id'])
+    user = get_user_by_id(session.get('user_id'))
     db = get_db()
-    
-    # Check authorization
-    if user['role'] in ('admin', 'administrator'):
-        paper = db.execute('SELECT * FROM exam_papers WHERE id = ?', (paper_id,)).fetchone()
-    else:
-        paper = db.execute('SELECT * FROM exam_papers WHERE id = ? AND teacher_id = ?', (paper_id, user['id'])).fetchone()
-    
+    paper = _get_accessible_question_paper(db, user, paper_id)
+
     if not paper:
         flash('Paper not found or you do not have permission to edit it.', 'error')
         return redirect(url_for('teacher_question_papers'))
 
     if request.method == 'POST':
-        section_name = request.form.get('section_name', '').strip()
-        question_text = request.form.get('question_text', '').strip()
-        options = request.form.get('options', '').strip()
-        marks = request.form.get('marks', '1').strip()
+        # The builder submits one value per question using repeated [] fields.
+        sections = request.form.getlist('section[]')
+        question_texts = request.form.getlist('question[]')
+        options_list = request.form.getlist('options[]')
+        marks_list = request.form.getlist('marks[]')
+        lines_list = request.form.getlist('lines[]')
 
-        if not section_name or not question_text:
-            flash('Section name and Question text are required.', 'error')
-        else:
-            db.execute('''INSERT INTO exam_questions 
-                          (paper_id, section_name, question_text, options, marks) 
-                          VALUES (?, ?, ?, ?, ?)''',
-                       (paper_id, section_name, question_text, options, int(marks)))
+        lengths = {len(sections), len(question_texts), len(options_list),
+                   len(marks_list), len(lines_list)}
+
+        if len(lengths) != 1:
+            flash('Some question fields were not submitted correctly. Please retry.', 'error')
+            return redirect(url_for('edit_question_paper', paper_id=paper_id))
+
+        if not question_texts or len(question_texts) > 100:
+            flash('Add between 1 and 100 questions per save.', 'error')
+            return redirect(url_for('edit_question_paper', paper_id=paper_id))
+
+        rows = []
+        errors = []
+
+        for index, (section, question, options, marks_raw, lines_raw) in enumerate(
+            zip(sections, question_texts, options_list, marks_list, lines_list), start=1
+        ):
+            section = section.strip()
+            question = question.strip()
+            options = options.strip()
+
+            # Ignore completely blank rows; reject partially completed rows.
+            if not section and not question and not options:
+                continue
+
+            if not section:
+                errors.append(f'Question {index}: section name is required.')
+                continue
+            if not question:
+                errors.append(f'Question {index}: question text is required.')
+                continue
+            if len(section) > 120 or len(question) > 2000 or len(options) > 2000:
+                errors.append(f'Question {index}: one or more fields are too long.')
+                continue
+
+            try:
+                marks = int(marks_raw)
+                lines = int(lines_raw)
+                if not 1 <= marks <= 1000:
+                    raise ValueError
+                if not 0 <= lines <= 30:
+                    raise ValueError
+            except (TypeError, ValueError):
+                errors.append(f'Question {index}: marks must be 1–1000 and answer lines 0–30.')
+                continue
+
+            rows.append((paper_id, section, question, options or None, marks, lines))
+
+        if errors:
+            for message in errors[:10]:
+                flash(message, 'error')
+            if len(errors) > 10:
+                flash(f'And {len(errors) - 10} more validation errors.', 'error')
+            return redirect(url_for('edit_question_paper', paper_id=paper_id))
+
+        if not rows:
+            flash('No valid questions found. Please enter at least one question.', 'error')
+            return redirect(url_for('edit_question_paper', paper_id=paper_id))
+
+        try:
+            db.executemany("""
+                INSERT INTO exam_questions
+                    (paper_id, section_name, question_text, options, marks, lines)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, rows)
             db.commit()
-            flash('Question added successfully!', 'success')
-            
+        except sqlite3.Error:
+            db.rollback()
+            app.logger.exception("Unable to save questions for paper_id=%s", paper_id)
+            flash('Questions could not be saved due to a database error. Please try again.', 'error')
+            return redirect(url_for('edit_question_paper', paper_id=paper_id))
+
+        flash(f'{len(rows)} question(s) saved successfully.', 'success')
         return redirect(url_for('edit_question_paper', paper_id=paper_id))
 
-    questions = db.execute('SELECT * FROM exam_questions WHERE paper_id = ? ORDER BY id', (paper_id,)).fetchall()
-    
-    grouped_questions = {}
-    for q in questions:
-        grouped_questions.setdefault(q['section_name'], []).append(q)
+    questions = db.execute("""
+        SELECT id, paper_id, section_name, question_text, options, marks, lines
+        FROM exam_questions
+        WHERE paper_id = ?
+        ORDER BY id
+    """, (paper_id,)).fetchall()
 
-    return render_template('edit_question_paper.html', 
-                           user=user, 
-                           paper=paper, 
-                           grouped_questions=grouped_questions)
+    grouped_questions = {}
+    for question in questions:
+        grouped_questions.setdefault(question['section_name'], []).append(question)
+
+    total_questions = len(questions)
+    saved_marks = sum((q['marks'] or 0) for q in questions)
+
+    return render_template(
+        'edit_question_paper.html',
+        user=user,
+        paper=paper,
+        grouped_questions=grouped_questions,
+        total_questions=total_questions,
+        saved_marks=saved_marks
+    )
 
 
 @app.route('/question-papers/<int:paper_id>/delete-question/<int:q_id>', methods=['POST'])
 @login_required
 def delete_question(paper_id, q_id):
-    user = get_user_by_id(session['user_id'])
+    user = get_user_by_id(session.get('user_id'))
     db = get_db()
-    
-    # Authorization check
-    if user['role'] not in ('admin', 'administrator'):
-        paper = db.execute('SELECT id FROM exam_papers WHERE id = ? AND teacher_id = ?', (paper_id, user['id'])).fetchone()
-        if not paper:
-            flash('Unauthorized action.', 'error')
-            return redirect(url_for('teacher_question_papers'))
+    paper = _get_accessible_question_paper(db, user, paper_id)
 
-    db.execute('DELETE FROM exam_questions WHERE id = ? AND paper_id = ?', (q_id, paper_id))
+    if not paper:
+        flash('You are not allowed to delete questions from this paper.', 'error')
+        return redirect(url_for('teacher_question_papers'))
+
+    cur = db.execute(
+        'DELETE FROM exam_questions WHERE id = ? AND paper_id = ?',
+        (q_id, paper_id)
+    )
     db.commit()
-    flash('Question deleted.', 'success')
+
+    flash('Question deleted.' if cur.rowcount else 'Question was not found.', 
+          'success' if cur.rowcount else 'error')
     return redirect(url_for('edit_question_paper', paper_id=paper_id))
 
 
 @app.route('/question-papers/<int:paper_id>/delete-paper', methods=['POST'])
 @login_required
 def delete_question_paper(paper_id):
-    user = get_user_by_id(session['user_id'])
+    user = get_user_by_id(session.get('user_id'))
     db = get_db()
-    
-    # Authorization check
-    if user['role'] not in ('admin', 'administrator'):
-        paper = db.execute('SELECT id FROM exam_papers WHERE id = ? AND teacher_id = ?', (paper_id, user['id'])).fetchone()
-        if not paper:
-            flash('Unauthorized action.', 'error')
-            return redirect(url_for('teacher_question_papers'))
+    paper = _get_accessible_question_paper(db, user, paper_id)
+
+    if not paper:
+        flash('You are not allowed to delete this paper.', 'error')
+        return redirect(url_for('teacher_question_papers'))
 
     db.execute('DELETE FROM exam_questions WHERE paper_id = ?', (paper_id,))
     db.execute('DELETE FROM exam_papers WHERE id = ?', (paper_id,))
     db.commit()
-    flash('Question paper deleted entirely.', 'success')
+    flash('Question paper deleted.', 'success')
     return redirect(url_for('teacher_question_papers'))
 
 
 @app.route('/question-papers/<int:paper_id>/print')
 @login_required
 def print_question_paper(paper_id):
-    user = get_user_by_id(session['user_id'])
+    user = get_user_by_id(session.get('user_id'))
     db = get_db()
-    
-    if user['role'] not in ('teacher', 'admin', 'administrator'):
-        flash('Access denied.', 'error')
-        return redirect(url_for('user_dashboard'))
+    paper = _get_accessible_question_paper(db, user, paper_id)
 
-    paper = db.execute('SELECT * FROM exam_papers WHERE id = ?', (paper_id,)).fetchone()
-    
     if not paper:
-        flash('Paper not found.', 'error')
+        flash('Paper not found or you do not have permission to view it.', 'error')
         return redirect(url_for('teacher_question_papers'))
 
-    questions = db.execute('SELECT * FROM exam_questions WHERE paper_id = ? ORDER BY id', (paper_id,)).fetchall()
-    
+    questions = db.execute("""
+        SELECT id, paper_id, section_name, question_text, options, marks, lines
+        FROM exam_questions
+        WHERE paper_id = ?
+        ORDER BY id
+    """, (paper_id,)).fetchall()
+
     grouped_questions = {}
     total_marks = 0
-    for q in questions:
-        grouped_questions.setdefault(q['section_name'], []).append(q)
-        total_marks += q['marks']
+    for question in questions:
+        grouped_questions.setdefault(question['section_name'], []).append(question)
+        total_marks += int(question['marks'] or 0)
 
-    return render_template('print_question_paper.html', 
-                           paper=paper, 
-                           grouped_questions=grouped_questions,
-                           total_marks=total_marks)
+    return render_template(
+    'print_question_paper.html',
+    paper=paper,
+    grouped_questions=grouped_questions,
+    total_marks=total_marks,
+    question_count=len(questions),
+    school_name=get_setting('school_name') or 'RES. SHANTI NIKETAN SHISHU VIDYA MANDIR',
+    school_address=get_setting('school_address') or 'NAVINAGAR (JAMUI)',
+    school_logo=get_setting('school_logo_url') or get_setting('school_logo')
+)
+
 
 @app.route('/teacher/homework/add', methods=['POST'])
 @login_required
@@ -3594,7 +4057,8 @@ def exam_form():
         return redirect(url_for('user_dashboard'))
 
     # Agar page open kiya hai (GET)
-    classes = ['Pre', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th']
+    # 🚀 YAHAN FIX KIYA GAYA HAI
+    classes = get_all_classes(db)
     
     # Admin dwara add kiye gaye subjects fetch karein
     subjects_raw = db.execute('SELECT class_name, subject_name FROM subjects').fetchall()
@@ -3645,8 +4109,7 @@ def exam_form():
                            classes=classes, 
                            subjects_dict=json.dumps(subjects_dict),
                            prefill=prefill)
-
-
+    
 # =========================================
 # 10.10. SETTINGS PAGE
 # =========================================
@@ -3762,13 +4225,13 @@ def admin_exams_list():
 @app.route('/admin/exams/create', methods=['GET', 'POST'])
 @admin_required
 def admin_exam_create():
+    db = get_db()
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
         if not title:
             flash('Exam title is required.', 'error')
             return redirect(url_for('admin_exam_create'))
 
-        db = get_db()
         cur = db.execute('''INSERT INTO exams
             (title, academic_year, term_label, notice_text, custom_message, created_by)
             VALUES (?, ?, ?, ?, ?, ?)''',
@@ -3782,9 +4245,9 @@ def admin_exam_create():
         flash('Exam saved as draft. Add subjects below, then publish.', 'success')
         return redirect(url_for('admin_exam_edit', eid=cur.lastrowid))
 
+    class_list = get_all_classes(db)
     return render_template('admin_exam_form.html', exam=None,
-                           subjects_by_class={}, class_list=[], active_page='exams')
-
+                           subjects_by_class={}, class_list=class_list, active_page='exams')
 
 @app.route('/admin/exams/<int:eid>/edit', methods=['GET', 'POST'])
 @admin_required
@@ -3812,24 +4275,209 @@ def admin_exam_edit(eid):
              request.form.get('custom_message', '').strip(),
              eid))
         db.commit()
-        flash('Exam updated.', 'success')
+        flash('Exam updated successfully!', 'success')
+        return redirect(url_for('admin_exams_list'))
+
+    # Subjects fetch karein (Latest data from DB)
+    subjects_by_class = {}
+    subject_rows = db.execute(
+        'SELECT id, class_name, subject_name, max_marks, display_order '
+        'FROM subjects ORDER BY class_name, display_order, id'
+    ).fetchall()
+    for row in subject_rows:
+        class_name = row['class_name']
+        subjects_by_class.setdefault(class_name, []).append({
+            'id': row['id'],
+            'class_name': row['class_name'],
+            'subject_name': row['subject_name'],
+            'max_marks': row['max_marks'],
+            'display_order': row['display_order']
+        })
+
+    # Selected subjects fetch karein
+    selected_subjects_by_class = {}
+    selected_max_marks_by_class = {}
+    selected_rows = db.execute(
+        '''SELECT class_name, subject_id, max_marks FROM exam_subjects
+           WHERE exam_id = ? ORDER BY class_name, subject_id''', (eid,)
+    ).fetchall()
+    for row in selected_rows:
+        class_name = row['class_name']
+        selected_subjects_by_class.setdefault(class_name, []).append(str(row['subject_id']))
+        selected_max_marks_by_class.setdefault(class_name, {})[str(row['subject_id'])] = row['max_marks']
+
+    # Classes list
+    class_list = get_all_classes(db)
+
+    return render_template(
+        'admin_exam_form.html', exam=exam,
+        subjects_by_class=subjects_by_class,
+        selected_subjects_by_class=selected_subjects_by_class,
+        selected_max_marks_by_class=selected_max_marks_by_class,
+        class_list=class_list, active_page='exams'
+    )
+    
+@app.route('/admin/exams/<int:eid>/subjects/save', methods=['POST'])
+@admin_required
+def admin_exam_save_subjects(eid):
+    db = get_db()
+    exam = db.execute('SELECT id FROM exams WHERE id = ?', (eid,)).fetchone()
+    if not exam:
+        flash('Exam not found.', 'error')
+        return redirect(url_for('admin_exams_list'))
+
+    raw_payload = request.form.get('selected_subjects_json', '{}')
+    try:
+        payload = json.loads(raw_payload or '{}')
+        if not isinstance(payload, dict):
+            raise ValueError('Expected an object of classes and subjects.')
+    except (json.JSONDecodeError, ValueError, TypeError):
+        flash('Invalid subject selection. Please select subjects again.', 'error')
         return redirect(url_for('admin_exam_edit', eid=eid))
 
-    subjects_by_class = {}
-    for row in db.execute('SELECT * FROM subjects ORDER BY class_name, display_order, id').fetchall():
-        subjects_by_class.setdefault(row['class_name'], []).append(row)
+    rows_to_save = []
+    for class_name, selection in payload.items():
+        class_name = str(class_name).strip()
+        if not class_name or not isinstance(selection, dict):
+            continue
+        subject_ids = selection.get('subject_ids', [])
+        marks_map = selection.get('max_marks_by_subject', {})
+        if not isinstance(subject_ids, list) or not isinstance(marks_map, dict):
+            continue
 
-    class_list = [r['c'] for r in db.execute(
-        "SELECT DISTINCT COALESCE(class_name, child_class) AS c FROM users "
-        "WHERE role='student' AND COALESCE(class_name, child_class) IS NOT NULL "
-        "AND COALESCE(class_name, child_class) != '' ORDER BY c"
-    ).fetchall() if r['c']]
+        for raw_sid in subject_ids:
+            try:
+                sid = int(raw_sid)
+            except (TypeError, ValueError):
+                continue
+            subject = db.execute(
+                'SELECT id, class_name, max_marks FROM subjects WHERE id = ? AND class_name = ?',
+                (sid, class_name)
+            ).fetchone()
+            if not subject:
+                continue
 
-    return render_template('admin_exam_form.html', exam=exam,
-                           subjects_by_class=subjects_by_class,
-                           class_list=class_list, active_page='exams')
+            raw_max = marks_map.get(str(sid))
+            try:
+                max_marks = float(raw_max) if raw_max not in (None, '') else float(subject['max_marks'])
+            except (TypeError, ValueError):
+                max_marks = float(subject['max_marks'])
+            if not (0 < max_marks < 10000000):
+                flash(f'Max marks for subject ID {sid} must be greater than zero.', 'error')
+                return redirect(url_for('admin_exam_edit', eid=eid))
+            rows_to_save.append((eid, class_name, sid, max_marks))
+
+    try:
+        db.execute('DELETE FROM exam_subjects WHERE exam_id = ?', (eid,))
+        db.executemany(
+            '''INSERT INTO exam_subjects (exam_id, class_name, subject_id, max_marks)
+               VALUES (?, ?, ?, ?)''', rows_to_save
+        )
+        # Keep teacher submission statuses for classes that remain selected.
+        selected_classes = sorted({row[1] for row in rows_to_save})
+        if selected_classes:
+            placeholders = ','.join('?' for _ in selected_classes)
+            db.execute(
+                f'DELETE FROM exam_submissions WHERE exam_id = ? AND class_name NOT IN ({placeholders})',
+                [eid, *selected_classes]
+            )
+            db.executemany(
+                '''INSERT OR IGNORE INTO exam_submissions (exam_id, class_name, status)
+                   VALUES (?, ?, 'pending')''',
+                [(eid, cls) for cls in selected_classes]
+            )
+        else:
+            db.execute('DELETE FROM exam_submissions WHERE exam_id = ?', (eid,))
+        db.commit()
+    except Exception:
+        db.rollback()
+        app.logger.exception('Could not save selected subjects for exam %s', eid)
+        flash('Subjects save nahi ho paye. Server log check karein.', 'error')
+        return redirect(url_for('admin_exam_edit', eid=eid))
+
+    flash(f'Selected subjects saved successfully ({len(rows_to_save)} subject(s)).', 'success')
+    return redirect(url_for('admin_exam_edit', eid=eid))
 
 
+# =========================================
+# 🚀 API — ADD NEW SUBJECT ON THE FLY (For Exam Form)
+# =========================================
+@app.route('/admin/subjects/api/add', methods=['POST'])
+@admin_required
+def admin_api_add_subject():
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': 'Invalid request data'})
+
+    class_name = data.get('class_name', '').strip()
+    subject_name = data.get('subject_name', '').strip().upper()
+    exam_id = data.get('exam_id')
+    
+    try:
+        max_marks = float(data.get('max_marks', 100))
+    except (ValueError, TypeError):
+        max_marks = 100.0
+
+    if not class_name or not subject_name:
+        return jsonify({'success': False, 'error': 'Class and subject name required'})
+
+    db = get_db()
+    
+    # Saari classes ki list nikalain (Standard + Dynamic)
+    all_classes = get_all_classes(db)
+    created_subjects_map = {}
+    active_subject_id = None
+
+    try:
+        for cls in all_classes:
+            # Check karein ki subject pehle se us class me hai ya nahi
+            existing = db.execute(
+                'SELECT id, max_marks FROM subjects WHERE class_name=? AND subject_name=?', 
+                (cls, subject_name)
+            ).fetchone()
+            
+            if existing:
+                # Agar pehle se hai, toh bas map me daal dein
+                created_subjects_map[cls] = {
+                    'id': existing['id'],
+                    'subject_name': subject_name,
+                    'max_marks': existing['max_marks']
+                }
+                if cls == class_name:
+                    active_subject_id = existing['id']
+            else:
+                # Agar nahi hai, toh nayi class me insert karein
+                cur = db.execute(
+                    'INSERT INTO subjects (class_name, subject_name, max_marks) VALUES (?, ?, ?)',
+                    (cls, subject_name, max_marks)
+                )
+                created_subjects_map[cls] = {
+                    'id': cur.lastrowid,
+                    'subject_name': subject_name,
+                    'max_marks': max_marks
+                }
+                if cls == class_name:
+                    active_subject_id = cur.lastrowid
+
+        # Agar exam_id diya gaya hai, toh current class ke liye auto-save bhi kar dein
+        if exam_id and active_subject_id:
+            db.execute('''INSERT OR IGNORE INTO exam_subjects 
+                          (exam_id, class_name, subject_id, max_marks) 
+                          VALUES (?, ?, ?, ?)''',
+                       (exam_id, class_name, active_subject_id, max_marks))
+                       
+        db.commit()
+        
+        return jsonify({
+            'success': True,
+            'active_subject_id': active_subject_id,
+            'all_subjects_map': created_subjects_map
+        })
+        
+    except Exception as e:
+        db.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+    
 @app.route('/admin/exams/<int:eid>/publish', methods=['POST'])
 @admin_required
 def admin_exam_publish(eid):
@@ -3838,15 +4486,15 @@ def admin_exam_publish(eid):
         flash('Exam not found.', 'error')
         return redirect(url_for('admin_exams_list'))
 
-    sub_count = db.execute('SELECT COUNT(*) FROM subjects').fetchone()[0]
+    sub_count = db.execute('SELECT COUNT(*) FROM exam_subjects WHERE exam_id=?', (eid,)).fetchone()[0]
     if not sub_count:
-        flash('Add at least one subject before publishing.', 'error')
+        flash('Select and save at least one subject for this exam before publishing.', 'error')
         return redirect(url_for('admin_exam_edit', eid=eid))
 
     db.execute("UPDATE exams SET status='published', published_at=? WHERE id=?",
                (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), eid))
 
-    classes = db.execute('SELECT DISTINCT class_name FROM subjects').fetchall()
+    classes = db.execute('SELECT DISTINCT class_name FROM exam_subjects WHERE exam_id=? ORDER BY class_name', (eid,)).fetchall()
     for row in classes:
         db.execute('''INSERT OR IGNORE INTO exam_submissions
                      (exam_id, class_name, status) VALUES (?, ?, 'pending')''',
@@ -3872,6 +4520,7 @@ def admin_exam_delete(eid):
     db = get_db()
     db.execute('DELETE FROM exam_marks WHERE exam_id = ?', (eid,))
     db.execute('DELETE FROM exam_submissions WHERE exam_id = ?', (eid,))
+    db.execute('DELETE FROM exam_subjects WHERE exam_id = ?', (eid,))
     db.execute('DELETE FROM exams WHERE id = ?', (eid,))
     db.commit()
     flash('Exam and all its marks deleted.', 'success')
@@ -3882,29 +4531,74 @@ def admin_exam_delete(eid):
 @app.route('/admin/subjects/add', methods=['POST'])
 @admin_required
 def admin_add_subject():
-    class_name = request.form.get('class_name', '').strip()
-    subject_name = request.form.get('subject_name', '').strip().upper()
-    try:
-        max_marks = float(request.form.get('max_marks', '50'))
-    except ValueError:
-        max_marks = 50.0
 
-    if not class_name or not subject_name:
-        flash('Class and Subject name are required.', 'error')
-        return redirect(request.referrer or url_for('admin_reports_dashboard'))
+    class_name = request.form.get('class_name', '').strip()
+
+    # Singular aur plural dono field support
+    subjects_raw = (
+        request.form.get('subject_names', '').strip()
+        or request.form.get('subject_name', '').strip()
+    )
+
+    try:
+        max_marks = float(request.form.get('max_marks', 100))
+    except (ValueError, TypeError):
+        max_marks = 100
+
+    if not class_name or not subjects_raw:
+        flash('Class and subject name are required.', 'error')
+        return redirect(request.referrer or url_for('admin_exams_list'))
+
+    if not (0 < max_marks <= 1000):
+        flash('Maximum marks must be between 1 and 1000.', 'error')
+        return redirect(request.referrer or url_for('admin_exams_list'))
+
+    import re
+
+    subjects_list = [
+        name.strip().upper()
+        for name in re.split(r'[\n,]+', subjects_raw)
+        if name.strip()
+    ]
 
     db = get_db()
-    if db.execute('SELECT 1 FROM subjects WHERE class_name=? AND subject_name=?',
-                  (class_name, subject_name)).fetchone():
-        flash(f'{subject_name} already exists for {class_name}.', 'error')
-        return redirect(request.referrer or url_for('admin_reports_dashboard'))
 
-    db.execute('INSERT INTO subjects (class_name, subject_name, max_marks) VALUES (?, ?, ?)',
-               (class_name, subject_name, max_marks))
+    added = 0
+    skipped = 0
+
+    for subject_name in subjects_list:
+
+        exists = db.execute(
+            '''SELECT id FROM subjects
+               WHERE class_name = ? AND subject_name = ?''',
+            (class_name, subject_name)
+        ).fetchone()
+
+        if exists:
+            skipped += 1
+            continue
+
+        db.execute(
+            '''INSERT INTO subjects
+               (class_name, subject_name, max_marks)
+               VALUES (?, ?, ?)''',
+            (class_name, subject_name, max_marks)
+        )
+
+        added += 1
+
     db.commit()
-    flash(f'{subject_name} added to {class_name}.', 'success')
-    return redirect(request.referrer or url_for('admin_reports_dashboard'))
 
+    if added:
+        flash(
+            f'{added} subject(s) added to {class_name}. '
+            f'{skipped} duplicate(s) skipped.',
+            'success'
+        )
+    else:
+        flash('These subjects already exist.', 'error')
+
+    return redirect(request.referrer or url_for('admin_exams_list'))
 
 @app.route('/admin/subjects/<int:sid>/delete', methods=['POST'])
 @admin_required
@@ -3912,6 +4606,7 @@ def admin_delete_subject(sid):
     db = get_db()
     sub = db.execute('SELECT * FROM subjects WHERE id = ?', (sid,)).fetchone()
     if sub:
+        db.execute('DELETE FROM exam_subjects WHERE subject_id = ?', (sid,))
         db.execute('''DELETE FROM exam_marks WHERE subject = ? AND student_id IN (
                         SELECT id FROM users WHERE role='student'
                         AND COALESCE(class_name, child_class) = ?)''',
@@ -3930,11 +4625,8 @@ def admin_reports_dashboard():
     selected_class = request.args.get('class', '').strip()
     selected_exam_id = request.args.get('exam_id', type=int)
 
-    class_list = [r['c'] for r in db.execute(
-        "SELECT DISTINCT COALESCE(class_name, child_class) AS c FROM users "
-        "WHERE role='student' AND COALESCE(class_name, child_class) IS NOT NULL "
-        "AND COALESCE(class_name, child_class) != '' ORDER BY c"
-    ).fetchall() if r['c']]
+    # 🚀 YAHAN FIX KIYA GAYA HAI
+    class_list = get_all_classes(db)
 
     subjects = []
     if selected_class:
@@ -4001,7 +4693,10 @@ def admin_bulk_marks_entry():
             "AND (class_name = ? OR child_class = ?) ORDER BY name",
             (class_name, class_name)).fetchall()
         subjects = db.execute(
-            'SELECT * FROM subjects WHERE class_name = ?', (class_name,)).fetchall()
+            '''SELECT s.id, s.class_name, s.subject_name, es.max_marks, s.display_order
+               FROM exam_subjects es JOIN subjects s ON s.id = es.subject_id
+               WHERE es.exam_id = ? AND es.class_name = ?
+               ORDER BY s.display_order, s.id''', (exam_id, class_name)).fetchall()
 
         for s in students:
             for sub in subjects:
@@ -4044,8 +4739,10 @@ def admin_bulk_marks_entry():
         "AND (class_name = ? OR child_class = ?) ORDER BY name",
         (class_name, class_name)).fetchall() if class_name else []
     subjects = db.execute(
-        'SELECT * FROM subjects WHERE class_name = ? ORDER BY display_order, id',
-        (class_name,)).fetchall() if class_name else []
+        '''SELECT s.id, s.class_name, s.subject_name, es.max_marks, s.display_order
+           FROM exam_subjects es JOIN subjects s ON s.id = es.subject_id
+           WHERE es.exam_id = ? AND es.class_name = ?
+           ORDER BY s.display_order, s.id''', (exam_id, class_name)).fetchall() if exam_id and class_name else []
 
     existing_marks = {}
     if exam_id and students and subjects:
@@ -4071,11 +4768,8 @@ def admin_generate_reports():
     selected_class = request.args.get('class', '').strip()
     exam_id = request.args.get('exam_id', type=int)
 
-    class_list = [r['c'] for r in db.execute(
-        "SELECT DISTINCT COALESCE(class_name, child_class) AS c FROM users "
-        "WHERE role='student' AND COALESCE(class_name, child_class) IS NOT NULL "
-        "AND COALESCE(class_name, child_class) != '' ORDER BY c"
-    ).fetchall() if r['c']]
+    # 🚀 YAHAN FIX KIYA GAYA HAI
+    class_list = get_all_classes(db)
 
     all_exams = db.execute('SELECT * FROM exams ORDER BY id DESC').fetchall()
     if not exam_id and all_exams:
@@ -4093,7 +4787,6 @@ def admin_generate_reports():
                            students=students, all_exams=all_exams,
                            exam=exam, exam_id=exam_id,
                            active_page='generate_reports')
-
 
 # ---------- REPORT CARD PRINT (individual) ----------
 @app.route('/admin/print-report/<int:student_id>')
@@ -4115,8 +4808,11 @@ def print_report_card(student_id):
         return redirect(url_for('admin_reports_dashboard'))
 
     cls = student['class_name'] or student['child_class']
-    subjects = db.execute('SELECT * FROM subjects WHERE class_name=? ORDER BY display_order, id',
-                          (cls,)).fetchall()
+    subjects = db.execute(
+        '''SELECT s.id, s.class_name, s.subject_name, es.max_marks, s.display_order
+           FROM exam_subjects es JOIN subjects s ON s.id = es.subject_id
+           WHERE es.exam_id=? AND es.class_name=?
+           ORDER BY s.display_order, s.id''', (exam['id'], cls)).fetchall()
     marks = db.execute('SELECT * FROM exam_marks WHERE student_id=? AND exam_id=?',
                        (student_id, exam['id'])).fetchall()
     marks_map = {m['subject']: m['marks_obtained'] for m in marks}
@@ -4150,8 +4846,11 @@ def admin_print_all_reports():
         "SELECT * FROM users WHERE role='student' "
         "AND (class_name = ? OR child_class = ?) ORDER BY name",
         (cls, cls)).fetchall()
-    subjects = db.execute('SELECT * FROM subjects WHERE class_name=? ORDER BY display_order, id',
-                          (cls,)).fetchall()
+    subjects = db.execute(
+        '''SELECT s.id, s.class_name, s.subject_name, es.max_marks, s.display_order
+           FROM exam_subjects es JOIN subjects s ON s.id = es.subject_id
+           WHERE es.exam_id=? AND es.class_name=?
+           ORDER BY s.display_order, s.id''', (exam['id'], cls)).fetchall()
     marks = db.execute('SELECT * FROM exam_marks WHERE exam_id=?', (exam['id'],)).fetchall()
 
     marks_by_student = {}
@@ -4228,7 +4927,10 @@ def teacher_marks_entry(eid):
             "AND (class_name = ? OR child_class = ?) ORDER BY name",
             (class_name, class_name)).fetchall()
         subjects = db.execute(
-            'SELECT * FROM subjects WHERE class_name = ?', (class_name,)).fetchall()
+            '''SELECT s.id, s.class_name, s.subject_name, es.max_marks, s.display_order
+               FROM exam_subjects es JOIN subjects s ON s.id = es.subject_id
+               WHERE es.exam_id = ? AND es.class_name = ?
+               ORDER BY s.display_order, s.id''', (eid, class_name)).fetchall()
 
         for s in students:
             for sub in subjects:
@@ -4280,8 +4982,10 @@ def teacher_marks_entry(eid):
         "AND (class_name = ? OR child_class = ?) ORDER BY name",
         (class_name, class_name)).fetchall()
     subjects = db.execute(
-        'SELECT * FROM subjects WHERE class_name = ? ORDER BY display_order, id',
-        (class_name,)).fetchall()
+        '''SELECT s.id, s.class_name, s.subject_name, es.max_marks, s.display_order
+           FROM exam_subjects es JOIN subjects s ON s.id = es.subject_id
+           WHERE es.exam_id = ? AND es.class_name = ?
+           ORDER BY s.display_order, s.id''', (eid, class_name)).fetchall()
     marks = db.execute('SELECT * FROM exam_marks WHERE exam_id=?', (eid,)).fetchall()
 
     sub_by_name = {s['subject_name']: s for s in subjects}

@@ -2,92 +2,397 @@
 {% block title %}{{ 'Edit' if exam else 'Create' }} Exam{% endblock %}
 {% block page_title %}{{ 'Edit' if exam else 'Create' }} Examination{% endblock %}
 {% block content %}
-<div style="max-width:1100px; margin:0 auto; display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+<style>
+    .exam-layout {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        align-items: start
+    }
+
+    .class-buttons,
+    .subject-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 10px 0 14px
+    }
+
+    .class-btn,
+    .subject-btn {
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 9px 12px;
+        background: #fff;
+        color: #334155;
+        cursor: pointer;
+        font: inherit
+    }
+
+    .class-btn[aria-pressed=true] {
+        background: #e11d48;
+        color: #fff;
+        border-color: #e11d48
+    }
+
+    .subject-btn[aria-pressed=true] {
+        background: #0f766e;
+        color: #fff;
+        border-color: #0f766e
+    }
+
+    .subject-btn:disabled {
+        opacity: .5;
+        cursor: not-allowed
+    }
+
+    .subject-summary {
+        padding: 10px;
+        background: #f1f5f9;
+        border-radius: 8px;
+        margin: 12px 0
+    }
+
+    @media(max-width:800px) {
+        .exam-layout {
+            grid-template-columns: 1fr
+        }
+    }
+</style>
+<div class="exam-layout">
     <div class="admin-panel">
-        <div class="admin-panel-head"><h3><i class="fa-solid fa-file-pen"></i> Exam Details</h3></div>
+        <div class="admin-panel-head">
+            <h3><i class="fa-solid fa-file-pen"></i> Exam Details</h3>
+        </div>
         <form method="POST" class="admin-form">
             <label>Exam Title (appears on report card header)
                 <input type="text" name="title" required
-                       value="{{ exam.title if exam else 'Half Yearly Examination 2026-2027' }}">
+                    value="{{ exam.title if exam else 'Half Yearly Examination 2026-2027' }}">
             </label>
             <div class="form-row-2col">
-                <label>Academic Year
-                    <input type="text" name="academic_year"
-                           value="{{ exam.academic_year if exam else '2026-2027' }}">
-                </label>
-                <label>Column Header on Report Card
-                    <input type="text" name="term_label"
-                           value="{{ exam.term_label if exam else '2nd TERM' }}">
-                </label>
+                <label>Academic Year<input type="text" name="academic_year"
+                        value="{{ exam.academic_year if exam else '2026-2027' }}"></label>
+                <label>Column Header on Report Card<input type="text" name="term_label"
+                        value="{{ exam.term_label if exam else '2nd TERM' }}"></label>
             </div>
-            <label>Notice to Teachers & Students
-                <textarea name="notice_text" rows="5"
-                    placeholder="Dear Teachers, please enter marks before 25th March 2026.">{{ exam.notice_text if exam else '' }}</textarea>
-            </label>
-            <label>Custom Footer Message on Report Card
-                <input type="text" name="custom_message"
-                       placeholder="e.g. Congratulations! Keep up the good work."
-                       value="{{ exam.custom_message if exam else '' }}">
-            </label>
-            <button type="submit" class="btn-admin-primary">
-                <i class="fa-solid fa-save"></i> {{ 'Update' if exam else 'Create Draft' }}
-            </button>
-            {% if exam %}
-            <a href="{{ url_for('admin_exams_list') }}" class="btn-admin-secondary"
-               style="margin-left:10px;">Back</a>
-            {% endif %}
+            <label>Notice to Teachers &amp; Students<textarea name="notice_text" rows="5"
+                    placeholder="Dear Teachers, please enter marks before 25th March 2026.">{{ exam.notice_text if exam else '' }}</textarea></label>
+            <label>Custom Footer Message on Report Card<input type="text" name="custom_message"
+                    placeholder="e.g. Congratulations! Keep up the good work."
+                    value="{{ exam.custom_message if exam else '' }}"></label>
+            <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-save"></i> {{ 'Update' if exam else
+                'Create Draft' }}</button>
+            {% if exam %}<a href="{{ url_for('admin_exams_list') }}" class="btn-admin-secondary"
+                style="margin-left:10px;">Back</a>{% endif %}
         </form>
     </div>
 
     {% if exam %}
     <div class="admin-panel">
-        <div class="admin-panel-head"><h3><i class="fa-solid fa-book"></i> Subjects per Class</h3></div>
+        <div class="admin-panel-head">
+            <h3><i class="fa-solid fa-book"></i> Select Subjects per Class</h3>
+        </div>
+        <p class="muted">Pehle class button select karein, phir us class ke subjects buttons se select karein. Marks bhi
+            set kar sakte hain.</p>
 
-        <form method="POST" action="{{ url_for('admin_add_subject') }}" class="admin-form"
-              style="background:#f9f9f9; padding:15px; border-radius:8px; margin-bottom:15px;">
-            <div class="form-row-2col">
-                <label>Class
-                    <select name="class_name" required>
-                        <option value="">-- Select --</option>
-                        {% for c in class_list %}
-                        <option value="{{ c }}">{{ c }}</option>
-                        {% endfor %}
-                    </select>
-                </label>
-                <label>Max Marks
-                    <input type="number" name="max_marks" value="50" required>
-                </label>
+        <form method="POST" action="{{ url_for('admin_exam_save_subjects', eid=exam.id) }}" id="subject-selection-form"
+            class="admin-form">
+            <input type="hidden" name="selected_subjects_json" id="selected-subjects-json">
+            <label>Select Class</label>
+            <div class="class-buttons" id="class-buttons" role="group" aria-label="Select class">
+                {% for c in class_list %}<button type="button" class="class-btn" data-class="{{ c }}"
+                    aria-pressed="false">{{ c }}</button>{% endfor %}
             </div>
-            <label>Subject Name
-                <input type="text" name="subject_name" required
-                       placeholder="e.g. HINDI" style="text-transform:uppercase;">
-            </label>
-            <button type="submit" class="btn-admin-primary">
-                <i class="fa-solid fa-plus"></i> Add Subject
-            </button>
+
+            <div class="form-row-2col">
+                <label>Max Marks for selected subjects
+                    <input type="number" id="max-marks" min="1" step="1" value="100" required>
+                </label>
+                <button type="button" id="apply-marks" class="btn-admin-secondary">Apply Marks to Selected</button>
+            </div>
+
+            <label>Subjects</label>
+            <div id="subject-buttons" class="subject-buttons">
+                <p class="empty-row">Subjects dekhne ke liye class select karein.</p>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                <button type="button" id="select-all" class="btn-admin-secondary">Select All</button>
+                <button type="button" id="clear-selection" class="btn-admin-secondary">Clear Selection</button>
+                <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-save"></i> Save Selected
+                    Subjects</button>
+            </div>
+                        <!-- 🚀 NAYA: Add New Subject Section -->
+            <div style="margin-top: 15px; padding: 15px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc;">
+                <h4 style="margin-bottom: 10px; font-size: 14px; color: #0f766e;">
+                    <i class="fa-solid fa-plus-circle"></i> Add New Subject to Selected Class
+                </h4>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="text" id="new-subject-name" placeholder="New Subject Name (e.g. COMPUTER)" 
+                           style="flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit;">
+                    <button type="button" id="add-new-subject-btn" class="btn-admin-primary" 
+                            style="padding: 8px 16px; background: #0f766e; border-color: #0f766e;">
+                        <i class="fa-solid fa-plus"></i> Add Subject
+                    </button>
+                </div>
+                <small class="muted" style="display: block; margin-top: 6px;">
+                    Subject will be created and automatically selected for the active class.
+                </small>
+            </div>
+            <div id="subject-summary" class="subject-summary">Koi class select nahi hui.</div>
+            <p id="subject-status" role="status" aria-live="polite"></p>
         </form>
 
+        <hr style="margin:18px 0;">
+        <h4>Subject List (Class-wise)</h4>
         {% for cls, subs in subjects_by_class.items() %}
         <div style="margin-bottom:15px;">
-            <h4 style="color:#e11d48; margin-bottom:8px;">{{ cls }}</h4>
-            {% for sub in subs %}
-            <div style="display:flex; justify-content:space-between; align-items:center;
-                        padding:8px 12px; background:#f9f9f9; border-radius:6px; margin-bottom:5px;">
-                <span><strong>{{ sub.subject_name }}</strong>
-                    <small class="muted">(Max: {{ sub.max_marks }})</small></span>
-                <form method="POST" action="{{ url_for('admin_delete_subject', sid=sub.id) }}"
-                      data-confirm="Delete subject and its marks?" style="display:inline;">
-                    <button type="submit" class="btn-icon-danger">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                </form>
+            <h4 style="color:#e11d48;margin-bottom:8px;">{{ cls }}</h4>
+            <div class="subject-buttons">
+                {% for sub in subs %}<span class="subject-btn" style="cursor:default;" aria-pressed="false">{{
+                    sub.subject_name }} <small>(Max: {{ sub.max_marks }})</small></span>{% endfor %}
             </div>
-            {% endfor %}
         </div>
-        {% else %}
-        <p class="empty-row">No subjects added. Select a class above to add subjects.</p>
-        {% endfor %}
+        {% else %}<p class="empty-row">Subjects table mein abhi subjects nahi hain. Pehle subjects add karein.</p>{%
+        endfor %}
     </div>
     {% endif %}
 </div>
+
+{% if exam %}
+<script>
+    (function () {
+        // 🚀 Global State Variables
+        let subjectsByClass = {{ subjects_by_class | tojson }};
+        const initiallySelected = {{ selected_subjects_by_class | tojson }};
+        const classButtons = [...document.querySelectorAll('.class-btn')];
+        const subjectBox = document.getElementById('subject-buttons');
+        const maxMarksInput = document.getElementById('max-marks');
+        const summary = document.getElementById('subject-summary');
+        const status = document.getElementById('subject-status');
+        const selectedInput = document.getElementById('selected-subjects-json');
+        
+        const selected = {};
+        const marks = {};
+
+        // Initialize selected state
+        Object.keys(initiallySelected || {}).forEach(c => {
+            selected[c] = (initiallySelected[c] || []).map(String);
+        });
+
+        function activeClass() {
+            const btn = classButtons.find(b => b.getAttribute('aria-pressed') === 'true');
+            return btn ? btn.dataset.class : null;
+        }
+
+        function updateSummary() {
+            const c = activeClass();
+            if (!c) { summary.textContent = 'Koi class select nahi hui.'; return; }
+            const ids = selected[c] || [];
+            const list = subjectsByClass[c] || [];
+            const names = list.filter(s => ids.includes(String(s.id))).map(s => s.subject_name);
+            summary.textContent = c + ': ' + names.length + ' subject(s) selected' + (names.length ? ' — ' + names.join(', ') : '');
+        }
+
+        function renderSubjects() {
+            const c = activeClass();
+            subjectBox.innerHTML = '';
+            if (!c) { 
+                subjectBox.innerHTML = '<p class="empty-row">Subjects dekhne ke liye class select karein.</p>'; 
+                updateSummary(); 
+                return; 
+            }
+            
+            const list = subjectsByClass[c] || [];
+            if (!list.length) { 
+                subjectBox.innerHTML = '<p class="empty-row">Is class ke liye subjects available nahi hain. Naya subject add karein.</p>'; 
+                updateSummary(); 
+                return; 
+            }
+            
+            list.forEach(s => {
+                const id = String(s.id);
+                const b = document.createElement('button');
+                b.type = 'button'; 
+                b.className = 'subject-btn'; 
+                b.dataset.id = id;
+                
+                const isSelected = (selected[c] || []).includes(id);
+                b.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+                b.textContent = s.subject_name + ' (Max: ' + (marks[c + ':' + id] ?? s.max_marks ?? 100) + ')';
+                
+                b.addEventListener('click', () => {
+                    const ids = selected[c] || [];
+                    if (ids.includes(id)) {
+                        selected[c] = ids.filter(x => x !== id);
+                    } else {
+                        selected[c] = [...ids, id];
+                    }
+                    b.setAttribute('aria-pressed', selected[c].includes(id) ? 'true' : 'false');
+                    updateSummary();
+                });
+                subjectBox.appendChild(b);
+            });
+            updateSummary();
+        }
+
+        classButtons.forEach(b => b.addEventListener('click', () => {
+            classButtons.forEach(x => x.setAttribute('aria-pressed', 'false'));
+            b.setAttribute('aria-pressed', 'true');
+            const c = b.dataset.class;
+            const chosen = (selected[c] || []);
+            
+            // Marks input default set karein
+            if (chosen.length > 0) {
+                maxMarksInput.value = marks[c + ':' + chosen[0]] ?? 100;
+            } else {
+                maxMarksInput.value = 100;
+            }
+            
+            renderSubjects();
+        }));
+
+        document.getElementById('select-all').addEventListener('click', () => {
+            const c = activeClass(); 
+            if (!c) { status.textContent = 'Pehle class select karein.'; return; }
+            const list = subjectsByClass[c] || [];
+            selected[c] = list.map(s => String(s.id)); 
+            renderSubjects(); 
+            status.textContent = 'Sabhi subjects select ho gaye.';
+        });
+
+        document.getElementById('clear-selection').addEventListener('click', () => {
+            const c = activeClass(); 
+            if (!c) { status.textContent = 'Pehle class select karein.'; return; }
+            selected[c] = []; 
+            renderSubjects(); 
+            status.textContent = 'Selection clear ho gayi.';
+        });
+
+        document.getElementById('apply-marks').addEventListener('click', () => {
+            const c = activeClass(), value = Number(maxMarksInput.value);
+            if (!c) { status.textContent = 'Pehle class select karein.'; return; }
+            if (!Number.isInteger(value) || value < 1) { status.textContent = 'Max Marks 1 ya usse zyada integer hona chahiye.'; return; }
+            const ids = selected[c] || [];
+            if (!ids.length) { status.textContent = 'Pehle subjects select karein.'; return; }
+            ids.forEach(id => marks[c + ':' + id] = value);
+            renderSubjects(); 
+            status.textContent = 'Marks selected subjects par apply ho gaye.';
+        });
+
+        document.getElementById('subject-selection-form').addEventListener('submit', e => {
+            const c = activeClass();
+            if (!c) { e.preventDefault(); status.textContent = 'Save karne se pehle class select karein.'; return; }
+            
+            const payload = {};
+            Object.keys(selected).forEach(className => {
+                const ids = selected[className] || [];
+                if (ids.length) {
+                    payload[className] = { subject_ids: ids, max_marks_by_subject: {} };
+                    ids.forEach(id => { 
+                        payload[className].max_marks_by_subject[id] = marks[className + ':' + id] ?? null; 
+                    });
+                }
+            });
+            selectedInput.value = JSON.stringify(payload);
+        });
+
+        // 🚀 NAYA SUBJECT ADD KARNE KA LOGIC (ALL CLASSES SUPPORT)
+        const addSubjectBtn = document.getElementById('add-new-subject-btn');
+        const newSubjectInput = document.getElementById('new-subject-name');
+
+        if (newSubjectInput && addSubjectBtn) {
+            // Enter dabane par form submit na ho
+            newSubjectInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addSubjectBtn.click();
+                }
+            });
+
+            addSubjectBtn.addEventListener('click', async () => {
+                const c = activeClass();
+                if (!c) { 
+                    status.textContent = 'Pehle class select karein.'; 
+                    status.style.color = 'red';
+                    return; 
+                }
+                
+                const subjectName = newSubjectInput.value.trim();
+                if (!subjectName) { 
+                    status.textContent = 'Subject ka naam likhein.'; 
+                    status.style.color = 'red';
+                    return; 
+                }
+
+                const maxMarks = Number(maxMarksInput.value) || 100;
+                
+                addSubjectBtn.disabled = true;
+                addSubjectBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Adding...';
+
+                try {
+                    const response = await fetch("{{ url_for('admin_api_add_subject') }}", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            class_name: c, 
+                            subject_name: subjectName, 
+                            max_marks: maxMarks,
+                            // Agar exam edit ho raha hai toh ID bhejein warna null
+                            exam_id: {{ exam.id if exam else 'null' }} 
+                        })
+                    });
+                    
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // 🚨 UPDATE STATE: Backend se aayi hui saari classes ke subjects ko update karein
+                        const all_subjects_map = data.all_subjects_map;
+                        
+                        for (const [clsName, subData] of Object.entries(all_subjects_map)) {
+                            if (!subjectsByClass[clsName]) subjectsByClass[clsName] = [];
+                            
+                            // Duplicate na ho isliye check karein
+                            const exists = subjectsByClass[clsName].find(s => String(s.id) === String(subData.id));
+                            if (!exists) {
+                                subjectsByClass[clsName].push(subData);
+                            }
+                        }
+                        
+                        // Current active class me naye subject ko auto-select kar dein
+                        if (!selected[c]) selected[c] = [];
+                        if (!selected[c].includes(String(data.active_subject_id))) {
+                            selected[c].push(String(data.active_subject_id)); 
+                        }
+                        
+                        marks[c + ':' + data.active_subject_id] = all_subjects_map[c].max_marks;
+                        
+                        // UI refresh karein
+                        renderSubjects();
+                        newSubjectInput.value = '';
+                        status.textContent = '✅ Subject added to ALL classes and selected!';
+                        status.style.color = 'green';
+                    } else {
+                        status.textContent = '❌ ' + data.error;
+                        status.style.color = 'red';
+                    }
+                } catch (error) {
+                    status.textContent = '❌ Network error. Please try again.';
+                    status.style.color = 'red';
+                } finally {
+                    addSubjectBtn.disabled = false;
+                    addSubjectBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Subject';
+                }
+            });
+        }
+
+        // By default pehli class select karein jisme subjects hain
+        const first = classButtons.find(b => (subjectsByClass[b.dataset.class] || []).length);
+        if (first) first.click();
+        else if (classButtons.length) classButtons[0].click();
+
+    })();
+</script>
+{% endif %}
 {% endblock %}

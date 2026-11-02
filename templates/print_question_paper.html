@@ -1,385 +1,26 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ paper['title'] }} - Question Paper</title>
-    <style>
-
-@page {
-    size: A4 portrait;
-    margin: 7mm;
-}
-
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    background: #e9edf2;
-    color: #111;
-    font-family: Arial, Helvetica, sans-serif;
-}
-
-.toolbar {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    padding: 12px;
-    background: #173b60;
-}
-
-.toolbar button,
-.toolbar a {
-    border: 0;
-    border-radius: 7px;
-    padding: 10px 15px;
-    font-weight: 700;
-    font-size: 12px;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.toolbar button {
-    background: #fff;
-    color: #173b60;
-}
-
-.toolbar a {
-    background: #e7f0f8;
-    color: #173b60;
-}
-
-.paper {
-    width: 210mm;
-    min-height: 297mm;
-    margin: 18px auto;
-    padding: 8mm;
-    background: #fff;
-    box-shadow: 0 5px 25px #0002;
-    position: relative;
-}
-
-/* School Header */
-.school-head {
-    text-align: center;
-    border-bottom: 2px solid #111;
-    padding-bottom: 5px;
-    margin-bottom: 6px;
-}
-
-.school-name {
-    font-size: 19px;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: .25px;
-}
-
-.school-address {
-    font-size: 9px;
-    margin-top: 2px;
-}
-
-.exam-title {
-    font-size: 14px;
-    font-weight: 900;
-    text-transform: uppercase;
-    margin-top: 5px;
-}
-
-.session {
-    font-size: 10px;
-    font-weight: 700;
-    margin-top: 2px;
-}
-
-/* Paper Information */
-.paper-meta {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 5px;
-    margin: 6px 0;
-    padding: 5px 0;
-    border-top: 1px solid #222;
-    border-bottom: 1px solid #222;
-    font-size: 9px;
-    font-weight: 700;
-}
-
-.student-info {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px 16px;
-    margin: 8px 0;
-    font-size: 9px;
-}
-
-.student-info span {
-    display: block;
-    border-bottom: 1px dotted #444;
-    height: 14px;
-}
-
-.instructions {
-    font-size: 9px;
-    margin: 5px 0 8px;
-}
-
-/* Sections */
-.section {
-    margin: 7px 0 5px;
-}
-
-.section-title {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-    border-bottom: 1px solid #777;
-    padding-bottom: 3px;
-    margin-bottom: 5px;
-    font-size: 10px;
-    font-weight: 900;
-    text-transform: uppercase;
-}
-
-/* Questions */
-.question {
-    display: flex;
-    gap: 5px;
-    margin: 0 0 5px;
-    font-size: 9.5px;
-    line-height: 1.25;
-    break-inside: avoid;
-    page-break-inside: avoid;
-}
-
-.q-number {
-    font-weight: 700;
-    min-width: 19px;
-}
-
-.q-body {
-    flex: 1;
-    min-width: 0;
-}
-
-.q-text {
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-}
-
-.q-marks {
-    white-space: nowrap;
-    font-weight: 700;
-    font-size: 9px;
-}
-
-.options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 3px 12px;
-    margin: 3px 0 2px 5px;
-    font-size: 9px;
-}
-
-.option {
-    display: inline-block;
-}
-
-/* Answer Lines */
-.answer-lines {
-    margin: 3px 0 2px 5px;
-}
-
-.answer-line {
-    height: 11px;
-    border-bottom: 1px dotted #999;
-}
-
-/* Footer */
-.paper-end {
-    text-align: center;
-    font-size: 9px;
-    font-weight: 800;
-    margin-top: 8px;
-}
-
-.footer {
-    display: flex;
-    justify-content: space-between;
-    border-top: 1px solid #777;
-    margin-top: 7px;
-    padding-top: 5px;
-    font-size: 9px;
-    font-weight: 700;
-}
-
-.no-questions {
-    padding: 20px;
-    text-align: center;
-    border: 1px dashed #aaa;
-    font-size: 11px;
-    color: #555;
-}
-
-/* PRINT SETTINGS */
-@media print {
-    html, body {
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        background: #fff;
-    }
-
-    .toolbar {
-        display: none !important;
-    }
-
-    .paper {
-        width: 100%;
-        min-height: 0;
-        margin: 0;
-        padding: 0;
-        box-shadow: none;
-    }
-
-    .school-head,
-    .paper-meta,
-    .student-info,
-    .section-title,
-    .question {
-        break-inside: avoid;
-        page-break-inside: avoid;
-    }
-
-    .section {
-        break-inside: auto;
-        page-break-inside: auto;
-    }
-
-    /* Compact question-only print layout */
-    .answer-lines {
-        display: none !important;
-    }
-
-    .paper-end {
-        margin-top: 6px;
-    }
-
-    .footer {
-        margin-top: 5px;
-    }
-}
-
-@media screen and (max-width: 850px) {
-    .paper {
-        width: 100%;
-        min-height: 0;
-        margin: 0;
-        padding: 15px;
-    }
-
-    .paper-meta {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .school-name {
-        font-size: 16px;
-    }
-}
-    </style>
-</head>
-
-<body>
-    <div class="toolbar">
-        <button type="button" onclick="window.print()">🖨 Print / Save PDF</button>
-        <a href="{{ url_for('edit_question_paper', paper_id=paper['id']) }}">Back to question editor</a>
-    </div>
-
-    <main class="paper">
-        <header class="school-head">
-            <div class="school-name">RES. SHANTI NIKETAN SHISHU VIDYA MANDIR</div>
-            <div class="school-address">NAVINAGAR (JAMUI)</div>
-            <div class="exam-title">{{ paper['title'] }}</div>
-            {% if paper['exam_year'] %}<div class="session">SESSION: {{ paper['exam_year'] }}</div>{% endif %}
-        </header>
-
-        <div class="paper-meta">
-            <div>CLASS: {{ paper['class_name'] }}</div>
-            <div>SUBJECT: {{ paper['subject'] }}</div>
-            <div>FULL MARKS: {{ paper['max_marks'] }}</div>
-            <div>TIME: {{ paper['time_allowed'] }}</div>
-        </div>
-
-        <div class="student-info">
-            <div>Name: <span></span></div>
-            <div>Roll No.: <span></span></div>
-        </div>
-
-        <div class="instructions"><strong>General Instructions:</strong> All questions are compulsory unless stated
-            otherwise. Write your answers neatly.</div>
-
-        {% if grouped_questions %}
-        {% for section, qs in grouped_questions.items() %}
-        <section class="section">
-            <div class="section-title">
-                <span>{{ section }}</span>
-                <span>{{ qs|length }} question(s) | {{ qs|sum(attribute='marks') }} marks</span>
-            </div>
-            {% for q in qs %}
-            <div class="question">
-                <div class="q-number">{{ loop.index }}.</div>
-                <div class="q-body">
-                    <div class="q-text">{{ q['question_text'] }}</div>
-                    {% if q['options'] %}
-                    <div class="options">
-                        {% for opt in q['options'].replace('\n', ',').split(',') %}
-                        {% if opt.strip() %}<span class="option">{{ opt.strip() }}</span>{% endif %}
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                    {% if q['lines'] and q['lines']|int > 0 %}
-                    <div class="answer-lines">
-                        {% for i in range(q['lines']|int) %}<div class="answer-line"></div>{% endfor %}
-                    </div>
-                    {% endif %}
-                </div>
-                <div class="q-marks">[{{ q['marks'] }}]</div>
-            </div>
-            {% endfor %}
-        </section>
-        {% endfor %}
-        {% else %}
-        <div class="no-questions">No questions have been added to this paper yet.</div>
-        {% endif %}
-
-        <div class="paper-end">— END OF QUESTION PAPER —</div>
-        <footer class="footer">
-            <span>Total questions: {{ question_count }}</span>
-            <span>Question marks: {{ total_marks }} / {{ paper['max_marks'] }}</span>
-        </footer>
-    </main>
-</body>
-
-</html> -->
-
 {% extends "admin_base.html" %}
 {% block title %}{{ paper['title'] }} - Question Paper{% endblock %}
 {% block page_title %}Question Paper Preview{% endblock %}
 {% block content %}
 <style>
-    /* --- Screen & Print Base --- */
+    /* --- Screen Base --- */
     .qp-toolbar {
         max-width: 900px;
         margin: 0 auto 16px;
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
+        align-items: center;
         gap: 10px;
+        background: #fffbeb;
+        padding: 10px 15px;
+        border-radius: 8px;
+        border: 1px solid #fde68a;
+    }
+    .qp-print-note {
+        font-size: 12px;
+        color: #92400e;
+        margin: 0;
+        line-height: 1.4;
     }
     .qp-print-btn {
         border: 0;
@@ -390,6 +31,7 @@ body {
         font-weight: 700;
         cursor: pointer;
         transition: 0.2s;
+        white-space: nowrap;
     }
     .qp-print-btn:hover { background: #115e59; }
 
@@ -445,13 +87,11 @@ body {
     .qp-columns {
         column-count: 2;
         column-gap: 30px;
-        column-rule: 1px solid #ccc; /* Optional vertical line */
+        column-fill: auto; 
     }
 
     /* --- Sections & Questions --- */
     .qp-section {
-        break-inside: avoid;
-        page-break-inside: avoid;
         margin-bottom: 15px;
     }
     .qp-section-heading {
@@ -460,24 +100,23 @@ body {
         font-weight: bold;
         font-size: 11pt;
         margin: 0 0 8px;
-        border-bottom: 1px solid #ddd;
-        padding-bottom: 3px;
+        /* 🚀 FIX: Yahan se border-bottom hataya gaya hai jisse har question ke bich line aana band ho jayegi */
     }
     .qp-question {
         display: flex;
         gap: 8px;
-        margin-bottom: 10px;
-        break-inside: avoid;
+        margin-bottom: 12px;
+        break-inside: avoid; 
         page-break-inside: avoid;
     }
     .qp-q-num { font-weight: bold; width: 20px; flex-shrink: 0; }
     .qp-q-content { flex: 1; }
-    .qp-q-text { margin-bottom: 4px; }
+    .qp-q-text { margin-bottom: 4px; white-space: pre-wrap; }
     
     /* --- Options (MCQs) --- */
     .qp-options-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr; /* 2 columns for options */
+        grid-template-columns: 1fr 1fr;
         gap: 6px;
         margin-top: 6px;
         font-size: 10.5pt;
@@ -490,36 +129,46 @@ body {
 
     /* --- Answer Lines --- */
     .qp-answer-line {
-        border-bottom: 1px dotted #000;
-        height: 20px;
+        /* 🚀 FIX: Solid line ko hata kar dotted aur light kar diya gaya hai */
+        border-bottom: 1px dotted #aaa;
+        height: 18px;
         margin-top: 4px;
         width: 100%;
     }
 
     /* --- Print Specific Magic --- */
     @media print {
-        @page { size: A4 portrait; margin: 0; }
+        /* 🚀 FIX: @page margin set kiya gaya hai taki bottom me proper space bache */
+        @page { size: A4 portrait; margin: 15mm; }
         body { background: #fff !important; margin: 0; padding: 0; }
         
-        /* Hide UI elements properly */
-        header, aside, nav, footer, .qp-toolbar { display: none !important; }
-        
-        /* Reset margins for the sheet */
-        .qp-sheet {
-            width: 100%;
-            min-height: 100vh;
-            margin: 0;
-            padding: 15mm;
-            box-shadow: none;
+        .admin-sidebar, .admin-topbar, .qp-toolbar, .admin-footer { 
+            display: none !important; 
         }
         
-        /* Ensure colors and columns print correctly */
-        .qp-columns { column-count: 2; }
-        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .admin-main { margin-left: 0 !important; }
+        .admin-content { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+        
+        .qp-sheet {
+            width: 100% !important;
+            /* 🚀 FIX: min-height hata diya gaya hai taki extra blank page na aaye */
+            min-height: auto !important; 
+            margin: 0 !important;
+            /* 🚀 FIX: Padding 0 kar diya hai kyunki @page margin already kaam kar raha hai */
+            padding: 0 !important; 
+            box-shadow: none !important;
+        }
+        
+        .qp-columns { column-count: 2; column-gap: 20px; column-fill: auto; }
+        
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
 </style>
 
 <div class="qp-toolbar">
+    <p class="qp-print-note">
+        <strong>💡 Tip:</strong> PDF me URL/Date hide karne ke liye Print dialog me <strong>"Headers and footers"</strong> ka checkbox uncheck karein aur <strong>Margins = Default/None</strong> select karein.
+    </p>
     <button class="qp-print-btn" type="button" onclick="window.print()">
         <i class="fa-solid fa-print"></i> Print / Save as PDF
     </button>
@@ -528,13 +177,13 @@ body {
 <main class="qp-sheet">
     <!-- HEADER -->
     <header class="qp-header">
-        <img class="qp-logo" src="{{ school_logo or url_for('static', filename='images/school-logo.png') }}" alt="Logo">
+        <img class="qp-logo" src="{{ school_logo or url_for('static', filename='images/school_logo.png') }}" alt="Logo">
         <div class="qp-header-text">
             <h1 class="qp-school">{{ school_name or 'RES. SHANTI NIKETAN SHISHU VIDYA MANDIR' }}</h1>
             <p class="qp-place">{{ school_address or 'NAVINAGAR (JAMUI)' }}</p>
             <p class="qp-exam">{{ paper['title'] }}{% if paper['exam_year'] %} {{ paper['exam_year'] }}{% endif %}</p>
         </div>
-        <img class="qp-logo" src="{{ school_logo or url_for('static', filename='images/school-logo.png') }}" alt="Logo">
+        <img class="qp-logo" src="{{ school_logo or url_for('static', filename='images/school_logo.png') }}" alt="Logo">
     </header>
 
     <!-- META INFO -->
@@ -583,20 +232,21 @@ body {
                 <div class="qp-q-content">
                     <div class="qp-q-text">{{ q['question_text'] }}</div>
                     
-                    <!-- OPTIONS LOGIC: Agar options hain toh grid me dikhao -->
                     {% if q['options'] %}
-                        {% set opt_list = q['options'].split(',') if q['options'] is string else q['options'] %}
+                        {% set opt_string = q['options'].replace('\n', ',') if q['options'] is string else '' %}
+                        {% set opt_list = opt_string.split(',') %}
                         <div class="qp-options-grid">
                             {% for opt in opt_list %}
-                            <div class="qp-option-item">
-                                <span>◯</span> 
-                                <span>{{ opt.strip() }}</span>
-                            </div>
+                                {% if opt.strip() %}
+                                <div class="qp-option-item">
+                                    <span>◯</span> 
+                                    <span>{{ opt.strip() }}</span>
+                                </div>
+                                {% endif %}
                             {% endfor %}
                         </div>
                     {% endif %}
 
-                    <!-- ANSWER LINES LOGIC -->
                     {% if q['lines']|int > 0 %}
                         {% for _ in range(q['lines']|int) %}
                         <div class="qp-answer-line"></div>

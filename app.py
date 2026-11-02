@@ -3433,6 +3433,42 @@ def delete_question_paper(paper_id):
     flash('Question paper deleted.', 'success')
     return redirect(url_for('teacher_question_papers'))
 
+@app.route('/question-papers/<int:paper_id>/api/delete-questions', methods=['POST'])
+@login_required
+def api_delete_questions(paper_id):
+    user = get_user_by_id(session.get('user_id'))
+    db = get_db()
+    paper = _get_accessible_question_paper(db, user, paper_id)
+
+    if not paper:
+        return jsonify({'success': False, 'error': 'Permission denied'}), 403
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': 'Invalid request'}), 400
+
+    try:
+        if data.get('delete_all'):
+            # Delete all questions for this paper
+            db.execute('DELETE FROM exam_questions WHERE paper_id = ?', (paper_id,))
+        else:
+            # Delete selected questions
+            q_ids = data.get('question_ids', [])
+            if not q_ids:
+                return jsonify({'success': False, 'error': 'No questions selected'}), 400
+            
+            # Create placeholders for the IN clause (e.g., ?, ?, ?)
+            placeholders = ','.join(['?'] * len(q_ids))
+            db.execute(
+                f'DELETE FROM exam_questions WHERE paper_id = ? AND id IN ({placeholders})', 
+                [paper_id] + q_ids
+            )
+
+        db.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/question-papers/<int:paper_id>/print')
 @login_required

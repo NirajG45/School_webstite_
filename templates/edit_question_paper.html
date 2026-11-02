@@ -276,10 +276,15 @@
                 &nbsp;|&nbsp; Time: {{ paper['time_allowed'] }}
             </p>
         </div>
-        <a class="qpe-btn qpe-green" href="{{ url_for('print_question_paper', paper_id=paper['id']) }}" target="_blank"
-            rel="noopener">
-            <i class="fa-solid fa-print"></i> Preview / Print
-        </a>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a class="qpe-btn qpe-light" href="{{ url_for('teacher_question_papers') }}">
+                <i class="fa-solid fa-arrow-left"></i> Back to Papers
+            </a>
+            <a class="qpe-btn qpe-green" href="{{ url_for('print_question_paper', paper_id=paper['id']) }}" target="_blank"
+                rel="noopener">
+                <i class="fa-solid fa-print"></i> Preview / Print
+            </a>
+        </div>
     </section>
 
     <form method="POST" action="{{ url_for('edit_question_paper', paper_id=paper['id']) }}" id="questionForm">
@@ -296,8 +301,8 @@
                         placeholder="What is a computer?&#10;Define input device.&#10;Write two examples of output devices."></textarea>
                     <div class="qpe-grid" style="margin-top:12px">
                         <div class="qpe-field">
-                            <label for="bulkSection">Default section</label>
-                            <input id="bulkSection" value="A. Answer the following" maxlength="120">
+                            <label for="bulkSection">Default section (Optional)</label>
+                            <input id="bulkSection" value="A. Answer the following" maxlength="120" placeholder="Leave blank for General">
                         </div>
                         <div class="qpe-field">
                             <label for="bulkOptions">Default options (optional)</label>
@@ -343,36 +348,52 @@
     <section class="qpe-panel">
         <div class="qpe-head">
             <h3><i class="fa-solid fa-list-check"></i> Saved questions</h3>
-            <span class="qpe-count">{{ total_questions }} saved &nbsp;|&nbsp; {{ saved_marks }} marks</span>
+            
+            <!-- 🚀 NEW: BULK DELETE CONTROLS -->
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <label style="font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; color: #42566d;">
+                    <input type="checkbox" id="selectAllSaved" style="width: 16px; height: 16px;"> Select All
+                </label>
+                <button type="button" class="qpe-btn qpe-red" id="deleteSelectedBtn" disabled style="padding: 6px 12px;">Delete Selected</button>
+                <button type="button" class="qpe-btn qpe-red" id="deleteAllBtn" style="padding: 6px 12px;">Delete All</button>
+            </div>
         </div>
         <div class="qpe-body">
+            <div class="d-flex justify-content-end mb-2">
+                <span class="qpe-count">{{ total_questions }} saved &nbsp;|&nbsp; {{ saved_marks }} marks</span>
+            </div>
+            
             {% if grouped_questions %}
             {% for section, qs in grouped_questions.items() %}
             <h5 class="text-primary fw-bold mt-3 mb-2">{{ section }}</h5>
             {% for q in qs %}
-            <div class="qpe-saved">
-                <div class="qpe-saved-text">
-                    <strong>{{ loop.index }}.</strong> {{ q['question_text'] }}
-                    {% if q['options'] %}<div class="qpe-option">{{ q['options'] }}</div>{% endif %}
-                    <div class="qpe-meta">
-                        <span>{{ q['marks'] }} mark(s)</span>
-                        <span>{{ q['lines'] }} answer line(s)</span>
+            <div class="qpe-saved" id="saved-q-{{ q['id'] }}">
+                <div style="display:flex; gap: 12px; align-items: flex-start; flex: 1;">
+                    <!-- 🚀 NEW: Checkbox for individual question -->
+                    <input type="checkbox" class="saved-q-checkbox" value="{{ q['id'] }}" style="margin-top: 4px; width: 16px; height: 16px; cursor: pointer;">
+                    
+                    <div class="qpe-saved-text">
+                        <strong>{{ loop.index }}.</strong> {{ q['question_text'] }}
+                        {% if q['options'] %}<div class="qpe-option">{{ q['options'] }}</div>{% endif %}
+                        <div class="qpe-meta">
+                            <span>{{ q['marks'] }} mark(s)</span>
+                            <span>{{ q['lines'] }} answer line(s)</span>
+                        </div>
                     </div>
                 </div>
-                <form method="POST" action="{{ url_for('delete_question', paper_id=paper['id'], q_id=q['id']) }}"
-                    onsubmit="return confirm('Delete this question?');">
-                    <button type="submit" class="qpe-btn qpe-red" aria-label="Delete question"><i
-                            class="fa-solid fa-trash"></i></button>
-                </form>
+                
+                <!-- 🚀 UPDATED: AJAX delete button instead of form submission -->
+                <button type="button" class="qpe-btn qpe-red btn-delete-single" data-id="{{ q['id'] }}" aria-label="Delete question">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
             </div>
             {% endfor %}
             {% endfor %}
             {% else %}
-            <div class="text-center py-5 text-muted">
+            <div class="text-center py-5 text-muted" id="noQuestionsMessage">
                 <i class="fa-solid fa-file-circle-question fa-2x mb-3"></i>
                 <h5>No questions saved yet</h5>
-                <p class="small mb-0">Add questions above. After saving, they will appear here and in the print preview.
-                </p>
+                <p class="small mb-0">Add questions above. After saving, they will appear here and in the print preview.</p>
             </div>
             {% endif %}
         </div>
@@ -381,13 +402,11 @@
 
 <script>
     (function () {
+        // ... (Keep the existing question builder code here, up to the form.submit event) ...
         const container = document.getElementById('questionRows');
         const rowCount = document.getElementById('rowCount');
         const form = document.getElementById('questionForm');
-        const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-        }[char]));
-
+        
         function updateCount() {
             const rows = [...container.querySelectorAll('.qpe-row')];
             rowCount.textContent = rows.length;
@@ -403,7 +422,7 @@
         <button type="button" class="qpe-btn qpe-red" data-remove><i class="fa-solid fa-xmark"></i> Remove</button>
       </div>
       <div class="qpe-grid">
-        <div class="qpe-field"><label>Section *</label><input name="section[]" maxlength="120" required placeholder="A. Short answer"></div>
+        <div class="qpe-field"><label>Section (Optional)</label><input name="section[]" maxlength="120" placeholder="Leave blank for General"></div>
         <div class="qpe-field"><label>Question *</label><input name="question[]" maxlength="2000" required placeholder="Enter question text"></div>
         <div class="qpe-field"><label>Options (optional)</label><input name="options[]" maxlength="2000" placeholder="a) ... , b) ..."></div>
         <div class="qpe-field"><label>Marks</label><input name="marks[]" type="number" min="1" max="1000" value="1" required></div>
@@ -423,6 +442,7 @@
         document.getElementById('addFive').addEventListener('click', () => {
             for (let i = 0; i < 5; i++) addRow();
         });
+        
         document.getElementById('generateBulk').addEventListener('click', () => {
             const questions = document.getElementById('bulkQuestions').value
                 .split(/\r?\n/).map(value => value.trim()).filter(Boolean);
@@ -430,8 +450,8 @@
             const marks = Number(document.getElementById('bulkMarks').value);
             const lines = Number(document.getElementById('bulkLines').value);
             const options = document.getElementById('bulkOptions').value.trim();
+            
             if (!questions.length) return alert('Paste at least one question first.');
-            if (!section) return alert('Enter a section name.');
             if (!Number.isInteger(marks) || marks < 1 || marks > 1000) return alert('Marks must be between 1 and 1000.');
             if (!Number.isInteger(lines) || lines < 0 || lines > 30) return alert('Answer lines must be between 0 and 30.');
             if (questions.length + container.querySelectorAll('.qpe-row').length > 100) {
@@ -440,6 +460,7 @@
             questions.forEach(question => addRow({ section, question, options, marks, lines }));
             document.getElementById('bulkQuestions').value = '';
         });
+        
         document.getElementById('removeEmpty').addEventListener('click', () => {
             let removed = 0;
             container.querySelectorAll('.qpe-row').forEach(row => {
@@ -449,19 +470,20 @@
             updateCount();
             alert(`${removed} empty row(s) removed.`);
         });
+
         form.addEventListener('submit', event => {
             const rows = [...container.querySelectorAll('.qpe-row')];
             if (!rows.length) { event.preventDefault(); alert('Add at least one question.'); return; }
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
-                const section = row.querySelector('[name="section[]"]').value.trim();
                 const question = row.querySelector('[name="question[]"]').value.trim();
                 const marks = Number(row.querySelector('[name="marks[]"]').value);
                 const lines = Number(row.querySelector('[name="lines[]"]').value);
-                if (!section || !question || !Number.isInteger(marks) || marks < 1 || marks > 1000 ||
+                
+                if (!question || !Number.isInteger(marks) || marks < 1 || marks > 1000 ||
                     !Number.isInteger(lines) || lines < 0 || lines > 30) {
                     event.preventDefault();
-                    alert(`Please check the section, question, marks and lines in row ${i + 1}.`);
+                    alert(`Please check the question, marks and lines in row ${i + 1}.`);
                     row.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     return;
                 }
@@ -470,8 +492,143 @@
             button.disabled = true;
             button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
         });
-        // Start with one editable row, rather than five confusing blank rows.
-        addRow();
+        
+        addRow(); // Start with one row
+
+        // ==========================================
+        // 🚀 NEW: AJAX DELETE LOGIC (No Page Reload)
+        // ==========================================
+        
+        const selectAllCheckbox = document.getElementById('selectAllSaved');
+        const checkboxes = document.querySelectorAll('.saved-q-checkbox');
+        const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+        const deleteAllBtn = document.getElementById('deleteAllBtn');
+        const apiUrl = "{{ url_for('api_delete_questions', paper_id=paper['id']) }}";
+
+        // Function to update Delete Selected button state
+        function updateDeleteBtnState() {
+            const checkedCount = document.querySelectorAll('.saved-q-checkbox:checked').length;
+            deleteSelectedBtn.disabled = checkedCount === 0;
+            
+            // Update Select All checkbox state
+            const totalCheckboxes = document.querySelectorAll('.saved-q-checkbox').length;
+            if (totalCheckboxes > 0) {
+                selectAllCheckbox.checked = (checkedCount === totalCheckboxes);
+            }
+        }
+
+        // Handle Select All click
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                document.querySelectorAll('.saved-q-checkbox').forEach(cb => {
+                    cb.checked = this.checked;
+                });
+                updateDeleteBtnState();
+            });
+        }
+
+        // Handle individual checkbox changes
+        document.querySelectorAll('.saved-q-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateDeleteBtnState);
+        });
+
+        // Function to send AJAX delete request
+        async function sendDeleteRequest(payload) {
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                return data.success;
+            } catch (err) {
+                return false;
+            }
+        }
+
+        // Handle Single Delete Button Click
+        document.querySelectorAll('.btn-delete-single').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const qId = this.getAttribute('data-id');
+                this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                
+                const success = await sendDeleteRequest({ question_ids: [qId] });
+                
+                if (success) {
+                    // Remove element from DOM smoothly without reloading
+                    const row = document.getElementById(`saved-q-${qId}`);
+                    if (row) {
+                        row.style.opacity = '0';
+                        row.style.transform = 'translateX(20px)';
+                        row.style.transition = 'all 0.3s';
+                        setTimeout(() => { row.remove(); updateDeleteBtnState(); }, 300);
+                    }
+                } else {
+                    alert('Error deleting question. Please try again.');
+                    this.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                }
+            });
+        });
+
+        // Handle Bulk Delete Click
+        if (deleteSelectedBtn) {
+            deleteSelectedBtn.addEventListener('click', async function() {
+                const selectedIds = Array.from(document.querySelectorAll('.saved-q-checkbox:checked')).map(cb => cb.value);
+                if (!selectedIds.length) return;
+
+                this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
+                this.disabled = true;
+
+                const success = await sendDeleteRequest({ question_ids: selectedIds });
+                
+                if (success) {
+                    selectedIds.forEach(id => {
+                        const row = document.getElementById(`saved-q-${id}`);
+                        if (row) {
+                            row.style.opacity = '0';
+                            setTimeout(() => row.remove(), 300);
+                        }
+                    });
+                    setTimeout(() => { 
+                        updateDeleteBtnState(); 
+                        this.innerHTML = 'Delete Selected';
+                    }, 350);
+                } else {
+                    alert('Error deleting questions.');
+                    this.innerHTML = 'Delete Selected';
+                    this.disabled = false;
+                }
+            });
+        }
+
+        // Handle Delete All Click
+        if (deleteAllBtn) {
+            deleteAllBtn.addEventListener('click', async function() {
+                if (!confirm('Are you sure you want to delete ALL questions from this paper? This cannot be undone.')) return;
+
+                this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
+                this.disabled = true;
+
+                const success = await sendDeleteRequest({ delete_all: true });
+                
+                if (success) {
+                    document.querySelectorAll('.qpe-saved').forEach(row => {
+                        row.style.opacity = '0';
+                        setTimeout(() => row.remove(), 300);
+                    });
+                    setTimeout(() => {
+                        const noQMsg = document.getElementById('noQuestionsMessage');
+                        if (noQMsg) noQMsg.style.display = 'block';
+                        this.innerHTML = 'Delete All';
+                    }, 350);
+                } else {
+                    alert('Error deleting questions.');
+                    this.innerHTML = 'Delete All';
+                    this.disabled = false;
+                }
+            });
+        }
     })();
 </script>
 {% endblock %}

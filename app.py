@@ -4,7 +4,8 @@ import os
 import sqlite3
 import re
 import secrets
-import json  # <--- NEW IMPORT ADDED
+import json
+import math
 from functools import wraps
 from datetime import timedelta, datetime
 from flask import (Flask, render_template, request, redirect, url_for, flash, jsonify, g, session)
@@ -12,14 +13,18 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from PIL import Image, ImageOps
 import io
+import hmac
+import logging
+from datetime import date
+from urllib.parse import urlparse
 
 # =========================================
 # 1. APP CONFIGURATION
 # =========================================
+load_dotenv(Path(__file__).resolve().with_name(".env"))
+
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = Path(os.environ.get('SCHOOL_DB_PATH', BASE_DIR / 'school.db'))
-
-load_dotenv(Path(__file__).resolve().with_name(".env"))
 app = Flask(__name__)
 secret_key = os.environ.get("SECRET_KEY")
 
@@ -28,15 +33,25 @@ if not secret_key or len(secret_key) < 32:
         "SECRET_KEY missing or too short. Check your .env file."
     )
 
-app.config["SECRET_KEY"] = secret_key
-app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20MB limit
-app.config['SESSION_COOKIE_SECURE'] = True if os.environ.get('FLASK_ENV') == 'production' else False
-app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+IS_PRODUCTION = os.environ.get('FLASK_ENV', '').lower() == 'production'
+app.config.update(
+    SECRET_KEY=secret_key,
+    MAX_CONTENT_LENGTH=20 * 1024 * 1024,  # request-wide hard limit
+    MAX_FORM_MEMORY_SIZE=2 * 1024 * 1024,
+    SESSION_COOKIE_SECURE=IS_PRODUCTION,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='Lax',
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=8),
+    SESSION_REFRESH_EACH_REQUEST=True,
+    TEMPLATES_AUTO_RELOAD=not IS_PRODUCTION,
+    SEND_FILE_MAX_AGE_DEFAULT=0 if not IS_PRODUCTION else 3600,
+    JSON_SORT_KEYS=False,
+)
 
-app.config['TEMPLATES_AUTO_RELOAD'] = True
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+# The old hard-coded shared password (snv@450) was unsafe. Existing accounts
+# are not changed. New accounts get a per-process random temporary password,
+# unless the operator explicitly configures DEFAULT_USER_PASSWORD in .env.
+DEFAULT_PASSWORD = os.environ.get('DEFAULT_USER_PASSWORD') or secrets.token_urlsafe(12)
 
 # UPGRADE: Upload folder for QR codes
 UPLOAD_FOLDER = BASE_DIR / 'static' / 'uploads'
@@ -45,7 +60,10 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    if not filename or not isinstance(filename, str) or len(filename) > 255:
+        return False
+    clean = secure_filename(filename)
+    return bool(clean and '.' in clean and clean.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS)
 
 # === Jinja filter to format YYYY-MM-DD → "OCT" ===
 @app.template_filter('month_abbr')
@@ -57,7 +75,7 @@ def month_abbr(date_str):
     except (ValueError, IndexError, TypeError):
         return ''
 
-DEFAULT_PASSWORD = 'snv@450'  # Default password for new users
+# Legacy hard-coded default password removed.
 
 # =========================================
 # 1.5. USER TABLE — EXTRA COLUMNS (MIGRATION)
@@ -151,8 +169,10 @@ ROLE_FIELDS = {
 # =========================================
 def get_db():
     if 'db' not in g:
-        g.db = sqlite3.connect(DB_PATH)
+        g.db = sqlite3.connect(DB_PATH, timeout=15)
         g.db.row_factory = sqlite3.Row
+        g.db.execute('PRAGMA foreign_keys = ON')
+        g.db.execute('PRAGMA busy_timeout = 15000')
     return g.db
 
 @app.teardown_appcontext
@@ -531,6 +551,21 @@ def set_setting(key, value):
     db.execute('INSERT OR REPLACE INTO school_settings (key, value) VALUES (?, ?)', (key, value))
     db.commit()
 
+
+def safe_redirect_url(default_url):
+    """Accept only same-host referrers; otherwise use the supplied local URL."""
+    referrer = request.referrer
+    if not referrer:
+        return default_url
+    try:
+        parsed = urlparse(referrer)
+        host = request.host.split(':', 1)[0].lower()
+        if parsed.scheme in {'http', 'https'} and parsed.hostname and parsed.hostname.lower() == host:
+            return referrer
+    except (TypeError, ValueError):
+        pass
+    return default_url
+
 def get_combined_faculty():
     """Fetches faculty records. Ensures every active teacher has a faculty row
        so that faculty.id is always available for subject assignments."""
@@ -612,19 +647,18 @@ def get_parent_child(db, parent_user):
 # 3.1. USER PHOTO + FIELD HELPERS
 # =========================================
 def save_user_photo(file_storage, max_kb=60):
-    if not file_storage or not file_storage.filename:
+    if not file_storage or not file_storage.filename or not allowed_file(file_storage.filename):
         return None
-    if not allowed_file(file_storage.filename):
-        return None
-
     compressed = compress_image(file_storage, target_kb=max_kb)
     if not compressed:
         return None
-
-    filename = f"user_{secrets.token_hex(8)}.jpg"
     photos_dir = UPLOAD_FOLDER / 'photos'
     photos_dir.mkdir(parents=True, exist_ok=True)
-    (photos_dir / filename).write_bytes(compressed)
+    filename = f"user_{secrets.token_hex(16)}.jpg"
+    destination = photos_dir / filename
+    # Exclusive create prevents accidental overwrite, even in the unlikely event of collision.
+    with destination.open('xb') as output:
+        output.write(compressed)
     return url_for('static', filename=f'uploads/photos/{filename}')
 
 
@@ -648,32 +682,40 @@ def _collect_form_fields(role):
 
 def compress_image(file_storage, target_kb=45, max_dim=1600,
                    quality_start=85, quality_min=20):
-    """
-    Kisi bhi size ki image ko target_kb (~45KB) tak compress karta hai.
-    Returns: bytes (JPEG)  OR  None (agar fail ho jaye)
-    """
+    """Decode and re-encode an uploaded image; never trust its extension/MIME."""
     try:
         file_storage.stream.seek(0)
-        img = Image.open(file_storage.stream)
-        img = ImageOps.exif_transpose(img)
+        # Reject decompression bombs and malformed image payloads.
+        Image.MAX_IMAGE_PIXELS = 25_000_000
+        with Image.open(file_storage.stream) as source:
+            if source.format not in {'JPEG', 'PNG', 'GIF', 'WEBP'}:
+                return None
+            source.verify()
+        file_storage.stream.seek(0)
+        with Image.open(file_storage.stream) as source:
+            source.seek(0)  # first frame only for animated images
+            img = ImageOps.exif_transpose(source.copy())
 
         if img.mode in ('RGBA', 'LA', 'P'):
             if img.mode == 'P':
                 img = img.convert('RGBA')
-            bg = Image.new('RGB', img.size, (255, 255, 255))
-            bg.paste(img, mask=img.split()[-1])
-            img = bg
+            if img.mode == 'RGBA':
+                bg = Image.new('RGB', img.size, (255, 255, 255))
+                bg.paste(img, mask=img.getchannel('A'))
+                img = bg
+            else:
+                img = img.convert('RGB')
         elif img.mode != 'RGB':
             img = img.convert('RGB')
 
         if max(img.size) > max_dim:
-            img.thumbnail((max_dim, max_dim), Image.LANCZOS)
+            img.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
 
         buf = io.BytesIO()
-
         quality = quality_start
         while quality >= quality_min:
-            buf.seek(0); buf.truncate()
+            buf.seek(0)
+            buf.truncate()
             img.save(buf, format='JPEG', quality=quality,
                      optimize=True, progressive=True)
             if buf.tell() <= target_kb * 1024:
@@ -681,16 +723,20 @@ def compress_image(file_storage, target_kb=45, max_dim=1600,
             quality -= 5
 
         while buf.tell() > target_kb * 1024 and max(img.size) > 400:
-            new_size = (int(img.width * 0.85), int(img.height * 0.85))
-            img = img.resize(new_size, Image.LANCZOS)
-            buf.seek(0); buf.truncate()
+            new_size = (max(1, int(img.width * 0.85)), max(1, int(img.height * 0.85)))
+            img = img.resize(new_size, Image.Resampling.LANCZOS)
+            buf.seek(0)
+            buf.truncate()
             img.save(buf, format='JPEG', quality=quality_min,
                      optimize=True, progressive=True)
 
         buf.seek(0)
         return buf.getvalue()
-    except Exception as e:
-        print(f"[compress_image] error: {e}")
+    except (OSError, ValueError, Image.DecompressionBombError, Image.DecompressionBombWarning):
+        app.logger.warning('Rejected invalid or unsafe image upload')
+        return None
+    except Exception:
+        app.logger.exception('Image processing failed')
         return None
 
 # =========================================
@@ -699,25 +745,43 @@ def compress_image(file_storage, target_kb=45, max_dim=1600,
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        if not session.get('user_id'):
+        uid = session.get('user_id')
+        if not uid:
             flash('Please login to access this page.', 'error')
             return redirect(url_for('login_page'))
-        user = get_user_by_id(session['user_id'])
-        if user and user['force_password_change'] and request.endpoint not in ('change_password', 'logout', 'static'):
-            flash('Please change your default password to continue.', 'error')
+        user = get_user_by_id(uid)
+        if not user or not user['is_active']:
+            session.clear()
+            flash('Your session is no longer valid. Please login again.', 'error')
+            return redirect(url_for('login_page'))
+        if user['force_password_change'] and request.endpoint not in ('change_password', 'logout', 'static'):
+            flash('Please change your password to continue.', 'error')
             return redirect(url_for('change_password'))
+        # Always trust the current database role, not a stale client session value.
+        session['user_role'] = user['role']
         return f(*args, **kwargs)
     return decorated
+
 
 def admin_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        if not session.get('user_id'):
+        uid = session.get('user_id')
+        if not uid:
             flash('Please login to access admin panel.', 'error')
             return redirect(url_for('login_page'))
-        if session.get('user_role') not in ('admin', 'administrator'):
+        user = get_user_by_id(uid)
+        if not user or not user['is_active']:
+            session.clear()
+            flash('Your session is no longer valid. Please login again.', 'error')
+            return redirect(url_for('login_page'))
+        if user['role'] not in ('admin', 'administrator'):
             flash('Access denied. Admin privileges required.', 'error')
             return redirect(url_for('user_dashboard'))
+        session['user_role'] = user['role']
+        if user['force_password_change']:
+            flash('Please change your password to continue.', 'error')
+            return redirect(url_for('change_password'))
         return f(*args, **kwargs)
     return decorated
 
@@ -855,14 +919,46 @@ def inject_exam_pending_counts():
 # =========================================
 @app.before_request
 def sync_session_user_info():
-    """Har request par check karta hai ki DB aur Session me photo_url sync hai ya nahi."""
+    """Refresh identity from DB and reject deleted/deactivated accounts."""
     if session.get('user_id'):
-        db = get_db()
-        user = db.execute('SELECT photo_url, name, role FROM users WHERE id = ?', (session['user_id'],)).fetchone()
-        if user:
-            session['photo_url'] = user['photo_url']
-            session['user_name'] = user['name']
-            session['user_role'] = user['role']
+        user = get_db().execute(
+            'SELECT id, photo_url, name, role, is_active FROM users WHERE id = ?',
+            (session['user_id'],)
+        ).fetchone()
+        if not user or not user['is_active']:
+            session.clear()
+            return None
+        session['photo_url'] = user['photo_url']
+        session['user_name'] = user['name']
+        session['user_role'] = user['role']
+
+
+@app.before_request
+def basic_csrf_origin_guard():
+    """Compatibility-safe browser CSRF mitigation for existing HTML forms.
+
+    Rejects cross-origin unsafe browser requests. For complete token-based CSRF
+    protection, templates must also include the session csrf_token in every form.
+    """
+    if request.method not in {'POST', 'PUT', 'PATCH', 'DELETE'}:
+        return None
+    fetch_site = request.headers.get('Sec-Fetch-Site', '').lower()
+    if fetch_site == 'cross-site':
+        return ('Cross-site request blocked.', 403)
+    origin = request.headers.get('Origin')
+    referer = request.headers.get('Referer')
+    candidate = origin or referer
+    if candidate:
+        try:
+            parsed = urlparse(candidate)
+            expected_host = request.host.split(':', 1)[0].lower()
+            if parsed.hostname and parsed.hostname.lower() != expected_host:
+                return ('Cross-origin request blocked.', 403)
+            if parsed.scheme and parsed.scheme not in {'http', 'https'}:
+                return ('Invalid request origin.', 403)
+        except (TypeError, ValueError):
+            return ('Invalid request origin.', 403)
+    return None
 
 # =========================================
 # 5. PUBLIC ROUTES
@@ -938,7 +1034,7 @@ def admin_edit_profile(user_id):
 
     if not user:
         flash('User not found.', 'error')
-        return redirect(request.referrer or url_for('admin_users'))
+        return redirect(safe_redirect_url(url_for('admin_users')))
 
     name = request.form.get('name', '').strip()
     email = request.form.get('email', '').strip()
@@ -947,15 +1043,15 @@ def admin_edit_profile(user_id):
 
     if not name or not email or not phone or not role:
         flash('Name, Email, Phone and Role are required.', 'error')
-        return redirect(request.referrer or url_for('admin_users'))
+        return redirect(safe_redirect_url(url_for('admin_users')))
 
     if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
         flash('Invalid email format.', 'error')
-        return redirect(request.referrer or url_for('admin_users'))
+        return redirect(safe_redirect_url(url_for('admin_users')))
 
     if role not in ('teacher', 'admin', 'administrator', 'parent', 'student'):
         flash('Invalid role.', 'error')
-        return redirect(request.referrer or url_for('admin_users'))
+        return redirect(safe_redirect_url(url_for('admin_users')))
 
     editable = set(COMMON_FIELDS) | set(ROLE_FIELDS.get(role, []))
     updates = {}
@@ -1022,10 +1118,12 @@ def admin_edit_profile(user_id):
         flash('Profile updated successfully!', 'success')
     except sqlite3.IntegrityError:
         flash('Email already exists. Please use a different email.', 'error')
-    except Exception as e:
-        flash(f'An error occurred: {str(e)}', 'error')
+    except Exception:
+        db.rollback()
+        app.logger.exception('Admin profile update failed for user_id=%s', user_id)
+        flash('Unable to update this profile right now. Please try again.', 'error')
 
-    return redirect(request.referrer or url_for('admin_users'))
+    return redirect(safe_redirect_url(url_for('admin_users')))
 
 
 # =========================================
@@ -1039,8 +1137,11 @@ def login_page():
 
 @app.route('/login', methods=['POST'])
 def login():
-    unique_id = request.form.get('unique_id', '').strip().upper()
+    unique_id = request.form.get('unique_id', '').strip().upper()[:40]
     password = request.form.get('password', '')
+    if not unique_id or not password or len(password) > 1024:
+        flash('Invalid ID or password.', 'error')
+        return redirect(url_for('login_page'))
 
     db = get_db()
     user = db.execute('SELECT * FROM users WHERE unique_id = ?', (unique_id,)).fetchone()
@@ -1049,6 +1150,7 @@ def login():
         if not user['is_active']:
             flash('Your account has been deactivated. Contact admin.', 'error')
             return redirect(url_for('login_page'))
+        session.clear()  # rotate session state after successful authentication
         session.permanent = True
         session['user_id'] = user['id']
         session['user_name'] = user['name']
@@ -1075,8 +1177,11 @@ def change_password():
         new_pw = request.form.get('new_password', '')
         confirm = request.form.get('confirm_password', '')
 
-        if len(new_pw) < 6:
-            flash('Password must be at least 6 characters.', 'error')
+        if len(new_pw) < 10 or len(new_pw) > 128:
+            flash('Password must be between 10 and 128 characters.', 'error')
+            return redirect(url_for('change_password'))
+        if new_pw == DEFAULT_PASSWORD:
+            flash('Please choose a password different from the temporary password.', 'error')
             return redirect(url_for('change_password'))
         if new_pw != confirm:
             flash('Passwords do not match.', 'error')
@@ -1270,14 +1375,16 @@ def leave_request():
 @app.route('/fee/pay', methods=['POST'])
 @login_required
 def fee_pay():
-    amount = request.form.get('amount', '0')
-    txn_id = request.form.get('transaction_id', '').strip()
-    remarks = request.form.get('remarks', '').strip()
+    amount_raw = (request.form.get('amount') or '').strip()
+    txn_id = (request.form.get('transaction_id') or '').strip()[:100]
+    remarks = (request.form.get('remarks') or '').strip()[:500]
 
     try:
-        amount = float(amount)
-    except:
-        flash('Invalid amount.', 'error')
+        amount = float(amount_raw)
+        if not (0 < amount <= 1_000_000) or not amount_raw or not __import__('math').isfinite(amount):
+            raise ValueError
+    except (TypeError, ValueError, OverflowError):
+        flash('Invalid amount. Enter a valid amount between 0 and 10,00,000.', 'error')
         return redirect(url_for('user_dashboard'))
 
     db = get_db()
@@ -1433,21 +1540,21 @@ def admin_update_user_photo(user_id):
     user = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
     if not user:
         flash('User not found.', 'error')
-        return redirect(request.referrer or url_for('admin_users'))
+        return redirect(safe_redirect_url(url_for('admin_users')))
 
     photo_file = request.files.get('photo')
     if not photo_file or not photo_file.filename:
         flash('No file uploaded.', 'error')
-        return redirect(request.referrer or url_for('admin_users'))
+        return redirect(safe_redirect_url(url_for('admin_users')))
 
     if not allowed_file(photo_file.filename):
         flash('Invalid file type.', 'error')
-        return redirect(request.referrer or url_for('admin_users'))
+        return redirect(safe_redirect_url(url_for('admin_users')))
 
     photo_url = save_user_photo(photo_file)
     if not photo_url:
         flash('Image too large (max 2MB) or could not be saved.', 'error')
-        return redirect(request.referrer or url_for('admin_users'))
+        return redirect(safe_redirect_url(url_for('admin_users')))
 
     db.execute('UPDATE users SET photo_url = ? WHERE id = ?', (photo_url, user_id))
     if user['role'] == 'teacher':
@@ -1458,7 +1565,7 @@ def admin_update_user_photo(user_id):
         session['photo_url'] = photo_url
 
     flash('User photo updated successfully.', 'success')
-    return redirect(request.referrer or url_for('admin_users'))
+    return redirect(safe_redirect_url(url_for('admin_users')))
 
 
 @app.route('/admin/users/<int:user_id>/remove-photo', methods=['POST'])
@@ -1468,7 +1575,7 @@ def admin_remove_user_photo(user_id):
     user = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
     if not user:
         flash('User not found.', 'error')
-        return redirect(request.referrer or url_for('admin_users'))
+        return redirect(safe_redirect_url(url_for('admin_users')))
 
     db.execute('UPDATE users SET photo_url = NULL WHERE id = ?', (user_id,))
     if user['role'] == 'teacher':
@@ -1479,7 +1586,7 @@ def admin_remove_user_photo(user_id):
         session['photo_url'] = None
 
     flash('User photo removed.', 'success')
-    return redirect(request.referrer or url_for('admin_users'))
+    return redirect(safe_redirect_url(url_for('admin_users')))
 
 @app.route('/admin/create-user', methods=['GET', 'POST'])
 @admin_required
@@ -1638,19 +1745,28 @@ def admin_create_user():
                             fields.get('photo_url'), 'Teacher at Residential Shanti Niketan.'))
 
             db.commit()
-        except sqlite3.IntegrityError as e:
-            flash(f'Database error: {e}', 'error')
-            return render_template('admin_create_user.html',
-                                   form=form, errors={'_': str(e)},
+        except sqlite3.IntegrityError:
+            db.rollback()
+            app.logger.exception('User creation failed due to a database constraint')
+            flash('This email, phone, or identifier is already in use.', 'error')
+            return render_template('admin_create_user.html', form=form,
+                                   errors={'_': 'A unique field is already registered.'},
                                    active_page='create_user')
-        except Exception as e:
-            flash(f'Error creating user: {e}', 'error')
-            return render_template('admin_create_user.html',
-                                   form=form, errors={'_': str(e)},
+        except Exception:
+            db.rollback()
+            app.logger.exception('User creation failed')
+            flash('Unable to create the user right now. Please try again.', 'error')
+            return render_template('admin_create_user.html', form=form,
+                                   errors={'_': 'A server error occurred. Please try again.'},
                                    active_page='create_user')
 
         flash(f'{role.capitalize()} created! ID: {unique_id} | '
               f'Default Password: {DEFAULT_PASSWORD}', 'success')
+        
+        # 🚀 NAYA LOGIC: Agar student add hua hai, toh direct Admission Form print page open ho
+        if role == 'student':
+            return redirect(url_for('admin_print_admission_form', student_id=new_user_id))
+            
         return redirect(url_for('admin_users'))
 
     pre_role = request.args.get('role', '')
@@ -1663,6 +1779,17 @@ def admin_create_user():
                            form=initial_form, errors={},
                            active_page='create_user')
 
+@app.route('/admin/students/<int:student_id>/print-admission-form')
+@admin_required
+def admin_print_admission_form(student_id):
+    db = get_db()
+    student = db.execute("SELECT * FROM users WHERE id=? AND role='student'", (student_id,)).fetchone()
+    
+    if not student:
+        flash('Student not found.', 'error')
+        return redirect(url_for('admin_users'))
+        
+    return render_template('admission_form_print.html', student=student)
 
 # =========================================
 # 10.1. API — LIVE EMAIL / PHONE AVAILABILITY
@@ -1923,47 +2050,76 @@ def admin_attendance():
 @app.route('/admin/attendance/mark', methods=['POST'])
 @admin_required
 def admin_mark_attendance():
-    date         = request.form.get('date', datetime.now().strftime('%Y-%m-%d'))
-    subject      = request.form.get('subject', 'General')
-    role         = request.form.get('role', 'student')
-    class_filter = request.form.get('class_filter', 'all')
+    date = (request.form.get('date') or datetime.now().strftime('%Y-%m-%d')).strip()
+    subject = (request.form.get('subject') or 'General').strip()[:100] or 'General'
+    role = (request.form.get('role') or 'student').strip().lower()
+    class_filter = (request.form.get('class_filter') or 'all').strip()
+    valid_roles = {'student', 'teacher', 'parent'}
+    valid_statuses = {'present', 'absent', 'leave', 'half-day'}
+    try:
+        datetime.strptime(date, '%Y-%m-%d')
+    except (TypeError, ValueError):
+        flash('Invalid attendance date.', 'error')
+        return redirect(url_for('admin_attendance'))
+    if role not in valid_roles:
+        flash('Invalid attendance role.', 'error')
+        return redirect(url_for('admin_attendance', date=date))
+
     db = get_db()
-
-    for key, val in request.form.items():
-        if key.startswith('status_'):
-            try:
-                uid = int(key.replace('status_', ''))
-            except ValueError:
-                continue
-            val = (val or '').strip()
-
-            existing = db.execute(
-                'SELECT id FROM attendance WHERE user_id = ? AND date = ? AND subject = ?',
-                (uid, date, subject)
+    updates = []
+    for key, raw_status in request.form.items():
+        if not key.startswith('status_'):
+            continue
+        try:
+            uid = int(key[len('status_'):])
+        except (TypeError, ValueError):
+            continue
+        status = (raw_status or '').strip().lower()
+        if status and status not in valid_statuses:
+            flash('Invalid attendance status submitted; no changes were saved.', 'error')
+            return redirect(url_for('admin_attendance', date=date, role=role,
+                                    class_filter=class_filter, subject_filter=subject))
+        target = db.execute(
+            "SELECT id FROM users WHERE id=? AND role=? AND is_active=1", (uid, role)
+        ).fetchone()
+        if not target:
+            continue
+        if role == 'student' and class_filter != 'all':
+            in_class = db.execute(
+                "SELECT 1 FROM users WHERE id=? AND role='student' AND (class_name=? OR child_class=?)",
+                (uid, class_filter, class_filter)
             ).fetchone()
+            if not in_class:
+                continue
+        updates.append((uid, status))
 
-            if not val:
-                if existing:
-                    db.execute('DELETE FROM attendance WHERE id = ?', (existing['id'],))
-            elif existing:
-                db.execute(
-                    'UPDATE attendance SET status = ?, marked_by = ? WHERE id = ?',
-                    (val, session['user_id'], existing['id'])
-                )
+    try:
+        db.execute('BEGIN IMMEDIATE')
+        for uid, status in updates:
+            existing_rows = db.execute(
+                'SELECT id FROM attendance WHERE user_id=? AND date=? AND subject=? ORDER BY id DESC',
+                (uid, date, subject)
+            ).fetchall()
+            if not status:
+                if existing_rows:
+                    db.execute('DELETE FROM attendance WHERE id=?', (existing_rows[0]['id'],))
+            elif existing_rows:
+                db.execute('UPDATE attendance SET status=?, marked_by=? WHERE id=?',
+                           (status, session['user_id'], existing_rows[0]['id']))
             else:
-                db.execute(
-                    'INSERT INTO attendance (user_id, date, status, subject, marked_by) '
-                    'VALUES (?,?,?,?,?)',
-                    (uid, date, val, subject, session['user_id'])
-                )
+                db.execute('INSERT INTO attendance (user_id, date, status, subject, marked_by) VALUES (?,?,?,?,?)',
+                           (uid, date, status, subject, session['user_id']))
+        db.commit()
+    except Exception:
+        db.rollback()
+        app.logger.exception('Admin attendance save failed')
+        flash('Attendance could not be saved. Please try again.', 'error')
+        return redirect(url_for('admin_attendance', date=date, role=role,
+                                class_filter=class_filter, subject_filter=subject))
 
-    db.commit()
     flash(f'Attendance marked for {date} ({subject}).', 'success')
-    return redirect(url_for(
-        'admin_attendance',
-        date=date, role=role,
-        class_filter=class_filter, subject_filter=subject
-    ))
+    return redirect(url_for('admin_attendance', date=date, role=role,
+                            class_filter=class_filter, subject_filter=subject))
 
 # === LEAVE REQUESTS ===
 @app.route('/admin/leaves')
@@ -2059,9 +2215,14 @@ def admin_messages():
             flash('Subject and body required.', 'error')
             return redirect(url_for('admin_messages'))
 
-        if to_user_id:
-            db.execute('INSERT INTO messages (from_user_id, to_user_id, subject, body) VALUES (?,?,?,?)',
-                       (session['user_id'], int(to_user_id), subject, body))
+        try:
+            uid = int(to_user_id)
+            if not db.execute('SELECT 1 FROM users WHERE id=?', (uid,)).fetchone():
+                flash('Invalid recipient.', 'error')
+                return redirect(url_for('admin_messages'))
+        except (TypeError, ValueError):
+            flash('Invalid recipient.', 'error')
+            return redirect(url_for('admin_messages'))
         else:
             db.execute('INSERT INTO messages (from_user_id, to_role, subject, body) VALUES (?,?,?,?)',
                        (session['user_id'], to_role, subject, body))
@@ -2623,19 +2784,26 @@ def teacher_attendance():
     raw_classes = user['classes_assigned'] or ''
     assigned_classes = [c.strip() for c in raw_classes.split(',') if c.strip()]
 
-    # Build the same student list for both GET display and POST validation.
+    # Build the same student list for GET display and POST validation.
+    # Teachers are restricted to exact assigned classes; administrators retain full access.
+    is_admin_attendance = user['role'] in ('admin', 'administrator')
+    if not is_admin_attendance and selected_class != 'all' and selected_class not in assigned_classes:
+        flash('You are not assigned to this class.', 'error')
+        return redirect(url_for('teacher_attendance', class_filter='all'))
+
     student_query = "SELECT * FROM users WHERE role='student' AND is_active=1"
     student_params = []
-
     if selected_class != 'all':
         student_query += " AND (class_name = ? OR child_class = ?)"
         student_params.extend([selected_class, selected_class])
-    elif assigned_classes:
-        class_conditions = []
-        for class_name in assigned_classes:
-            class_conditions.append("(class_name LIKE ? OR child_class LIKE ?)")
-            student_params.extend([f'%{class_name}%', f'%{class_name}%'])
-        student_query += " AND (" + " OR ".join(class_conditions) + ")"
+    elif not is_admin_attendance:
+        if assigned_classes:
+            placeholders = ','.join('?' for _ in assigned_classes)
+            student_query += f" AND (class_name IN ({placeholders}) OR child_class IN ({placeholders}))"
+            student_params.extend(assigned_classes)
+            student_params.extend(assigned_classes)
+        else:
+            student_query += " AND 1 = 0"
 
     student_query += " ORDER BY COALESCE(class_name, child_class), name"
     students = db.execute(student_query, tuple(student_params)).fetchall()
@@ -2791,6 +2959,8 @@ def teacher_attendance():
         "AND COALESCE(class_name, child_class) != '' ORDER BY c"
     ).fetchall()
     class_list = [row['c'] for row in class_rows if row['c']]
+    if user['role'] == 'teacher':
+        class_list = [cls for cls in class_list if cls in assigned_classes]
 
     subject_rows = [
         row['subject'] for row in db.execute(
@@ -3466,9 +3636,10 @@ def api_delete_questions(paper_id):
 
         db.commit()
         return jsonify({'success': True})
-    except Exception as e:
+    except Exception:
         db.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
+        app.logger.exception('Bulk question deletion failed for paper_id=%s', paper_id)
+        return jsonify({'success': False, 'error': 'Unable to delete questions right now.'}), 500
 
 @app.route('/question-papers/<int:paper_id>/print')
 @login_required
@@ -3574,16 +3745,16 @@ def update_profile_photo():
     photo_file = request.files.get('photo')
     if not photo_file or not photo_file.filename:
         flash('Please select an image file.', 'error')
-        return redirect(request.referrer or url_for('user_dashboard'))
+        return redirect(safe_redirect_url(url_for('user_dashboard')))
 
     if not allowed_file(photo_file.filename):
         flash('Only JPG / PNG / WEBP / GIF allowed.', 'error')
-        return redirect(request.referrer or url_for('user_dashboard'))
+        return redirect(safe_redirect_url(url_for('user_dashboard')))
 
     photo_url = save_user_photo(photo_file)
     if not photo_url:
         flash('Image is too large (max 2MB) or could not be saved.', 'error')
-        return redirect(request.referrer or url_for('user_dashboard'))
+        return redirect(safe_redirect_url(url_for('user_dashboard')))
 
     db = get_db()
     db.execute('UPDATE users SET photo_url = ? WHERE id = ?', (photo_url, user['id']))
@@ -3596,7 +3767,7 @@ def update_profile_photo():
     session['photo_url'] = photo_url
 
     flash('Profile photo updated successfully!', 'success')
-    return redirect(request.referrer or url_for('user_dashboard'))
+    return redirect(safe_redirect_url(url_for('user_dashboard')))
 
 
 @app.route('/remove-profile-photo', methods=['POST'])
@@ -3618,7 +3789,7 @@ def remove_profile_photo():
     session['photo_url'] = None
 
     flash('Profile photo removed.', 'success')
-    return redirect(request.referrer or url_for('user_dashboard'))
+    return redirect(safe_redirect_url(url_for('user_dashboard')))
 
 # =========================================
 # MESSAGING SYSTEM — ROLE-BASED
@@ -4197,15 +4368,24 @@ def nf(e): return "Page not found", 404
 @app.errorhandler(413)
 def request_entity_too_large(error):
     flash('File is too large! Maximum allowed size is 20MB. Please compress your image and try again.', 'error')
-    return redirect(request.referrer or url_for('admin_gallery') or url_for('admin_events'))
+    return redirect(safe_redirect_url(url_for('admin_gallery')) or url_for('admin_events'))
 
 @app.errorhandler(500)
-def ie(e): return "Server error", 500
+def ie(e):
+    app.logger.exception('Unhandled server error: %s', e)
+    return "An unexpected server error occurred. Please try again later.", 500
 
 @app.after_request
 def add_headers(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
+    response.headers['Cache-Control'] = 'no-store' if session.get('user_id') else response.headers.get('Cache-Control', 'public, max-age=0')
+    if request.is_secure:
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    # CSP is intentionally not forced here: existing templates may use inline
+    # scripts/styles and third-party CDNs. Add a nonce-based CSP after template audit.
     return response
 
 
@@ -4494,9 +4674,10 @@ def admin_api_add_subject():
             'all_subjects_map': created_subjects_map
         })
         
-    except Exception as e:
+    except Exception:
         db.rollback()
-        return jsonify({'success': False, 'error': str(e)})
+        app.logger.exception('Subject creation API failed')
+        return jsonify({'success': False, 'error': 'Unable to add subject right now.'}), 500
     
 @app.route('/admin/exams/<int:eid>/publish', methods=['POST'])
 @admin_required
@@ -4567,11 +4748,11 @@ def admin_add_subject():
 
     if not class_name or not subjects_raw:
         flash('Class and subject name are required.', 'error')
-        return redirect(request.referrer or url_for('admin_exams_list'))
+        return redirect(safe_redirect_url(url_for('admin_exams_list')))
 
     if not (0 < max_marks <= 1000):
         flash('Maximum marks must be between 1 and 1000.', 'error')
-        return redirect(request.referrer or url_for('admin_exams_list'))
+        return redirect(safe_redirect_url(url_for('admin_exams_list')))
 
     import re
 
@@ -4618,7 +4799,7 @@ def admin_add_subject():
     else:
         flash('These subjects already exist.', 'error')
 
-    return redirect(request.referrer or url_for('admin_exams_list'))
+    return redirect(safe_redirect_url(url_for('admin_exams_list')))
 
 @app.route('/admin/subjects/<int:sid>/delete', methods=['POST'])
 @admin_required
@@ -4634,7 +4815,7 @@ def admin_delete_subject(sid):
         db.execute('DELETE FROM subjects WHERE id = ?', (sid,))
         db.commit()
     flash('Subject deleted (and its marks).', 'success')
-    return redirect(request.referrer or url_for('admin_reports_dashboard'))
+    return redirect(safe_redirect_url(url_for('admin_reports_dashboard')))
 
 
 # ---------- REPORTS DASHBOARD ----------
@@ -4732,8 +4913,14 @@ def admin_bulk_marks_entry():
                 else:
                     try:
                         m = float(val)
-                    except ValueError:
-                        continue
+                    except (TypeError, ValueError):
+                        db.rollback()
+                        flash(f"Invalid marks entered for {s['name']} - {sub['subject_name']}.", 'error')
+                        return redirect(url_for('teacher_marks_entry', eid=eid, **{'class': class_name}))
+                    if not math.isfinite(m) or m < 0 or m > float(sub['max_marks']):
+                        db.rollback()
+                        flash(f"Marks for {s['name']} - {sub['subject_name']} must be between 0 and {sub['max_marks']}.", 'error')
+                        return redirect(url_for('teacher_marks_entry', eid=eid, **{'class': class_name}))
                     if existing:
                         db.execute('UPDATE exam_marks SET marks_obtained=?, total_marks=? WHERE id=?',
                                    (m, sub['max_marks'], existing['id']))
@@ -4934,11 +5121,9 @@ def teacher_marks_entry(eid):
     raw = user['classes_assigned'] or ''
     teacher_classes = [c.strip() for c in raw.split(',') if c.strip()]
 
-    class_name = request.args.get('class', '').strip()
-    if not class_name:
-        class_name = teacher_classes[0] if teacher_classes else ''
-    if not class_name:
-        flash('No class assigned.', 'error')
+    class_name = (request.args.get('class') or request.form.get('class') or '').strip()
+    if not class_name or class_name not in teacher_classes:
+        flash('Aap is class ke liye assigned nahi hain.', 'error')
         return redirect(url_for('teacher_exams'))
 
     if request.method == 'POST':
@@ -4978,7 +5163,11 @@ def teacher_marks_entry(eid):
                                    (s['id'], exam['title'], sub['subject_name'],
                                     m, sub['max_marks'], eid))
 
-        action = request.form.get('action', 'draft')
+        action = (request.form.get('action') or 'draft').strip().lower()
+        if action not in {'draft', 'submit'}:
+            db.rollback()
+            flash('Invalid marks submission action.', 'error')
+            return redirect(url_for('teacher_marks_entry', eid=eid, **{'class': class_name}))
         new_status = 'submitted' if action == 'submit' else 'in_progress'
         db.execute('''INSERT OR IGNORE INTO exam_submissions
                      (exam_id, class_name, teacher_id, status)
@@ -5033,8 +5222,8 @@ init_db()
 
 if __name__ == '__main__':
     app.run(
-        debug=True,
-        use_reloader=True,
+        debug=False,
+        use_reloader=False,
         host=os.environ.get('HOST', '127.0.0.1'),
         port=int(os.environ.get('PORT', 5000))
     )

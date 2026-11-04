@@ -470,7 +470,7 @@ def init_db():
         db.commit()
 
 # =========================================
-# 🚀 HELPER: Get All Standard + Dynamic Classes
+#  HELPER: Get All Standard + Dynamic Classes
 # =========================================
 def get_all_classes(db):
     """Hamesha standard classes (Pre-Nursery se 8th) dikhata hai, 
@@ -1763,7 +1763,7 @@ def admin_create_user():
         flash(f'{role.capitalize()} created! ID: {unique_id} | '
               f'Default Password: {DEFAULT_PASSWORD}', 'success')
         
-        # 🚀 NAYA LOGIC: Agar student add hua hai, toh direct Admission Form print page open ho
+        #  NAYA LOGIC: Agar student add hua hai, toh direct Admission Form print page open ho
         if role == 'student':
             return redirect(url_for('admin_print_admission_form', student_id=new_user_id))
             
@@ -3113,7 +3113,7 @@ def teacher_question_papers():
             ORDER BY p.id DESC
         """, (user['id'],)).fetchall()
 
-    # 🚀 Dropdown ke liye saari standard classes nikalain
+    #  Dropdown ke liye saari standard classes nikalain
     class_list = get_all_classes(db)
 
     return render_template(
@@ -3136,7 +3136,7 @@ def get_question_paper_classes(db, user):
     role = user['role']
     
     if role in ('admin', 'administrator'):
-        return get_all_classes(db)  # 🚀 Saari classes (Pre-Nursery se 8th tak) return karega
+        return get_all_classes(db)  #  Saari classes (Pre-Nursery se 8th tak) return karega
     else:
         classes = set()
         # Teacher ke directly assigned classes
@@ -3152,7 +3152,7 @@ def get_question_paper_classes(db, user):
             rows = db.execute("SELECT DISTINCT class_name FROM faculty_subject_assignments WHERE faculty_id = ? AND TRIM(class_name) != ''", (faculty['id'],)).fetchall()
             classes.update(row['class_name'].strip() for row in rows)
             
-        # 🚀 Agar koi teacher ki class assigned nahi hai, toh usko standard classes show karo (optional)
+        #  Agar koi teacher ki class assigned nahi hai, toh usko standard classes show karo (optional)
         if not classes:
             return get_all_classes(db)
             
@@ -4248,7 +4248,7 @@ def exam_form():
         return redirect(url_for('user_dashboard'))
 
     # Agar page open kiya hai (GET)
-    # 🚀 YAHAN FIX KIYA GAYA HAI
+    #  YAHAN FIX KIYA GAYA HAI
     classes = get_all_classes(db)
     
     # Admin dwara add kiye gaye subjects fetch karein
@@ -4600,7 +4600,7 @@ def admin_exam_save_subjects(eid):
 
 
 # =========================================
-# 🚀 API — ADD NEW SUBJECT ON THE FLY (For Exam Form)
+#  API — ADD NEW SUBJECT ON THE FLY (For Exam Form)
 # =========================================
 @app.route('/admin/subjects/api/add', methods=['POST'])
 @admin_required
@@ -4826,7 +4826,7 @@ def admin_reports_dashboard():
     selected_class = request.args.get('class', '').strip()
     selected_exam_id = request.args.get('exam_id', type=int)
 
-    # 🚀 YAHAN FIX KIYA GAYA HAI
+    #  YAHAN FIX KIYA GAYA HAI
     class_list = get_all_classes(db)
 
     subjects = []
@@ -4916,11 +4916,13 @@ def admin_bulk_marks_entry():
                     except (TypeError, ValueError):
                         db.rollback()
                         flash(f"Invalid marks entered for {s['name']} - {sub['subject_name']}.", 'error')
-                        return redirect(url_for('teacher_marks_entry', eid=eid, **{'class': class_name}))
+                        return redirect(url_for('admin_bulk_marks_entry',
+                            exam_id=exam_id, **{'class': class_name}))
                     if not math.isfinite(m) or m < 0 or m > float(sub['max_marks']):
                         db.rollback()
                         flash(f"Marks for {s['name']} - {sub['subject_name']} must be between 0 and {sub['max_marks']}.", 'error')
-                        return redirect(url_for('teacher_marks_entry', eid=eid, **{'class': class_name}))
+                        return redirect(url_for('admin_bulk_marks_entry',
+                            exam_id=exam_id, **{'class': class_name}))
                     if existing:
                         db.execute('UPDATE exam_marks SET marks_obtained=?, total_marks=? WHERE id=?',
                                    (m, sub['max_marks'], existing['id']))
@@ -4975,7 +4977,7 @@ def admin_generate_reports():
     selected_class = request.args.get('class', '').strip()
     exam_id = request.args.get('exam_id', type=int)
 
-    # 🚀 YAHAN FIX KIYA GAYA HAI
+    #  YAHAN FIX KIYA GAYA HAI
     class_list = get_all_classes(db)
 
     all_exams = db.execute('SELECT * FROM exams ORDER BY id DESC').fetchall()

@@ -1,5 +1,11 @@
 {% extends "admin_base.html" %}
-{% block title %}Create Question Paper{% endblock %}
+{% block title %}
+    {% if paper is defined and paper %}
+        Manage {{ paper['title'] }}
+    {% else %}
+        Create Question Paper
+    {% endif %}
+{% endblock %}
 {% block content %}
 <style>
     /* 🚀 CSS FOR BETTER UI */

@@ -1,196 +1,503 @@
 {% extends "admin_base.html" %}
-{% block title %}Create Question Paper{% endblock %}
+{% block title %}Question Paper Generator{% endblock %}
+{% block page_title %}Question Paper Generator{% endblock %}
 {% block content %}
 <style>
-.qpc{max-width:1050px;margin:24px auto;padding:0 16px 36px;color:#18324d;font-family:'DM Sans',sans-serif}
-.qpc-head,.qpc-card{background:#fff;border:1px solid #e2e8f0;border-radius:15px;box-shadow:0 5px 18px rgba(15,35,60,.04)}
-.qpc-head{padding:23px;margin-bottom:18px;background:linear-gradient(130deg,#fff,#eff7ff)}
-.qpc-head h1{margin:0;font-size:25px;font-weight:800}.qpc-head p{margin:7px 0 0;color:#64748b;font-size:14px}
-.qpc-card{padding:22px;margin-bottom:18px}.qpc-card h2{font-size:17px;margin:0 0 17px;color:#173b5e}
-.qpc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.qpc-field{display:flex;flex-direction:column;gap:7px}.qpc-field.full{grid-column:1/-1}
-.qpc-field label{font-size:13px;font-weight:750;color:#475569}
-.qpc-field input,.qpc-field select{width:100%;box-sizing:border-box;min-height:44px;padding:10px 12px;border:1px solid #cbd5e1;border-radius:9px;background:#f8fafc;font:inherit;font-size:14px}
-.qpc-field input:focus,.qpc-field select:focus{outline:0;border-color:#2683c6;background:#fff;box-shadow:0 0 0 3px #2683c620}
-.qpc-tools{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:13px}
-.qpc-tools p,.qpc-status{font-size:13px;color:#64748b;margin:0}
-.qpc-tools button{border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:8px;padding:8px 12px;font-weight:750;cursor:pointer}
-.qpc-subjects{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
-.qpc-subject{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #dbe3ed;border-radius:10px;background:#f8fafc;cursor:pointer}
-.qpc-subject:has(input:checked){border-color:#0f766e;background:#ecfdf5;box-shadow:0 0 0 1px #0f766e}
-.qpc-subject input{width:17px;height:17px;accent-color:#0f766e}.qpc-subject span{font-size:13px;font-weight:750;overflow-wrap:anywhere}
-.qpc-empty{grid-column:1/-1;padding:22px;border:1px dashed #cbd5e1;border-radius:10px;text-align:center;color:#64748b;background:#f8fafc;font-size:13px}
-.qpc-status{margin-top:10px;min-height:18px}
-.qpc-submit{width:100%;min-height:49px;border:0;border-radius:10px;background:#0f766e;color:#fff;font-size:15px;font-weight:800;cursor:pointer}
-.qpc-submit:disabled{opacity:.6;cursor:wait}
-@media(max-width:620px){.qpc-grid{grid-template-columns:1fr}.qpc-field.full{grid-column:auto}.qpc-card{padding:17px}.qpc-head{padding:19px}}
+    .qpg {
+        --ink: #172b43;
+        --muted: #6b7b90;
+        --line: #e2e9f1;
+        --blue: #145b91;
+        color: var(--ink);
+        max-width: 1280px;
+        margin: auto
+    }
+
+    .qpg * {
+        box-sizing: border-box
+    }
+
+    .qpg-hero {
+        background: linear-gradient(120deg, #102e4c, #17699f);
+        color: #fff;
+        border-radius: 17px;
+        padding: 23px 26px;
+        margin-bottom: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        flex-wrap: wrap
+    }
+
+    .qpg-hero h2 {
+        font-size: clamp(21px, 3vw, 29px);
+        font-weight: 850;
+        margin: 0
+    }
+
+    .qpg-hero p {
+        margin: 6px 0 0;
+        color: #d9eaf6;
+        font-size: 13px
+    }
+
+    .qpg-btn {
+        border: 0;
+        border-radius: 9px;
+        padding: 10px 14px;
+        font-weight: 800;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        cursor: pointer;
+        text-decoration: none
+    }
+
+    .qpg-primary {
+        background: var(--blue);
+        color: #fff
+    }
+
+    .qpg-light {
+        background: #eef4f9;
+        color: #24425f
+    }
+
+    .qpg-green {
+        background: #e8f7ef;
+        color: #187347
+    }
+
+    .qpg-red {
+        background: #fff0f0;
+        color: #b42318
+    }
+
+    .qpg-panel {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        margin-bottom: 16px;
+        overflow: hidden;
+        box-shadow: 0 5px 18px #173b6008
+    }
+
+    .qpg-head {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap
+    }
+
+    .qpg-head h3 {
+        font-size: 15px;
+        font-weight: 850;
+        margin: 0;
+        color: #173b60
+    }
+
+    .qpg-body {
+        padding: 18px
+    }
+
+    .qpg-meta {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 13px
+    }
+
+    .qpg-field label {
+        display: block;
+        font-size: 11px;
+        font-weight: 800;
+        color: #52647a;
+        margin: 0 0 6px
+    }
+
+    .qpg-field input,
+    .qpg-field select,
+    .qpg-field textarea {
+        width: 100%;
+        border: 1px solid #d6e0ea;
+        border-radius: 8px;
+        padding: 10px 11px;
+        min-height: 40px;
+        font-size: 13px;
+        color: #20364e;
+        background: #fff;
+        outline: none
+    }
+
+    .qpg-field textarea {
+        min-height: 68px;
+        resize: vertical
+    }
+
+    .qpg-field input:focus,
+    .qpg-field select:focus,
+    .qpg-field textarea:focus {
+        border-color: #3181b8;
+        box-shadow: 0 0 0 3px #3181b81a
+    }
+
+    .qpg-hint {
+        font-size: 10px;
+        color: #8794a4;
+        margin-top: 5px
+    }
+
+    .qpg-types {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 9px
+    }
+
+    .qpg-type {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px 9px;
+        background: #fff;
+        text-align: left;
+        cursor: pointer;
+        color: #29435e
+    }
+
+    .qpg-type:hover,
+    .qpg-type.active {
+        border-color: #3786ba;
+        background: #eff7fd
+    }
+
+    .qpg-type i {
+        font-size: 17px;
+        display: block;
+        margin-bottom: 7px;
+        color: #17699f
+    }
+
+    .qpg-type strong {
+        font-size: 11px;
+        display: block
+    }
+
+    .qpg-type small {
+        font-size: 10px;
+        color: var(--muted)
+    }
+
+    .qpg-bulk {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 11px;
+        align-items: end
+    }
+
+    .qpg-toolbar {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px
+    }
+
+    .qpg-question {
+        border: 1px solid #dfe7ef;
+        border-radius: 12px;
+        margin-bottom: 11px;
+        overflow: hidden;
+        background: #fff
+    }
+
+    .qpg-qtop {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        background: #f7f9fc;
+        padding: 10px 13px;
+        border-bottom: 1px solid #e8edf3
+    }
+
+    .qpg-qtop strong {
+        font-size: 11px;
+        color: #254866
+    }
+
+    .qpg-qgrid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        padding: 13px
+    }
+
+    .qpg-qgrid .wide {
+        grid-column: 1/-1
+    }
+
+    .qpg-qbottom {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding: 0 13px 13px
+    }
+
+    .qpg-qbottom .qpg-field {
+        width: 110px
+    }
+
+    .qpg-stats {
+        display: flex;
+        gap: 9px;
+        flex-wrap: wrap
+    }
+
+    .qpg-stat {
+        background: #f1f6fa;
+        border: 1px solid #e2eaf1;
+        border-radius: 9px;
+        padding: 9px 12px;
+        font-size: 11px;
+        color: #50647a
+    }
+
+    .qpg-stat b {
+        color: #173b60;
+        font-size: 14px;
+        margin-right: 4px
+    }
+
+    .qpg-saved {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        margin-bottom: 9px;
+        padding: 12px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: flex-start
+    }
+
+    .qpg-saved p {
+        margin: 4px 0 0;
+        font-size: 12px;
+        white-space: pre-wrap
+    }
+
+    .qpg-saved small {
+        color: var(--muted)
+    }
+
+    .qpg-footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center
+    }
+
+    @media(max-width:900px) {
+        .qpg-meta {
+            grid-template-columns: repeat(2, minmax(0, 1fr))
+        }
+
+        .qpg-types {
+            grid-template-columns: repeat(3, minmax(0, 1fr))
+        }
+
+        .qpg-bulk {
+            grid-template-columns: 1fr 1fr
+        }
+    }
+
+    @media(max-width:600px) {
+        .qpg-body {
+            padding: 13px
+        }
+
+        .qpg-meta,
+        .qpg-qgrid,
+        .qpg-bulk {
+            grid-template-columns: 1fr
+        }
+
+        .qpg-qgrid .wide {
+            grid-column: auto
+        }
+
+        .qpg-types {
+            grid-template-columns: repeat(2, minmax(0, 1fr))
+        }
+
+        .qpg-hero {
+            padding: 18px
+        }
+
+        .qpg-footer .qpg-btn {
+            width: 100%
+        }
+    }
 </style>
-
-<div class="qpc">
-  <header class="qpc-head">
-    <h1><i class="fa-solid fa-file-circle-plus"></i> Create Question Paper</h1>
-    <p>Enter paper details, choose a class and select one or more subjects.</p>
-  </header>
-
-  <form method="POST" action="{{ url_for('create_question_paper') }}" id="createQuestionPaperForm">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-    <section class="qpc-card">
-      <h2><i class="fa-solid fa-circle-info"></i> Paper Information</h2>
-      <div class="qpc-grid">
-        <div class="qpc-field full">
-          <label for="qp-title">Question Paper Title *</label>
-          <input id="qp-title" name="title" maxlength="200" required
-                 placeholder="e.g. Annual Examination 2026"
-                 value="{{ request.form.get('title', '') }}">
-        </div>
-        <div class="qpc-field">
-          <label for="qp-class">Class *</label>
-          <select id="qp-class" name="class_name" required>
-            <option value="">Select class</option>
-            {% for class_name in classes %}
-            <option value="{{ class_name }}" {% if selected_class == class_name %}selected{% endif %}>{{ class_name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="qpc-field">
-          <label for="qp-year">Academic / Examination Year *</label>
-          <input id="qp-year" name="exam_year" maxlength="30" required
-                 placeholder="e.g. 2026-27" value="{{ request.form.get('exam_year', '') }}">
-        </div>
-        <div class="qpc-field">
-          <label for="qp-time">Time Allowed *</label>
-          <input id="qp-time" name="time_allowed" maxlength="40" required
-                 placeholder="e.g. 3 Hours" value="{{ request.form.get('time_allowed', '') }}">
-        </div>
-        <div class="qpc-field">
-          <label for="qp-marks">Full Marks *</label>
-          <input id="qp-marks" type="number" name="max_marks" min="1" max="1000" required
-                 value="{{ request.form.get('max_marks', '100') }}">
-        </div>
-      </div>
-    </section>
-
-    <section class="qpc-card">
-      <h2><i class="fa-solid fa-book-open"></i> Select Subjects</h2>
-      <div class="qpc-tools">
-        <p>Choose one or multiple subjects for the selected class.</p>
+<div class="qpg">
+    <section class="qpg-hero">
         <div>
-          <button type="button" id="qp-select-all">Select All</button>
-          <button type="button" id="qp-clear-all">Clear All</button>
-        </div>
-      </div>
-
-      <div class="qpc-subjects" id="qp-subjects"
-           data-url="{{ url_for('question_paper_subjects_api') }}">
-        {% if subjects %}
-          {% for subject in subjects %}
-          <label class="qpc-subject">
-            <input type="checkbox" name="subject[]" value="{{ subject['subject_name'] }}"
-              {% if subject['subject_name'] in selected_subjects %}checked{% endif %}>
-            <span>{{ subject['subject_name'] }}</span>
-          </label>
-          {% endfor %}
-        {% else %}
-          <div class="qpc-empty">
-            {% if selected_class %}No subjects are registered for this class.{% else %}Select a class to load its subjects.{% endif %}
-          </div>
-        {% endif %}
-      </div>
-      <p class="qpc-status" id="qp-status" aria-live="polite">
-        {% if subjects %}{{ subjects|length }} subject(s) available.{% endif %}
-      </p>
+            <h2><i class="fa-solid fa-file-circle-plus"></i> Question Paper Generator</h2>
+            <p>Build a complete examination paper with objective, MCQ, True/False, descriptive and language questions.
+            </p>
+        </div><a class="qpg-btn" style="background:#fff;color:#174b73"
+            href="{{ url_for('teacher_question_papers') }}"><i class="fa-solid fa-folder-open"></i> All question
+            papers</a>
     </section>
-
-    <button type="submit" class="qpc-submit" id="qp-submit">
-      <i class="fa-solid fa-arrow-right"></i> Create Question Paper(s)
-    </button>
-  </form>
+    <section class="qpg-panel">
+        <div class="qpg-head">
+            <h3><i class="fa-solid fa-clipboard-list"></i> Examination details</h3><span class="qpg-hint">Saved paper
+                information</span>
+        </div>
+        <div class="qpg-body">
+            <div class="qpg-meta">
+                {% for label, value in [('Examination
+                title',paper['title']),('Class',paper['class_name']),('Subject',paper['subject']),('Academic
+                year',paper['exam_year'] or ''),('Full marks',paper['max_marks']),('Time
+                allowed',paper['time_allowed']),('Questions saved',total_questions),('Saved marks total',saved_marks)]
+                %}<div class="qpg-field"><label>{{ label }}</label><input value="{{ value }}" readonly {% if
+                        label=='Full marks' %}id="fullMarks" {% endif %}></div>{% endfor %}
+            </div>
+        </div>
+    </section>
+    <section class="qpg-panel">
+        <div class="qpg-head">
+            <h3><i class="fa-solid fa-shapes"></i> Choose a question format</h3><span class="qpg-hint">Select a type to
+                add a question card</span>
+        </div>
+        <div class="qpg-body">
+            <div class="qpg-types" id="typeChoices">
+                {% for kind,icon,title,sub in [('short','fa-pen','Short / Long Answer','Written
+                response'),('mcq','fa-list-check','MCQ / Options','Multiple choices'),('tf','fa-circle-check','True /
+                False','Tick the correct box'),('fill','fa-pen-to-square','Fill in the blanks','Complete
+                sentence'),('one','fa-font','One word / Name','Short objective'),('match','fa-arrows-left-right','Match
+                the following','Pair the columns'),('correct','fa-list-ol','Choose / Correct','Select right
+                answer'),('translate','fa-language','Translation','Translate sentences'),('essay','fa-book-open','Essay
+                / Letter','Composition'),('custom','fa-grip','Custom question','Any other pattern')] %}
+                <button type="button" class="qpg-type {% if kind == 'short' %}active{% endif %}"
+                    data-type="{{ kind }}"><i class="fa-solid {{ icon }}"></i><strong>{{ title }}</strong><small>{{ sub
+                        }}</small></button>{% endfor %}
+            </div>
+        </div>
+    </section>
+    <section class="qpg-panel">
+        <div class="qpg-head">
+            <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Quick bulk add</h3><span class="qpg-hint">One question
+                per line · up to 100 per save</span>
+        </div>
+        <div class="qpg-body">
+            <div class="qpg-bulk">
+                <div class="qpg-field"><label>Questions (one per line)</label><textarea id="bulkText"
+                        placeholder="What is a computer?&#10;Name any four input devices.&#10;Write two uses of a computer."></textarea>
+                </div>
+                <div class="qpg-field"><label>Section heading</label><input id="bulkSection"
+                        value="A. Answer the following"></div>
+                <div class="qpg-field"><label>Marks each</label><input id="bulkMarks" type="number" min="1" max="1000"
+                        value="1"></div>
+                <div class="qpg-field"><label>Answer lines</label><input id="bulkLines" type="number" min="0" max="30"
+                        value="1"></div>
+            </div>
+            <div class="qpg-toolbar"><button type="button" class="qpg-btn qpg-primary" id="bulkAdd"><i
+                        class="fa-solid fa-layer-group"></i> Add all questions</button><button type="button"
+                    class="qpg-btn qpg-light" id="addFive"><i class="fa-solid fa-plus"></i> Add 5 blank
+                    questions</button></div>
+        </div>
+    </section>
+    <form method="POST" action="{{ url_for('edit_question_paper', paper_id=paper['id']) }}" id="questionForm">
+        <section class="qpg-panel">
+            <div class="qpg-head">
+                <h3><i class="fa-solid fa-list-ul"></i> Question builder</h3>
+                <div class="qpg-stats"><span class="qpg-stat"><b id="pendingCount">0</b> pending</span><span
+                        class="qpg-stat"><b id="pendingMarks">0</b> marks</span><span class="qpg-stat"><b
+                            id="remainingMarks">{{ paper['max_marks'] - saved_marks }}</b> marks remaining</span></div>
+            </div>
+            <div class="qpg-body">
+                <div id="questionRows"></div>
+                <div class="qpg-toolbar"><button type="button" class="qpg-btn qpg-primary" id="addQuestion"><i
+                            class="fa-solid fa-plus"></i> Add question</button><button type="button"
+                        class="qpg-btn qpg-light" id="removeEmpty"><i class="fa-solid fa-broom"></i> Remove empty
+                        rows</button></div>
+            </div>
+            <div class="qpg-body" style="border-top:1px solid var(--line)">
+                <div class="qpg-footer"><span class="qpg-hint">Maximum 100 questions per save. Save in batches if
+                        needed.</span><button type="submit" class="qpg-btn qpg-primary" id="saveQuestions"><i
+                            class="fa-solid fa-floppy-disk"></i> Save questions to paper</button></div>
+            </div>
+        </section>
+    </form>
+    <section class="qpg-panel">
+        <div class="qpg-head">
+            <h3><i class="fa-solid fa-circle-check"></i> Saved questions</h3><span class="qpg-hint">{{ total_questions
+                }} saved · {{ saved_marks }} marks</span>
+        </div>
+        <div class="qpg-body">
+            {% if grouped_questions %}{% for section,qs in grouped_questions.items() %}<h6
+                style="font-weight:850;color:#174b73;margin:14px 0 9px">{{ section }}</h6>{% for q in qs %}<div
+                class="qpg-saved">
+                <div><small>Question {{ loop.index }} · {{ q['marks'] }} mark(s) · {{ q['lines'] }} answer
+                        line(s)</small>
+                    <p>{{ q['question_text'] }}</p>{% if q['options'] %}<p style="color:#61758b">{{ q['options'] }}</p>
+                    {% endif %}
+                </div>
+                <form method="POST" action="{{ url_for('delete_question',paper_id=paper['id'],q_id=q['id']) }}"
+                    onsubmit="return confirm('Delete this question?')"><button type="submit" class="qpg-btn qpg-red"><i
+                            class="fa-solid fa-trash"></i></button></form>
+            </div>{% endfor %}{% endfor %}
+            {% else %}<div class="text-center py-4 text-muted"><i
+                    class="fa-solid fa-file-circle-question fa-2x mb-2"></i>
+                <p>No questions saved yet. Start adding questions above.</p>
+            </div>{% endif %}
+        </div>
+    </section>
+    <div class="qpg-footer" style="margin:8px 0 22px"><a class="qpg-btn qpg-light"
+            href="{{ url_for('teacher_question_papers') }}"><i class="fa-solid fa-arrow-left"></i> Back to papers</a><a
+            class="qpg-btn qpg-green" href="{{ url_for('print_question_paper',paper_id=paper['id']) }}" target="_blank"
+            rel="noopener"><i class="fa-solid fa-print"></i> Preview / Print paper</a></div>
 </div>
-
 <script>
-(() => {
-  const classSelect = document.getElementById('qp-class');
-  const subjectBox = document.getElementById('qp-subjects');
-  const status = document.getElementById('qp-status');
-  const form = document.getElementById('createQuestionPaperForm');
-  const submit = document.getElementById('qp-submit');
-  const endpoint = subjectBox.dataset.url;
-  const preselected = {{ selected_subjects|tojson }};
-
-  function renderSubjects(subjects, selected = []) {
-    subjectBox.replaceChildren();
-    if (!Array.isArray(subjects) || !subjects.length) {
-      const empty = document.createElement('div');
-      empty.className = 'qpc-empty';
-      empty.textContent = 'No subjects are registered for this class. Add subjects in subject management first.';
-      subjectBox.appendChild(empty);
-      status.textContent = 'No subjects available.';
-      return;
+    (() => {
+        const box = document.getElementById('questionRows'), full = Number(document.getElementById('fullMarks').value || 0), saved = Number({{ saved_marks| int }}); let active = 'short';
+    const P = {
+        short: ['A. Answer the following questions', 2, '', 'Write a question that requires a written response.'],
+        mcq: ['B. Choose the correct answer (MCQ)', 0, 'a) Option 1\nb) Option 2\nc) Option 3\nd) Option 4', 'Enter each option on a separate line.'],
+        tf: ['C. Write True or False', 0, '☐ True     ☐ False', 'Enter a statement; True / False choices are added.'],
+        fill: ['D. Fill in the blanks', 1, '', 'Use underscores for the missing word.'],
+        one: ['E. Answer in one word / Write the names', 1, '', 'For one-word answers, naming and identification.'],
+        match: ['F. Match the following', 2, 'Column A: ________\nColumn B: ________', 'Enter matching columns or pairs.'],
+        correct: ['G. Tick the correct answer', 0, '☐ Option A     ☐ Option B', 'Enter the answer choices.'],
+        translate: ['H. Translate the following', 1, '', 'Enter the word or sentence to translate.'],
+        essay: ['I. Write an essay / letter', 6, '', 'Enter the topic of the essay, letter or paragraph.'],
+        custom: ['J. Answer the following', 2, '', 'Customize this question as required.']
+    };
+    const labels = { short: 'Short / Long Answer', mcq: 'MCQ / Options', tf: 'True / False', fill: 'Fill in the blanks', one: 'One word / Name', match: 'Match the following', correct: 'Choose / Correct', translate: 'Translation', essay: 'Essay / Letter', custom: 'Custom' };
+    function stats() { let rows = [...box.querySelectorAll('.qpg-question')], marks = 0; rows.forEach(r => marks += Number(r.querySelector('[name="marks[]"]').value) || 0); document.getElementById('pendingCount').textContent = rows.length; document.getElementById('pendingMarks').textContent = marks; document.getElementById('remainingMarks').textContent = Math.max(0, full - saved - marks); rows.forEach((r, i) => r.querySelector('.qpg-qnum').textContent = 'QUESTION ' + (i + 1)); }
+    function add(d = {}) {
+        let t = d.type || active, p = P[t] || P.custom, r = document.createElement('div'); r.className = 'qpg-question'; r.innerHTML = `
+<div class="qpg-qtop"><strong class="qpg-qnum">QUESTION</strong><span class="qpg-hint" data-label>${labels[t]}</span><button type="button" class="qpg-btn qpg-red" data-remove><i class="fa-solid fa-xmark"></i> Remove</button></div>
+<div class="qpg-qgrid"><div class="qpg-field"><label>Question section / heading *</label><input name="section[]" maxlength="120" required></div>
+<div class="qpg-field"><label>Question format</label><select data-kind>${Object.keys(P).map(k => `<option value="${k}" ${k === t ? 'selected' : ''}>${labels[k]}</option>`).join('')}</select></div>
+<div class="qpg-field wide"><label>Question text *</label><textarea name="question[]" maxlength="2000" required placeholder="${p[3]}"></textarea></div>
+<div class="qpg-field wide"><label>Options / choices / matching columns (optional)</label><textarea name="options[]" maxlength="2000" placeholder="Enter options, one per line"></textarea><div class="qpg-hint">Used for MCQ, True/False, matching and tick-the-correct-answer formats.</div></div></div>
+<div class="qpg-qbottom"><div class="qpg-field"><label>Marks *</label><input name="marks[]" type="number" min="1" max="1000" value="${d.marks ?? 1}" required></div><div class="qpg-field"><label>Answer lines</label><input name="lines[]" type="number" min="0" max="30" value="${d.lines ?? p[1]}" required></div><span class="qpg-hint" data-hint>${p[3]}</span></div>`;
+        r.querySelector('[name="section[]"]').value = d.section ?? p[0]; r.querySelector('[name="question[]"]').value = d.question ?? ''; r.querySelector('[name="options[]"]').value = d.options ?? p[2];
+        r.querySelector('[data-kind]').addEventListener('change', e => { let n = P[e.target.value]; r.querySelector('[data-label]').textContent = labels[e.target.value]; r.querySelector('[data-hint]').textContent = n[3]; r.querySelector('[name="section[]"]').value = n[0]; r.querySelector('[name="options[]"]').value = n[2]; r.querySelector('[name="lines[]"]').value = n[1]; });
+        r.querySelector('[data-remove]').addEventListener('click', () => { r.remove(); stats(); }); r.querySelectorAll('input,textarea').forEach(x => x.addEventListener('input', stats)); box.appendChild(r); stats();
     }
-    subjects.forEach(item => {
-      const name = String(item.subject_name || '').trim();
-      if (!name) return;
-      const label = document.createElement('label');
-      label.className = 'qpc-subject';
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.name = 'subject[]';
-      checkbox.value = name;
-      checkbox.checked = selected.includes(name);
-      const text = document.createElement('span');
-      text.textContent = name;
-      label.append(checkbox, text);
-      subjectBox.appendChild(label);
-    });
-    status.textContent = `${subjectBox.querySelectorAll('input[name="subject[]"]').length} subject(s) available.`;
-  }
-
-  async function loadSubjects(className, selected = []) {
-    if (!className) {
-      renderSubjects([]);
-      status.textContent = 'Select a class to load its subjects.';
-      return;
-    }
-    subjectBox.innerHTML = '<div class="qpc-empty">Loading subjects…</div>';
-    try {
-      const url = new URL(endpoint, window.location.origin);
-      url.searchParams.set('class_name', className);
-      const response = await fetch(url, {credentials:'same-origin', headers:{Accept:'application/json'}});
-      const data = await response.json();
-      if (!response.ok || !data.success) throw new Error(data.message || 'Unable to load subjects.');
-      renderSubjects(data.subjects || [], selected);
-    } catch (error) {
-      subjectBox.replaceChildren();
-      const message = document.createElement('div');
-      message.className = 'qpc-empty';
-      message.textContent = error.message || 'Subject loading failed. Please try again.';
-      subjectBox.appendChild(message);
-      status.textContent = 'Could not load subjects.';
-    }
-  }
-
-  classSelect.addEventListener('change', () => loadSubjects(classSelect.value));
-  document.getElementById('qp-select-all').addEventListener('click', () => {
-    subjectBox.querySelectorAll('input[name="subject[]"]').forEach(input => input.checked = true);
-  });
-  document.getElementById('qp-clear-all').addEventListener('click', () => {
-    subjectBox.querySelectorAll('input[name="subject[]"]').forEach(input => input.checked = false);
-  });
-  form.addEventListener('submit', event => {
-    if (!subjectBox.querySelector('input[name="subject[]"]:checked')) {
-      event.preventDefault();
-      status.textContent = 'Please select at least one subject.';
-      status.style.color = '#b91c1c';
-      return;
-    }
-    submit.disabled = true;
-    submit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating…';
-  });
-
-  if (classSelect.value && !subjectBox.querySelector('input[name="subject[]"]')) {
-    loadSubjects(classSelect.value, preselected);
-  }
-})();
+    document.querySelectorAll('.qpg-type').forEach(b => b.addEventListener('click', () => { document.querySelectorAll('.qpg-type').forEach(x => x.classList.remove('active')); b.classList.add('active'); active = b.dataset.type; add(); }));
+    document.getElementById('addQuestion').addEventListener('click', () => add()); document.getElementById('addFive').addEventListener('click', () => { for (let i = 0; i < 5; i++)add(); });
+    document.getElementById('bulkAdd').addEventListener('click', () => { let qs = document.getElementById('bulkText').value.split(/\r?\n/).map(x => x.trim()).filter(Boolean), section = document.getElementById('bulkSection').value.trim(), marks = Number(document.getElementById('bulkMarks').value), lines = Number(document.getElementById('bulkLines').value); if (!qs.length) return alert('Paste at least one question.'); if (!section) return alert('Enter a section heading.'); if (!Number.isInteger(marks) || marks < 1 || marks > 1000 || !Number.isInteger(lines) || lines < 0 || lines > 30) return alert('Check marks and answer lines.'); if (qs.length + box.querySelectorAll('.qpg-question').length > 100) return alert('Maximum 100 questions per save.'); qs.forEach(question => add({ type: active, section, question, marks, lines })); document.getElementById('bulkText').value = ''; });
+    document.getElementById('removeEmpty').addEventListener('click', () => { let n = 0; box.querySelectorAll('.qpg-question').forEach(r => { if (!r.querySelector('[name="question[]"]').value.trim()) { r.remove(); n++; } }); stats(); alert(n + ' empty row(s) removed.'); });
+    document.getElementById('questionForm').addEventListener('submit', e => { let rows = [...box.querySelectorAll('.qpg-question')]; if (!rows.length || rows.length > 100) { e.preventDefault(); alert(rows.length ? 'Maximum 100 questions per save.' : 'Add at least one question.'); return; } for (let i = 0; i < rows.length; i++) { let r = rows[i], s = r.querySelector('[name="section[]"]').value.trim(), q = r.querySelector('[name="question[]"]').value.trim(), m = Number(r.querySelector('[name="marks[]"]').value), l = Number(r.querySelector('[name="lines[]"]').value); if (!s || !q || !Number.isInteger(m) || m < 1 || m > 1000 || !Number.isInteger(l) || l < 0 || l > 30) { e.preventDefault(); alert('Please check section, question, marks and lines in question ' + (i + 1)); r.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; } } let b = document.getElementById('saveQuestions'); b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving questions...'; });
+    add();
+}) ();
 </script>
 {% endblock %}

@@ -35,12 +35,14 @@
                 {% if e.status == 'draft' %}
                 <form method="POST" action="{{ url_for('admin_exam_publish', eid=e.id) }}"
                       style="display:inline;" data-confirm="Publish to teachers?">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn-admin-primary" style="background:#16a34a;">
                         <i class="fa-solid fa-paper-plane"></i> Publish
                     </button>
                 </form>
                 {% else %}
                 <form method="POST" action="{{ url_for('admin_exam_unpublish', eid=e.id) }}" style="display:inline;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn-admin-secondary">
                         <i class="fa-solid fa-eye-slash"></i> Unpublish
                     </button>
@@ -48,6 +50,7 @@
                 {% endif %}
                 <form method="POST" action="{{ url_for('admin_exam_delete', eid=e.id) }}"
                       style="display:inline;" data-confirm="Delete this exam and ALL its marks?">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
                 </form>
             </div>

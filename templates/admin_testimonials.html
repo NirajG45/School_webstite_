@@ -6,6 +6,7 @@
     <div class="admin-panel">
         <div class="admin-panel-head"><h3><i class="fa-solid fa-plus"></i> Add Testimonial</h3></div>
         <form method="POST" action="{{ url_for('admin_add_testimonial') }}" class="admin-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label>Author Name * <input type="text" name="author_name" required maxlength="100"></label>
             <label>Role
                 <select name="author_role">
@@ -30,6 +31,7 @@
                     <span class="notice-desc muted">{{ t.message[:100] }}{% if t.message|length > 100 %}...{% endif %}</span>
                 </div>
                 <form method="POST" action="{{ url_for('admin_delete_testimonial', tid=t.id) }}" data-confirm="Delete?">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
                 </form>
             </div>

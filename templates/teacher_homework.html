@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assign Homework | RSN</title>
@@ -384,6 +385,7 @@
                 {% endif %}
 
                 <form method="POST" action="{{ url_for('teacher_add_homework') }}" class="hw-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="hw-form-row">
                         <label>Class
                             <select name="class_name" required>
@@ -496,6 +498,7 @@
                         <form method="POST"
                               action="{{ url_for('teacher_delete_homework', hid=h.id) }}"
                               onsubmit="return confirm('Delete this homework? This cannot be undone.');">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="hw-delete-btn">
                                 <i class="fa-solid fa-trash"></i> Delete
                             </button>

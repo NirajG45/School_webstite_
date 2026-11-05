@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0b3562">
@@ -257,9 +258,9 @@
                         <!-- <a href="{{ url_for('change_password') }}" role="menuitem">
                             <i class="fa-solid fa-key"></i> Change Password
                         </a> -->
-                        <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem">
+                        <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="logout-link" role="menuitem">
                             <i class="fa-solid fa-right-from-bracket"></i> Logout
-                        </a>
+                        </button></form>
                     </div>
                 </div>
                 {% else %}
@@ -345,8 +346,8 @@
             <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-user-gear"></i> Admin Panel</a>
             {% endif %}
             <a href="{{ url_for('change_password') }}"><i class="fa-solid fa-key"></i> Change Password</a>
-            <a href="{{ url_for('logout') }}" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i>
-                Logout</a>
+            <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i>
+                Logout</button></form>
             {% else %}
             <a href="{{ url_for('login_page') }}" class="mobile-login-nav"><i class="fa-solid fa-right-to-bracket"></i>
                 Login</a>
@@ -645,6 +646,7 @@
                 </div>
                 <p class="form-intro">Share your details and the school team can follow up with you.</p>
                 <form action="{{ url_for('admission_enquiry') }}" method="post" class="school-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <label>Parent / guardian name
                         <input name="name" autocomplete="name" required maxlength="100" placeholder="Enter full name">
                     </label>
@@ -721,6 +723,7 @@
                     <p>Send the school a message and share your question with the team.</p>
                 </div>
                 <form action="{{ url_for('contact') }}" method="post" class="contact-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <label class="sr-only" for="contactName">Your name</label>
                     <input id="contactName" name="name" required maxlength="100" placeholder="Your name">
                     <label class="sr-only" for="contactPhone">Phone number</label>

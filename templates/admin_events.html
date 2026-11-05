@@ -14,6 +14,7 @@
         
         <!-- Dynamic Form Action: Edit Route or Add Route -->
         <form method="POST" action="{{ url_for('admin_edit_event', eid=edit_event.id) if edit_event else url_for('admin_add_event') }}" class="admin-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label>Title * <input type="text" name="title" value="{{ edit_event.title if edit_event else '' }}" required maxlength="200"></label>
             <label>Description <textarea name="description" rows="3" maxlength="500">{{ edit_event.description if edit_event else '' }}</textarea></label>
             
@@ -68,6 +69,7 @@
                     
                     <!-- Delete Button -->
                     <form method="POST" action="{{ url_for('admin_delete_event', eid=e.id) }}" data-confirm="Delete this event?">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
                     </form>
                 </div>

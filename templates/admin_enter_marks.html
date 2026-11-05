@@ -10,6 +10,7 @@
 
     {% if students and subjects %}
     <form method="POST" action="{{ url_for('admin_enter_marks') }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="class_name" value="{{ selected_class }}">
         <input type="hidden" name="exam_type" value="{{ exam_type }}">
         

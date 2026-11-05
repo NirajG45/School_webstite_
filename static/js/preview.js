@@ -26,7 +26,7 @@ window.FormPreview = (() => {
             <tbody>
                 ${row("Session", "2026–2027")}
                 ${row("Examination", v("examType"))}
-                ${row("Form Number", formNo)}
+                ${row("Form Number", esc(formNo))}
             </tbody>
         </table>
         <h3>STUDENT DETAILS</h3>

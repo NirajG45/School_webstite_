@@ -370,6 +370,7 @@
 
         {% if edit_faculty %}
         <form method="POST" action="{{ url_for('admin_edit_faculty', fid=edit_faculty.id) }}" class="admin-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label>Name * <input type="text" name="name" required maxlength="100" value="{{ edit_faculty.name }}"></label>
             <label>Subject * <input type="text" name="subject" required maxlength="80" value="{{ edit_faculty.subject }}"></label>
             <div class="form-row-2col">
@@ -389,6 +390,7 @@
         </form>
         {% else %}
         <form method="POST" action="{{ url_for('admin_add_faculty') }}" class="admin-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label>Name * <input type="text" name="name" required maxlength="100" placeholder="e.g. Mr. Sharma"></label>
             <label>Subject * <input type="text" name="subject" required maxlength="80" placeholder="e.g. Mathematics"></label>
             <div class="form-row-2col">
@@ -436,6 +438,7 @@
                     <form method="POST" action="{{ url_for('admin_delete_faculty', fid=f.id) }}"
                           onsubmit='return confirm("Delete " + {{ f.name|tojson }} + " and all their assignments?");'
                           style="margin:0;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="fac-icon-btn danger" title="Delete">
                             <i class="fa-solid fa-trash"></i>
                         </button>
@@ -470,6 +473,7 @@
         </div>
 
         <form method="POST" action="{{ url_for('admin_assign_subject') }}" class="admin-form" id="assignForm">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="old_assignment_id" id="assignOldId" value="">
 
             <label>Faculty *
@@ -577,6 +581,7 @@
                                 <form method="POST" action="{{ url_for('admin_delete_assignment', aid=a.id) }}"
                                       onsubmit="return confirm('Remove this assignment?');"
                                       style="display:inline-block; margin-left:4px;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="fac-icon-btn danger" title="Delete">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
@@ -710,7 +715,7 @@
                 const delUrl = '/admin/faculty/assignment/' + encodeURIComponent(oldId) + '/delete';
                 const res = await fetch(delUrl, {
                     method: 'POST',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': document.querySelector('meta[name=\"csrf-token\"]')?.content || '' }
                 });
                 if (!res.ok) throw new Error('Delete failed with status ' + res.status);
 

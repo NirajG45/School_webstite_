@@ -33,6 +33,7 @@
         <div style="background:#f9f9f9; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #ddd;">
             <h4 style="margin-top:0; color:#e11d48;">Add Subject to {{ selected_class }}</h4>
             <form method="POST" action="{{ url_for('admin_add_subject') }}" class="admin-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="class_name" value="{{ selected_class }}">
                 <div class="form-row-2col">
                     <label>Subject Name
@@ -54,6 +55,7 @@
                 </div>
                 <form method="POST" action="{{ url_for('admin_delete_subject', sid=sub.id) }}"
                       data-confirm="Delete subject and its marks?">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
                 </form>
             </div>

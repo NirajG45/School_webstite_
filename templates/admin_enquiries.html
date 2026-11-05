@@ -27,6 +27,7 @@
                     <td class="muted small-text">{{ e.created_at[:10] if e.created_at else '' }}</td>
                     <td>
                         <form method="POST" action="{{ url_for('admin_delete_enquiry', eid=e.id) }}" data-confirm="Delete this enquiry?">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
                         </form>
                     </td>

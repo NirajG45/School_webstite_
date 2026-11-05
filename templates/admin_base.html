@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Admin{% endblock %} — Residential Shanti Niketan</title>
@@ -2094,9 +2095,9 @@
             <a href="{{ url_for('home') }}" target="_blank" rel="noopener" class="admin-sidebar-foot-link">
                 <i class="fa-solid fa-globe"></i><span>View Website</span>
             </a>
-            <a href="{{ url_for('logout') }}" class="admin-sidebar-foot-link logout">
+            <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="admin-sidebar-foot-link logout">
                 <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
-            </a>
+            </button></form>
         </div>
     </aside>
 
@@ -2276,6 +2277,7 @@
                         {% if session.get('photo_url') %}
                         <form method="POST" action="{{ url_for('remove_profile_photo') }}"
                             onsubmit="return confirm('Remove your profile photo?');">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="remove-photo-btn">
                                 <i class="fa-solid fa-trash"></i> Remove Photo
                             </button>
@@ -2288,12 +2290,13 @@
                         <a href="{{ url_for('change_password') }}" role="menuitem">
                             <i class="fa-solid fa-key"></i> Change Password
                         </a>
-                        <a href="{{ url_for('logout') }}" class="admin-logout-link" role="menuitem">
+                        <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="admin-logout-link" role="menuitem">
                             <i class="fa-solid fa-right-from-bracket"></i> Logout
-                        </a>
+                        </button></form>
 
                         <form id="adminPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
                             enctype="multipart/form-data" style="display:none;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="file" id="adminPhotoInput" name="photo" accept="image/*"
                                 onchange="document.getElementById('adminPhotoForm').submit();">
                         </form>

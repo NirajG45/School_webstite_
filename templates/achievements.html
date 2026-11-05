@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Achievements | Residential Shanti Niketan</title>
@@ -56,7 +57,7 @@
                         {% if session.get('user_role') == 'admin' %}
                         <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-user-gear"></i> Admin Panel</a>
                         {% endif %}
-                        <a href="{{ url_for('logout') }}" class="logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                        <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</button></form>
                     </div>
                 </div>
                 {% else %}
@@ -95,7 +96,7 @@
             <a href="{{ url_for('achievements_page') }}"><i class="fa-solid fa-trophy"></i> Achievements</a>
             <a href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
             {% if session.get('user_id') %}
-            <a href="{{ url_for('logout') }}" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button></form>
             {% else %}
             <a href="{{ url_for('login_page') }}" class="mobile-login-nav"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
             {% endif %}

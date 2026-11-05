@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parent Dashboard | RSN</title>
@@ -1871,8 +1872,8 @@
             <a href="{{ url_for('settings_page') }}" class="pd-nav-link">
                 <i class="fa-solid fa-gear"></i> Settings
             </a>
-            <a href="{{ url_for('logout') }}" class="pd-nav-link pd-nav-logout"><i
-                    class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="pd-nav-link pd-nav-logout"><i
+                    class="fa-solid fa-right-from-bracket"></i> Logout</button></form>
         </nav>
 
         <div class="pd-sidebar-foot">
@@ -2007,6 +2008,7 @@
                         {% if session.get('photo_url') %}
                         <form method="POST" action="{{ url_for('remove_profile_photo') }}"
                               onsubmit="return confirm('Remove your profile photo?');">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="remove-photo-btn">
                                 <i class="fa-solid fa-trash"></i> Remove Photo
                             </button>
@@ -2021,12 +2023,13 @@
                             Website</a>
                         <a href="{{ url_for('change_password') }}" role="menuitem"><i class="fa-solid fa-key"></i>
                             Change Password</a>
-                        <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem"><i
-                                class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                        <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="logout-link" role="menuitem"><i
+                                class="fa-solid fa-right-from-bracket"></i> Logout</button></form>
 
                         <!-- NEW: Hidden photo upload form -->
                         <form id="pdPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
                               enctype="multipart/form-data" style="display:none;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="file" id="pdPhotoInput" name="photo" accept="image/*"
                                    onchange="document.getElementById('pdPhotoForm').submit();">
                         </form>
@@ -2239,6 +2242,7 @@
                                     {% endif %}
                                     <form method="POST" action="{{ url_for('fee_pay') }}" class="pd-form"
                                         style="gap:10px;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <label>Amount (₹) <input type="number" name="amount" step="0.01" required
                                                 placeholder="5000"></label>
                                         <label>Transaction ID <input type="text" name="transaction_id"
@@ -2427,12 +2431,14 @@
                             </div>
                             <form id="pdProfilePhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
                                   enctype="multipart/form-data" style="display:none;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="file" id="pdProfilePhotoInput" name="photo" accept="image/*"
                                        onchange="document.getElementById('pdProfilePhotoForm').submit();">
                             </form>
                             {% if session.get('photo_url') %}
                             <form id="pdProfileRemoveForm" method="POST"
-                                  action="{{ url_for('remove_profile_photo') }}" style="display:none;"></form>
+                                  action="{{ url_for('remove_profile_photo') }}" style="display:none;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></form>
                             {% endif %}
 
                             <a href="{{ url_for('change_password') }}" class="pd-btn-primary"

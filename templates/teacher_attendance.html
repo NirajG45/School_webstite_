@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mark Attendance | RSN</title>
@@ -487,12 +488,14 @@
          (nested forms are invalid HTML and silently break submission) -->
     <form id="taPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
           enctype="multipart/form-data" style="display:none;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="file" id="taPhotoInput" name="photo" accept="image/*"
                onchange="document.getElementById('taPhotoForm').submit();">
     </form>
 
     <!-- Main attendance form -->
     <form method="POST" action="{{ url_for('teacher_attendance') }}" id="attendanceForm">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="date" value="{{ date }}">
         <input type="hidden" name="subject" value="{{ subject }}">
         <input type="hidden" name="class_filter" value="{{ selected_class }}">

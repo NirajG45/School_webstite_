@@ -288,6 +288,7 @@
     </section>
 
     <form method="POST" action="{{ url_for('edit_question_paper', paper_id=paper['id']) }}" id="questionForm">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <section class="qpe-panel">
             <div class="qpe-head">
                 <h3><i class="fa-solid fa-layer-group"></i> Add questions</h3>
@@ -537,7 +538,7 @@
             try {
                 const response = await fetch(apiUrl, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name=\"csrf-token\"]')?.content || '' },
                     body: JSON.stringify(payload)
                 });
                 const data = await response.json();

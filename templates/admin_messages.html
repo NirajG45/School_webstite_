@@ -7,6 +7,7 @@
     <div class="admin-panel">
         <div class="admin-panel-head"><h3><i class="fa-solid fa-paper-plane"></i> Send New Message</h3></div>
         <form method="POST" action="{{ url_for('admin_messages') }}" class="admin-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label>Send To
                 <select name="to_role" id="toRole" onchange="toggleUserSelect()">
                     <option value="all">📢 All Users</option>

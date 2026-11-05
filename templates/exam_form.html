@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Online Examination Form | Shanti Niketan</title>
@@ -36,6 +37,7 @@
         <main>
             <!-- ACTUAL FORM START -->
             <form id="examForm" method="POST" action="{{ url_for('exam_form') }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <section class="form-section">
                     <h3>STUDENT DETAILS</h3>
                     <div class="form-grid">
@@ -113,7 +115,7 @@
     <!-- Pass dynamic subjects to JS -->
     <script>
         // Safe way to pass data from Jinja to JS
-        const DB_SUBJECTS = {{ subjects_dict | safe }};
+        const DB_SUBJECTS = {{ subjects_dict | tojson }};
     </script>
     
     <script src="{{ url_for('static', filename='js/storage.js') }}"></script>

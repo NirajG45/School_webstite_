@@ -9,6 +9,7 @@
             <h3><i class="fa-solid fa-plus"></i> Add New Notice</h3>
         </div>
         <form method="POST" action="{{ url_for('admin_add_notice') }}" class="admin-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label>Date <input type="text" name="date" placeholder="e.g. 13 Oct 2026" required></label>
             <label>Title <input type="text" name="title" placeholder="Notice title" required maxlength="200"></label>
             <label>Tag <input type="text" name="tag" placeholder="e.g. Admissions, Academics" required maxlength="50"></label>
@@ -36,6 +37,7 @@
                     {% if n.description %}<span class="notice-desc muted">{{ n.description[:120] }}{% if n.description|length > 120 %}...{% endif %}</span>{% endif %}
                 </div>
                 <form method="POST" action="{{ url_for('admin_delete_notice', nid=n.id) }}" data-confirm="Delete this notice?">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
                 </form>
             </div>

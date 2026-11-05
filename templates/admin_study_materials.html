@@ -85,6 +85,7 @@
         </div>
         <div class="sm-panel-body">
             <form method="POST" action="{{ url_for('admin_add_study_material') }}" class="sm-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="sm-form-row">
                     <label>Class
                         <select name="class_name" required>
@@ -168,6 +169,7 @@
                         <td>
                             <form method="POST" action="{{ url_for('admin_delete_study_material', mid=m.id) }}"
                                   onsubmit="return confirm('Delete this material?');">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="sm-delete">
                                     <i class="fa-solid fa-trash"></i> Delete
                                 </button>

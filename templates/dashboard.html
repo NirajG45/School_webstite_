@@ -1353,12 +1353,14 @@
                 </div>
                 <form id="adminDashPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
                     enctype="multipart/form-data" style="display:none;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="file" id="adminDashPhotoInput" name="photo" accept="image/*"
                         onchange="document.getElementById('adminDashPhotoForm').submit();">
                 </form>
                 {% if session.get('photo_url') %}
                 <form id="adminDashRemoveForm" method="POST" action="{{ url_for('remove_profile_photo') }}"
-                    style="display:none;"></form>
+                    style="display:none;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></form>
                 {% endif %}
             </div>
         </div>

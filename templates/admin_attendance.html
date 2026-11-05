@@ -462,6 +462,7 @@
     </div>
 
     <form method="POST" action="{{ url_for('admin_mark_attendance') }}" id="attendanceForm">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="date" value="{{ date }}">
         <input type="hidden" name="subject" value="{{ subject_filter }}">
         <input type="hidden" name="role" value="{{ role }}">

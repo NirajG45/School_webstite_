@@ -296,6 +296,7 @@
                 </a>
                 <form method="POST" action="{{ url_for('delete_question_paper', paper_id=p['id']) }}"
                     onsubmit="return confirm('Delete this paper and all its questions?');">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="qpl-action qpl-delete"><i class="fa-solid fa-trash"></i>
                         Delete</button>
                 </form>

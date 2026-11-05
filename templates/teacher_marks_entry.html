@@ -34,6 +34,7 @@
 
     {% if students and subjects %}
     <form method="POST" action="{{ url_for('teacher_marks_entry', eid=exam.id, class=class_name) }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div style="overflow-x:auto; padding-bottom:90px;">
             <table class="admin-table"
                    style="width:100%; border-collapse:collapse; text-align:left; white-space:nowrap;">

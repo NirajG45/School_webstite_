@@ -78,6 +78,7 @@
         </div>
         <div class="hw-panel-body">
             <form method="POST" action="{{ url_for('admin_add_homework') }}" class="hw-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="hw-form-row">
                     <label>Class
                         <select name="class_name" required>
@@ -149,6 +150,7 @@
                         <td>
                             <form method="POST" action="{{ url_for('admin_delete_homework', hid=h.id) }}"
                                   onsubmit="return confirm('Delete this homework?');">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="hw-delete">
                                     <i class="fa-solid fa-trash"></i> Delete
                                 </button>

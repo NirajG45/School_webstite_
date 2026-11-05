@@ -125,6 +125,7 @@
     <form method="POST" action="{{ url_for('admin_create_user') }}"
           class="admin-form" id="createUserForm"
           enctype="multipart/form-data" novalidate>
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         <!-- ================= ROLE + FULL NAME ================= -->
         <div class="form-row-2col">
@@ -941,8 +942,8 @@
             <i class="fa-solid fa-circle-info"></i>
             <div>
                 <strong>Auto-generated:</strong> A unique ID will be created automatically<br>
-                <strong>Default Password:</strong> <code>snv@450</code>
-                (User must change on first login)
+                <strong>Temporary Password:</strong> A unique random password is generated for this user.
+                It is shown to the admin only after creation; user must change it on first login.
             </div>
         </div>
 

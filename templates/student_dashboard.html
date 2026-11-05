@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard | RSN</title>
@@ -494,6 +495,7 @@
                         {% if session.get('photo_url') %}
                         <form method="POST" action="{{ url_for('remove_profile_photo') }}"
                               onsubmit="return confirm('Remove your profile photo?');">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="remove-photo-btn">
                                 <i class="fa-solid fa-trash"></i> Remove Photo
                             </button>
@@ -506,12 +508,13 @@
                         {% endif %}
                         <a href="{{ url_for('change_password') }}" role="menuitem"><i class="fa-solid fa-key"></i>
                             Change Password</a>
-                        <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem"><i
-                                class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                        <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="logout-link" role="menuitem"><i
+                                class="fa-solid fa-right-from-bracket"></i> Logout</button></form>
 
                         <!-- NEW: Hidden photo upload form -->
                         <form id="stPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
                               enctype="multipart/form-data" style="display:none;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="file" id="stPhotoInput" name="photo" accept="image/*"
                                    onchange="document.getElementById('stPhotoForm').submit();">
                         </form>
@@ -581,8 +584,8 @@
             <a href="{{ url_for('faq_page') }}"><i class="fa-solid fa-circle-question"></i> FAQ</a>
             <a href="{{ url_for('home') }}#contact"><i class="fa-regular fa-envelope"></i> Contact Us</a>
             <a href="{{ url_for('change_password') }}"><i class="fa-solid fa-key"></i> Change Password</a>
-            <a href="{{ url_for('logout') }}" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i>
-                Logout</a>
+            <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i>
+                Logout</button></form>
         </nav>
         <div class="mobile-menu-foot">Learn <span>•</span> Grow <span>•</span> Succeed</div>
     </aside>
@@ -706,12 +709,14 @@
                     </div>
                     <form id="stProfilePhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
                           enctype="multipart/form-data" style="display:none;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="file" id="stProfilePhotoInput" name="photo" accept="image/*"
                                onchange="document.getElementById('stProfilePhotoForm').submit();">
                     </form>
                     {% if session.get('photo_url') %}
                     <form id="stProfileRemoveForm" method="POST"
-                          action="{{ url_for('remove_profile_photo') }}" style="display:none;"></form>
+                          action="{{ url_for('remove_profile_photo') }}" style="display:none;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></form>
                     {% endif %}
 
                     <div class="profile-row">
@@ -1033,6 +1038,7 @@
                     {% endif %}
 
                     <form method="POST" action="{{ url_for('fee_pay') }}" class="admin-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <label>Amount (₹) <input type="number" name="amount" step="0.01" required placeholder="5000"></label>
                         <label>Transaction ID <input type="text" name="transaction_id" placeholder="UPI txn ID"></label>
                         <label>Remarks <input type="text" name="remarks" placeholder="Optional"></label>

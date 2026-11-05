@@ -6,6 +6,7 @@
     <div class="admin-panel">
         <div class="admin-panel-head"><h3><i class="fa-solid fa-plus"></i> Add FAQ</h3></div>
         <form method="POST" action="{{ url_for('admin_add_faq') }}" class="admin-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label>Question * <input type="text" name="question" required maxlength="200"></label>
             <label>Answer * <textarea name="answer" rows="4" required maxlength="1000"></textarea></label>
             <label>Display Order <input type="number" name="display_order" value="0" min="0"></label>
@@ -23,6 +24,7 @@
                     <span class="notice-desc muted">{{ f.answer[:100] }}{% if f.answer|length > 100 %}...{% endif %}</span>
                 </div>
                 <form method="POST" action="{{ url_for('admin_delete_faq', fid=f.id) }}" data-confirm="Delete?">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
                 </form>
             </div>

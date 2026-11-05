@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Dashboard | Residential Shanti Niketan</title>
@@ -1107,6 +1108,7 @@
                         {% if session.get('photo_url') %}
                         <form method="POST" action="{{ url_for('remove_profile_photo') }}"
                             onsubmit="return confirm('Remove your profile photo?');">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="remove-photo-btn">
                                 <i class="fa-solid fa-trash"></i> Remove Photo
                             </button>
@@ -1116,12 +1118,13 @@
                         <a href="{{ url_for('change_password') }}" role="menuitem">
                             <i class="fa-solid fa-key"></i> Change Password
                         </a>
-                        <a href="{{ url_for('logout') }}" class="logout-link" role="menuitem">
+                        <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="logout-link" role="menuitem">
                             <i class="fa-solid fa-right-from-bracket"></i> Logout
-                        </a>
+                        </button></form>
 
                         <form id="udPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
                             enctype="multipart/form-data" style="display:none;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="file" id="udPhotoInput" name="photo" accept="image/*"
                                 onchange="document.getElementById('udPhotoForm').submit();">
                         </form>
@@ -1208,8 +1211,8 @@
             <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-user-gear"></i> Admin Panel</a>
             {% endif %}
             <a href="{{ url_for('change_password') }}"><i class="fa-solid fa-key"></i> Change Password</a>
-            <a href="{{ url_for('logout') }}" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i>
-                Logout</a>
+            <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="mobile-logout"><i class="fa-solid fa-right-from-bracket"></i>
+                Logout</button></form>
             {% else %}
             <a href="{{ url_for('login_page') }}" class="mobile-login-nav"><i class="fa-solid fa-right-to-bracket"></i>
                 Login</a>
@@ -1367,8 +1370,8 @@
                 <a href="{{ url_for('change_password') }}" class="dash-nav-link"><i class="fa-solid fa-key"></i> Change
                     Password</a>
                 <a href="{{ url_for('home') }}" class="dash-nav-link"><i class="fa-solid fa-globe"></i> View Website</a>
-                <a href="{{ url_for('logout') }}" class="dash-nav-link logout-link"><i
-                        class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="dash-nav-link logout-link"><i
+                        class="fa-solid fa-right-from-bracket"></i> Logout</button></form>
 
                 {# =====================================================
                 TEACHER
@@ -1405,8 +1408,8 @@
                 <a href="{{ url_for('change_password') }}" class="dash-nav-link"><i class="fa-solid fa-key"></i> Change
                     Password</a>
                 <a href="{{ url_for('home') }}" class="dash-nav-link"><i class="fa-solid fa-globe"></i> View Website</a>
-                <a href="{{ url_for('logout') }}" class="dash-nav-link logout-link"><i
-                        class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="dash-nav-link logout-link"><i
+                        class="fa-solid fa-right-from-bracket"></i> Logout</button></form>
 
                 {# =====================================================
                 PARENT
@@ -1439,8 +1442,8 @@
                 <a href="{{ url_for('change_password') }}" class="dash-nav-link"><i class="fa-solid fa-key"></i> Change
                     Password</a>
                 <a href="{{ url_for('home') }}" class="dash-nav-link"><i class="fa-solid fa-globe"></i> View Website</a>
-                <a href="{{ url_for('logout') }}" class="dash-nav-link logout-link"><i
-                        class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="dash-nav-link logout-link"><i
+                        class="fa-solid fa-right-from-bracket"></i> Logout</button></form>
 
                 {# =====================================================
                 STUDENT
@@ -1473,8 +1476,8 @@
                 <a href="{{ url_for('change_password') }}" class="dash-nav-link"><i class="fa-solid fa-key"></i> Change
                     Password</a>
                 <a href="{{ url_for('home') }}" class="dash-nav-link"><i class="fa-solid fa-globe"></i> View Website</a>
-                <a href="{{ url_for('logout') }}" class="dash-nav-link logout-link"><i
-                        class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="dash-nav-link logout-link"><i
+                        class="fa-solid fa-right-from-bracket"></i> Logout</button></form>
 
                 {# =====================================================
                 FALLBACK
@@ -1487,8 +1490,8 @@
                 <a href="#notices" class="dash-nav-link"><i class="fa-solid fa-bell"></i> Notices</a>
                 <a href="{{ url_for('change_password') }}" class="dash-nav-link"><i class="fa-solid fa-key"></i> Change
                     Password</a>
-                <a href="{{ url_for('logout') }}" class="dash-nav-link logout-link"><i
-                        class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="dash-nav-link logout-link"><i
+                        class="fa-solid fa-right-from-bracket"></i> Logout</button></form>
                 {% endif %}
             </nav>
         </aside>
@@ -1587,12 +1590,14 @@
                         </div>
                         <form id="udProfilePhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
                             enctype="multipart/form-data" style="display:none;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="file" id="udProfilePhotoInput" name="photo" accept="image/*"
                                 onchange="document.getElementById('udProfilePhotoForm').submit();">
                         </form>
                         {% if session.get('photo_url') %}
                         <form id="udProfileRemoveForm" method="POST" action="{{ url_for('remove_profile_photo') }}"
-                            style="display:none;"></form>
+                            style="display:none;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></form>
                         {% endif %}
 
                         <div class="profile-row">
@@ -1797,6 +1802,7 @@
                         <h2>Apply for Leave</h2>
                     </div>
                     <form method="POST" action="{{ url_for('leave_request') }}" class="admin-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <label>Leave Type
                             <select name="leave_type" required>
                                 <option value="">Select</option>
@@ -1871,6 +1877,7 @@
                         {% endif %}
 
                         <form method="POST" action="{{ url_for('fee_pay') }}" class="admin-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <label>Amount (₹)
                                 <input type="number" name="amount" step="0.01" required placeholder="e.g. 5000">
                             </label>
@@ -1938,6 +1945,7 @@
                 <button type="button" class="modal-close" id="closeModalBtn"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form method="POST" action="{{ url_for('admin_edit_profile', user_id=user.id) }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body admin-form" style="padding: 22px; gap: 15px;">
                     <div class="form-row-2col">
                         <label>Full Name <input type="text" name="name" value="{{ user.name }}" required></label>

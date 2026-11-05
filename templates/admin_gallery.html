@@ -6,6 +6,7 @@
     <div class="admin-panel">
         <div class="admin-panel-head"><h3><i class="fa-solid fa-plus"></i> Add Photo</h3></div>
         <form method="POST" action="{{ url_for('admin_add_gallery') }}" class="admin-form" enctype="multipart/form-data">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label>Title * <input type="text" name="title" required maxlength="150"></label>
             <label>
                 Upload Photo
@@ -45,6 +46,7 @@
                     </div>
                 </div>
                 <form method="POST" action="{{ url_for('admin_delete_gallery', gid=img.id) }}" data-confirm="Delete?">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
                 </form>
             </div>

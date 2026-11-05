@@ -12,6 +12,7 @@
 
     {% if students and subjects %}
     <form method="POST" action="{{ url_for('admin_bulk_marks_entry') }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="class_name" value="{{ class_name }}">
         <input type="hidden" name="exam_id" value="{{ exam_id }}">
 

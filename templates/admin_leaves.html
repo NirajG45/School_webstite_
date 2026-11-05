@@ -31,6 +31,7 @@
                     <td>
                         {% if l.status == 'pending' %}
                         <form method="POST" action="{{ url_for('admin_update_leave', lid=l.id) }}" style="display:flex;gap:5px;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="text" name="remarks" placeholder="Remarks" style="padding:5px;font-size:11px;border:1px solid #dbe4ed;border-radius:6px;width:90px;">
                             <button name="status" value="approved" class="btn-icon-approve" title="Approve"><i class="fa-solid fa-check"></i></button>
                             <button name="status" value="rejected" class="btn-icon-danger" title="Reject"><i class="fa-solid fa-xmark"></i></button>

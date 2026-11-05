@@ -6,6 +6,7 @@
     <div class="admin-panel">
         <div class="admin-panel-head"><h3><i class="fa-solid fa-plus"></i> Add Achievement</h3></div>
         <form method="POST" action="{{ url_for('admin_add_achievement') }}" class="admin-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label>Student Name * <input type="text" name="student_name" required maxlength="100"></label>
             <div class="form-row-2col">
                 <label>Class <input type="text" name="class_name" maxlength="50"></label>
@@ -33,6 +34,7 @@
                     <span class="notice-desc muted">{{ a.achievement[:100] }}{% if a.achievement|length > 100 %}...{% endif %}</span>
                 </div>
                 <form method="POST" action="{{ url_for('admin_delete_achievement', aid=a.id) }}" data-confirm="Delete?">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
                 </form>
             </div>

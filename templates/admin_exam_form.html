@@ -67,6 +67,7 @@
             <h3><i class="fa-solid fa-file-pen"></i> Exam Details</h3>
         </div>
         <form method="POST" class="admin-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label>Exam Title (appears on report card header)
                 <input type="text" name="title" required
                     value="{{ exam.title if exam else 'Half Yearly Examination 2026-2027' }}">
@@ -99,6 +100,7 @@
 
         <form method="POST" action="{{ url_for('admin_exam_save_subjects', eid=exam.id) }}" id="subject-selection-form"
             class="admin-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="selected_subjects_json" id="selected-subjects-json">
             <label>Select Class</label>
             <div class="class-buttons" id="class-buttons" role="group" aria-label="Select class">
@@ -334,7 +336,7 @@
                 try {
                     const response = await fetch("{{ url_for('admin_api_add_subject') }}", {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name=\"csrf-token\"]')?.content || '' },
                         body: JSON.stringify({ 
                             class_name: c, 
                             subject_name: subjectName, 

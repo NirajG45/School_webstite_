@@ -11,6 +11,7 @@
         </div>
         
         <form method="POST" action="{{ url_for('admin_update_qr') }}" class="admin-form" enctype="multipart/form-data">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             
             <!-- UPI LINK -->
             <label>
@@ -59,6 +60,7 @@
             <img src="{{ fee_qr }}" alt="Fee QR" style="max-width:220px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.1);border:3px solid var(--yellow);">
             
             <form method="POST" action="{{ url_for('admin_update_qr') }}" style="margin-top:15px;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="delete_qr" value="1">
                 <button type="submit" class="btn-icon-danger" style="width:auto;padding:8px 16px;" 
                         onclick="return confirm('Remove current QR code?')">
@@ -135,6 +137,7 @@
                     <td>
                         {% if p.status == 'pending' %}
                         <form method="POST" action="{{ url_for('admin_verify_fee', pid=p.id) }}" style="display:inline-flex;gap:5px;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button name="status" value="verified" class="btn-icon-approve" title="Verify"><i class="fa-solid fa-check"></i></button>
                             <button name="status" value="rejected" class="btn-icon-danger" title="Reject"><i class="fa-solid fa-xmark"></i></button>
                         </form>

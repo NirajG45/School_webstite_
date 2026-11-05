@@ -907,6 +907,7 @@
                     <!-- ROLE (unified dropdown) -->
                     <td data-label="Role">
                         <form method="POST" action="{{ url_for('admin_change_role', user_id=u.id) }}" style="margin:0;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <select name="role" class="role-select {{ u.role }}" onchange="this.form.submit()" title="Change role">
                                 <option value="student"       {% if u.role=='student' %}selected{% endif %}>Student</option>
                                 <option value="parent"        {% if u.role=='parent' %}selected{% endif %}>Parent</option>
@@ -954,12 +955,14 @@
                             </button>
 
                             <form method="POST" action="{{ url_for('admin_toggle_user', user_id=u.id) }}" style="display:inline; margin:0;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn-icon-approve" title="Toggle active status">
                                     <i class="fa-solid fa-power-off"></i>
                                 </button>
                             </form>
 
-                            <form method="POST" action="{{ url_for('admin_reset_password', user_id=u.id) }}" style="display:inline; margin:0;" data-confirm="Reset password to default 'snv@450'?">
+                            <form method="POST" action="{{ url_for('admin_reset_password', user_id=u.id) }}" style="display:inline; margin:0;" data-confirm="Generate a new unique temporary password for this user?">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn-icon-approve" title="Reset password">
                                     <i class="fa-solid fa-key"></i>
                                 </button>
@@ -967,6 +970,7 @@
 
                             {% if u.id != session['user_id'] %}
                             <form method="POST" action="{{ url_for('admin_delete_user', user_id=u.id) }}" style="display:inline; margin:0;" data-confirm="Delete this user permanently?">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn-icon-danger" title="Delete user">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
@@ -1010,12 +1014,15 @@
         </div>
 
         <form id="eu_photo_form" method="POST" enctype="multipart/form-data" style="display:none;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="file" name="photo" accept="image/*"
                    onchange="if(this.files.length) this.form.submit();">
         </form>
-        <form id="eu_photo_remove_form" method="POST" style="display:none;"></form>
+        <form id="eu_photo_remove_form" method="POST" style="display:none;">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></form>
 
         <form method="POST" id="editUserForm" action="">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="user-modal-body">
 
                 <div class="user-photo-block">

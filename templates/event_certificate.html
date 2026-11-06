@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Certificate - {{ certificate.student_name }}</title>
+
     <style>
         @page {
             size: A4 landscape;
@@ -15,22 +15,26 @@
             box-sizing: border-box;
         }
 
-        html,
-        body {
-            width: 297mm;
-            height: 210mm;
+        :root {
+            --navy: #173f60;
+            --gold: #b58a3b;
+            --ink: #26384a;
+        }
+
+        html, body {
             margin: 0;
             padding: 0;
         }
 
         body {
-            background: #eef1f5;
-            font-family: Georgia, 'Times New Roman', serif;
-            color: #26384a;
+            min-height: 100vh;
+            background: #e9edf2;
+            color: var(--ink);
+            font-family: Georgia, "Times New Roman", serif;
         }
 
         .toolbar {
-            max-width: 1100px;
+            width: min(1100px, calc(100% - 32px));
             margin: 18px auto;
             text-align: right;
             font-family: Arial, sans-serif;
@@ -47,144 +51,318 @@
         }
 
         .certificate {
+            --theme: #a4772a;
+            --theme-dark: #173f60;
+            --theme-soft: rgba(181, 138, 59, .10);
+            --theme-pale: #fffdf7;
+
+            position: relative;
+            isolation: isolate;
+            display: flex;
             width: 277mm;
             height: 190mm;
             margin: 10mm auto;
-            padding: 10mm;
-            border: 5px double #b58a3b;
-            background: #fffdf7;
-            position: relative;
-            text-align: center;
-            outline: 1px solid #b58a3b;
-            outline-offset: -10px;
-
+            padding: 8mm;
             overflow: hidden;
+            text-align: center;
+            background: var(--theme-pale);
+            border: 5px double var(--theme);
+            outline: 1px solid var(--theme);
+            outline-offset: -10px;
             page-break-inside: avoid;
             break-inside: avoid;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .certificate::before {
+            content: "";
+            position: absolute;
+            inset: 5mm;
+            z-index: -1;
+            border: 1px solid color-mix(in srgb, var(--theme) 55%, transparent);
+            pointer-events: none;
+        }
+
+        .certificate::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            opacity: .8;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 0 0, var(--theme-soft), transparent 27%),
+                radial-gradient(circle at 100% 100%, var(--theme-soft), transparent 27%);
         }
 
         .inner {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             width: 100%;
             height: 100%;
             min-height: 0;
-            border: 1px solid #d7bd83;
-            padding: 8mm 12mm;
-            position: relative;
+            padding: 5mm 12mm 7mm;
+            border: 1px solid color-mix(in srgb, var(--theme) 45%, transparent);
+        }
 
-            page-break-inside: avoid;
-            break-inside: avoid;
+        .corner {
+            position: absolute;
+            width: 34mm;
+            height: 34mm;
+            color: var(--theme);
+            opacity: .62;
+            pointer-events: none;
+        }
+
+        .corner.tl { top: 1mm; left: 1mm; }
+        .corner.tr { top: 1mm; right: 1mm; transform: rotate(90deg); }
+        .corner.bl { bottom: 1mm; left: 1mm; transform: rotate(-90deg); }
+        .corner.br { bottom: 1mm; right: 1mm; transform: rotate(180deg); }
+
+        .watermark {
+            position: absolute;
+            top: 48%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-16deg);
+            white-space: nowrap;
+            font: 700 48px Arial, sans-serif;
+            letter-spacing: 7px;
+            color: var(--theme);
+            opacity: .045;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+        }
+
+        .topline {
+            font: 700 10px Arial, sans-serif;
+            letter-spacing: 3px;
+            color: var(--theme);
+            margin-bottom: 3px;
+            text-transform: uppercase;
         }
 
         .school {
-            font: 700 25px Arial, sans-serif;
-            letter-spacing: 1px;
-            color: #173f60;
+            margin: 2px 0 3px;
+            color: var(--navy);
+            font: 700 23px Arial, sans-serif;
+            letter-spacing: .8px;
             text-transform: uppercase;
-            margin: 8px 0;
         }
 
         .sub {
-            font: 12px Arial, sans-serif;
+            color: #8c6a2d;
+            font: 11px Arial, sans-serif;
             letter-spacing: 3px;
-            color: #98722e;
         }
 
-        .ornament {
-            font-size: 35px;
-            color: #b58a3b;
-            margin: 5px;
+        .event-mark {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 54px;
+            height: 54px;
+            margin: 8px auto 5px;
+            color: var(--theme);
+            background: rgba(255,255,255,.78);
+            border: 1.5px solid var(--theme);
+            border-radius: 50%;
+            box-shadow: 0 2px 9px rgba(0,0,0,.08);
         }
 
-        .heading {
-            font-size: 43px;
-            letter-spacing: 4px;
-            color: #a4772a;
-            margin: 15px 0 4px;
+        .event-mark svg {
+            display: block;
+            width: 34px;
+            height: 34px;
         }
 
-        .kind {
-            font: 700 16px Arial, sans-serif;
-            letter-spacing: 2px;
-            color: #314e68;
+        .event-label {
+            margin: 0 0 3px;
+            color: var(--theme);
+            font: 700 9px Arial, sans-serif;
+            letter-spacing: 2.2px;
             text-transform: uppercase;
         }
 
+        .heading {
+            margin: 2px 0 0;
+            color: var(--theme);
+            font: 700 39px Georgia, "Times New Roman", serif;
+            letter-spacing: 4px;
+            line-height: 1.05;
+        }
+
+        .kind {
+            margin-top: 5px;
+            color: var(--theme-dark);
+            font: 700 13px Arial, sans-serif;
+            letter-spacing: 2.2px;
+        }
+
         .intro {
-            font-size: 18px;
-            margin: 20px 0 10px;
+            margin: 13px 0 5px;
+            font-size: 15px;
         }
 
         .student {
-            font-size: 35px;
-            font-weight: bold;
-            color: #173f60;
-            border-bottom: 1px solid #b58a3b;
             display: inline-block;
-            min-width: 60%;
-            padding: 0 20px 7px;
+            max-width: 90%;
+            padding: 0 22px 5px;
+            border-bottom: 1px solid var(--theme);
+            color: var(--theme-dark);
+            font-size: 31px;
+            font-weight: 700;
+            line-height: 1.2;
+            overflow-wrap: anywhere;
         }
 
         .copy {
-            font-size: 17px;
-            line-height: 1.7;
-            max-width: 850px;
-            margin: 12px auto;
+            max-width: 790px;
+            margin: 10px auto 0;
+            font-size: 14px;
+            line-height: 1.55;
         }
 
         .event {
-            font-weight: bold;
-            color: #946c24;
+            color: var(--theme);
+            font-weight: 700;
         }
 
         .meta {
-            font: 13px Arial, sans-serif;
+            margin-top: 8px;
             color: #596b7c;
-            margin-top: 10px;
+            font: 11px Arial, sans-serif;
         }
 
         .foot {
             display: flex;
             justify-content: space-between;
-            align-items: end;
-            margin-top: 25px;
-            font: 13px Arial, sans-serif;
+            align-items: flex-end;
+            gap: 25mm;
+            margin: 23px 5mm 0;
+            color: #435466;
+            font: 11px Arial, sans-serif;
         }
 
         .sign {
-            width: 210px;
+            width: 190px;
+            min-height: 30px;
+            padding-top: 6px;
             border-top: 1px solid #58697a;
-            padding-top: 8px;
+            line-height: 1.5;
         }
 
         .certno {
             position: absolute;
-            left: 15mm;
-            bottom: 7mm;
-            font: 10px Arial, sans-serif;
+            right: 10mm;
+            bottom: 4mm;
+            left: 10mm;
             color: #687789;
-            max-width: 90%;
+            font: 8px Arial, sans-serif;
             overflow-wrap: anywhere;
         }
 
-        .watermark {
-            position: absolute;
-            inset: 35% 0 auto;
-            font-size: 70px;
-            opacity: .045;
-            color: #ad842f;
-            transform: rotate(-15deg);
-            pointer-events: none;
+        /* Rangoli: mandala-inspired floral geometry */
+        .certificate.rangoli {
+            --theme: #c04470;
+            --theme-dark: #8f2854;
+            --theme-soft: rgba(224, 83, 125, .16);
+            --theme-pale: #fff9f5;
+        }
+
+        .rangoli .event-mark {
+            background:
+                radial-gradient(circle, #fff 0 23%, #ffe6ef 24% 43%, #fff 44% 48%, #f9d5e2 49%);
+        }
+
+        .rangoli .corner {
+            opacity: .85;
+        }
+
+        .rangoli::after {
+            background:
+                repeating-conic-gradient(from 0deg at 9% 13%,
+                    rgba(192,68,112,.10) 0deg 7deg,
+                    transparent 7deg 15deg),
+                repeating-conic-gradient(from 12deg at 91% 87%,
+                    rgba(224,145,48,.11) 0deg 7deg,
+                    transparent 7deg 15deg),
+                radial-gradient(circle at 0 0, var(--theme-soft), transparent 30%),
+                radial-gradient(circle at 100% 100%, var(--theme-soft), transparent 30%);
+        }
+
+        /* Art: paint splashes and brush-inspired accents */
+        .certificate.art {
+            --theme: #d4772d;
+            --theme-dark: #344b86;
+            --theme-soft: rgba(245, 170, 53, .16);
+            --theme-pale: #fffdf7;
+        }
+
+        .art::after {
+            background:
+                radial-gradient(ellipse at 4% 8%, rgba(255,193,7,.20), transparent 23%),
+                radial-gradient(ellipse at 96% 12%, rgba(239,83,80,.17), transparent 23%),
+                radial-gradient(ellipse at 92% 94%, rgba(63,81,181,.16), transparent 25%),
+                radial-gradient(ellipse at 5% 92%, rgba(38,166,154,.13), transparent 22%);
+        }
+
+        .art .event-mark {
+            background: linear-gradient(135deg, #fff7df, #fce8ef 55%, #e8edff);
+        }
+
+        /* Speech: stage, microphone and sound-wave theme */
+        .certificate.speech {
+            --theme: #2b638e;
+            --theme-dark: #17466c;
+            --theme-soft: rgba(43, 99, 142, .14);
+            --theme-pale: #f9fcff;
+        }
+
+        .speech::after {
+            background:
+                repeating-linear-gradient(135deg,
+                    transparent 0 17px,
+                    rgba(43,99,142,.035) 17px 18px),
+                radial-gradient(ellipse at 50% 0%, rgba(41,98,153,.18), transparent 42%),
+                radial-gradient(ellipse at 100% 100%, rgba(212,175,55,.16), transparent 32%);
+        }
+
+        .speech .event-mark {
+            background: linear-gradient(145deg, #fff, #e7f2fc);
+        }
+
+        /* Default academic / achievement theme */
+        .certificate.classic {
+            --theme: #a4772a;
+            --theme-dark: #173f60;
+            --theme-soft: rgba(181,138,59,.13);
+            --theme-pale: #fffdf7;
+        }
+
+        @media screen and (max-width: 900px) {
+            .certificate {
+                transform-origin: top left;
+                margin-left: 12px;
+            }
         }
 
         @media print {
-
-            html,
-            body {
+            html, body {
                 width: 297mm !important;
                 height: 210mm !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                background: white !important;
+                background: #fff !important;
                 overflow: hidden !important;
             }
 
@@ -197,324 +375,185 @@
                 height: 190mm !important;
                 min-height: 0 !important;
                 margin: 10mm auto !important;
-                padding: 10mm !important;
-
+                padding: 8mm !important;
+                overflow: hidden !important;
                 page-break-before: avoid !important;
                 page-break-after: avoid !important;
                 page-break-inside: avoid !important;
-                break-before: avoid !important;
-                break-after: avoid !important;
-                break-inside: avoid !important;
-
-                overflow: hidden !important;
-                box-shadow: none !important;
+                break-before: avoid-page !important;
+                break-after: avoid-page !important;
+                break-inside: avoid-page !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
 
             .inner {
                 height: 100% !important;
                 min-height: 0 !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-            }
-        }
-
-
-        /* EVENT-SPECIFIC CERTIFICATE THEMES */
-
-        .certificate {
-            position: relative;
-            isolation: isolate;
-            overflow: hidden;
-            background-color: #fffdf7;
-        }
-
-        .certificate::before,
-        .certificate::after {
-            content: "";
-            position: absolute;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .inner {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* RANGOLI THEME */
-
-        .certificate.rangoli {
-            background:
-                radial-gradient(circle at 8% 12%, rgba(255, 90, 120, .15), transparent 24%),
-                radial-gradient(circle at 92% 88%, rgba(255, 177, 50, .18), transparent 26%),
-                #fffaf4;
-            border-color: #d45b74;
-        }
-
-        .rangoli::before {
-            inset: 8px;
-            background:
-                repeating-conic-gradient(from 0deg,
-                    rgba(220, 73, 112, .09) 0deg 10deg,
-                    transparent 10deg 20deg);
-            mask-image: radial-gradient(circle at 0% 0%, black 0%, transparent 35%),
-                radial-gradient(circle at 100% 100%, black 0%, transparent 35%);
-        }
-
-        .rangoli .heading {
-            color: #c33e70;
-        }
-
-        .rangoli .ornament {
-            color: #e07836;
-        }
-
-        .rangoli .student {
-            color: #9e285d;
-            border-color: #e07836;
-        }
-
-        .rangoli .kind {
-            color: #b64b37;
-        }
-
-        .rangoli .event {
-            color: #c33e70;
-        }
-
-        /* ART & DRAWING THEME */
-
-        .certificate.art {
-            background:
-                radial-gradient(ellipse at 5% 10%, rgba(255, 193, 7, .20), transparent 28%),
-                radial-gradient(ellipse at 95% 15%, rgba(239, 83, 80, .17), transparent 25%),
-                radial-gradient(ellipse at 90% 95%, rgba(63, 81, 181, .15), transparent 28%),
-                #fffdf8;
-            border-color: #e18a35;
-        }
-
-        .art::before {
-            inset: 0;
-            background:
-                radial-gradient(circle at 5% 90%, rgba(255, 152, 0, .15) 0 5px, transparent 6px),
-                radial-gradient(circle at 95% 8%, rgba(63, 81, 181, .15) 0 7px, transparent 8px),
-                radial-gradient(circle at 88% 85%, rgba(233, 30, 99, .15) 0 6px, transparent 7px);
-        }
-
-        .art .heading {
-            color: #d56b28;
-        }
-
-        .art .ornament {
-            color: #ef9b27;
-        }
-
-        .art .student {
-            color: #344b86;
-            border-color: #e18a35;
-        }
-
-        .art .kind {
-            color: #4d5e91;
-        }
-
-        .art .event {
-            color: #d56b28;
-        }
-
-        /* SPEAKING & SPEECH THEME */
-
-        .certificate.speech {
-            background:
-                radial-gradient(ellipse at 50% 0%, rgba(41, 98, 153, .16), transparent 38%),
-                radial-gradient(ellipse at 100% 100%, rgba(212, 175, 55, .15), transparent 35%),
-                #f9fcff;
-            border-color: #386a96;
-        }
-
-        .speech::before {
-            inset: 0;
-            background:
-                linear-gradient(135deg, transparent 47%, rgba(56, 106, 150, .07) 48% 49%, transparent 50%),
-                linear-gradient(45deg, transparent 47%, rgba(212, 175, 55, .08) 48% 49%, transparent 50%);
-            background-size: 35px 35px;
-        }
-
-        .speech .heading {
-            color: #24577e;
-        }
-
-        .speech .ornament {
-            color: #bd9438;
-        }
-
-        .speech .student {
-            color: #17466c;
-            border-color: #bd9438;
-        }
-
-        .speech .kind {
-            color: #386a96;
-        }
-
-        .speech .event {
-            color: #24577e;
-        }
-
-        /* CLASSIC THEME */
-
-        .certificate.classic {
-            background:
-                radial-gradient(circle at 0% 0%, rgba(181, 138, 59, .12), transparent 30%),
-                radial-gradient(circle at 100% 100%, rgba(23, 63, 96, .10), transparent 30%),
-                #fffdf7;
-        }
-
-        /* EVENT LOGO */
-
-        .event-logo {
-            width: 62px;
-            height: 62px;
-            margin: 5px auto 8px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 34px;
-            font-weight: bold;
-            background: rgba(255, 255, 255, .75);
-            border: 2px solid currentColor;
-            box-shadow: 0 3px 12px rgba(0, 0, 0, .08);
-        }
-
-        .rangoli .event-logo {
-            color: #c33e70;
-            background: #fff0f4;
-        }
-
-        .art .event-logo {
-            color: #d56b28;
-            background: #fff4df;
-        }
-
-        .speech .event-logo {
-            color: #24577e;
-            background: #eaf4ff;
-        }
-
-        .classic .event-logo {
-            color: #a4772a;
-            background: #fff9e9;
-        }
-
-        .event-label {
-            font: 700 11px Arial, sans-serif;
-            letter-spacing: 2px;
-            margin: 5px 0 10px;
-            color: #687789;
-        }
-
-        /* PRINT SETTINGS */
-
-        @media print {
-            @page {
-                size: A4 landscape;
-                margin: 0;
-            }
-
-            html,
-            body {
-                width: 297mm !important;
-                height: 210mm !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-
-            .toolbar {
-                display: none !important;
-            }
-
-            .certificate {
-                width: 277mm !important;
-                height: 190mm !important;
-                margin: 10mm auto !important;
-                overflow: hidden !important;
-                break-inside: avoid !important;
-                page-break-inside: avoid !important;
-                print-color-adjust: exact !important;
-                -webkit-print-color-adjust: exact !important;
             }
         }
     </style>
 </head>
 
 <body>
-    <div class="toolbar"><button onclick="window.print()">Print / Save as PDF</button></div>
+    <div class="toolbar">
+        <button type="button" onclick="window.print()">Print / Save as PDF</button>
+    </div>
 
+    {# Detect the event theme from title and, if present, category. #}
     {% set event_text = ((certificate.event_title or '') ~ ' ' ~ (certificate.event_category or ''))|lower %}
 
     {% if 'rangoli' in event_text %}
-    {% set event_theme = 'rangoli' %}
-    {% set event_icon = '✿' %}
-    {% set event_label = 'RANGOLI COMPETITION' %}
-
-    {% elif 'art' in event_text or 'draw' in event_text or 'paint' in event_text or 'colour' in event_text or 'color' in
-    event_text %}
-    {% set event_theme = 'art' %}
-    {% set event_icon = '✎' %}
-    {% set event_label = 'ART & CREATIVE COMPETITION' %}
-
-    {% elif 'speech' in event_text or 'speak' in event_text or 'debate' in event_text or 'elocution' in event_text %}
-    {% set event_theme = 'speech' %}
-    {% set event_icon = '♫' %}
-    {% set event_label = 'SPEAKING & SPEECH COMPETITION' %}
-
+        {% set event_theme = 'rangoli' %}
+        {% set event_label = 'Rangoli & Cultural Art' %}
+        {% set event_icon = 'rangoli' %}
+    {% elif 'art' in event_text or 'draw' in event_text or 'paint' in event_text or 'colour' in event_text or 'color' in event_text or 'craft' in event_text %}
+        {% set event_theme = 'art' %}
+        {% set event_label = 'Art & Creative Expression' %}
+        {% set event_icon = 'art' %}
+    {% elif 'speech' in event_text or 'speak' in event_text or 'debate' in event_text or 'elocution' in event_text or 'oratory' in event_text %}
+        {% set event_theme = 'speech' %}
+        {% set event_label = 'Public Speaking & Expression' %}
+        {% set event_icon = 'speech' %}
     {% else %}
-    {% set event_theme = 'classic' %}
-    {% set event_icon = '✦' %}
-    {% set event_label = 'SCHOOL EVENT' %}
+        {% set event_theme = 'classic' %}
+        {% set event_label = 'School Event & Achievement' %}
+        {% set event_icon = 'classic' %}
     {% endif %}
 
-    <div class="certificate {{ event_theme }}">
+    <main class="certificate {{ event_theme }}">
         <div class="inner">
+            <svg class="corner tl" viewBox="0 0 100 100" aria-hidden="true">
+                <path d="M5 95V5h90M5 35Q35 35 35 5M5 60Q60 60 60 5M5 80Q80 80 80 5"
+                      fill="none" stroke="currentColor" stroke-width="2"/>
+                <circle cx="20" cy="20" r="5" fill="currentColor"/>
+                <circle cx="42" cy="20" r="3" fill="currentColor"/>
+            </svg>
+            <svg class="corner tr" viewBox="0 0 100 100" aria-hidden="true">
+                <path d="M5 95V5h90M5 35Q35 35 35 5M5 60Q60 60 60 5M5 80Q80 80 80 5"
+                      fill="none" stroke="currentColor" stroke-width="2"/>
+                <circle cx="20" cy="20" r="5" fill="currentColor"/>
+                <circle cx="42" cy="20" r="3" fill="currentColor"/>
+            </svg>
+            <svg class="corner bl" viewBox="0 0 100 100" aria-hidden="true">
+                <path d="M5 95V5h90M5 35Q35 35 35 5M5 60Q60 60 60 5M5 80Q80 80 80 5"
+                      fill="none" stroke="currentColor" stroke-width="2"/>
+                <circle cx="20" cy="20" r="5" fill="currentColor"/>
+                <circle cx="42" cy="20" r="3" fill="currentColor"/>
+            </svg>
+            <svg class="corner br" viewBox="0 0 100 100" aria-hidden="true">
+                <path d="M5 95V5h90M5 35Q35 35 35 5M5 60Q60 60 60 5M5 80Q80 80 80 5"
+                      fill="none" stroke="currentColor" stroke-width="2"/>
+                <circle cx="20" cy="20" r="5" fill="currentColor"/>
+                <circle cx="42" cy="20" r="3" fill="currentColor"/>
+            </svg>
 
             <div class="watermark">SHANTINIKETAN</div>
 
-            <div class="event-logo">
-                {{ event_icon }}
+            <div class="content">
+                <div class="topline">Proudly Presented By</div>
+                <div class="school">{{ school_name }}</div>
+                <div class="sub">NAVINAGAR · JAMUI</div>
+
+                <div class="event-mark" aria-label="{{ event_label }}">
+                    {% if event_icon == 'rangoli' %}
+                        <svg viewBox="0 0 100 100" role="img" aria-hidden="true">
+                            <g fill="none" stroke="currentColor" stroke-width="4">
+                                <circle cx="50" cy="50" r="12"/>
+                                <circle cx="50" cy="50" r="27"/>
+                                <circle cx="50" cy="50" r="42"/>
+                                <path d="M50 8C65 24 65 36 50 50C35 36 35 24 50 8Z"/>
+                                <path d="M92 50C76 65 64 65 50 50C64 35 76 35 92 50Z"/>
+                                <path d="M50 92C35 76 35 64 50 50C65 64 65 76 50 92Z"/>
+                                <path d="M8 50C24 35 36 35 50 50C36 65 24 65 8 50Z"/>
+                            </g>
+                            <g fill="currentColor">
+                                <circle cx="50" cy="8" r="3"/><circle cx="92" cy="50" r="3"/>
+                                <circle cx="50" cy="92" r="3"/><circle cx="8" cy="50" r="3"/>
+                            </g>
+                        </svg>
+                    {% elif event_icon == 'art' %}
+                        <svg viewBox="0 0 100 100" role="img" aria-hidden="true">
+                            <path d="M50 10C27 10 10 27 10 49c0 23 18 41 40 41h8c7 0 11-8 7-14-3-5 0-10 6-10h7c9 0 14-7 14-17C92 27 73 10 50 10Z"
+                                  fill="none" stroke="currentColor" stroke-width="5"/>
+                            <g fill="currentColor">
+                                <circle cx="31" cy="37" r="5"/><circle cx="49" cy="27" r="5"/>
+                                <circle cx="68" cy="36" r="5"/><circle cx="35" cy="58" r="5"/>
+                            </g>
+                        </svg>
+                    {% elif event_icon == 'speech' %}
+                        <svg viewBox="0 0 100 100" role="img" aria-hidden="true">
+                            <rect x="39" y="10" width="22" height="48" rx="11"
+                                  fill="none" stroke="currentColor" stroke-width="5"/>
+                            <path d="M25 45v7a25 25 0 0 0 50 0v-7M50 77v13M35 90h30"
+                                  fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+                            <path d="M17 28v25M83 28v25" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                        </svg>
+                    {% else %}
+                        <svg viewBox="0 0 100 100" role="img" aria-hidden="true">
+                            <path d="M50 5 61 37 94 50 61 63 50 95 39 63 6 50 39 37Z"
+                                  fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/>
+                            <circle cx="50" cy="50" r="8" fill="currentColor"/>
+                        </svg>
+                    {% endif %}
+                </div>
+
+                <div class="event-label">{{ event_label }}</div>
+                <h1 class="heading">CERTIFICATE</h1>
+
+                <div class="kind">
+                    {% if certificate.certificate_type == 'participation' %}
+                        OF PARTICIPATION
+                    {% elif certificate.certificate_type == 'first' %}
+                        OF FIRST POSITION
+                    {% elif certificate.certificate_type == 'second' %}
+                        OF SECOND POSITION
+                    {% elif certificate.certificate_type == 'third' %}
+                        OF THIRD POSITION
+                    {% else %}
+                        OF ACHIEVEMENT
+                    {% endif %}
+                </div>
+
+                <p class="intro">This certificate is proudly presented to</p>
+                <div class="student">{{ certificate.student_name }}</div>
+
+                <p class="copy">
+                    of <b>{{ certificate.class_name or 'the school' }}</b>
+                    for
+                    {% if certificate.certificate_type == 'participation' %}
+                        participating
+                    {% else %}
+                        achieving
+                        <b>{{ (certificate.position or '')|replace('1st', 'First')|replace('2nd', 'Second')|replace('3rd', 'Third')|replace('special', 'Special Achievement') }}</b>
+                        in
+                    {% endif %}
+                    <span class="event">{{ certificate.event_title }}</span>.
+                    Your enthusiasm, dedication and effort are appreciated.
+                </p>
+
+                <div class="meta">
+                    Event Date: {{ certificate.event_date }}
+                    {% if certificate.location %} · Venue: {{ certificate.location }}{% endif %}
+                </div>
+
+                <div class="foot">
+                    <div class="sign">
+                        Date of Issue: {{ certificate.issued_on }}<br>
+                        Certificate No: {{ certificate.certificate_no }}
+                    </div>
+                    <div class="sign">
+                        Principal<br>
+                        Shantiniketan Shishu Vidya Mandir
+                    </div>
+                </div>
             </div>
 
-            <div class="event-label">
-                {{ event_label }}
+            <div class="certno">
+                Verify Certificate:
+                {{ url_for('verify_event_certificate', certificate_no=certificate.certificate_no, _external=True) }}
             </div>
-
-            <div class="ornament">✦</div>
-
-            <div class="school">{{ school_name }}</div>
-            <div class="sub">NAVINAGAR · JAMUI</div>
-            <div class="heading">CERTIFICATE</div>
-            <div class="kind">{% if certificate.certificate_type == 'participation' %}OF PARTICIPATION{% elif
-                certificate.certificate_type == 'first' %}OF FIRST POSITION{% elif certificate.certificate_type ==
-                'second' %}OF SECOND POSITION{% elif certificate.certificate_type == 'third' %}OF THIRD POSITION{% else
-                %}OF ACHIEVEMENT{% endif %}</div>
-            <p class="intro">This certificate is proudly presented to</p>
-            <div class="student">{{ certificate.student_name }}</div>
-            <p class="copy">of <b>{{ certificate.class_name or 'the school' }}</b> for {% if
-                certificate.certificate_type == 'participation' %}participating{% else %}achieving <b>{{
-                    certificate.position|replace('1st','First')|replace('2nd','Second')|replace('3rd','Third')|replace('special','Special
-                    Achievement') }}</b> in{% endif %} <span class="event">{{ certificate.event_title }}</span>. Your
-                enthusiasm, dedication and effort are appreciated.</p>
-            <div class="meta">Event Date: {{ certificate.event_date }} {% if certificate.location %} · Venue: {{
-                certificate.location }}{% endif %}</div>
-            <div class="foot">
-                <div class="sign">Date of Issue: {{ certificate.issued_on }}<br>Certificate No: {{
-                    certificate.certificate_no }}</div>
-                <div class="sign">Principal<br>Shantiniketan Shishu Vidya Mandir</div>
-            </div>
-            <div class="certno">Verify: {{
-                url_for('verify_event_certificate',certificate_no=certificate.certificate_no,_external=True) }}</div>
         </div>
-    </div>
+    </main>
 </body>
-
 </html>

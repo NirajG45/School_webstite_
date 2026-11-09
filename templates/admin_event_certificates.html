@@ -1,0 +1,269 @@
+
+{% extends "admin_base.html" %}
+
+{% block title %}Event Participants & Certificates{% endblock %}
+{% block page_title %}Participants & Certificates{% endblock %}
+
+{% block content %}
+<style>
+.ec-wrap{display:grid;gap:18px;color:#182b40}
+.ec-head,.ec-panel{background:#fff;border:1px solid #e4eaf1;border-radius:15px;padding:19px}
+.ec-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.ec-head h2{font-size:21px;color:#092f58;margin:0}
+.ec-head p{font-size:12px;color:#65758a;margin-top:5px}
+.ec-btn{border:0;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.ec-primary{background:#0b3c6b;color:white}
+.ec-light{background:#edf2f7;color:#334155}
+.ec-filter{display:grid;grid-template-columns:1fr 1fr 1.5fr auto;gap:10px;align-items:end}
+.ec-field{display:grid;gap:6px}
+.ec-field label{font-size:11px;font-weight:800;color:#53657a}
+.ec-field input,.ec-field select{width:100%;height:40px;border:1px solid #dbe3ed;border-radius:8px;padding:0 10px;background:#fff;font-size:12px;min-width:0}
+.ec-info{font-size:12px;color:#64748b}
+.ec-table-wrap{overflow-x:auto}
+.ec-table{width:100%;border-collapse:collapse;min-width:850px}
+.ec-table th{background:#f5f8fc;text-align:left;padding:12px 10px;font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
+.ec-table td{padding:11px 10px;border-bottom:1px solid #edf1f5;font-size:12px;vertical-align:middle}
+.ec-table tr:last-child td{border-bottom:0}
+.ec-student{font-weight:800;color:#173b60}
+.ec-muted{display:block;font-size:10px;color:#8290a2;margin-top:3px}
+.ec-table select,.ec-table input[type=text]{width:100%;min-width:105px;height:35px;border:1px solid #dbe3ed;border-radius:7px;padding:0 8px;font-size:11px;background:#fff}
+.ec-select{width:17px;height:17px;accent-color:#0b4d82}
+.ec-status{display:inline-block;border-radius:20px;padding:5px 8px;background:#eaf7ef;color:#167548;font-size:10px;font-weight:800}
+.ec-pending{background:#fff5dc;color:#966000}
+.ec-bottom{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:14px}
+.ec-empty{text-align:center;padding:35px;color:#718096}
+.ec-count{font-size:12px;color:#64748b}
+@media(max-width:750px){.ec-filter{grid-template-columns:1fr 1fr}.ec-filter .search-field{grid-column:1/-1}}
+@media(max-width:480px){.ec-filter{grid-template-columns:1fr}.ec-filter .search-field{grid-column:auto}}
+</style>
+
+<div class="ec-wrap">
+
+    <section class="ec-head">
+        <div>
+            <h2><i class="fa-solid fa-award"></i> Certificate Management</h2>
+            <p>
+                Event: <strong>{{ event.title }}</strong>
+                &nbsp; | &nbsp; Date: {{ event.event_date }}
+            </p>
+        </div>
+        <a class="ec-btn ec-light" href="{{ url_for('admin_events') }}">
+            <i class="fa-solid fa-arrow-left"></i> Back to Events
+        </a>
+    </section>
+
+    <section class="ec-panel">
+        <form method="GET"
+              action="{{ url_for('admin_event_certificates', eid=event.id) }}"
+              class="ec-filter">
+
+            <div class="ec-field">
+                <label>CLASS / GRADE</label>
+                <select name="class_name">
+                    <option value="">All Classes</option>
+                    {% for item in classes %}
+                    <option value="{{ item.class_name }}"
+                        {% if class_filter == item.class_name %}selected{% endif %}>
+                        {{ item.class_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="ec-field">
+                <label>SECTION</label>
+                <select name="section">
+                    <option value="">All Sections</option>
+                    {% for item in sections %}
+                    <option value="{{ item.section }}"
+                        {% if section_filter == item.section %}selected{% endif %}>
+                        {{ item.section }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="ec-field search-field">
+                <label>SEARCH STUDENT</label>
+                <input type="search" name="q"
+                       value="{{ search }}"
+                       placeholder="Name, roll no, admission no...">
+            </div>
+
+            <button class="ec-btn ec-primary" type="submit">
+                <i class="fa-solid fa-filter"></i> Filter
+            </button>
+        </form>
+    </section>
+
+    <section class="ec-panel">
+        <form method="POST"
+              action="{{ url_for('admin_issue_event_certificates', eid=event.id) }}"
+              id="certificateForm">
+
+            <div class="ec-bottom" style="padding-top:0;padding-bottom:15px">
+                <div>
+                    <strong>Choose Participating Students</strong>
+                    <div class="ec-info">
+                        Select students and assign a certificate type to each.
+                    </div>
+                </div>
+
+                <span class="ec-count">
+                    {{ students|length }} student(s) found
+                </span>
+            </div>
+
+            {% if students %}
+            <div class="ec-table-wrap">
+                <table class="ec-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input class="ec-select" type="checkbox"
+                                       id="selectAll" aria-label="Select all students">
+                            </th>
+                            <th>Student</th>
+                            <th>Class / Section</th>
+                            <th>Roll / Admission No.</th>
+                            <th>Certificate Type</th>
+                            <th>Position / Achievement</th>
+                            <th>Status</th>
+                            <th>View</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for student in students %}
+                        {% set issued = issued_map.get(student.id) %}
+                        <tr>
+                            <td>
+                                <input class="ec-select student-check"
+                                       type="checkbox"
+                                       name="student_ids"
+                                       value="{{ student.id }}"
+                                       aria-label="Select {{ student.name }}">
+                            </td>
+
+                            <td>
+                                <span class="ec-student">{{ student.name }}</span>
+                                <span class="ec-muted">{{ student.unique_id or '' }}</span>
+                            </td>
+
+                            <td>
+                                {{ student.class_name or '-' }}
+                                / {{ student.section or '-' }}
+                            </td>
+
+                            <td>
+                                Roll: {{ student.roll_no or '-' }}
+                                <span class="ec-muted">
+                                    Admission: {{ student.admission_no or '-' }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <select name="certificate_type_{{ student.id }}"
+                                        class="certificate-type">
+                                    <option value="participation"
+                                        {% if issued and issued.certificate_type == 'participation' %}selected{% endif %}>
+                                        Participation
+                                    </option>
+                                    <option value="first"
+                                        {% if issued and issued.certificate_type == 'first' %}selected{% endif %}>
+                                        First Position
+                                    </option>
+                                    <option value="second"
+                                        {% if issued and issued.certificate_type == 'second' %}selected{% endif %}>
+                                        Second Position
+                                    </option>
+                                    <option value="third"
+                                        {% if issued and issued.certificate_type == 'third' %}selected{% endif %}>
+                                        Third Position
+                                    </option>
+                                    <option value="achievement"
+                                        {% if issued and issued.certificate_type == 'achievement' %}selected{% endif %}>
+                                        Achievement
+                                    </option>
+                                </select>
+                            </td>
+
+                            <td>
+                                <input type="text"
+                                       name="position_{{ student.id }}"
+                                       maxlength="100"
+                                       placeholder="Optional achievement"
+                                       value="{{ issued.position if issued and issued.certificate_type == 'achievement' else '' }}">
+                            </td>
+
+                            <td>
+                                {% if issued %}
+                                <span class="ec-status">Generated</span>
+                                {% else %}
+                                <span class="ec-status ec-pending">Not Generated</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if issued %}
+                                <a class="ec-btn ec-light"
+                                   href="{{ url_for('event_certificate', certificate_id=issued.id) }}"
+                                   target="_blank">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                {% else %}
+                                <span class="ec-muted">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="ec-bottom">
+                <span class="ec-info">
+                    <strong id="selectedCount">0</strong> student(s) selected
+                </span>
+
+                <button type="submit" class="ec-btn ec-primary"
+                        onclick="return confirm('Generate or update certificates for selected students?')">
+                    <i class="fa-solid fa-certificate"></i>
+                    Generate Certificates
+                </button>
+            </div>
+
+            {% else %}
+            <div class="ec-empty">
+                <i class="fa-solid fa-user-graduate"></i>
+                <h3>No Students Found</h3>
+                <p>Change your class, section or search filters.</p>
+            </div>
+            {% endif %}
+        </form>
+    </section>
+</div>
+
+<script>
+(() => {
+    const all = document.getElementById('selectAll');
+    const checks = [...document.querySelectorAll('.student-check')];
+    const count = document.getElementById('selectedCount');
+
+    function updateCount() {
+        const selected = checks.filter(c => c.checked).length;
+        count.textContent = selected;
+        all.checked = checks.length > 0 && selected === checks.length;
+        all.indeterminate = selected > 0 && selected < checks.length;
+    }
+
+    all?.addEventListener('change', () => {
+        checks.forEach(c => c.checked = all.checked);
+        updateCount();
+    });
+
+    checks.forEach(c => c.addEventListener('change', updateCount));
+    updateCount();
+})();
+</script>
+{% endblock %}

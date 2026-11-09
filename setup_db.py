@@ -1,62 +1,43 @@
-import app
+import os
 import sqlite3
+import app
 from werkzeug.security import generate_password_hash
 
 def setup_database():
+    initial_password = os.environ.get("INITIAL_ADMIN_PASSWORD", "")
+    if len(initial_password) < 12 or len(initial_password) > 128:
+        raise SystemExit("Set INITIAL_ADMIN_PASSWORD in .env (12-128 characters) before running setup_db.py.")
+
     print("[INFO] Initializing Database Tables...")
-    # 1. creating to all required tables
     app.init_db()
-    print("[SUCCESS] Tables created successfully.")
+    db = sqlite3.connect(app.DB_PATH)
+    try:
+        users_to_create = [
+            {"unique_id": "SNV00001", "role": "admin", "name": "Principal (Admin)",
+             "email": "admin@rsn.com", "phone": "9155658081"},
+            {"unique_id": "SNV00002", "role": "administrator", "name": "System Administrator",
+             "email": "administrator@rsn.com", "phone": "9155658082"},
+        ]
+        for user in users_to_create:
+            exists = db.execute("SELECT id FROM users WHERE unique_id = ? OR email = ?",
+                                (user["unique_id"], user["email"])).fetchone()
+            if exists:
+                print(f"[SKIP] {user['unique_id']} already exists.")
+                continue
+            db.execute(
+                "INSERT INTO users (unique_id, role, name, email, phone, password_hash, force_password_change) "
+                "VALUES (?, ?, ?, ?, ?, ?, 1)",
+                (user["unique_id"], user["role"], user["name"], user["email"],
+                 user["phone"], generate_password_hash(initial_password)),
+            )
+            print(f"[SUCCESS] Created {user['role']} account: {user['unique_id']} (password change required).")
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+    print("[SUCCESS] Setup complete. Initial password was not printed or stored in source code.")
 
-    # 2. connecting to database
-    db = sqlite3.connect('school.db')
-    cursor = db.cursor()
-
-    # Default Password
-    default_pw = 'admin@123'
-    hashed_pw = generate_password_hash(default_pw)
-
-    # 3. (Admin और Administrator)
-    users_to_create = [
-        {
-            'unique_id': 'SNV00001',
-            'role': 'admin',
-            'name': 'Principal (Admin)',
-            'email': 'admin@rsn.com',
-            'phone': '9155658081'
-        },
-        {
-            'unique_id': 'SNV00002',
-            'role': 'administrator',
-            'name': 'System Administrator',
-            'email': 'administrator@rsn.com',
-            'phone': '9155658082'
-        }
-    ]
-
-    # 4. inserting the new head or priority users...
-    for user in users_to_create:
-        # चेक करें कि यूज़र पहले से तो नहीं है (Unique ID या Email से)
-        cursor.execute("SELECT id FROM users WHERE unique_id = ? OR email = ?", (user['unique_id'], user['email']))
-        if cursor.fetchone():
-            print(f"[SKIP] User {user['unique_id']} ({user['email']}) already exists. Skipping.")
-        else:
-            # force_password_change = 0 (ताकि पहली बार लॉगिन करते ही पासवर्ड चेंज न करना पड़े)
-            cursor.execute('''
-                INSERT INTO users (unique_id, role, name, email, phone, password_hash, force_password_change)
-                VALUES (?, ?, ?, ?, ?, ?, 0)
-            ''', (user['unique_id'], user['role'], user['name'], user['email'], user['phone'], hashed_pw))
-            print(f"[SUCCESS] Created {user['role'].capitalize()}: {user['name']} | ID: {user['unique_id']}")
-
-    # 5. this line are commited and closing backend database file and saving new changes and functionality...
-    db.commit()
-    db.close()
-    
-    print("\n================================================")
-    print("SETUP COMPLETE! You can now login with:")
-    print(f"Admin:         ID: SNV00001 | Password: {default_pw}")
-    print(f"Administrator: ID: SNV00002 | Password: {default_pw}")
-    print("================================================")
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     setup_database()

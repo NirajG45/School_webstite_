@@ -21,11 +21,12 @@ Safe to run multiple times (idempotent).
 """
 
 import random
+import secrets
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash
 
 # ⚠️ Change 'app' if your main file has a different name
-from app import app, get_db, generate_unique_id, DEFAULT_PASSWORD
+from app import app, get_db, generate_unique_id
 
 random.seed(7)
 
@@ -236,6 +237,7 @@ def insert_teacher(db, t):
     dob          = pick_dob()
     joining_date = random_join_date()
 
+    temporary_password = secrets.token_urlsafe(12)
     data = {
         # ── base
         'unique_id':             unique_id,
@@ -243,7 +245,7 @@ def insert_teacher(db, t):
         'name':                  t['name'],
         'email':                 email,
         'phone':                 phone,
-        'password_hash':         generate_password_hash(DEFAULT_PASSWORD),
+        'password_hash':         generate_password_hash(temporary_password),
         'force_password_change': 1,
         'gender':                t['gender'],
         'dob':                   dob,
@@ -299,6 +301,7 @@ def insert_teacher(db, t):
         'display':   t['display'],
         'subject':   t['subject'],
         'emp_id':    employee_id,
+        'temporary_password': temporary_password,
     }
 
 # ─────────────────────────────────────────────────────────
@@ -322,6 +325,7 @@ def main():
                 created += 1
                 print(f"   ✓ {t['display']:<15} ({t['name']:<22}) "
                       f"→ {res['unique_id']}  |  {res['subject']}")
+                print(f"      One-time temporary password: {res['temporary_password']}")
             else:
                 skipped += 1
                 print(f"   – {t['display']:<15} ({t['name']}) already exists")
@@ -340,8 +344,8 @@ def main():
         print(f"👨‍🏫 Total Teachers in DB  : {total_teachers}")
         print(f"🏫 Total Faculty entries  : {total_faculty}")
         print("=" * 70)
-        print(f"\n🔑 Default password for all teachers: {DEFAULT_PASSWORD}")
-        print("   Login with Unique ID (e.g. SNVT00001)\n")
+        print("\nEach newly created teacher has a unique one-time temporary password shown above.")
+        print("Store those credentials securely; users must change passwords at first login.\n")
 
         # ── Preview table
         print("\n" + "=" * 90)

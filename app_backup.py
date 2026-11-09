@@ -5,6 +5,7 @@ import sqlite3
 import re
 import secrets
 import json
+import time
 import math
 from functools import wraps
 from datetime import timedelta, datetime
@@ -48,10 +49,8 @@ app.config.update(
     JSON_SORT_KEYS=False,
 )
 
-# The old hard-coded shared password (snv@450) was unsafe. Existing accounts
-# are not changed. New accounts get a per-process random temporary password,
-# unless the operator explicitly configures DEFAULT_USER_PASSWORD in .env.
-DEFAULT_PASSWORD = os.environ.get('DEFAULT_USER_PASSWORD') or secrets.token_urlsafe(12)
+# Never use a shared default password. Each new/reset account receives its own
+# one-time temporary password generated at the point of account creation/reset.
 
 # UPGRADE: Upload folder for QR codes
 UPLOAD_FOLDER = BASE_DIR / 'static' / 'uploads'
@@ -222,6 +221,13 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, title TEXT NOT NULL,
             tag TEXT NOT NULL, description TEXT, target_role TEXT DEFAULT 'all',
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+
+        db.execute('''CREATE TABLE IF NOT EXISTS login_attempts (
+            attempt_key TEXT PRIMARY KEY,
+            failures INTEGER NOT NULL DEFAULT 0,
+            window_started REAL NOT NULL,
+            blocked_until REAL NOT NULL DEFAULT 0
+        )''')
 
         db.execute('''CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT, unique_id TEXT UNIQUE, role TEXT NOT NULL,
@@ -933,6 +939,36 @@ def sync_session_user_info():
         session['user_role'] = user['role']
 
 
+def generate_csrf_token():
+    """Return a session-bound CSRF token for HTML forms and AJAX requests."""
+    token = session.get('_csrf_token')
+    if not token:
+        token = secrets.token_urlsafe(32)
+        session['_csrf_token'] = token
+    return token
+
+
+@app.context_processor
+def inject_csrf_token():
+    return {'csrf_token': generate_csrf_token}
+
+
+@app.before_request
+def csrf_token_protection():
+    """Require a valid session-bound token for every state-changing request."""
+    if request.method not in {'POST', 'PUT', 'PATCH', 'DELETE'}:
+        return None
+    expected = session.get('_csrf_token')
+    supplied = (request.form.get('csrf_token')
+                or request.headers.get('X-CSRFToken')
+                or request.headers.get('X-CSRF-Token'))
+    if not expected or not supplied or not hmac.compare_digest(str(expected), str(supplied)):
+        app.logger.warning('Rejected request with missing/invalid CSRF token: %s %s',
+                           request.method, request.path)
+        return ('Invalid or missing CSRF token. Refresh the page and try again.', 400)
+    return None
+
+
 @app.before_request
 def basic_csrf_origin_guard():
     """Compatibility-safe browser CSRF mitigation for existing HTML forms.
@@ -1129,6 +1165,44 @@ def admin_edit_profile(user_id):
 # =========================================
 # 6. AUTH ROUTES
 # =========================================
+LOGIN_FAILURE_LIMIT = 5
+LOGIN_WINDOW_SECONDS = 15 * 60
+LOGIN_LOCK_SECONDS = 15 * 60
+
+
+def _login_attempt_key(unique_id):
+    raw = f"{request.remote_addr or 'unknown'}|{unique_id.casefold()}"
+    return hmac.new(app.config['SECRET_KEY'].encode('utf-8'), raw.encode('utf-8'), 'sha256').hexdigest()
+
+
+def _login_is_blocked(db, attempt_key, now):
+    row = db.execute('SELECT blocked_until FROM login_attempts WHERE attempt_key = ?',
+                     (attempt_key,)).fetchone()
+    return bool(row and float(row['blocked_until'] or 0) > now)
+
+
+def _record_login_failure(db, attempt_key, now):
+    # Periodically prune expired keys so repeated anonymous attempts cannot grow
+    # this security table without bound.
+    db.execute('DELETE FROM login_attempts WHERE window_started < ? AND blocked_until < ?',
+               (now - 24 * 60 * 60, now))
+    row = db.execute('SELECT failures, window_started FROM login_attempts WHERE attempt_key = ?',
+                     (attempt_key,)).fetchone()
+    if not row or now - float(row['window_started']) > LOGIN_WINDOW_SECONDS:
+        failures, started = 1, now
+    else:
+        failures, started = int(row['failures']) + 1, float(row['window_started'])
+    blocked_until = now + LOGIN_LOCK_SECONDS if failures >= LOGIN_FAILURE_LIMIT else 0
+    db.execute('''INSERT INTO login_attempts (attempt_key, failures, window_started, blocked_until)
+                  VALUES (?, ?, ?, ?)
+                  ON CONFLICT(attempt_key) DO UPDATE SET
+                    failures=excluded.failures,
+                    window_started=excluded.window_started,
+                    blocked_until=excluded.blocked_until''',
+               (attempt_key, failures, started, blocked_until))
+    db.commit()
+
+
 @app.route('/login', methods=['GET'])
 def login_page():
     if session.get('user_id'):
@@ -1144,12 +1218,19 @@ def login():
         return redirect(url_for('login_page'))
 
     db = get_db()
+    now = time.time()
+    attempt_key = _login_attempt_key(unique_id)
+    if _login_is_blocked(db, attempt_key, now):
+        flash('Too many failed login attempts. Please wait 15 minutes and try again.', 'error')
+        return redirect(url_for('login_page'))
     user = db.execute('SELECT * FROM users WHERE unique_id = ?', (unique_id,)).fetchone()
 
     if user and check_password_hash(user['password_hash'], password):
         if not user['is_active']:
             flash('Your account has been deactivated. Contact admin.', 'error')
             return redirect(url_for('login_page'))
+        db.execute('DELETE FROM login_attempts WHERE attempt_key = ?', (attempt_key,))
+        db.commit()
         session.clear()  # rotate session state after successful authentication
         session.permanent = True
         session['user_id'] = user['id']
@@ -1165,6 +1246,7 @@ def login():
         flash(f'Welcome back, {user["name"]}!', 'success')
         return redirect(get_dashboard_url(user['role']))
     else:
+        _record_login_failure(db, attempt_key, now)
         flash('Invalid ID or password.', 'error')
         return redirect(url_for('login_page'))
 
@@ -1180,9 +1262,6 @@ def change_password():
         if len(new_pw) < 10 or len(new_pw) > 128:
             flash('Password must be between 10 and 128 characters.', 'error')
             return redirect(url_for('change_password'))
-        if new_pw == DEFAULT_PASSWORD:
-            flash('Please choose a password different from the temporary password.', 'error')
-            return redirect(url_for('change_password'))
         if new_pw != confirm:
             flash('Passwords do not match.', 'error')
             return redirect(url_for('change_password'))
@@ -1196,7 +1275,7 @@ def change_password():
 
     return render_template('change_password.html')
 
-@app.route('/logout')
+@app.route('/logout', methods=['POST'])
 def logout():
     session.clear()
     flash('Logged out successfully.', 'success')
@@ -1719,7 +1798,8 @@ def admin_create_user():
             fields['photo_url'] = photo_url
 
         unique_id = generate_unique_id(role)
-        hashed    = generate_password_hash(DEFAULT_PASSWORD)
+        temporary_password = secrets.token_urlsafe(12)
+        hashed    = generate_password_hash(temporary_password)
 
         if role == 'student' and not fields.get('admission_no'):
             fields['admission_no'] = unique_id
@@ -1761,7 +1841,7 @@ def admin_create_user():
                                    active_page='create_user')
 
         flash(f'{role.capitalize()} created! ID: {unique_id} | '
-              f'Default Password: {DEFAULT_PASSWORD}', 'success')
+              f'Temporary Password: {temporary_password} (share securely; change at first login)', 'success')
         
         # 🚀 NAYA LOGIC: Agar student add hua hai, toh direct Admission Form print page open ho
         if role == 'student':
@@ -1879,10 +1959,15 @@ def admin_change_role(user_id):
 @admin_required
 def admin_reset_password(user_id):
     db = get_db()
+    user = db.execute('SELECT id FROM users WHERE id = ?', (user_id,)).fetchone()
+    if not user:
+        flash('User not found.', 'error')
+        return redirect(url_for('admin_users'))
+    temporary_password = secrets.token_urlsafe(12)
     db.execute('UPDATE users SET password_hash = ?, force_password_change = 1 WHERE id = ?',
-               (generate_password_hash(DEFAULT_PASSWORD), user_id))
+               (generate_password_hash(temporary_password), user_id))
     db.commit()
-    flash(f'Password reset to default: {DEFAULT_PASSWORD}', 'success')
+    flash(f'Password reset. One-time temporary password: {temporary_password}. Share it securely.', 'success')
     return redirect(url_for('admin_users'))
 
 @app.route('/admin/users/toggle/<int:user_id>', methods=['POST'])
@@ -4298,7 +4383,7 @@ def exam_form():
     return render_template('exam_form.html', 
                            user=user, 
                            classes=classes, 
-                           subjects_dict=json.dumps(subjects_dict),
+                           subjects_dict=subjects_dict,
                            prefill=prefill)
     
 # =========================================

@@ -1,5 +1,26 @@
+# Python
 __pycache__/
 *.py[cod]
+venv/
 .venv/
-school.db
+
+# Secrets and local configuration
 .env
+.env.*
+!.env.example
+
+# Local databases and backups (never commit student/staff data)
+*.db
+*.sqlite
+*.sqlite3
+*.db-*
+*.backup
+
+# Runtime uploads/logs
+static/uploads/
+*.log
+
+# Editor/OS
+.vscode/
+.DS_Store
+Thumbs.db

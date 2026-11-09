@@ -549,10 +549,16 @@
                 </div>
             </div>
 
-            <div class="certno">
-                Verify Certificate:
-                {{ url_for('verify_event_certificate', certificate_no=certificate.certificate_no, _external=True) }}
-            </div>
+            
+<div class="certno">
+    Verify Certificate:
+    <a href="{{ url_for('verify_event_certificate', certificate_no=certificate.certificate_no) }}"
+       target="_blank"
+       style="color:var(--theme-dark);font-weight:700;text-decoration:underline;">
+        {{ url_for('verify_event_certificate', certificate_no=certificate.certificate_no, _external=True) }}
+    </a>
+</div>
+
         </div>
     </main>
 </body>

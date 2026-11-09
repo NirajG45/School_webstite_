@@ -2058,10 +2058,6 @@
                 class="admin-nav-link {% if active_page == 'faculty' %}active{% endif %}" data-label="Faculty">
                 <i class="fa-solid fa-chalkboard-user"></i><span class="nav-label">Faculty</span>
             </a>
-            <a href="{{ url_for('admin_events') }}"
-                class="admin-nav-link {% if active_page == 'events' %}active{% endif %}" data-label="Events">
-                <i class="fa-regular fa-calendar-days"></i><span class="nav-label">Events</span>
-            </a>
             <a href="{{ url_for('admin_gallery') }}"
                 class="admin-nav-link {% if active_page == 'gallery' %}active{% endif %}" data-label="Gallery">
                 <i class="fa-regular fa-images"></i><span class="nav-label">Gallery</span>
@@ -2079,6 +2075,21 @@
             <a href="{{ url_for('admin_faq') }}" class="admin-nav-link {% if active_page == 'faq' %}active{% endif %}"
                 data-label="FAQ">
                 <i class="fa-solid fa-circle-question"></i><span class="nav-label">FAQ</span>
+            </a>
+
+            <!-- Dedicated Event Management section -->
+            <div class="admin-nav-group-label">Event Management</div>
+            <a href="{{ url_for('admin_events') }}"
+                class="admin-nav-link {% if active_page == 'events' %}active{% endif %}"
+                data-label="Events & Activities" title="Create and manage school events">
+                <i class="fa-regular fa-calendar-days"></i>
+                <span class="nav-label">Events & Activities</span>
+            </a>
+            <a href="{{ url_for('admin_events') }}"
+                class="admin-nav-link" data-label="Participants & Certificates"
+                title="Select an event to register participants and generate certificates">
+                <i class="fa-solid fa-award"></i>
+                <span class="nav-label">Participants & Certificates</span>
             </a>
 
             <div class="admin-nav-group-label">System</div>

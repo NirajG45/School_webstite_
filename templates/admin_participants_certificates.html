@@ -1,0 +1,151 @@
+
+{% extends "admin_base.html" %}
+
+{% block title %}Participants & Certificates{% endblock %}
+{% block page_title %}Participants & Certificates{% endblock %}
+
+{% block content %}
+
+<style>
+.pc-wrap {
+    display: grid;
+    gap: 18px;
+    color: #182b40;
+}
+.pc-head, .pc-card {
+    background: #fff;
+    border: 1px solid #e4eaf1;
+    border-radius: 15px;
+    padding: 20px;
+}
+.pc-head h2 {
+    margin: 0;
+    color: #092f58;
+    font-size: 22px;
+}
+.pc-head p {
+    color: #65758a;
+    font-size: 13px;
+}
+.pc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(260px,1fr));
+    gap: 15px;
+}
+.pc-card h3 {
+    margin: 0 0 10px;
+    color: #173b60;
+}
+.pc-meta {
+    font-size: 12px;
+    color: #718096;
+    line-height: 1.9;
+}
+.pc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    margin-top: 14px;
+    border-radius: 8px;
+    background: #0b3c6b;
+    color: white;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+}
+.pc-btn:hover {
+    background: #124d82;
+    color: white;
+}
+.pc-empty {
+    text-align: center;
+    padding: 35px;
+    color: #718096;
+}
+</style>
+
+<div class="pc-wrap">
+
+    <section class="pc-head">
+        <h2>
+            <i class="fa-solid fa-certificate"></i>
+            Participants & Certificates
+        </h2>
+        <p>
+            Select a school event to manage participating students
+            and generate their certificates.
+        </p>
+        <strong>{{ events|length }} Event(s) Available</strong>
+    </section>
+
+    {% if events %}
+
+    <div class="pc-grid">
+
+        {% for event in events %}
+
+        <article class="pc-card">
+
+            <h3>{{ event.title }}</h3>
+
+            <div class="pc-meta">
+                <div>
+                    <i class="fa-solid fa-calendar"></i>
+                    {{ event.event_date }}
+                </div>
+
+                <div>
+                    <i class="fa-solid fa-clock"></i>
+                    {{ event.event_time or 'Time not set' }}
+                </div>
+
+                <div>
+                    <i class="fa-solid fa-location-dot"></i>
+                    {{ event.location or 'Location not specified' }}
+                </div>
+
+                <div>
+                    <i class="fa-solid fa-layer-group"></i>
+                    {{ event.category or 'General' }}
+                </div>
+            </div>
+
+            <a class="pc-btn"
+               href="{{ url_for(
+                   'admin_event_certificates',
+                   eid=event.id
+               ) }}">
+
+                <i class="fa-solid fa-users"></i>
+                Manage Participants & Certificates
+
+            </a>
+
+        </article>
+
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <section class="pc-card pc-empty">
+        <i class="fa-solid fa-calendar-xmark fa-2x"></i>
+        <h3>No Events Available</h3>
+        <p>
+            Please create an event before generating certificates.
+        </p>
+
+        <a class="pc-btn"
+           href="{{ url_for('admin_events') }}">
+            <i class="fa-solid fa-plus"></i>
+            Create New Event
+        </a>
+    </section>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

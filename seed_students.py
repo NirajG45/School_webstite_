@@ -6,52 +6,13 @@ Fixed: Added fallback logic for NOT NULL phone constraint.
 """
 
 import random
+import secrets
 from werkzeug.security import generate_password_hash
-from app import app, get_db, generate_unique_id, DEFAULT_PASSWORD
+from app import app, get_db, generate_unique_id
 
-# Data format: (Name, DOB (YYYY-MM-DD), Father's Name, Mother's Name, Aadhar, Mobile)
 # Data format: (Name, DOB (YYYY-MM-DD), Father's Name, Mother's Name, Aadhar, Mobile)
 ACTUAL_DATA = {
-    "Pre-Nursery": [
-        ("Shiva Kr", None, "Bhulelal Say", None, None, "7716807440"),
-        ("Gulshan Kr", None, "Rajesh yadav", None, None, None),
-        ("Sandip Kr", None, "Pappu", None, None, None),
-        ("Vaishnav Kr", None, "Lalan Sao", None, None, "9711023995"),
-        ("Swati Km", None, "Sandip Singh", None, None, None),
-        ("Shivam", None, "Ravindra", None, None, None),
-        ("Ayush", None, "Dilip Mandal", None, None, None),
-        ("Nitu Bharti", None, "Rakesh yadav", None, None, None),
-        ("Yes raj", None, "Sandip mandal", None, None, None),
-        # Row 10 is blank/crossed out
-        ("Shivani Km", None, "Rajaram", None, None, "8402411853"),
-        ("Shakshi", None, "Shivam Saw", None, None, "7662992334"),
-        ("Kunal Kr", None, "Sonkar", None, None, None),
-        ("Ravi Kr", None, "Rakesh", None, None, None),
-        ("Richika Km", None, "Chand Mandal", None, None, "7739363044"),
-        ("Dilanshu", None, "Pramod Sao", None, None, "7673864458"),
-        ("Khushi Km", None, "Athlesh Saw", None, None, "7082938326"),
-        ("Ayush Km", None, "Dilip Kumar", None, None, "7808937009"),
-        ("Priyanshu Km", None, "Shambhu Mandal", None, None, None),
-        ("Arushi Km", None, "Pramod Sao", None, None, "821010554"),
-        ("Aditya Km", None, "Raj Kumar", None, None, None),
-        ("Sandhya Km", None, "Vidyasagar", None, None, None),
-        ("Altmash", None, "Naju Muddin", None, None, "99334626"),
-        ("Wamid Raja", None, "Imran", None, None, None),
-        ("Aradhya Kumari", None, "Jairam Saw", None, None, "7870305056"),
-        ("Ravi Kr", None, "Lalan Saw", None, None, "6200622357"),
-        ("Ankush", None, "Sushil Mandal", None, None, None),
-        ("Rashi", None, "Sandip mandal", None, None, None),
-        ("Ansh", None, "Chand Choudhary", None, None, "8342300371"),
-        ("Veer", None, "Arun Kumar", None, None, "9412823111"),
-        ("Samay", None, "Sambhu Singh", None, None, None),
-        ("Samar Gupta", None, "Sunil Gupta", None, None, None),
-        ("Sakshi Km", None, "Guddu Kr", None, None, "6201385135"),
-        ("Janvi Kr", None, "Vijay tanti", None, None, "9508918801"),
-        ("Harshit Kr", None, "Vidya Nivas", None, None, "6202810323"),
-        ("Sanshali Km", None, "Ranjit Kr", None, None, "8102455866"),
-    ],
-
-    "Nursery": [
+    "1st": [
         ("Ayush Kumar", None, None, None, None, None),
         ("Aryan", None, None, None, None, None),
         ("Piyush", None, None, None, None, None),
@@ -146,7 +107,7 @@ ACTUAL_DATA = {
         ("Sonu Kumar", None, "Dharmendra", "Sunita devi", None, None),
     ],
     
-    "UKG": [
+    "LKG": [
         ("Punit Kumar", "2017-04-09", "Pintu", "Radhi Ka dev", "284173172768", "9599653190"),
         ("Pritam", "2018-05-08", None, None, None, None),
         ("Aradhya Kumari", "2017-07-10", "Bihari pandey", "Nitu kumari", None, "620330574"),
@@ -193,7 +154,7 @@ ACTUAL_DATA = {
         ("Priyanshu Kumar", None, "Umeshkumar", "Babita devi", None, "6200571794"),
     ],
     
-    "4th": [
+    "3rd": [
         ("Pintu Kumar", None, "Chandradev Yadav", "Sudha devi", None, "6206488073"),
         ("Rishav", None, "Sunil Yadav", "Renu Devi", None, "6200666415"),
         ("Anushka Kumari", "2016-05-08", "Kundan Kumar", "Arti Devi", "71388662296", "8825151034"),
@@ -235,7 +196,7 @@ ACTUAL_DATA = {
         ("Vikash kumar", "2013-08-01", "Shree Narayan", None, "465336297614", None),
     ],
     
-    "6th": [
+    "2nd": [
         ("Omjit Kumar", None, "Mukesh yadav", "Mamita devi", None, "9060831791"),
         ("Chahat", "2016-01-27", "Ashok yadav", "Sita devi", "741773226494", "8936847745"),
         ("Sintu", "2015-08-16", "Jayram", "Ruchi", "471594450678", "7541047901"),
@@ -265,43 +226,64 @@ ACTUAL_DATA = {
         ("Rishu", "2012-06-29", "Sonu mandal", "Soni devi", "428606006795", "7482939464"),
         ("Shashikant Kumar", "2013-09-18", "Amit Pandit", "Anita devi", "281949916410", "6201233197"),
         ("Rovin Roy", "2016-03-21", "Ravindra yadav", "Nisha Kumari", "778130729701", "7631958310"),
+        ("[Cut]", None, "Sunil Kumar", "Renu Kumari", None, "6200666415"),
         ("Navnit", "2015-04-08", "Shyam Singh", "Rakhi dev", None, "7631931267"),
         ("Subham", "2015-05-10", "Dileep mahto", "Rubi devi", "870822139731", "8292043594"),
         ("Rajnandani Kumari", "2015-09-17", "Jayram Verma", "Hemanti Vish", "873298689307", "9546810294"),
         ("Arushi Kumari", None, "Rahul pandey", "Puja devi", None, "6299791815"),
-        ("Prince Kumar", None, None, "Baby Devi", None, None),
-        ("Harinandan Kumar", None, "Ramashish pd", "Sarita devi", None, "9350499342"),
+        ("Pratibha", None, "Shivkumar", "Babi devi", None, "8235905494"),
+        ("Prince Kumar", None, None, None, None, None),
+        ("[Cut]", None, None, None, None, None),
+        ("Harimandan Kumar", None, "Ramashish pd", "Sarita devi", None, "9350499342"),
         ("Saloni Kumari", "2014-07-25", "Saner Ram", "Savita", "897273293095", "7541848041"),
-        ("Pratikash Kumari", None, None, "Baby Devi", "None", "None"),
+        ("[Cut] Kumar", "2011-04-23", "Pd Dayal Sharma", "Jitani devi", "964813523357", "9006642790"),
+        ("[Cut]", "2015-03-19", "Bighu kumar", "Nitu devi", "35861498157", "620330576"),
         ("Nitish Kumar", "2013-07-03", "Ashok tanti", "Archana devi", "28194991894", "9544828217"),
-        ("Navjot", None, "Sunil Gupta", "Rima Kumari", None, "9693001920"),
+        ("Navroj", None, "Sunil Gupta", "Rima Kumari", None, "9693001920"),
         ("Anjali", None, "Santosh Mishra", "[Cut] devi", "271046459963", "9319278712"),
         ("Labh Kumar", "2013-02-05", "Ram mandal", "Sita devi", "701868986637", "9522905396"),
-        ("Sonaya Verma", "2015-01-01", "Chand Verma", "Sharda Verma", "226155150664", "8107080002"),
+        ("[Cut] Ray", None, "Anil Kumar", "Parita kumari", None, "8340250504"),
+        ("Sonay Verma", "2015-01-01", "Chand Verma", "Sharda Verma", "226155150664", "8107080002"),
     ],
     
     "8th": [
+        ("PARNIT KUMAR", "2014-02-01", "Sunil Kumar", "Jyoti Singh", "767520193596", "9006515041"),
         ("ARUSHI KUMARI", "2013-02-25", "Santosh Sah", "Rekha devi", "76826192484", "8920695426"),
         ("ALSEHAT PARVEEN", "2013-08-16", "Afrroz Jab", "Noorjaha", "466607515358", "7853050513"),
+        ("MUSKAN KUMARI", "2012-01-12", "Ram mandal", "Sita Devi", "21189836257", "8298670738"),
         ("DIVYANSHU RAJ", "2017-01-05", "Deenanath", "Pinki kumari", "37385362081", "8877256323"),
         ("AKANKSHA BHARATI", "2013-06-28", "Dharmendra", "Sunita devi", "738846550122", "9801037379"),
         ("RUPAM KUMARI", "2014-07-13", "Ramashish yadav", "Sarita devi", "90508281332", "9350492192"),
         ("AYUSH KUMAR", "2013-07-15", "Rahul pandey", "Puja devi", "30133311697", "6299991815"),
+        ("FARHANA", "2011-02-02", "Md Ikbal", "Akhtar Parveen", "830858655279", "6206240345"),
         ("RAJVEER KUMAR", "2014-02-21", "Pinku Singh", "Hamanti devi", "882537993588", "9546810294"),
+        ("RAUNAK KUMAR", "2015-02-02", "Deepak Saw", "Rakhi devi", "868567268135", "8797129906"),
         ("RIYA KUMARI", "2014-01-12", "Naresh Saw", "Srita devi", "85922011198", "7870474595"),
+        ("JULI KUMARI", "2011-01-25", "Avinash mandal", "Kalpana devi", "84530602233", "7759909613"),
         ("GAURAV KUMAR", "2015-12-03", "Ravishankar Saw", "Soni devi", "873461170952", "9955000430"),
-        ("MAHI RANI", "2015-02-02", "Aditya kumar", "Pratima kumari", None, "9091822329")
+        ("SAURAV KUMAR", None, "Sushil Kumar", "Mamta devi", None, "8051992259"),
+        ("MAHI RANI", "2015-02-02", "Aditya kumar", "Pratima kumari", None, "9091822329"),
+        ("Sumit kumar", "2013-06-30", "Sushil kumar", "Shabnam devi", "682849964752", "8340136629"),
+        ("Pallivi Kumari", "2013-08-30", "Pawan kumar", "Pratima devi", None, "8340136629"),
+        ("Aayushi Kumari", None, None, None, None, None),
+        ("Mahi Kumari", None, None, None, None, None),
+        ("Drishtat Parveen", None, None, None, None, None),
+        ("Aditya Kumar", None, None, None, None, None),
+        ("Abuzar Kumar", None, None, None, None, None),
     ]
 }
 
+# यह सेट ट्रैक रखेगा कि कौन से फोन नंबर यूज़ हो चुके हैं
 used_phones = set()
 
 def get_safe_phone(db, phone):
+    # अगर असली फोन नंबर है और डुप्लीकेट नहीं है
     if phone and str(phone) not in used_phones:
         if not db.execute('SELECT 1 FROM users WHERE phone = ?', (str(phone),)).fetchone():
             used_phones.add(str(phone))
             return str(phone)
     
+    # अगर फोन नंबर नहीं है या डुप्लीकेट है, तो यूनिक 9XXXXXXXXX बनाओ
     while True:
         fallback = str(random.randint(9000000000, 9999999999))
         if fallback not in used_phones:
@@ -341,15 +323,17 @@ def insert_data(db):
             # Section Logic
             section = 'A' if roll <= 25 else 'B'
 
-            # 4. Insert Student
+            # 4. Insert Student with a unique temporary password
+            student_temp_password = secrets.token_urlsafe(12)
             db.execute("""
                 INSERT INTO users
                   (unique_id, role, name, email, phone, password_hash, force_password_change, 
                    dob, gender, class_name, child_class, section, child_section, roll_no, 
                    admission_no, admission_date, father_name, mother_name, aadhar, nationality)
                 VALUES (?, 'student', ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, '2025-04-01', ?, ?, ?, 'Indian')
-            """, (uid, name, email, safe_phone, generate_password_hash(DEFAULT_PASSWORD), 
+            """, (uid, name, email, safe_phone, generate_password_hash(student_temp_password), 
                   dob, gender, cls, cls, section, section, str(roll), uid, father, mother, aadhar))
+            print(f"Created student {uid}; one-time temporary password: {student_temp_password}")
             
             created_students += 1
 
@@ -358,18 +342,20 @@ def insert_data(db):
                 p_uid = generate_unique_id('parent')
                 p_email = f"parent.{uid.lower()}@snv.edu"
                 
-                # Parent ke liye bhi safe phone generate karo (student ka safe_phone use kar sakte hain)
+                # Parent receives a separate unique temporary password.
+                parent_temp_password = secrets.token_urlsafe(12)
                 db.execute("""
                     INSERT INTO users
                       (unique_id, role, name, email, phone, password_hash, force_password_change, 
                        relation, child_name, child_class, child_section, child_admission_no, child_dob)
                     VALUES (?, 'parent', ?, ?, ?, ?, 1, 'Father', ?, ?, ?, ?, ?)
-                """, (p_uid, father, p_email, safe_phone, generate_password_hash(DEFAULT_PASSWORD),
+                """, (p_uid, father, p_email, safe_phone, generate_password_hash(parent_temp_password),
                       name, cls, section, uid, dob))
+                print(f"Created parent {p_uid}; one-time temporary password: {parent_temp_password}")
                 created_parents += 1
 
     db.commit()
-    print(f"Successfully Inserted {created_students} Students & {created_parents} Parents from Actual Data.")
+    print(f"✅ Successfully Inserted {created_students} Students & {created_parents} Parents from Actual Data.")
 
 if __name__ == '__main__':
     with app.app_context():

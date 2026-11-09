@@ -32,8 +32,8 @@ This project provides a professional digital presence for **"Residential Shanti 
     *   Teacher → `TSNV00001`
     *   Parent → `PSNV00001`
     *   Student → `STSNV00001`
-*   **Default Password** — `snv@450` with **Force Change on First Login**.
-*   **Session Management** — 7-day persistent sessions.
+*   **Temporary Passwords** — each newly created or reset account receives a unique random temporary password and must change it at first login.
+*   **Session Management** — 8-hour permanent sessions with HttpOnly and SameSite cookie settings.
 
 #### 👨‍🏫 Teacher Dashboard
 *   View Profile (ID, qualification, subject, experience).
@@ -165,3 +165,20 @@ This project provides a professional digital presence for **"Residential Shanti 
         ├── admin_achievements.html   # Manage Achievements (CMS)
         ├── admin_testimonials.html   # Manage Testimonials (CMS)
         └── admin_faq.html            # Manage FAQs (CMS)
+
+## Secure Local Setup
+
+1. Install Python 3.11+ and create/activate a virtual environment.
+2. Install dependencies with `python -m pip install -r requirements.txt`.
+3. Copy `.env.example` to `.env`. Generate a new key using `python -c "import secrets; print(secrets.token_hex(32))"` and set it as `SECRET_KEY`. Keep `.env` private.
+4. Run `python -m py_compile app.py` and then `python app.py`.
+5. Do not run `setup_db.py` against an existing school database unless you intentionally need to create the initial admin accounts. If required, set `INITIAL_ADMIN_PASSWORD` in `.env` to a unique password of at least 12 characters first.
+
+## Security Notes
+
+- All state-changing HTML forms use session-bound CSRF tokens; AJAX POST requests send the token in `X-CSRFToken`.
+- Login attempts are throttled after five failed attempts per IP/account pair for a 15-minute lockout.
+- Newly created and reset accounts receive unique random temporary passwords and must change them at first login.
+- The included `school.db` and backup databases contain school records. Keep them out of public repositories and protect backup copies.
+- `.env` is intentionally excluded from the distributable project package. Create it locally from `.env.example`.
+- Use a production WSGI server and HTTPS for deployment; Flask's built-in development server is for local development only.

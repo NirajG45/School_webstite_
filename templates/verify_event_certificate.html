@@ -1,1 +1,81 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Certificate Verification</title><style>body{font-family:Arial,sans-serif;background:#f3f6fa;margin:0;padding:25px;color:#24384d}.card{max-width:620px;margin:7vh auto;background:white;border:1px solid #e0e7ef;border-radius:15px;padding:28px;box-shadow:0 8px 28px #173b6010}.status{display:inline-block;padding:7px 11px;border-radius:20px;font-weight:700;background:#e7f7ee;color:#197347}.invalid{background:#fff0f0;color:#b42318}h1{color:#174e78}dt{font-size:12px;color:#718096;margin-top:17px}dd{margin:4px 0 0;font-weight:700}</style></head><body><main class="card">{% if certificate %}<span class="status">Verified Certificate</span><h1>{{ certificate.student_name }}</h1><p>This certificate record is present in the school database.</p><dl><dt>Certificate Number</dt><dd>{{ certificate.certificate_no }}</dd><dt>Event / Activity</dt><dd>{{ certificate.event_title }}</dd><dt>Class</dt><dd>{{ certificate.class_name or '—' }}</dd><dt>Achievement</dt><dd>{{ certificate.position|title }}</dd><dt>Issue Date</dt><dd>{{ certificate.issued_on }}</dd></dl>{% else %}<span class="status invalid">Certificate Not Found</span><h1>Unable to verify</h1><p>No certificate with number <b>{{ certificate_no }}</b> exists in the school records.</p>{% endif %}<p style="margin-top:25px;color:#718096;font-size:12px">Shantiniketan Shishu Vidya Mandir · Official certificate verification</p></main></body></html>
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Certificate Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f6fa;
+            margin: 0;
+            padding: 25px;
+            color: #24384d
+        }
+
+        .card {
+            max-width: 620px;
+            margin: 7vh auto;
+            background: white;
+            border: 1px solid #e0e7ef;
+            border-radius: 15px;
+            padding: 28px;
+            box-shadow: 0 8px 28px #173b6010
+        }
+
+        .status {
+            display: inline-block;
+            padding: 7px 11px;
+            border-radius: 20px;
+            font-weight: 700;
+            background: #e7f7ee;
+            color: #197347
+        }
+
+        .invalid {
+            background: #fff0f0;
+            color: #b42318
+        }
+
+        h1 {
+            color: #174e78
+        }
+
+        dt {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 17px
+        }
+
+        dd {
+            margin: 4px 0 0;
+            font-weight: 700
+        }
+    </style>
+</head>
+
+<body>
+    <main class="card">{% if certificate %}<span class="status">Verified Certificate</span>
+        <h1>{{ certificate.student_name }}</h1>
+        <p>This certificate record is present in the school database.</p>
+        <dl>
+            <dt>Certificate Number</dt>
+            <dd>{{ certificate.certificate_no }}</dd>
+            <dt>Event / Activity</dt>
+            <dd>{{ certificate.event_title }}</dd>
+            <dt>Class</dt>
+            <dd>{{ certificate.class_name or '—' }}</dd>
+            <dt>Achievement</dt>
+            <dd>{{ certificate.position|title }}</dd>
+            <dt>Issue Date</dt>
+            <dd>{{ certificate.issued_on }}</dd>
+        </dl>{% else %}<span class="status invalid">Certificate Not Found</span>
+        <h1>Unable to verify</h1>
+        <p>No certificate with number <b>{{ certificate_no }}</b> exists in the school records.</p>{% endif %}<p
+            style="margin-top:25px;color:#718096;font-size:12px">Shantiniketan Shishu Vidya Mandir · Official
+            certificate verification</p>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Certificates — {{ event.title }}</title>
+    <style>
+        @page { size: A4 landscape; margin: 6mm; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Georgia, 'Times New Roman', serif; }
+
+        .cert {
+            width: 285mm; height: 196mm;
+            border: 9px double #b8860b;
+            padding: 16mm 20mm;
+            position: relative;
+            background: #fffdf5;
+            page-break-after: always;
+        }
+        .cert:last-child { page-break-after: auto; }
+        .cert::before {
+            content: "";
+            position: absolute; inset: 4mm;
+            border: 2px solid #d4af37;
+            pointer-events: none;
+        }
+        .corner {
+            position: absolute; width: 45mm; height: 45mm;
+            border: 3px solid #b8860b; pointer-events: none;
+        }
+        .c-tl { top: 8mm; left: 8mm; border-right: 0; border-bottom: 0; }
+        .c-br { bottom: 8mm; right: 8mm; border-left: 0; border-top: 0; }
+
+        .header { text-align: center; }
+        .school { font-size: 24pt; font-weight: bold; color: #8b0000; letter-spacing: 2px; }
+        .sub { font-size: 10pt; color: #666; margin-top: 3px; }
+
+        .title {
+            font-size: 32pt; font-weight: bold; color: #b8860b;
+            text-align: center; margin: 9mm 0 5mm;
+            text-transform: uppercase; letter-spacing: 5px;
+        }
+
+        .body {
+            font-size: 14pt; text-align: center;
+            line-height: 1.9; margin-top: 3mm;
+        }
+        .name {
+            font-size: 25pt; font-weight: bold; color: #8b0000;
+            display: inline-block;
+            border-bottom: 2px solid #b8860b;
+            padding: 0 14px; margin: 3mm 0;
+        }
+        .event-name { font-weight: bold; color: #333; }
+        .position { color: #8b0000; font-weight: bold; font-size: 15pt; }
+
+        .footer {
+            position: absolute; bottom: 14mm; left: 20mm; right: 20mm;
+            display: flex; justify-content: space-between;
+        }
+        .sig { text-align: center; font-size: 11pt; color: #444; }
+        .sig-line { border-top: 1.5px solid #333; width: 55mm; margin: 0 auto 4px; }
+        .date-line { position: absolute; top: 12mm; right: 18mm; font-size: 9pt; color: #666; }
+        .cert-no  { position: absolute; top: 12mm; left: 18mm;  font-size: 9pt; color: #666; }
+
+        .no-print {
+            position: fixed; top: 12px; right: 12px;
+            padding: 10px 16px; background: #0b3c6b; color: #fff;
+            border-radius: 8px; cursor: pointer; font-size: 13px;
+            font-family: Arial, sans-serif; border: 0;
+            box-shadow: 0 4px 14px rgba(0,0,0,.2);
+        }
+        @media print {
+            .no-print { display: none; }
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<button class="no-print" onclick="window.print()">
+    🖨️ Print All ({{ certs|length }}) / Save as PDF
+</button>
+
+{% for cert in certs %}
+<div class="cert">
+    <div class="corner c-tl"></div>
+    <div class="corner c-br"></div>
+
+    <div class="cert-no">Cert. No: SNVT/{{ event.event_date[:4] }}/{{ '%05d' % cert.id }}</div>
+    <div class="date-line">Issued: {{ cert.issued_at[:10] }}</div>
+
+    <div class="header">
+        <div class="school">{{ school_name }}</div>
+        <div class="sub">Navinagar (Jamui)</div>
+    </div>
+
+    <div class="title">
+        {% if cert.certificate_type == 'first' %}Certificate of Excellence
+        {% elif cert.certificate_type == 'second' %}Certificate of Merit
+        {% elif cert.certificate_type == 'third' %}Certificate of Achievement
+        {% elif cert.certificate_type == 'achievement' %}Special Recognition
+        {% else %}Certificate of Participation{% endif %}
+    </div>
+
+    <div class="body">
+        This certificate is proudly presented to<br>
+        <span class="name">{{ cert.student_name }}</span><br>
+
+        {% if cert.class_name %}
+        Class: <strong>{{ cert.class_name }}</strong>
+        {% if cert.section %} &nbsp;|&nbsp; Section: <strong>{{ cert.section }}</strong>{% endif %}
+        {% if cert.roll_no %} &nbsp;|&nbsp; Roll: <strong>{{ cert.roll_no }}</strong>{% endif %}
+        <br>
+        {% endif %}
+
+        for {{ 'excellent performance in' if cert.certificate_type == 'first' else 'participation in' }}
+        <span class="event-name">"{{ event.title }}"</span><br>
+
+        {% if cert.position %}
+        with <span class="position">{{ cert.position }}</span><br>
+        {% endif %}
+
+        held on <strong>{{ event.event_date }}</strong>
+        {% if event.location %} at {{ event.location }}{% endif %}.
+    </div>
+
+    <div class="footer">
+        <div class="sig"><div class="sig-line"></div>Class Teacher</div>
+        <div class="sig"><div class="sig-line"></div>Principal</div>
+    </div>
+</div>
+{% endfor %}
+
+</body>
+</html>

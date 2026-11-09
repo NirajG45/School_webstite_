@@ -1,4 +1,3 @@
-
 {% extends "admin_base.html" %}
 
 {% block title %}Events Management{% endblock %}
@@ -6,46 +5,289 @@
 
 {% block content %}
 <style>
-.ev-wrap{display:grid;gap:20px;color:var(--ink,#182b40)}
-.ev-heading{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
-.ev-heading h2{font-size:22px;margin:0;color:var(--navy,#092f58)}
-.ev-heading p{margin:5px 0 0;color:var(--muted,#65758a);font-size:13px}
-.ev-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.ev-stat,.ev-panel{background:#fff;border:1px solid var(--line,#e4eaf1);border-radius:15px;padding:18px}
-.ev-stat small{display:block;color:#64748b;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
-.ev-stat strong{display:block;font-size:27px;color:var(--navy,#092f58);margin-top:8px}
-.ev-layout{display:grid;grid-template-columns:minmax(280px,.85fr) minmax(0,1.5fr);gap:18px;align-items:start}
-.ev-panel h3{margin:0 0 5px;color:var(--navy,#092f58);font-size:17px}
-.ev-sub{font-size:12px;color:#718096;margin:0 0 18px}
-.ev-form{display:grid;gap:13px}
-.ev-field{display:grid;gap:6px}
-.ev-field label{font-size:12px;font-weight:700;color:#334155}
-.ev-field input,.ev-field textarea,.ev-field select{width:100%;padding:11px 12px;border:1px solid #dbe3ed;border-radius:9px;background:#fff;color:#182b40;font:inherit;font-size:13px;outline:none}
-.ev-field input:focus,.ev-field textarea:focus,.ev-field select:focus{border-color:#2874b9;box-shadow:0 0 0 3px #2874b91a}
-.ev-field textarea{min-height:105px;resize:vertical}
-.ev-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.ev-check{display:flex;align-items:center;gap:9px;padding:11px;background:#f5f8fc;border:1px solid #e4eaf1;border-radius:9px;font-size:13px;font-weight:600}
-.ev-check input{accent-color:#0b4d82;width:16px;height:16px}
-.ev-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:3px}
-.ev-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:9px;padding:11px 15px;font-weight:700;font-size:12px;text-decoration:none;cursor:pointer}
-.ev-primary{background:#0b3c6b;color:#fff}
-.ev-secondary{background:#edf2f7;color:#334155}
-.ev-danger{background:#fff0f1;color:#c51f3a}
-.ev-table-wrap{overflow-x:auto}
-.ev-table{width:100%;border-collapse:collapse;min-width:590px}
-.ev-table th{text-align:left;background:#f6f8fb;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding:12px}
-.ev-table td{padding:13px 12px;border-bottom:1px solid #edf1f5;font-size:12px;vertical-align:middle}
-.ev-table tr:last-child td{border-bottom:0}
-.ev-event-title{font-weight:800;color:#173b60;font-size:13px}
-.ev-muted{display:block;color:#8290a2;font-size:11px;margin-top:4px}
-.ev-tag{display:inline-block;padding:5px 8px;border-radius:20px;background:#edf5ff;color:#175a91;font-size:10px;font-weight:800;text-transform:capitalize}
-.ev-featured{background:#fff5d8;color:#966000}
-.ev-row-actions{display:flex;gap:6px;align-items:center}
-.ev-empty{text-align:center;padding:35px 15px;color:#718096}
-.ev-empty i{font-size:28px;margin-bottom:10px;color:#9aabc0}
-.ev-count{font-size:12px;color:#64748b}
-@media(max-width:950px){.ev-layout{grid-template-columns:1fr}}
-@media(max-width:600px){.ev-stats{grid-template-columns:1fr 1fr}.ev-stat{padding:14px}.ev-two{grid-template-columns:1fr}.ev-heading h2{font-size:19px}}
+    .ev-wrap {
+        display: grid;
+        gap: 20px;
+        color: var(--ink, #182b40)
+    }
+
+    .ev-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap
+    }
+
+    .ev-heading h2 {
+        font-size: 22px;
+        margin: 0;
+        color: var(--navy, #092f58)
+    }
+
+    .ev-heading p {
+        margin: 5px 0 0;
+        color: var(--muted, #65758a);
+        font-size: 13px
+    }
+
+    .ev-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px
+    }
+
+    .ev-stat,
+    .ev-panel {
+        background: #fff;
+        border: 1px solid var(--line, #e4eaf1);
+        border-radius: 15px;
+        padding: 18px
+    }
+
+    .ev-stat small {
+        display: block;
+        color: #64748b;
+        font-weight: 700;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .5px
+    }
+
+    .ev-stat strong {
+        display: block;
+        font-size: 27px;
+        color: var(--navy, #092f58);
+        margin-top: 8px
+    }
+
+    .ev-layout {
+        display: grid;
+        grid-template-columns: minmax(280px, .85fr) minmax(0, 1.5fr);
+        gap: 18px;
+        align-items: start
+    }
+
+    .ev-panel h3 {
+        margin: 0 0 5px;
+        color: var(--navy, #092f58);
+        font-size: 17px
+    }
+
+    .ev-sub {
+        font-size: 12px;
+        color: #718096;
+        margin: 0 0 18px
+    }
+
+    .ev-form {
+        display: grid;
+        gap: 13px
+    }
+
+    .ev-field {
+        display: grid;
+        gap: 6px
+    }
+
+    .ev-field label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #334155
+    }
+
+    .ev-field input,
+    .ev-field textarea,
+    .ev-field select {
+        width: 100%;
+        padding: 11px 12px;
+        border: 1px solid #dbe3ed;
+        border-radius: 9px;
+        background: #fff;
+        color: #182b40;
+        font: inherit;
+        font-size: 13px;
+        outline: none
+    }
+
+    .ev-field input:focus,
+    .ev-field textarea:focus,
+    .ev-field select:focus {
+        border-color: #2874b9;
+        box-shadow: 0 0 0 3px #2874b91a
+    }
+
+    .ev-field textarea {
+        min-height: 105px;
+        resize: vertical
+    }
+
+    .ev-two {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px
+    }
+
+    .ev-check {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 11px;
+        background: #f5f8fc;
+        border: 1px solid #e4eaf1;
+        border-radius: 9px;
+        font-size: 13px;
+        font-weight: 600
+    }
+
+    .ev-check input {
+        accent-color: #0b4d82;
+        width: 16px;
+        height: 16px
+    }
+
+    .ev-actions {
+        display: flex;
+        gap: 9px;
+        flex-wrap: wrap;
+        margin-top: 3px
+    }
+
+    .ev-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        border: 0;
+        border-radius: 9px;
+        padding: 11px 15px;
+        font-weight: 700;
+        font-size: 12px;
+        text-decoration: none;
+        cursor: pointer
+    }
+
+    .ev-primary {
+        background: #0b3c6b;
+        color: #fff
+    }
+
+    .ev-secondary {
+        background: #edf2f7;
+        color: #334155
+    }
+
+    .ev-danger {
+        background: #fff0f1;
+        color: #c51f3a
+    }
+
+    .ev-table-wrap {
+        overflow-x: auto
+    }
+
+    .ev-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 590px
+    }
+
+    .ev-table th {
+        text-align: left;
+        background: #f6f8fb;
+        color: #64748b;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        padding: 12px
+    }
+
+    .ev-table td {
+        padding: 13px 12px;
+        border-bottom: 1px solid #edf1f5;
+        font-size: 12px;
+        vertical-align: middle
+    }
+
+    .ev-table tr:last-child td {
+        border-bottom: 0
+    }
+
+    .ev-event-title {
+        font-weight: 800;
+        color: #173b60;
+        font-size: 13px
+    }
+
+    .ev-muted {
+        display: block;
+        color: #8290a2;
+        font-size: 11px;
+        margin-top: 4px
+    }
+
+    .ev-tag {
+        display: inline-block;
+        padding: 5px 8px;
+        border-radius: 20px;
+        background: #edf5ff;
+        color: #175a91;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: capitalize
+    }
+
+    .ev-featured {
+        background: #fff5d8;
+        color: #966000
+    }
+
+    .ev-row-actions {
+        display: flex;
+        gap: 6px;
+        align-items: center
+    }
+
+    .ev-empty {
+        text-align: center;
+        padding: 35px 15px;
+        color: #718096
+    }
+
+    .ev-empty i {
+        font-size: 28px;
+        margin-bottom: 10px;
+        color: #9aabc0
+    }
+
+    .ev-count {
+        font-size: 12px;
+        color: #64748b
+    }
+
+    @media(max-width:950px) {
+        .ev-layout {
+            grid-template-columns: 1fr
+        }
+    }
+
+    @media(max-width:600px) {
+        .ev-stats {
+            grid-template-columns: 1fr 1fr
+        }
+
+        .ev-stat {
+            padding: 14px
+        }
+
+        .ev-two {
+            grid-template-columns: 1fr
+        }
+
+        .ev-heading h2 {
+            font-size: 19px
+        }
+    }
 </style>
 
 <div class="ev-wrap">
@@ -82,47 +324,57 @@
                 {{ 'Update Event' if edit_event else 'Add New Event' }}
             </h3>
             <p class="ev-sub">
-                {{ 'Modify the selected event details.' if edit_event else 'Enter the details below to publish a new event.' }}
+                {{ 'Modify the selected event details.' if edit_event else 'Enter the details below to publish a new
+                event.' }}
             </p>
 
-            <form class="ev-form" method="POST"
-                  action="{{ url_for('admin_edit_event', eid=edit_event.id) if edit_event else url_for('admin_add_event') }}">
+            <form class="ev-form" method="POST" enctype="multipart/form-data" action="{{ url_for('admin_edit_event', eid=edit_event.id) if edit_event else url_for('admin_add_event') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 <div class="ev-field">
                     <label for="ev-title">Event Title *</label>
-                    <input id="ev-title" name="title" type="text" maxlength="200"
-                           placeholder="e.g. Annual Sports Day"
-                           value="{{ edit_event.title if edit_event else '' }}" required>
+                    <input id="ev-title" name="title" type="text" maxlength="200" placeholder="e.g. Annual Sports Day"
+                        value="{{ edit_event.title if edit_event else '' }}" required>
                 </div>
 
                 <div class="ev-field">
                     <label for="ev-description">Description</label>
                     <textarea id="ev-description" name="description" maxlength="5000"
-                              placeholder="Write event details...">{{ edit_event.description if edit_event else '' }}</textarea>
+                        placeholder="Write event details...">{{ edit_event.description if edit_event else '' }}</textarea>
                 </div>
 
                 <div class="ev-two">
                     <div class="ev-field">
                         <label for="ev-date">Event Date *</label>
                         <input id="ev-date" name="event_date" type="date"
-                               value="{{ edit_event.event_date if edit_event else '' }}" required>
+                            value="{{ edit_event.event_date if edit_event else '' }}" required>
                     </div>
                     <div class="ev-field">
                         <label for="ev-time">Event Time</label>
                         <input id="ev-time" name="event_time" type="time"
-                               value="{{ edit_event.event_time if edit_event else '' }}">
+                            value="{{ edit_event.event_time if edit_event else '' }}">
                     </div>
                 </div>
 
                 <div class="ev-field">
                     <label for="ev-location">Location</label>
-                    <input id="ev-location" name="location" type="text" maxlength="250"
-                           placeholder="e.g. School Campus"
-                           value="{{ edit_event.location if edit_event else '' }}">
+                    <input id="ev-location" name="location" type="text" maxlength="250" placeholder="e.g. School Campus"
+                        value="{{ edit_event.location if edit_event else '' }}">
                 </div>
 
                 <div class="ev-field">
+                    <label for="ev-category">Category</label>
+                    <select id="ev-category" name="category">
+                        {% set current_category = edit_event.category if edit_event else 'general' %}
+                        {% for cat in ['general','academic','sports','cultural','celebration','meeting','holiday'] %}
+                        <option value="{{ cat }}" {{ 'selected' if current_category==cat else '' }}>
+                            {{ cat|capitalize }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                                <div class="ev-field">
                     <label for="ev-category">Category</label>
                     <select id="ev-category" name="category">
                         {% set current_category = edit_event.category if edit_event else 'general' %}
@@ -134,9 +386,23 @@
                     </select>
                 </div>
 
+                <!-- 🚀 NAYA: Event Cover Image Upload -->
+                <div class="ev-field">
+                    <label for="ev-image">Event Cover Image (Bottom-Left Art)</label>
+                    <input id="ev-image" name="cover_image" type="file" accept="image/*" 
+                           style="padding: 8px; background: #f5f8fc; border: 1px dashed #dbe3ed;">
+                    <small style="color: #64748b; font-size: 11px;">Is image ko certificate ke niche use kiya jayega.</small>
+                    {% if edit_event and edit_event.cover_image_url %}
+                        <div style="margin-top: 5px;">
+                            <img src="{{ url_for('static', filename='images/' + edit_event.cover_image_url) }}" 
+                                 style="height: 50px; border-radius: 5px;" alt="Current Image">
+                        </div>
+                    {% endif %}
+                </div>
+
                 <label class="ev-check">
-                    <input type="checkbox" name="is_featured" value="1"
-                           {% if edit_event and edit_event.is_featured %}checked{% endif %}>
+                    <input type="checkbox" name="is_featured" value="1" {% if edit_event and edit_event.is_featured
+                        %}checked{% endif %}>
                     <span><i class="fa-solid fa-star"></i> Show as Featured Event</span>
                 </label>
 
@@ -173,7 +439,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                    {% for event in events %}
+                        {% for event in events %}
                         <tr>
                             <td>
                                 <span class="ev-event-title">{{ event.title }}</span>
@@ -190,24 +456,27 @@
                             <td>
                                 <div class="ev-row-actions">
                                     <a class="ev-btn ev-secondary"
-                                       href="{{ url_for('admin_edit_event', eid=event.id) }}"
-                                       title="Edit event" aria-label="Edit {{ event.title }}">
+                                        href="{{ url_for('admin_edit_event', eid=event.id) }}" title="Edit event"
+                                        aria-label="Edit {{ event.title }}">
                                         <i class="fa-solid fa-pen"></i>
                                     </a>
-                                    
-                                    <form method="POST"
-                                          action="{{ url_for('admin_delete_event', eid=event.id) }}"
-                                          onsubmit="return confirm('Delete this event permanently?');">
+                                    <a class="ev-btn ev-primary"
+                                        href="{{ url_for('admin_event_certificates', eid=event.id) }}"
+                                        title="Manage certificates">
+                                        <i class="fa-solid fa-award"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('admin_delete_event', eid=event.id) }}"
+                                        onsubmit="return confirm('Delete this event permanently?');">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button class="ev-btn ev-danger" type="submit"
-                                                title="Delete event" aria-label="Delete {{ event.title }}">
+                                        <button class="ev-btn ev-danger" type="submit" title="Delete event"
+                                            aria-label="Delete {{ event.title }}">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
                                     </form>
                                 </div>
                             </td>
                         </tr>
-                    {% endfor %}
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>

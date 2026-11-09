@@ -273,13 +273,33 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT, from_user_id INTEGER NOT NULL,
             to_user_id INTEGER, to_role TEXT, subject TEXT NOT NULL, body TEXT NOT NULL,
             is_read INTEGER DEFAULT 0, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
-
+        
         db.execute('''CREATE TABLE IF NOT EXISTS events (
             id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL,
             description TEXT, event_date TEXT NOT NULL, event_time TEXT,
             location TEXT, category TEXT DEFAULT 'general',
             is_featured INTEGER DEFAULT 0,
+            cover_image_url TEXT,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+
+        # Migration: Add cover_image_url to events table if missing
+        _event_cols = {row[1] for row in db.execute("PRAGMA table_info(events)").fetchall()}
+        if 'cover_image_url' not in _event_cols:
+            db.execute('ALTER TABLE events ADD COLUMN cover_image_url TEXT')
+
+        # Event certificates — student-wise issued certificates
+        db.execute('''CREATE TABLE IF NOT EXISTS event_certificates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_id INTEGER NOT NULL,
+            student_id INTEGER NOT NULL,
+            certificate_type TEXT DEFAULT 'participation',
+            position TEXT,
+            issued_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(event_id, student_id),
+            FOREIGN KEY(event_id) REFERENCES events(id) ON DELETE CASCADE,
+            FOREIGN KEY(student_id) REFERENCES users(id) ON DELETE CASCADE)''')
+
+        db.execute('CREATE INDEX IF NOT EXISTS idx_event_cert_event ON event_certificates(event_id)')
 
         db.execute('''CREATE TABLE IF NOT EXISTS faculty (
             id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, name TEXT NOT NULL,
@@ -2542,7 +2562,12 @@ def admin_delete_faculty(fid):
 def admin_events():
     db = get_db()
     events = db.execute('SELECT * FROM events ORDER BY event_date DESC').fetchall()
-    return render_template('admin_events.html', events=events, active_page='events')
+    return render_template(
+        'admin_events.html',
+        events=events,
+        now_date=date.today().isoformat(),   # Added missing info   
+        active_page='events'
+    )
 
 @app.route('/admin/events/add', methods=['POST'])
 @admin_required
@@ -2553,14 +2578,34 @@ def admin_add_event():
     event_time = request.form.get('event_time', '').strip()
     location = request.form.get('location', '').strip()
     category = request.form.get('category', 'general')
+    is_featured = 1 if request.form.get('is_featured') else 0
 
     if not title or not event_date:
         flash('Title and Date are required.', 'error')
         return redirect(url_for('admin_events'))
 
+    cover_image_url = None
+    image_file = request.files.get('cover_image')
+    if image_file and image_file.filename:
+        if allowed_file(image_file.filename):
+            compressed = compress_image(image_file, target_kb=100)
+            if compressed:
+                filename = f"event_{secrets.token_hex(8)}.jpg"
+                images_folder = BASE_DIR / 'static' / 'images'
+                images_folder.mkdir(parents=True, exist_ok=True)
+                (images_folder / filename).write_bytes(compressed)
+                cover_image_url = filename
+        else:
+            flash('Invalid image type for event cover.', 'error')
+            return redirect(url_for('admin_events'))
+
     db = get_db()
-    db.execute('INSERT INTO events (title, description, event_date, event_time, location, category) VALUES (?,?,?,?,?,?)',
-               (title, description, event_date, event_time, location, category))
+    db.execute(
+        'INSERT INTO events '
+        '(title, description, event_date, event_time, location, category, is_featured, cover_image_url) '
+        'VALUES (?,?,?,?,?,?,?,?)',
+        (title, description, event_date, event_time, location, category, is_featured, cover_image_url)
+    )
     db.commit()
     flash(f'Event "{title}" published!', 'success')
     return redirect(url_for('admin_events'))
@@ -2576,14 +2621,17 @@ def admin_edit_event(eid):
         event_time = request.form.get('event_time', '').strip()
         location = request.form.get('location', '').strip()
         category = request.form.get('category', 'general')
+        is_featured = 1 if request.form.get('is_featured') else 0   # ✅ ADD
 
         if not title or not event_date:
             flash('Title and Date are required.', 'error')
             return redirect(url_for('admin_edit_event', eid=eid))
 
-        db.execute('''UPDATE events SET title = ?, description = ?, event_date = ?, 
-                      event_time = ?, location = ?, category = ? WHERE id = ?''',
-                   (title, description, event_date, event_time, location, category, eid))
+        db.execute(
+            'UPDATE events SET title=?, description=?, event_date=?, '
+            'event_time=?, location=?, category=?, is_featured=? WHERE id=?',
+            (title, description, event_date, event_time, location, category, is_featured, eid)
+        )
         db.commit()
         flash('Event updated successfully!', 'success')
         return redirect(url_for('admin_events'))
@@ -2594,7 +2642,12 @@ def admin_edit_event(eid):
         return redirect(url_for('admin_events'))
 
     events = db.execute('SELECT * FROM events ORDER BY event_date DESC').fetchall()
-    return render_template('admin_events.html', events=events, edit_event=event, active_page='events')
+    return render_template(
+        'admin_events.html',
+        events=events, edit_event=event,
+        now_date=date.today().isoformat(),   # ✅ ADD
+        active_page='events'
+    )
 
 @app.route('/admin/events/delete/<int:eid>', methods=['POST'])
 @admin_required
@@ -2604,6 +2657,216 @@ def admin_delete_event(eid):
     db.commit()
     flash('Event deleted.', 'success')
     return redirect(url_for('admin_events'))
+
+# =========================================
+# EVENT CERTIFICATES — ADMIN
+# =========================================
+@app.route('/admin/events/<int:eid>/certificates')
+@admin_required
+def admin_event_certificates(eid):
+    db = get_db()
+    event = db.execute('SELECT * FROM events WHERE id = ?', (eid,)).fetchone()
+    if not event:
+        flash('Event not found.', 'error')
+        return redirect(url_for('admin_events'))
+
+    class_filter   = (request.args.get('class_name') or '').strip()
+    section_filter = (request.args.get('section') or '').strip()
+    search         = (request.args.get('q') or '').strip()
+
+    query  = "SELECT id, name, unique_id, phone, is_active, " \
+             "COALESCE(class_name, child_class) AS class_name, " \
+             "section, roll_no, admission_no " \
+             "FROM users WHERE role='student' AND is_active=1"
+    params = []
+
+    if class_filter:
+        query += " AND (class_name = ? OR child_class = ?)"
+        params.extend([class_filter, class_filter])
+    if section_filter:
+        query += " AND section = ?"
+        params.append(section_filter)
+    if search:
+        like = f"%{search}%"
+        query += " AND (name LIKE ? OR unique_id LIKE ? OR roll_no LIKE ? OR admission_no LIKE ?)"
+        params.extend([like, like, like, like])
+
+    query += " ORDER BY COALESCE(class_name, child_class), section, name"
+    students = db.execute(query, tuple(params)).fetchall()
+
+    issued_rows = db.execute(
+        'SELECT id, student_id, certificate_type, position '
+        'FROM event_certificates WHERE event_id = ?', (eid,)
+    ).fetchall()
+    issued_map = {r['student_id']: dict(r) for r in issued_rows}
+
+    all_classes_list = get_all_classes(db)
+    classes = [{'class_name': c} for c in all_classes_list]
+
+    section_rows = db.execute(
+        "SELECT DISTINCT section FROM users "
+        "WHERE role='student' AND is_active=1 "
+        "AND section IS NOT NULL AND section != '' ORDER BY section"
+    ).fetchall()
+    sections = [{'section': r['section']} for r in section_rows]
+
+    return render_template(
+        'admin_event_certificates.html',
+        event=event,
+        students=students,
+        classes=classes,
+        sections=sections,
+        class_filter=class_filter,
+        section_filter=section_filter,
+        search=search,
+        issued_map=issued_map,
+        active_page='events'
+    )
+
+@app.route('/admin/events/<int:eid>/certificates/print-all')
+@admin_required
+def admin_print_all_event_certificates(eid):
+    """Render all issued certificates for an event on a single printable page."""
+    db = get_db()
+    event = db.execute('SELECT * FROM events WHERE id = ?', (eid,)).fetchone()
+    if not event:
+        flash('Event not found.', 'error')
+        return redirect(url_for('admin_events'))
+
+    certs = db.execute('''
+        SELECT ec.id, ec.certificate_type, ec.position, ec.issued_at,
+               u.name AS student_name, u.unique_id,
+               COALESCE(u.class_name, u.child_class) AS class_name,
+               u.section, u.roll_no, u.admission_no
+        FROM event_certificates ec
+        JOIN users u ON ec.student_id = u.id
+        WHERE ec.event_id = ?
+        ORDER BY u.name
+    ''', (eid,)).fetchall()
+
+    if not certs:
+        flash('No certificates issued yet for this event.', 'error')
+        return redirect(url_for('admin_event_certificates', eid=eid))
+
+    return render_template(
+        'event_certificates_bulk_print.html',
+        event=event,
+        certs=certs,
+        school_name=get_setting('school_name') or 'RESIDENTIAL SHANTI NIKETAN'
+    )
+
+@app.route('/admin/events/<int:eid>/certificates/issue', methods=['POST'])
+@admin_required
+def admin_issue_event_certificates(eid):
+    db = get_db()
+    event = db.execute('SELECT * FROM events WHERE id = ?', (eid,)).fetchone()
+    if not event:
+        flash('Event not found.', 'error')
+        return redirect(url_for('admin_events'))
+
+    student_ids = request.form.getlist('student_ids')
+    if not student_ids:
+        flash('Please select at least one student.', 'error')
+        return redirect(url_for('admin_event_certificates', eid=eid))
+
+    valid_types = {'participation', 'first', 'second', 'third', 'achievement'}
+    issued_count  = 0
+    updated_count = 0
+
+    try:
+        db.execute('BEGIN')
+
+        for raw_sid in student_ids:
+            try:
+                sid = int(raw_sid)
+            except (TypeError, ValueError):
+                continue
+
+            if not db.execute(
+                "SELECT 1 FROM users WHERE id=? AND role='student'", (sid,)
+            ).fetchone():
+                continue
+
+            cert_type = (request.form.get(f'certificate_type_{sid}') or 'participation').strip()
+            if cert_type not in valid_types:
+                cert_type = 'participation'
+
+            position = (request.form.get(f'position_{sid}') or '').strip()[:100] or None
+
+            existing = db.execute(
+                'SELECT id FROM event_certificates WHERE event_id=? AND student_id=?',
+                (eid, sid)
+            ).fetchone()
+
+            if existing:
+                db.execute(
+                    'UPDATE event_certificates SET certificate_type=?, position=? WHERE id=?',
+                    (cert_type, position, existing['id'])
+                )
+                updated_count += 1
+            else:
+                db.execute(
+                    'INSERT INTO event_certificates '
+                    '(event_id, student_id, certificate_type, position) '
+                    'VALUES (?, ?, ?, ?)',
+                    (eid, sid, cert_type, position)
+                )
+                issued_count += 1
+
+        db.commit()
+    except Exception:
+        db.rollback()
+        app.logger.exception('Certificate generation failed for event %s', eid)
+        flash('Certificates could not be generated. Please try again.', 'error')
+        return redirect(url_for('admin_event_certificates', eid=eid))
+
+    parts = []
+    if issued_count:  parts.append(f'{issued_count} new certificate(s) generated')
+    if updated_count: parts.append(f'{updated_count} updated')
+    flash(' and '.join(parts) or 'Nothing to update.', 'success')
+    return redirect(url_for('admin_event_certificates', eid=eid))
+
+
+@app.route('/event-certificates/<int:certificate_id>')
+@login_required
+def event_certificate(certificate_id):
+    db = get_db()
+    cert = db.execute('''
+        SELECT ec.id, ec.certificate_type, ec.position, ec.issued_at,
+               e.title AS event_title, e.event_date, e.location, e.category,
+               u.name AS student_name, u.unique_id,
+               COALESCE(u.class_name, u.child_class) AS class_name,
+               u.section, u.roll_no, u.admission_no
+        FROM event_certificates ec
+        JOIN events e ON ec.event_id = e.id
+        JOIN users  u ON ec.student_id = u.id
+        WHERE ec.id = ?
+    ''', (certificate_id,)).fetchone()
+
+    if not cert:
+        flash('Certificate not found.', 'error')
+        return redirect(url_for('admin_events'))
+
+    # Access: admins always; students/parents only for their own certificate
+    role = session.get('user_role')
+    if role not in ('admin', 'administrator'):
+        current = get_user_by_id(session['user_id'])
+        allowed = False
+        if current and current['role'] == 'student' and current['name'] == cert['student_name']:
+            allowed = True
+        elif current and current['role'] == 'parent':
+            child = get_parent_child(db, current)
+            if child and child['name'] == cert['student_name']:
+                allowed = True
+        if not allowed:
+            flash('You are not allowed to view this certificate.', 'error')
+            return redirect(url_for('user_dashboard'))
+
+    return render_template(
+        'event_certificate_print.html',
+        cert=cert,
+        school_name=get_setting('school_name') or 'RESIDENTIAL SHANTI NIKETAN'
+    )
 
 
 # === GALLERY ===

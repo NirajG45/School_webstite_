@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificate — {{ cert.student_name }}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+
+        @page { size: A4 landscape; margin: 0; }
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; font-family: 'Merriweather', serif; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+        .cert-wrapper {
+            width: 297mm; height: 210mm; /* A4 Landscape */
+            padding: 8mm;
+            background: #fff;
+            position: relative;
+        }
+
+        /* Golden Border */
+        .cert-border {
+            width: 100%; height: 100%;
+            border: 4px solid #d4af37;
+            padding: 2mm;
+            background: linear-gradient(135deg, #fffdf5 0%, #fff 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .cert-inner-border {
+            width: 100%; height: 100%;
+            border: 2px solid #0a2a5e;
+            padding: 10mm 15mm;
+            position: relative;
+            background: url('data:image/svg+xml;utf8,<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><circle cx="100%" cy="50%" r="300" fill="none" stroke="rgba(10,42,94,0.03)" stroke-width="40"/></svg>') no-repeat center center;
+            background-size: cover;
+        }
+
+        /* Flag Effects */
+        .flag-top { position: absolute; top: 0; left: 0; width: 100%; height: 15mm; background: linear-gradient(to bottom, #FF9933 33%, #FFFFFF 33%, #FFFFFF 66%, #138808 66%); opacity: 0.15; }
+        .flag-bottom { position: absolute; bottom: 0; left: 0; width: 100%; height: 15mm; background: linear-gradient(to top, #138808 33%, #FFFFFF 33%, #FFFFFF 66%, #FF9933 66%); opacity: 0.15; transform: rotate(180deg); }
+
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 2; }
+        .school-info { text-align: center; flex-grow: 1; }
+        .school-name { font-family: 'Playfair Display', serif; font-size: 32pt; font-weight: 700; color: #0a2a5e; margin: 0; letter-spacing: 1px; }
+        .school-address { font-size: 12pt; font-weight: 700; color: #0a2a5e; margin: 2mm 0 0; }
+        .school-logo { width: 28mm; height: 28mm; border-radius: 50%; border: 2px solid #b71c1c; object-fit: contain; background: #fff; padding: 2px; }
+
+        /* Title Ribbon */
+        .title-ribbon {
+            background: linear-gradient(to right, #8e0000, #b71c1c, #8e0000);
+            color: #fff; font-family: 'Playfair Display', serif; font-size: 26pt; font-style: italic;
+            text-align: center; padding: 3mm 0; margin: 8mm auto; width: 80%;
+            clip-path: polygon(5% 0, 95% 0, 100% 50%, 95% 100%, 5% 100%, 0% 50%);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .title-ribbon span { position: relative; z-index: 2; }
+        .title-ribbon::before, .title-ribbon::after {
+            content: '★'; color: #fbc02d; position: absolute; top: 50%; transform: translateY(-50%); font-size: 18pt;
+        }
+        .title-ribbon::before { left: 10%; }
+        .title-ribbon::after { right: 10%; }
+
+        /* Body Content */
+        .body-content { text-align: center; position: relative; z-index: 2; margin-top: 5mm; }
+        .certify-text { font-size: 16pt; font-style: italic; color: #333; margin-bottom: 5mm; }
+        
+        .student-name-box { font-size: 22pt; font-weight: 700; color: #0a2a5e; border-bottom: 1px solid #999; display: inline-block; padding: 0 20mm 2mm; margin-bottom: 4mm; }
+        
+        .class-text { font-size: 14pt; font-style: italic; color: #333; margin-bottom: 6mm; }
+        .class-text span { font-style: normal; font-weight: 700; border-bottom: 1px solid #999; padding: 0 10mm; }
+
+        /* Position Box */
+        .position-box {
+            background: linear-gradient(to bottom, #fdf0b0, #fbc02d);
+            border: 2px solid #b8860b; border-radius: 8px; display: inline-block;
+            padding: 3mm 15mm; font-family: 'Playfair Display', serif; font-size: 28pt; color: #b71c1c;
+            margin-bottom: 5mm; box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+        .position-box span { font-size: 16pt; color: #8e0000; vertical-align: super; }
+
+        .event-text { font-size: 20pt; font-style: italic; color: #0a2a5e; margin-bottom: 5mm; }
+        .event-text b { font-family: 'Playfair Display', serif; font-size: 24pt; color: #b71c1c; font-style: normal; }
+        
+        .desc-text { font-size: 13pt; font-style: italic; color: #555; line-height: 1.5; }
+
+        /* Bottom Graphics & Image */
+        .bottom-graphic { position: absolute; bottom: 25mm; left: 15mm; width: 60mm; height: 45mm; z-index: 1; }
+        .event-image { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
+
+        /* Congratulations Ribbon */
+        .congrats-ribbon {
+            position: absolute; bottom: 35mm; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(to right, #1b5e20, #2e7d32, #1b5e20);
+            color: #fff; font-family: 'Playfair Display', serif; font-size: 20pt; font-style: italic;
+            padding: 2mm 20mm; width: 60%; text-align: center;
+            clip-path: polygon(5% 0, 95% 0, 100% 50%, 95% 100%, 5% 100%, 0% 50%);
+        }
+        .congrats-ribbon::before, .congrats-ribbon::after {
+            content: '★'; color: #fbc02d; position: absolute; top: 50%; transform: translateY(-50%); font-size: 14pt;
+        }
+        .congrats-ribbon::before { left: 10%; }
+        .congrats-ribbon::after { right: 10%; }
+
+        /* Footer Signatures */
+        .footer {
+            position: absolute; bottom: 12mm; left: 15mm; right: 15mm;
+            display: flex; justify-content: space-between; z-index: 2;
+        }
+        .sig-block { text-align: center; width: 50mm; }
+        .sig-line { border-top: 1.5px solid #0a2a5e; margin-bottom: 2mm; }
+        .sig-title { font-size: 12pt; font-weight: 700; color: #0a2a5e; }
+        .sig-subtitle { font-size: 9pt; color: #555; margin-top: 1mm; }
+
+        /* Print Button */
+        .no-print { position: fixed; top: 20px; right: 20px; padding: 12px 24px; background: #0b3c6b; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9999; }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body>
+
+<button class="no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+
+<div class="cert-wrapper">
+    <div class="cert-border">
+        <div class="flag-top"></div>
+        <div class="flag-bottom"></div>
+        
+        <div class="cert-inner-border">
+            
+            <!-- HEADER -->
+            <div class="header">
+                <div style="width: 28mm;"></div> <!-- Spacer to center the text -->
+                <div class="school-info">
+                    <h1 class="school-name">{{ school_name|upper }}</h1>
+                    <div class="school-address">Navinagar, Jamui (Bihar)</div>
+                </div>
+                <!-- School Logo -->
+                <img src="{{ url_for('static', filename='images/school_logo.png') }}" class="school-logo" alt="Logo">
+            </div>
+
+            <!-- TITLE -->
+            <div class="title-ribbon">
+                <span>
+                    {% if cert.certificate_type == 'first' %}Certificate of Excellence
+                    {% elif cert.certificate_type == 'second' %}Certificate of Merit
+                    {% elif cert.certificate_type == 'third' %}Certificate of Achievement
+                    {% elif cert.certificate_type == 'achievement' %}Special Recognition
+                    {% else %}Certificate of Participation{% endif %}
+                </span>
+            </div>
+
+            <!-- BODY -->
+            <div class="body-content">
+                <div class="certify-text">This is to certify that</div>
+                
+                <div class="student-name-box">{{ cert.student_name }}</div>
+                
+                <div class="class-text">
+                    Class: <span>{{ cert.class_name }}{% if cert.section %} - {{ cert.section }}{% endif %}</span> 
+                    has secured the
+                </div>
+
+                <!-- Dynamic Position Box -->
+                <div class="position-box">
+                    {% if cert.certificate_type == 'first' %}1<span>st</span> Position
+                    {% elif cert.certificate_type == 'second' %}2<span>nd</span> Position
+                    {% elif cert.certificate_type == 'third' %}3<span>rd</span> Position
+                    {% elif cert.certificate_type == 'achievement' %}Special Mention
+                    {% else %}Active Participation{% endif %}
+                </div>
+
+                <div class="event-text">
+                    in <b>{{ cert.event_title }}</b>
+                </div>
+
+                <div class="desc-text">
+                    {% if cert.position %}
+                        for {{ cert.position }} and has demonstrated exceptional talent and enthusiasm.
+                    {% else %}
+                        and has demonstrated exceptional creativity, talent and enthusiasm.
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- CONGRATULATIONS RIBBON -->
+            <div class="congrats-ribbon">
+                Congratulations!
+            </div>
+
+            <!-- DYNAMIC EVENT IMAGE (Replaces Rangoli/Diya) -->
+            {% if event.cover_image_url %}
+            <div class="bottom-graphic">
+                <img src="{{ url_for('static', filename='images/' + event.cover_image_url) }}" class="event-image" alt="Event Art">
+            </div>
+            {% endif %}
+
+            <!-- FOOTER SIGNATURES -->
+            <div class="footer">
+                <div class="sig-block">
+                    <div class="sig-line"></div>
+                    <div class="sig-title">Event Coordinator</div>
+                    <div class="sig-subtitle">{{ event.title }}</div>
+                </div>
+                <div class="sig-block">
+                    <div class="sig-line"></div>
+                    <div class="sig-title">Principal</div>
+                    <div class="sig-subtitle">Res. Shanti Niketan</div>
+                </div>
+                <div class="sig-block">
+                    <div class="sig-line"></div>
+                    <div class="sig-title">Manager</div>
+                    <div class="sig-subtitle">Navinagar, Jamui</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

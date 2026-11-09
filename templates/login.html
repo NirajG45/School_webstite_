@@ -89,7 +89,7 @@
             gap: 20px;
         }
 
-        /* ✅ FIXED: Logo is now a clickable link */
+        /* FIXED: Logo is now a clickable link */
         .brand-logo-circle {
             width: 130px;
             height: 130px;
@@ -105,7 +105,7 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        /* ✅ NEW: Hover effect for Logo */
+        /* NEW: Hover effect for Logo */
         .brand-logo-circle:hover {
             transform: scale(1.05);
             box-shadow: 0 8px 25px rgba(0,0,0,0.2);
@@ -445,7 +445,7 @@
             text-decoration: underline;
         }
 
-        /* ✅ NEW: Back to Home Button */
+        /* NEW: Back to Home Button */
         .back-home-btn {
             display: inline-flex;
             align-items: center;
@@ -545,9 +545,9 @@
             <div class="building-overlay"></div>
 
             <div class="brand-section">
-                <!-- ✅ FIXED: Logo is wrapped in an anchor tag for Home page -->
+                <!-- FIXED: Logo is wrapped in an anchor tag for Home page -->
                 <a href="{{ url_for('home') }}" class="brand-logo-circle" title="Go to Home Page">
-                    <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="Logo">
+                    <img src="{{ url_for('static', filename='images/school_logo.png') }}" alt="Logo">
                 </a>
                 <div class="brand-text-content">
                     <h1>RESIDENTIAL SHANTI NIKETAN</h1>
@@ -600,7 +600,7 @@
                     
                     <div class="form-group">
                         <i class="fa-regular fa-user input-icon"></i>
-                        <!-- ✅ ID added for focus logic -->
+                        <!-- ID added for focus logic -->
                         <input type="text" name="unique_id" id="usernameInput" placeholder="Username / Registration No." required autocomplete="username" style="text-transform: uppercase;">
                     </div>
 
@@ -625,7 +625,7 @@
 
                 <div class="or-divider">OR</div>
 
-                <!-- ✅ Role Boxes now focus the input field on click -->
+                <!-- Role Boxes now focus the input field on click -->
                 <div class="role-grid">
                     <div class="role-box student" onclick="focusInput()">
                         <i class="fa-solid fa-user-graduate"></i>
@@ -645,7 +645,7 @@
                     </div>
                 </div>
 
-                <!-- ✅ Improved Footer Links -->
+                <!-- Improved Footer Links -->
                 <div class="footer-text">
                     <span>New User? <a href="{{ url_for('home') }}#contact">Contact School</a></span>
                     <a href="{{ url_for('home') }}" class="back-home-btn">
@@ -659,7 +659,7 @@
     <!-- ================= BOTTOM BAR ================= -->
     <div class="bottom-bar">
         <div class="bottom-bar-left">
-            <img src="{{ url_for('static', filename='images/school-logo.png') }}" alt="Logo">
+            <img src="{{ url_for('static', filename='images/school_logo.png') }}" alt="Logo">
             <h4>Residential Shanti Niketan Navinagar Jamui</h4>
         </div>
         <div class="bottom-bar-center">
@@ -688,7 +688,7 @@
             }
         }
 
-        // ✅ New Feature: Clicking a role box focuses the username input
+        // New Feature: Clicking a role box focuses the username input
         function focusInput() {
             const input = document.getElementById('usernameInput');
             input.focus();

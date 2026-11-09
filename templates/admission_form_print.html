@@ -6,102 +6,116 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admission Form - {{ student.name }}</title>
     <style>
-        /* 🚀 FIX: Proper A4 settings for 1 page print */
+        /* ============================================================
+           ADMISSION FORM — A4 SINGLE PAGE LAYOUT
+           ============================================================ */
+
         @page {
             size: A4 portrait;
             margin: 8mm;
         }
-        
-        * {
-            box-sizing: border-box;
+
+        :root {
+            --ink: #000;
+            --line: #000;
+            --bg: #eef1f4;
+            --accent: #0f766e;
+            --row-gap: 7px;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: Arial, Helvetica, sans-serif;
-            color: #000;
+            color: var(--ink);
             margin: 0;
             padding: 0;
-            background: #f0f0f0;
-            font-size: 12px; /* Reduced font size to fit 1 page */
-            line-height: 1.3;
+            background: var(--bg);
+            font-size: 12px;
+            line-height: 1.35;
         }
 
-        /* Print Button */
+        /* ---------- Print Button ---------- */
         .print-btn {
             display: block;
             width: 250px;
             margin: 20px auto;
             padding: 12px;
-            background: #0f766e;
-            color: white;
+            background: var(--accent);
+            color: #fff;
             text-align: center;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 700;
             border: none;
             border-radius: 5px;
             cursor: pointer;
         }
         .print-btn:hover { background: #115e59; }
 
-        /* Main Page Container */
+        /* ---------- Page ---------- */
         .page {
             width: 210mm;
             background: #fff;
             margin: 0 auto;
-            padding: 10mm 12mm;
-            /* 🚀 FIX: Removed min-height to prevent page break */
+            padding: 8mm 10mm;
         }
 
-        /* Border around whole form */
         .form-border {
-            border: 2px solid #000;
-            padding: 8px;
+            border: 2px solid var(--line);
+            padding: 8px 10px;
         }
 
-        /* --- HEADER --- */
+        /* ---------- Header ---------- */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid #000;
+            border-bottom: 2px solid var(--line);
             padding-bottom: 5px;
             margin-bottom: 8px;
         }
-        .header img { width: 65px; height: 65px; }
+        .header img {
+            width: 62px;
+            height: 62px;
+            object-fit: contain;
+        }
         .header-text {
             text-align: center;
             flex: 1;
+            padding: 0 8px;
         }
         .header-text h1 {
             margin: 0;
-            font-size: 22px;
+            font-size: 21px;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         .header-text h3 {
-            margin: 3px 0;
-            font-size: 13px;
-            font-weight: bold;
+            margin: 3px 0 0;
+            font-size: 12.5px;
+            font-weight: 700;
         }
 
-        /* --- TITLE --- */
+        /* ---------- Form Title ---------- */
         .form-title {
             text-align: center;
-            font-size: 22px;
+            font-size: 21px;
             font-weight: 900;
             text-decoration: underline;
-            margin: 8px 0 12px;
+            text-underline-offset: 3px;
+            margin: 8px 0 10px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        /* --- TOP INFO --- */
+        /* ---------- Top Info Bar ---------- */
         .top-info {
             display: flex;
             justify-content: space-between;
+            gap: 10px;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 700;
             margin-bottom: 10px;
         }
         .top-info .info-group {
@@ -110,68 +124,72 @@
             gap: 5px;
         }
         .top-info .box {
-            border: 1px solid #000;
+            border: 1px solid var(--line);
             height: 24px;
-            min-width: 120px;
-            padding: 0 5px;
+            padding: 0 6px;
             display: flex;
             align-items: center;
-            font-weight: normal;
+            font-weight: 400;
         }
+        .top-info .box.w-150 { width: 150px; }
+        .top-info .box.w-180 { width: 180px; }
 
-        /* --- SECTIONS --- */
+        /* ---------- Section Title ---------- */
         .section-title {
             text-align: center;
-            font-size: 14px;
-            font-weight: bold;
-            text-decoration: underline;
-            margin: 10px 0;
+            font-size: 12.5px;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin: 12px 0 8px;
+            padding-bottom: 2px;
+            border-bottom: 1.5px solid var(--line);
         }
+        .section-title.first { margin-top: 4px; }
 
-        /* --- LAYOUT & GRID --- */
-        .row {
+        /* ---------- Student Top (Class + Photo) ---------- */
+        .student-top {
             display: flex;
-            gap: 10px;
-            margin-bottom: 8px;
-            align-items: flex-end;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 4px 0 10px;
         }
-        .col-50 { flex: 1; }
-        
-        /* Input Lines */
-        .field-label {
-            font-weight: bold;
-            white-space: nowrap;
-            margin-right: 5px;
-            min-width: 110px;
-        }
-        
-        .input-box {
-            border: 1px solid #000;
-            height: 24px;
-            flex: 1;
-            padding: 2px 6px;
-            font-size: 12px;
+        .class-box { text-align: center; }
+        .class-label {
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 4px;
             text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .class-value {
+            border: 1px solid var(--line);
+            min-width: 160px;
+            height: 30px;
             display: flex;
             align-items: center;
-            overflow: hidden;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 0 8px;
         }
 
-        /* Photo Box */
         .photo-container {
-            width: 110px;
-            height: 130px;
-            border: 1px solid #000;
-            border-radius: 10px;
+            width: 100px;
+            height: 118px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
-            font-size: 11px;
-            font-weight: bold;
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 1.2;
             overflow: hidden;
-            margin-left: auto;
+            flex: 0 0 auto;
+            background: #fafafa;
         }
         .photo-container img {
             width: 100%;
@@ -179,32 +197,100 @@
             object-fit: cover;
         }
 
-        /* Declaration */
+        /* ---------- Rows & Fields ---------- */
+        .row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: var(--row-gap);
+            align-items: center;
+        }
+        .row:last-child { margin-bottom: 0; }
+
+        .col { flex: 1 1 0; min-width: 0; }
+
+        .field {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .field-label {
+            font-weight: 700;
+            white-space: nowrap;
+            flex: 0 0 auto;
+        }
+
+        .input-box {
+            border: 1px solid var(--line);
+            min-height: 23px;
+            flex: 1 1 auto;
+            min-width: 0;
+            padding: 2px 6px;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        /* ---------- Label Width Helpers ---------- */
+        .w-50  { min-width: 50px; }
+        .w-60  { min-width: 60px; }
+        .w-90  { min-width: 90px; }
+        .w-110 { min-width: 110px; }
+        .w-120 { min-width: 120px; }
+        .w-130 { min-width: 130px; }
+        .w-180 { min-width: 180px; }
+
+        /* ---------- Inline Meta Row ---------- */
+        .inline-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 22px;
+            font-size: 12px;
+            font-weight: 700;
+            margin: 2px 0 var(--row-gap);
+        }
+        .inline-row .val {
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            padding: 0 4px;
+            font-weight: 400;
+        }
+
+        /* ---------- Declaration ---------- */
         .declaration {
-            border-top: 2px solid #000;
+            border-top: 2px solid var(--line);
             margin-top: 12px;
             padding-top: 8px;
-            font-size: 12px;
+            font-size: 11.5px;
             line-height: 1.5;
         }
         .declaration p { margin: 5px 0; }
-        
+
         .signature-row {
             display: flex;
             justify-content: space-between;
             margin-top: 20px;
-            font-weight: bold;
+            font-weight: 700;
+            font-size: 11.5px;
         }
 
-        /* Print Specific Overrides */
+        /* ---------- Print Overrides ---------- */
         @media print {
             body { background: #fff; }
             .print-btn { display: none; }
             .page { margin: 0; padding: 0; width: 100%; }
-            .form-border { border: 2px solid #000 !important; }
-            .input-box, .top-info .box, .photo-container { 
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact; 
+            .form-border { border: 2px solid var(--line) !important; }
+            .input-box,
+            .top-info .box,
+            .photo-container,
+            .class-value {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
         }
     </style>
@@ -215,7 +301,8 @@
 
     <div class="page">
         <div class="form-border">
-            <!-- HEADER -->
+
+            <!-- ================= HEADER ================= -->
             <div class="header">
                 <img src="{{ url_for('static', filename='images/school_logo.png') }}" alt="Logo">
                 <div class="header-text">
@@ -226,163 +313,202 @@
                 <img src="{{ url_for('static', filename='images/school_logo.png') }}" alt="Logo">
             </div>
 
-            <!-- TITLE -->
+            <!-- ================= TITLE ================= -->
             <div class="form-title">ADMISSION FORM</div>
 
-            <!-- TOP INFO -->
+            <!-- ================= TOP INFO ================= -->
             <div class="top-info">
                 <div class="info-group">
                     <span>ADMISSION NO.:-</span>
-                    <div class="box" style="width: 150px;">{{ student.admission_no or '' }}</div>
+                    <div class="box w-150">{{ student.admission_no or '' }}</div>
                 </div>
                 <div class="info-group">
                     <span>DATE OF ADMISSION:-</span>
-                    <div class="box" style="width: 180px;">{{ student.admission_date or '' }}</div>
+                    <div class="box w-180">{{ student.admission_date or '' }}</div>
                 </div>
             </div>
 
-            <!-- PERSONAL INFO -->
-            <div class="section-title">STUDENT PERSONAL INFORMATION</div>
-            
-            <div class="row" style="margin-bottom: 15px;">
-                <div class="col-50"></div>
-                <div class="col-50" style="text-align: center;">
-                    <div style="font-size: 12px; font-weight: bold; margin-bottom: 4px;">ADMITTED INTO CLASS</div>
-                    <div style="border: 1px solid #000; height: 28px; width: 150px; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 13px;">
-                        {{ student.class_name or '' }}
+            <!-- ================= PERSONAL INFO ================= -->
+            <div class="section-title first">STUDENT PERSONAL INFORMATION</div>
+
+            <!-- Class + Photo -->
+            <div class="student-top">
+                <div class="class-box">
+                    <div class="class-label">Admitted Into Class</div>
+                    <div class="class-value">{{ student.class_name or '' }}</div>
+                </div>
+
+                <div class="photo-container">
+                    {% if student.photo_url %}
+                        <img src="{{ student.photo_url }}" alt="Student Photo">
+                    {% else %}
+                        STUDENT<br>PHOTO
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Name Block -->
+            <div class="row">
+                <div class="field">
+                    <div class="field-label w-180">Student's Name:</div>
+                    <div class="input-box">{{ student.name }}</div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <div class="field-label w-180">Father's Name:</div>
+                    <div class="input-box">{{ student.father_name }}</div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <div class="field-label w-180">Mother's Name:</div>
+                    <div class="input-box">{{ student.mother_name }}</div>
+                </div>
+            </div>
+
+            <!-- DOB + Gender -->
+            <div class="row">
+                <div class="col">
+                    <div class="field">
+                        <div class="field-label w-120">Date of Birth:</div>
+                        <div class="input-box">{{ student.dob }}</div>
                     </div>
                 </div>
-                <div class="col-50">
-                    <!-- 🚀 FIX: Photo Insertion Logic -->
-                    <div class="photo-container">
-                        {% if student.photo_url %}
-                            <img src="{{ student.photo_url }}" alt="Student Photo">
-                        {% else %}
-                            STUDENT<br>PHOTO
-                        {% endif %}
+                <div class="col">
+                    <div class="field">
+                        <div class="field-label w-90">Gender:</div>
+                        <div class="input-box">{{ student.gender }}</div>
                     </div>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="field-label">Student's Name:</div>
-                <div class="input-box">{{ student.name }}</div>
-            </div>
-            
-            <div class="row">
-                <div class="field-label">Father's Name:</div>
-                <div class="input-box">{{ student.father_name }}</div>
-            </div>
-            
-            <div class="row">
-                <div class="field-label">Mother's Name:</div>
-                <div class="input-box">{{ student.mother_name }}</div>
+            <!-- Nationality / Religion / Category -->
+            <div class="inline-row">
+                <span>Nationality: <span class="val">{{ student.nationality or 'INDIAN' }}</span></span>
+                <span>Religion: <span class="val">{{ student.religion or '' }}</span></span>
+                <span>Category: <span class="val">{{ student.category or 'GEN' }}</span></span>
             </div>
 
+            <!-- Address -->
             <div class="row">
-                <div class="col-50" style="display: flex; align-items: flex-end;">
-                    <div class="field-label">Date of Birth:</div>
-                    <div class="input-box">{{ student.dob }}</div>
-                </div>
-                <div class="col-50" style="display: flex; align-items: flex-end;">
-                    <div class="field-label" style="min-width: 60px;">Gender:</div>
-                    <div class="input-box">{{ student.gender }}</div>
-                </div>
-            </div>
-
-            <div class="row" style="font-size: 12px; font-weight: bold; gap: 20px;">
-                <span>Nationality: <span style="text-decoration: underline; padding: 0 5px;">{{ student.nationality or 'INDIAN' }}</span></span>
-                <span>Religion: <span style="text-decoration: underline; padding: 0 5px;">{{ student.religion or '' }}</span></span>
-                <span>Category: <span style="text-decoration: underline; padding: 0 5px;">{{ student.category or 'GEN' }}</span></span>
-            </div>
-
-            <div class="row" style="margin-top: 8px;">
-                <div class="col-50" style="display: flex; align-items: flex-end;">
-                    <div class="field-label" style="min-width: 120px;">Village / Address:</div>
+                <div class="field">
+                    <div class="field-label w-180">Village / Address:</div>
                     <div class="input-box">{{ student.address }}</div>
                 </div>
             </div>
 
             <div class="row">
-                <div class="col-50" style="display: flex; align-items: flex-end;">
-                    <div class="field-label" style="min-width: 120px;">District / City:</div>
-                    <div class="input-box">{{ student.city }}</div>
+                <div class="col">
+                    <div class="field">
+                        <div class="field-label w-120">District / City:</div>
+                        <div class="input-box">{{ student.city }}</div>
+                    </div>
                 </div>
-                <div class="col-50" style="display: flex; align-items: flex-end;">
-                    <div class="field-label" style="min-width: 50px;">State:</div>
-                    <div class="input-box">{{ student.state }}</div>
+                <div class="col">
+                    <div class="field">
+                        <div class="field-label w-90">State:</div>
+                        <div class="input-box">{{ student.state }}</div>
+                    </div>
                 </div>
-                <div class="col-50" style="display: flex; align-items: flex-end;">
-                    <div class="field-label" style="min-width: 60px;">Pin Code:</div>
-                    <div class="input-box">{{ student.pincode }}</div>
+                <div class="col">
+                    <div class="field">
+                        <div class="field-label w-90">Pin Code:</div>
+                        <div class="input-box">{{ student.pincode }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact + Aadhaar -->
+            <div class="row">
+                <div class="col">
+                    <div class="field">
+                        <div class="field-label w-90">Contact No.:</div>
+                        <div class="input-box">{{ student.phone }}</div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="field">
+                        <div class="field-label w-90">Aadhaar No.:</div>
+                        <div class="input-box">{{ student.aadhar }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parent Qualification -->
+            <div class="row">
+                <div class="col">
+                    <div class="field">
+                        <div class="field-label w-120">Qualification: Father -</div>
+                        <div class="input-box">{{ student.father_education }}</div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="field">
+                        <div class="field-label w-90">Mother -</div>
+                        <div class="input-box">{{ student.mother_education }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parent Occupation -->
+            <div class="row">
+                <div class="col">
+                    <div class="field">
+                        <div class="field-label w-120">Occupation: Father -</div>
+                        <div class="input-box">{{ student.father_occupation }}</div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="field">
+                        <div class="field-label w-90">Mother -</div>
+                        <div class="input-box">{{ student.mother_occupation }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guardian -->
+            <div class="row">
+                <div class="field">
+                    <div class="field-label w-180">Name of Local Guardian (if any):</div>
+                    <div class="input-box">{{ student.guardian_name }}</div>
                 </div>
             </div>
 
             <div class="row">
-                <div class="col-50" style="display: flex; align-items: flex-end;">
-                    <div class="field-label" style="min-width: 90px;">Contact No.:</div>
-                    <div class="input-box">{{ student.phone }}</div>
+                <div class="col">
+                    <div class="field">
+                        <div class="field-label w-120">Relation with Student:</div>
+                        <div class="input-box">{{ student.guardian_relation }}</div>
+                    </div>
                 </div>
-                <div class="col-50" style="display: flex; align-items: flex-end;">
-                    <div class="field-label" style="min-width: 90px;">Aadhaar No.:</div>
-                    <div class="input-box">{{ student.aadhar }}</div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-50" style="display: flex; align-items: flex-end;">
-                    <div class="field-label" style="min-width: 130px;">Qualification: Father -</div>
-                    <div class="input-box">{{ student.father_education }}</div>
-                </div>
-                <div class="col-50" style="display: flex; align-items: flex-end;">
-                    <div class="field-label" style="min-width: 60px;">Mother -</div>
-                    <div class="input-box">{{ student.mother_education }}</div>
+                <div class="col">
+                    <div class="field">
+                        <div class="field-label w-90">Contact No.:</div>
+                        <div class="input-box">{{ student.guardian_mobile }}</div>
+                    </div>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-50" style="display: flex; align-items: flex-end;">
-                    <div class="field-label" style="min-width: 130px;">Occupation: Father -</div>
-                    <div class="input-box">{{ student.father_occupation }}</div>
-                </div>
-                <div class="col-50" style="display: flex; align-items: flex-end;">
-                    <div class="field-label" style="min-width: 60px;">Mother -</div>
-                    <div class="input-box">{{ student.mother_occupation }}</div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="field-label" style="min-width: 180px;">Name of Local Guardian (if any):</div>
-                <div class="input-box">{{ student.guardian_name }}</div>
-            </div>
-
-            <div class="row">
-                <div class="col-50" style="display: flex; align-items: flex-end;">
-                    <div class="field-label" style="min-width: 130px;">Relation with Student:</div>
-                    <div class="input-box">{{ student.guardian_relation }}</div>
-                </div>
-                <div class="col-50" style="display: flex; align-items: flex-end;">
-                    <div class="field-label" style="min-width: 90px;">Contact No.:</div>
-                    <div class="input-box">{{ student.guardian_mobile }}</div>
-                </div>
-            </div>
-
-            <!-- DECLARATION -->
+            <!-- ================= DECLARATION ================= -->
             <div class="declaration">
                 <div class="section-title" style="margin-top: 0;">DECLARATION BY THE PARENTS</div>
                 <p>
-                    I, Mr./Mrs. <strong>{{ student.father_name or student.mother_name or student.guardian_name }}</strong> 
+                    I, Mr./Mrs. <strong>{{ student.father_name or student.mother_name or student.guardian_name }}</strong>
                     Father / Mother / Guardian of <strong>{{ student.name }}</strong>
                 </p>
                 <p>
                     declare that the above information provided by me is correct and to the best of my knowledge and belief. I am fully ready to follow up all the rules and regulations of the school.
                 </p>
-                
+
                 <div class="signature-row">
                     <span>Date: ____ / ____ / ________</span>
                     <span>Parents Sign.: ______________________</span>
                 </div>
             </div>
+
         </div>
     </div>
 

@@ -2085,8 +2085,7 @@
                 <i class="fa-regular fa-calendar-days"></i>
                 <span class="nav-label">Events & Activities</span>
             </a>
-            <a href="{{ url_for('admin_events') }}"
-                class="admin-nav-link" data-label="Participants & Certificates"
+            <a href="{{ url_for('admin_events') }}" class="admin-nav-link" data-label="Participants & Certificates"
                 title="Select an event to register participants and generate certificates">
                 <i class="fa-solid fa-award"></i>
                 <span class="nav-label">Participants & Certificates</span>
@@ -2106,9 +2105,11 @@
             <a href="{{ url_for('home') }}" target="_blank" rel="noopener" class="admin-sidebar-foot-link">
                 <i class="fa-solid fa-globe"></i><span>View Website</span>
             </a>
-            <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="admin-sidebar-foot-link logout">
-                <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
-            </button></form>
+            <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden"
+                    name="csrf_token" value="{{ csrf_token() }}"><button type="submit"
+                    class="admin-sidebar-foot-link logout">
+                    <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+                </button></form>
         </div>
     </aside>
 
@@ -2288,7 +2289,7 @@
                         {% if session.get('photo_url') %}
                         <form method="POST" action="{{ url_for('remove_profile_photo') }}"
                             onsubmit="return confirm('Remove your profile photo?');">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="remove-photo-btn">
                                 <i class="fa-solid fa-trash"></i> Remove Photo
                             </button>
@@ -2301,13 +2302,15 @@
                         <a href="{{ url_for('change_password') }}" role="menuitem">
                             <i class="fa-solid fa-key"></i> Change Password
                         </a>
-                        <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="admin-logout-link" role="menuitem">
-                            <i class="fa-solid fa-right-from-bracket"></i> Logout
-                        </button></form>
+                        <form method="POST" action="{{ url_for('logout') }}" class="logout-form"><input type="hidden"
+                                name="csrf_token" value="{{ csrf_token() }}"><button type="submit"
+                                class="admin-logout-link" role="menuitem">
+                                <i class="fa-solid fa-right-from-bracket"></i> Logout
+                            </button></form>
 
                         <form id="adminPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
                             enctype="multipart/form-data" style="display:none;">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="file" id="adminPhotoInput" name="photo" accept="image/*"
                                 onchange="document.getElementById('adminPhotoForm').submit();">
                         </form>
@@ -2404,6 +2407,66 @@
                             next = next.nextElementSibling;
                         }
                         label.style.display = (!q || hasVisible) ? '' : 'none';
+                    });
+                });
+            }
+
+            /* ============================================================
+   SIDEBAR SCROLL POSITION PERSISTENCE
+   Page reload ke baad bhi sidebar apni jagah yaad rakhega
+   ============================================================ */
+            if (sidebar) {
+                const SCROLL_KEY = 'adminSidebarScrollTop';
+                const SCROLL_TIME_KEY = 'adminSidebarScrollTime';
+                const MAX_AGE = 60 * 60 * 1000; // 1 ghanta tak valid
+
+                // --- Restore on page load ---
+                const savedScroll = sessionStorage.getItem(SCROLL_KEY);
+                const savedTime = parseInt(sessionStorage.getItem(SCROLL_TIME_KEY) || '0', 10);
+
+                if (savedScroll !== null && (Date.now() - savedTime) < MAX_AGE) {
+                    const targetScroll = parseInt(savedScroll, 10) || 0;
+                    const restore = () => { sidebar.scrollTop = targetScroll; };
+                    // Multiple attempts — kyunki fonts/images load hone me time lagta hai
+                    requestAnimationFrame(restore);
+                    setTimeout(restore, 60);
+                    setTimeout(restore, 250);
+                    setTimeout(restore, 600);
+                } else if (savedScroll !== null) {
+                    // Purana data — clean kar do
+                    sessionStorage.removeItem(SCROLL_KEY);
+                    sessionStorage.removeItem(SCROLL_TIME_KEY);
+                }
+
+                // --- Save on scroll (debounced) ---
+                let scrollSaveTimer = null;
+                sidebar.addEventListener('scroll', function () {
+                    clearTimeout(scrollSaveTimer);
+                    scrollSaveTimer = setTimeout(() => {
+                        sessionStorage.setItem(SCROLL_KEY, sidebar.scrollTop);
+                        sessionStorage.setItem(SCROLL_TIME_KEY, Date.now());
+                    }, 80);
+                }, { passive: true });
+
+                // --- Save right before page unload/navigation ---
+                const saveSidebarScroll = () => {
+                    sessionStorage.setItem(SCROLL_KEY, sidebar.scrollTop);
+                    sessionStorage.setItem(SCROLL_TIME_KEY, Date.now());
+                };
+                window.addEventListener('beforeunload', saveSidebarScroll);
+                window.addEventListener('pagehide', saveSidebarScroll);
+
+                // --- Extra safety: koi bhi link/button click ho to turant save ---
+                sidebar.addEventListener('click', function (e) {
+                    const clicked = e.target.closest('a, button');
+                    if (clicked) saveSidebarScroll();
+                }, { passive: true });
+
+                // --- Reset when user logs out (optional safety) ---
+                document.querySelectorAll('form[action*="logout"]').forEach(function (f) {
+                    f.addEventListener('submit', function () {
+                        sessionStorage.removeItem(SCROLL_KEY);
+                        sessionStorage.removeItem(SCROLL_TIME_KEY);
                     });
                 });
             }

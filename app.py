@@ -28,6 +28,9 @@ load_dotenv(Path(__file__).resolve().with_name(".env"))
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = Path(os.environ.get('SCHOOL_DB_PATH', BASE_DIR / 'school.db'))
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_PATH}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
 secret_key = os.environ.get("SECRET_KEY")
 
 if not secret_key or len(secret_key) < 32:
@@ -282,6 +285,17 @@ def init_db():
             is_featured INTEGER DEFAULT 0,
             cover_image_url TEXT,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+        
+        db.execute('''CREATE TABLE IF NOT EXISTS event_participants (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_id INTEGER NOT NULL,
+            student_id INTEGER NOT NULL,
+            role TEXT DEFAULT 'participant',
+            added_on TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(event_id) REFERENCES events (id) ON DELETE CASCADE,
+            FOREIGN KEY(student_id) REFERENCES students (id) ON DELETE CASCADE,
+            UNIQUE(event_id, student_id)
+        )''')
 
         # Migration: Add cover_image_url to events table if missing
         _event_cols = {row[1] for row in db.execute("PRAGMA table_info(events)").fetchall()}

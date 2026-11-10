@@ -25,7 +25,7 @@ import secrets
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash
 
-# ⚠️ Change 'app' if your main file has a different name
+# Change 'app' if your main file has a different name
 from app import app, get_db, generate_unique_id
 
 random.seed(7)
@@ -96,7 +96,7 @@ TEACHERS = [
         "name":             "Suraj",
         "display":          "Suraj Sir",
         "gender":           "Male",
-        "subject":          "Physical Education",
+        "subject":          "English",
         "qualification":    "Graduate",
         "specialization":   "Sports & Physical Education",
         "classes_assigned": "Pre-Nursery,Nursery,LKG,UKG,4th,5th,6th,7th,8th",
@@ -129,7 +129,7 @@ TEACHERS = [
         "name":             "Sweta",
         "display":          "Sweta Maam",
         "gender":           "Female",
-        "subject":          "English",
+        "subject":          "Math",
         "qualification":    "Graduate",
         "specialization":   "English",
         "classes_assigned": "Pre-Nursery,Nursery,LKG,UKG",
@@ -309,7 +309,7 @@ def insert_teacher(db, t):
 # ─────────────────────────────────────────────────────────
 def main():
     print("\n" + "=" * 70)
-    print("👨‍🏫 TEACHER SEED SCRIPT — Residential Shanti Niketan")
+    print("TEACHER SEED SCRIPT — Residential Shanti Niketan")
     print("=" * 70)
 
     with app.app_context():
@@ -317,7 +317,7 @@ def main():
         created = 0
         skipped = 0
 
-        print(f"\n📚 Inserting {len(TEACHERS)} teachers...\n")
+        print(f"\nInserting {len(TEACHERS)} teachers...\n")
 
         for t in TEACHERS:
             res = insert_teacher(db, t)
@@ -339,17 +339,17 @@ def main():
         ).fetchone()[0]
 
         print("\n" + "=" * 70)
-        print(f"✅ Teachers Created : {created}")
-        print(f"⏭  Teachers Skipped : {skipped} (already existed)")
-        print(f"👨‍🏫 Total Teachers in DB  : {total_teachers}")
-        print(f"🏫 Total Faculty entries  : {total_faculty}")
+        print(f"Teachers Created : {created}")
+        print(f"Teachers Skipped : {skipped} (already existed)")
+        print(f"Total Teachers in DB  : {total_teachers}")
+        print(f"Total Faculty entries  : {total_faculty}")
         print("=" * 70)
         print("\nEach newly created teacher has a unique one-time temporary password shown above.")
         print("Store those credentials securely; users must change passwords at first login.\n")
 
         # ── Preview table
         print("\n" + "=" * 90)
-        print("📋 TEACHER SUMMARY")
+        print("TEACHER SUMMARY")
         print("=" * 90)
         print(f"{'Unique ID':<12} {'Name':<22} {'Subject':<20} {'Classes Assigned':<30}")
         print("-" * 90)

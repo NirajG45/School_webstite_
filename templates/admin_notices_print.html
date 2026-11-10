@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{{ notices|length }} Notice{{ 's' if notices|length != 1 }} — Print</title>
+
+<style>
+:root {
+  --page-w: 210mm; --page-h: 297mm;
+  --margin-x: 6mm; --margin-y: 7mm;
+  --block-font-size: 8pt; --block-line-height: 1.3;
+  --block-pad-y: 1.6mm; --block-pad-x: 2mm;
+  --block-gap: 2mm;
+  --cut-color: #333; --meta-color: #6b7280;
+  --title-color: #000; --bg-screen: #f3f4f6; --bg-paper: #fff;
+  --border-screen: #cbd5e1; --accent: #1f4e79;
+  --primary: #0d6efd; --primary-hover: #0b5ed7;
+}
+
+[data-density="tight"]   { --block-font-size: 6.5pt; --block-line-height: 1.2;  --block-pad-y: 1mm;   --block-pad-x: 1.5mm; --block-gap: 1.5mm; }
+[data-density="compact"] { --block-font-size: 7.5pt; --block-line-height: 1.25; --block-pad-y: 1.4mm; --block-pad-x: 1.8mm; --block-gap: 2mm; }
+[data-density="normal"]  { --block-font-size: 8.5pt; --block-line-height: 1.35; --block-pad-y: 2mm;   --block-pad-x: 2.2mm; --block-gap: 2.5mm; }
+[data-density="relaxed"] { --block-font-size: 9.5pt; --block-line-height: 1.4;  --block-pad-y: 2.5mm; --block-pad-x: 2.8mm; --block-gap: 3mm; }
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+  color: #111; background: var(--bg-screen);
+  -webkit-font-smoothing: antialiased; font-kerning: normal;
+}
+
+/* @page — literal margins, NO var() */
+@page { size: A4 portrait; margin: 7mm 6mm; }
+
+/* ---------- Toolbar ---------- */
+.print-toolbar {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  padding: 8px 14px; background: #fff;
+  border-bottom: 1px solid var(--border-screen);
+  box-shadow: 0 2px 6px rgba(0,0,0,.05);
+}
+.print-toolbar .meta { font-size: 13px; font-weight: 600; }
+.print-toolbar .meta small { font-weight: 400; color: #666; margin-left: 6px; }
+.print-toolbar .spacer { flex: 1; }
+.print-toolbar .group { display: inline-flex; align-items: center; gap: 3px; flex-wrap: wrap; }
+.print-toolbar .lbl {
+  font-size: 10.5px; color: #666; text-transform: uppercase;
+  letter-spacing: .5px; margin: 0 4px 0 8px;
+}
+.print-toolbar a, .print-toolbar button {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 8px; border-radius: 6px;
+  border: 1px solid var(--border-screen);
+  background: #fff; color: #111;
+  font: inherit; font-size: 12px; line-height: 1.2;
+  text-decoration: none; cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+.print-toolbar a:hover, .print-toolbar button:hover {
+  background: #f8fafc; border-color: #94a3b8;
+}
+.print-toolbar a.active {
+  background: var(--accent); color: #fff;
+  border-color: var(--accent); font-weight: 600;
+}
+.print-toolbar .btn-print {
+  background: var(--primary); color: #fff; border-color: var(--primary);
+}
+.print-toolbar .btn-print:hover { background: var(--primary-hover); }
+
+/* ---------- A4 sheet ---------- */
+.sheet {
+  width: var(--page-w); min-height: var(--page-h);
+  margin: 14px auto; padding: var(--margin-y) var(--margin-x);
+  background: var(--bg-paper);
+  box-shadow: 0 2px 12px rgba(0,0,0,.08);
+}
+
+/* ---------- Notice block ---------- */
+.notice {
+  position: relative;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  padding: var(--block-pad-y) var(--block-pad-x);
+  border: 1px solid var(--cut-color);
+  background: var(--bg-paper);
+  font-size: var(--block-font-size);
+  line-height: var(--block-line-height);
+  overflow: hidden;
+  orphans: 2; widows: 2;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+[data-cut="off"] .notice { border-color: transparent; }
+
+.notice__meta {
+  display: flex; justify-content: space-between; gap: 4px;
+  font-size: calc(var(--block-font-size) * 0.82);
+  line-height: 1.1; color: var(--meta-color);
+  margin-bottom: 0.7mm;
+}
+.notice__tag {
+  font-weight: 700; text-transform: uppercase;
+  letter-spacing: .3px; color: #4b5563;
+}
+.notice__date { white-space: nowrap; }
+.notice__title {
+  font-size: calc(var(--block-font-size) * 1.06);
+  font-weight: 700; line-height: 1.2;
+  color: var(--title-color); margin: 0 0 0.6mm;
+}
+.notice__body {
+  margin: 0; white-space: pre-wrap;
+  word-wrap: break-word; overflow-wrap: anywhere;
+  text-align: justify; hyphens: auto;
+}
+
+/* ---------- Grid ---------- */
+.notice-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols, 2), 1fr);
+  gap: var(--block-gap);
+  height: calc(297mm - 14mm);
+  align-content: start;
+  /* NO page-break-inside: avoid — allow overflow to new pages */
+}
+.notice-grid > .notice { margin: 0; }
+
+/* ---------- Flow ---------- */
+.notice-flow {
+  column-count: var(--grid-cols, 2);
+  column-gap: var(--block-gap);
+  column-fill: balance;
+  orphans: 2; widows: 2;
+}
+.notice-flow > .notice {
+  display: inline-block; width: 100%;
+  margin: 0 0 var(--block-gap) 0;
+}
+
+@media screen and (max-width: 780px) {
+  .sheet { width: 100%; min-height: 0; margin: 0; padding: 10px; box-shadow: none; }
+  .notice-grid { height: auto; grid-template-columns: 1fr !important; }
+  .notice-flow { column-count: 1 !important; }
+}
+
+@media print {
+  body { background: #fff; }
+  .print-toolbar { display: none !important; }
+  .sheet { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
+  .notice { border-color: #888; }
+  [data-cut="off"] .notice { border-color: transparent; }
+  .notice-flow { column-fill: auto; height: calc(297mm - 14mm); }
+}
+</style>
+</head>
+
+<body data-density="{{ density|default('compact') }}"
+      data-cut="{{ cut|default('on') }}">
+
+{%- set _cols     = cols|default('2') -%}
+{%- set _density  = density|default('compact') -%}
+{%- set _cut      = cut|default('on') -%}
+{%- set _repeat   = repeat|default('auto') -%}
+{%- set _init     = initial_copies|default(1)|int -%}
+{%- set _ids_str  = (ids or notices|map(attribute='id')|list)|join(',') -%}
+
+<nav class="print-toolbar" aria-label="Print settings">
+  <span class="meta">
+    {{ notices|length }} notice{{ 's' if notices|length != 1 }}
+    <small id="copyCount">
+      {%- if _repeat == 'auto' -%} · Auto-fill
+      {%- elif _repeat == '1' -%} · Flow
+      {%- else -%} · {{ _init }} cop{{ 'y' if _init == 1 else 'ies' }}
+      {%- endif -%}
+    </small>
+  </span>
+  <span class="spacer"></span>
+
+  <span class="lbl">Cols</span>
+  <span class="group" role="group" aria-label="Columns">
+    {% for c in ['1','2','3'] %}
+      <a href="{{ url_for('admin_print_notices', ids=_ids_str, cols=c, density=_density, cut=_cut, repeat=_repeat) }}"
+         class="{{ 'active' if _cols == c else '' }}"
+         aria-pressed="{{ 'true' if _cols == c else 'false' }}">{{ c }}</a>
+    {% endfor %}
+  </span>
+
+  <span class="lbl">Copies</span>
+  <span class="group" role="group" aria-label="Copies per notice">
+    {% for r in ['auto','1','2','3','4','5','6','7','8','9','10','12','15','20'] %}
+      <a href="{{ url_for('admin_print_notices', ids=_ids_str, cols=_cols, density=_density, cut=_cut, repeat=r) }}"
+         class="{{ 'active' if _repeat == r else '' }}"
+         aria-pressed="{{ 'true' if _repeat == r else 'false' }}"
+         title="{{ 'Auto-fill whole page' if r == 'auto' else (r + ' copies') }}">{{ r|capitalize }}</a>
+    {% endfor %}
+  </span>
+
+  <span class="lbl">Density</span>
+  <span class="group" role="group" aria-label="Font density">
+    {% for d in ['tight','compact','normal','relaxed'] %}
+      <a href="{{ url_for('admin_print_notices', ids=_ids_str, cols=_cols, density=d, cut=_cut, repeat=_repeat) }}"
+         class="{{ 'active' if _density == d else '' }}"
+         aria-pressed="{{ 'true' if _density == d else 'false' }}">{{ d|capitalize }}</a>
+    {% endfor %}
+  </span>
+
+  <a href="{{ url_for('admin_print_notices', ids=_ids_str, cols=_cols, density=_density, cut=('off' if _cut == 'on' else 'on'), repeat=_repeat) }}">
+    Cut: {{ 'On' if _cut == 'on' else 'Off' }}
+  </a>
+
+  <button type="button" class="btn-print" onclick="window.print()">Print</button>
+  <a href="{{ url_for('admin_notices') }}">Back</a>
+</nav>
+
+<main class="sheet" role="main">
+
+{% if _repeat != '1' %}
+  <div class="notice-grid"
+       id="noticeGrid"
+       data-cols="{{ _cols }}"
+       data-repeat="{{ _repeat }}"
+       style="--grid-cols: {{ _cols }};">
+    {% for n in notices %}
+      {% for _ in range(_init) %}
+      <article class="notice">
+        <header class="notice__meta">
+          <span class="notice__tag">{{ n.tag }}</span>
+          <span class="notice__date">{{ n.date }}</span>
+        </header>
+        <h3 class="notice__title">{{ n.title }}</h3>
+        {% if n.description %}<p class="notice__body">{{ n.description }}</p>{% endif %}
+      </article>
+      {% endfor %}
+    {% endfor %}
+  </div>
+
+  <script>
+  /* ================================================================
+     Notice Grid Filler — FINAL
+     ────────────────────────────────────────────────────────────────
+     auto mode:
+       • measure natural block height (fresh)
+       • compute rows that fit
+       • clone cyclically → fill ALL slots → stretch equally
+     explicit mode:
+       • compute rows needed = ceil(count / cols)
+       • if natural block ≤ cell height  → stretch to fill page ✓
+       • else → leave natural, allow overflow to next page
+       • NEVER trim user's requested copies
+     ================================================================ */
+  (function () {
+    'use strict';
+    var grid = document.getElementById('noticeGrid');
+    if (!grid) return;
+
+    var cols   = parseInt(grid.dataset.cols, 10) || 2;
+    var repeat = grid.dataset.repeat || 'auto';
+    var isAuto = (repeat === 'auto');
+    var copyEl = document.getElementById('copyCount');
+
+    function setCount(n, tail) {
+      if (!copyEl) return;
+      copyEl.textContent = '· ' + n + (tail || ' cop' + (n === 1 ? 'y' : 'ies'));
+    }
+
+    function readGapPx() {
+      var cs = window.getComputedStyle(grid);
+      var raw = cs.rowGap || cs.gap || '';
+      var val = parseFloat(raw);
+      return isNaN(val) ? 7.5 : val;
+    }
+
+    function reset() {
+      grid.style.gridTemplateRows = '';
+      grid.style.height = '';
+      grid.classList.remove('mode-auto');
+      // Force reflow so offsetHeight reflects natural size
+      void grid.offsetHeight;
+    }
+
+    function naturalHeight() {
+      var all = grid.querySelectorAll('.notice');
+      var max = 0;
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].offsetHeight > max) max = all[i].offsetHeight;
+      }
+      return max;
+    }
+
+    function run() {
+      reset();
+      var blocks = grid.querySelectorAll('.notice');
+      if (!blocks.length) return;
+
+      var containerH = grid.clientHeight;
+      var gapPx      = readGapPx();
+      var natural    = naturalHeight();
+      if (!containerH || !natural) return;
+
+      /* ---------- AUTO MODE ---------- */
+      if (isAuto) {
+        var safeH = natural * 1.02;
+        var rows  = Math.max(1, Math.floor((containerH + gapPx) / (safeH + gapPx)));
+        var total = rows * cols;
+
+        var originals = [];
+        for (var i = 0; i < blocks.length; i++) originals.push(blocks[i].cloneNode(true));
+
+        var idx = 0;
+        while (grid.children.length < total) {
+          grid.appendChild(originals[idx % originals.length].cloneNode(true));
+          idx++;
+        }
+        while (grid.children.length > total) {
+          grid.removeChild(grid.lastElementChild);
+        }
+
+        grid.style.gridTemplateRows = 'repeat(' + rows + ', minmax(0, 1fr))';
+        grid.classList.add('mode-auto');
+        setCount(total, ' auto-filled');
+        return;
+      }
+
+      /* ---------- EXPLICIT MODE (1..20) ---------- */
+      var count = blocks.length;
+      var rows  = Math.ceil(count / cols);
+      var cellH = (containerH - (rows - 1) * gapPx) / rows;
+
+      if (natural > cellH) {
+        // Won't fit if stretched — flow naturally across pages
+        grid.style.height = 'auto';
+        grid.style.pageBreakInside = 'auto';
+        grid.style.breakInside = 'auto';
+        setCount(count, ' copies (overflow)');
+      } else {
+        // Fits — stretch to fill page perfectly
+        grid.style.gridTemplateRows = 'repeat(' + rows + ', minmax(0, 1fr))';
+        setCount(count);
+      }
+    }
+
+    try { run(); }
+    catch (err) {
+      if (window.console) console.warn('[notice-print]', err);
+    }
+
+    var timer;
+    window.addEventListener('resize', function () {
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        try { run(); } catch (e) { /* silent */ }
+      }, 150);
+    });
+  })();
+  </script>
+
+{% else %}
+  <div class="notice-flow" style="--grid-cols: {{ _cols }};">
+    {% for n in notices %}
+    <article class="notice">
+      <header class="notice__meta">
+        <span class="notice__tag">{{ n.tag }}</span>
+        <span class="notice__date">{{ n.date }}</span>
+      </header>
+      <h3 class="notice__title">{{ n.title }}</h3>
+      {% if n.description %}<p class="notice__body">{{ n.description }}</p>{% endif %}
+    </article>
+    {% endfor %}
+  </div>
+{% endif %}
+
+</main>
+</body>
+</html>

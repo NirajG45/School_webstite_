@@ -2010,6 +2010,117 @@ def admin_notices():
     notices = get_all_notices()
     return render_template('admin_notices.html', notices=notices, active_page='notices')
 
+@app.route('/admin/notices/print')
+@admin_required
+def admin_print_notices():
+    """A4 print — grid fill (repeat=auto) or explicit copies (repeat=N)."""
+    db = get_db()
+
+    raw_ids = (request.args.get('ids') or '').strip()
+    ids = [int(p) for p in raw_ids.split(',') if p.strip().isdigit()]
+
+    if ids:
+        placeholders = ','.join('?' for _ in ids)
+        notices = db.execute(
+            f"SELECT * FROM notices WHERE id IN ({placeholders}) ORDER BY id DESC",
+            tuple(ids)
+        ).fetchall()
+    else:
+        notices = db.execute("SELECT * FROM notices ORDER BY id DESC").fetchall()
+
+    if not notices:
+        flash('No notices available to print.', 'error')
+        return redirect(url_for('admin_notices'))
+
+    # ---- Layout params ----
+    cols = request.args.get('cols', '2')
+    if cols not in ('1', '2', '3'):
+        cols = '2'
+
+    density = request.args.get('density', 'compact')
+    if density not in ('tight', 'compact', 'normal', 'relaxed'):
+        density = 'compact'
+
+    cut = request.args.get('cut', 'on')
+    if cut not in ('on', 'off'):
+        cut = 'on'
+
+    # ---- Repeat mode (THE CRITICAL PART) ----
+    repeat_raw = (request.args.get('repeat') or '').strip().lower()
+
+    if repeat_raw == 'auto':
+        repeat = 'auto'
+        initial_copies = 1
+    elif repeat_raw.isdigit() and 1 <= int(repeat_raw) <= 20:
+        repeat = repeat_raw
+        initial_copies = int(repeat_raw)
+    elif not repeat_raw:
+        # Smart default: single notice → auto-fill; many → flow
+        repeat = 'auto' if len(notices) == 1 else '1'
+        initial_copies = 1
+    else:
+        repeat = '1'
+        initial_copies = 1
+
+    return render_template(
+        'admin_notices_print.html',
+        notices=notices,
+        ids=[n['id'] for n in notices],
+        cols=cols,
+        density=density,
+        cut=cut,
+        repeat=repeat,
+        initial_copies=initial_copies,
+    )
+
+@app.route('/admin/notices/edit/<int:nid>', methods=['GET', 'POST'])
+@admin_required
+def admin_edit_notice(nid):
+    """Edit an existing notice — reuses admin_notices.html."""
+    db = get_db()
+    notice = db.execute('SELECT * FROM notices WHERE id = ?', (nid,)).fetchone()
+    if not notice:
+        flash('Notice not found.', 'error')
+        return redirect(url_for('admin_notices'))
+
+    if request.method == 'POST':
+        date        = request.form.get('date', '').strip()
+        title       = request.form.get('title', '').strip()
+        tag         = request.form.get('tag', '').strip()
+        description = request.form.get('description', '').strip()
+        target_role = request.form.get('target_role', 'all')
+
+        if not date or not title or not tag:
+            flash('Please fill Date, Title, and Tag.', 'error')
+            return redirect(url_for('admin_edit_notice', nid=nid))
+
+        if target_role not in ('all', 'teacher', 'parent', 'student'):
+            target_role = 'all'
+
+        try:
+            db.execute(
+                '''UPDATE notices SET date = ?, title = ?, tag = ?,
+                   description = ?, target_role = ? WHERE id = ?''',
+                (date, title, tag, description, target_role, nid)
+            )
+            db.commit()
+        except Exception:
+            db.rollback()
+            app.logger.exception('Notice update failed for id=%s', nid)
+            flash('Could not update notice. Please try again.', 'error')
+            return redirect(url_for('admin_edit_notice', nid=nid))
+
+        flash(f'Notice #{nid} updated successfully!', 'success')
+        return redirect(url_for('admin_notices'))
+
+    notices = get_all_notices()
+    return render_template(
+        'admin_notices.html',
+        notices=notices,
+        edit_notice=notice,
+        active_page='notices'
+    )
+
 @app.route('/admin/notices/add', methods=['POST'])
 @admin_required
 def admin_add_notice():

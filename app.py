@@ -2831,8 +2831,10 @@ def admin_issue_event_certificates(eid):
 @login_required
 def event_certificate(certificate_id):
     db = get_db()
+    
+    # 🚀 Yahan ec.event_id add kiya gaya hai
     cert = db.execute('''
-        SELECT ec.id, ec.certificate_type, ec.position, ec.issued_at,
+        SELECT ec.id, ec.event_id, ec.certificate_type, ec.position, ec.issued_at,
                e.title AS event_title, e.event_date, e.location, e.category,
                u.name AS student_name, u.unique_id,
                COALESCE(u.class_name, u.child_class) AS class_name,
@@ -2847,7 +2849,10 @@ def event_certificate(certificate_id):
         flash('Certificate not found.', 'error')
         return redirect(url_for('admin_events'))
 
-    # Access: admins always; students/parents only for their own certificate
+    # 🚀 Event ki details fetch karein (cover_image ke liye)
+    event = db.execute('SELECT * FROM events WHERE id = ?', (cert['event_id'],)).fetchone()
+
+    # Access control
     role = session.get('user_role')
     if role not in ('admin', 'administrator'):
         current = get_user_by_id(session['user_id'])
@@ -2862,12 +2867,13 @@ def event_certificate(certificate_id):
             flash('You are not allowed to view this certificate.', 'error')
             return redirect(url_for('user_dashboard'))
 
+    # 🚀 Template me event=event pass karein
     return render_template(
         'event_certificate_print.html',
         cert=cert,
+        event=event, 
         school_name=get_setting('school_name') or 'RESIDENTIAL SHANTI NIKETAN'
     )
-
 
 # === GALLERY ===
 @app.route('/admin/gallery')

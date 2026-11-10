@@ -3,118 +3,264 @@
 <head>
     <meta charset="UTF-8">
     <title>Certificate — {{ cert.student_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+        /* 🎨 Dynamic Color Themes (Change based on certificate type) */
+        {% set primary = '#b71c1c' %}     /* Main Red */
+        {% set secondary = '#fbc02d' %}   /* Gold */
+        {% set dark = '#7f0000' %}        /* Dark Red */
+        {% set ribbon_text = 'Certificate of Excellence' %}
+        {% set pos_text = '1<sup>st</sup>' %}
+        {% set pos_full = '1st Position' %}
 
-        @page { size: A4 landscape; margin: 0; }
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; font-family: 'Merriweather', serif; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        {% if cert.certificate_type == 'second' %}
+            {% set primary = '#0a2a5e' %}     /* Navy Blue */
+            {% set secondary = '#c0c0c0' %}   /* Silver */
+            {% set dark = '#061a3d' %}        /* Dark Blue */
+            {% set ribbon_text = 'Certificate of Merit' %}
+            {% set pos_text = '2<sup>nd</sup>' %}
+            {% set pos_full = '2nd Position' %}
+        {% elif cert.certificate_type == 'third' %}
+            {% set primary = '#1b5e20' %}     /* Green */
+            {% set secondary = '#cd7f32' %}   /* Bronze */
+            {% set dark = '#0d3311' %}        /* Dark Green */
+            {% set ribbon_text = 'Certificate of Achievement' %}
+            {% set pos_text = '3<sup>rd</sup>' %}
+            {% set pos_full = '3rd Position' %}
+        {% elif cert.certificate_type == 'participation' %}
+            {% set primary = '#4a148c' %}     /* Purple */
+            {% set secondary = '#ffc107' %}   /* Amber */
+            {% set dark = '#310d5e' %}        /* Dark Purple */
+            {% set ribbon_text = 'Certificate of Participation' %}
+            {% set pos_text = '★' %}
+            {% set pos_full = 'Active Participation' %}
+        {% endif %}
 
-        .cert-wrapper {
-            width: 297mm; height: 210mm; /* A4 Landscape */
-            padding: 8mm;
-            background: #fff;
-            position: relative;
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Merriweather', serif;
+            background: #fffdf5;
+            color: #333;
         }
 
-        /* Golden Border */
+        /* Main Wrapper */
+        .cert-wrapper {
+            width: 297mm;
+            height: 210mm;
+            position: relative;
+            background-color: #fffdf5;
+            overflow: hidden;
+            padding: 8mm;
+        }
+
+        /* Background Watermarks & Monuments */
+        .bg-chakra {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 450px; height: 450px;
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="45" fill="none" stroke="%230a2a5e" stroke-width="1.5" opacity="0.04"/><path d="M50 5 L50 95 M5 50 L95 50 M18 18 L82 82 M18 82 L82 18" stroke="%230a2a5e" stroke-width="1" opacity="0.04"/></svg>');
+            background-size: contain; background-repeat: no-repeat; z-index: 0;
+        }
+        .bg-monument {
+            position: absolute; bottom: -10px; right: 5%;
+            width: 250px; height: 180px;
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><path d="M100 20 L120 80 L180 80 L130 120 L150 180 L100 140 L50 180 L70 120 L20 80 L80 80 Z" fill="%230a2a5e" opacity="0.04"/></svg>');
+            background-size: contain; background-repeat: no-repeat; z-index: 0;
+        }
+
+        /* Tricolor Flag Effects */
+        .flag-top-left {
+            position: absolute; top: 0; left: 0; width: 300px; height: 150px;
+            background: linear-gradient(135deg, #FF9933 33%, #FFFFFF 33%, #FFFFFF 66%, #138808 66%);
+            clip-path: polygon(0 0, 100% 0, 0 100%);
+            opacity: 0.15; z-index: 1;
+        }
+        .flag-bottom-right {
+            position: absolute; bottom: 0; right: 0; width: 300px; height: 150px;
+            background: linear-gradient(135deg, #138808 33%, #FFFFFF 33%, #FFFFFF 66%, #FF9933 66%);
+            clip-path: polygon(100% 100%, 100% 0, 0 100%);
+            opacity: 0.15; z-index: 1;
+        }
+
+        /* Inner Golden Border */
         .cert-border {
             width: 100%; height: 100%;
-            border: 4px solid #d4af37;
-            padding: 2mm;
-            background: linear-gradient(135deg, #fffdf5 0%, #fff 100%);
+            border: 5px solid #d4af37;
+            border-radius: 12px;
             position: relative;
-            overflow: hidden;
-        }
-        .cert-inner-border {
-            width: 100%; height: 100%;
-            border: 2px solid #0a2a5e;
-            padding: 10mm 15mm;
-            position: relative;
-            background: url('data:image/svg+xml;utf8,<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><circle cx="100%" cy="50%" r="300" fill="none" stroke="rgba(10,42,94,0.03)" stroke-width="40"/></svg>') no-repeat center center;
-            background-size: cover;
+            z-index: 2;
+            padding: 8mm 12mm;
+            box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 6px #d4af37, 0 0 20px rgba(0,0,0,0.15);
         }
 
-        /* Flag Effects */
-        .flag-top { position: absolute; top: 0; left: 0; width: 100%; height: 15mm; background: linear-gradient(to bottom, #FF9933 33%, #FFFFFF 33%, #FFFFFF 66%, #138808 66%); opacity: 0.15; }
-        .flag-bottom { position: absolute; bottom: 0; left: 0; width: 100%; height: 15mm; background: linear-gradient(to top, #138808 33%, #FFFFFF 33%, #FFFFFF 66%, #FF9933 66%); opacity: 0.15; transform: rotate(180deg); }
-
-        /* Header */
-        .header { display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 2; }
+        /* Header Section */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            position: relative; z-index: 3; margin-bottom: 0mm;
+        }
+        .school-logo {
+            width: 85px; height: 85px; border-radius: 50%;
+            border: 3px solid {{ primary }}; background: #fff; padding: 2px; object-fit: contain;
+        }
         .school-info { text-align: center; flex-grow: 1; }
-        .school-name { font-family: 'Playfair Display', serif; font-size: 32pt; font-weight: 700; color: #0a2a5e; margin: 0; letter-spacing: 1px; }
-        .school-address { font-size: 12pt; font-weight: 700; color: #0a2a5e; margin: 2mm 0 0; }
-        .school-logo { width: 28mm; height: 28mm; border-radius: 50%; border: 2px solid #b71c1c; object-fit: contain; background: #fff; padding: 2px; }
+        .school-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 28pt; color: #0a2a5e; margin: 0; font-weight: 900; line-height: 1.1;
+            letter-spacing: 1px;
+        }
+        .school-address {
+            font-size: 12pt; color: #333; font-weight: 700; margin-top: 4px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .school-address::before, .school-address::after {
+            content: ""; display: inline-block; width: 50px; height: 1px; background: #333;
+        }
+        .slogan {
+            font-family: 'Playfair Display', serif; font-style: italic;
+            color: #0a2a5e; font-size: 15pt; text-align: right; line-height: 1.2;
+            width: 100px;
+        }
 
-        /* Title Ribbon */
+        /* 3D Title Ribbon */
+        .title-ribbon-wrap {
+            position: relative; z-index: 4; text-align: center; margin-top: 4mm;
+        }
         .title-ribbon {
-            background: linear-gradient(to right, #8e0000, #b71c1c, #8e0000);
-            color: #fff; font-family: 'Playfair Display', serif; font-size: 26pt; font-style: italic;
-            text-align: center; padding: 3mm 0; margin: 8mm auto; width: 80%;
-            clip-path: polygon(5% 0, 95% 0, 100% 50%, 95% 100%, 5% 100%, 0% 50%);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            background: linear-gradient(to right, {{ dark }}, {{ primary }}, {{ dark }});
+            color: #fff; font-family: 'Playfair Display', serif; font-size: 28pt; font-style: italic;
+            text-align: center; padding: 3mm 0; width: 65%; margin: 0 auto;
+            clip-path: polygon(0 0, 100% 0, 95% 50%, 100% 100%, 0 100%, 5% 50%);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.3);
             position: relative;
         }
-        .title-ribbon span { position: relative; z-index: 2; }
         .title-ribbon::before, .title-ribbon::after {
-            content: '★'; color: #fbc02d; position: absolute; top: 50%; transform: translateY(-50%); font-size: 18pt;
+            content: '★'; color: {{ secondary }}; position: absolute; top: 50%;
+            transform: translateY(-50%); font-size: 20pt;
         }
-        .title-ribbon::before { left: 10%; }
-        .title-ribbon::after { right: 10%; }
+        .title-ribbon::before { left: 8%; }
+        .title-ribbon::after { right: 8%; }
 
         /* Body Content */
-        .body-content { text-align: center; position: relative; z-index: 2; margin-top: 5mm; }
-        .certify-text { font-size: 16pt; font-style: italic; color: #333; margin-bottom: 5mm; }
+        .body-content { text-align: center; position: relative; z-index: 3; margin-top: 6mm; }
+        .certify-text { font-size: 16pt; font-style: italic; margin-bottom: 4mm; }
         
-        .student-name-box { font-size: 22pt; font-weight: 700; color: #0a2a5e; border-bottom: 1px solid #999; display: inline-block; padding: 0 20mm 2mm; margin-bottom: 4mm; }
-        
-        .class-text { font-size: 14pt; font-style: italic; color: #333; margin-bottom: 6mm; }
-        .class-text span { font-style: normal; font-weight: 700; border-bottom: 1px solid #999; padding: 0 10mm; }
-
-        /* Position Box */
-        .position-box {
-            background: linear-gradient(to bottom, #fdf0b0, #fbc02d);
-            border: 2px solid #b8860b; border-radius: 8px; display: inline-block;
-            padding: 3mm 15mm; font-family: 'Playfair Display', serif; font-size: 28pt; color: #b71c1c;
-            margin-bottom: 5mm; box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        /* Dotted Line Style for Name & Class */
+        .student-name {
+            font-family: 'Playfair Display', serif; font-size: 32pt; color: {{ primary }};
+            font-weight: 700; display: inline-block; padding: 0 15mm; margin-bottom: 2mm;
+            border-bottom: 2px dotted #666; line-height: 1.2;
         }
-        .position-box span { font-size: 16pt; color: #8e0000; vertical-align: super; }
+        .class-text { font-size: 15pt; font-style: italic; margin-bottom: 5mm; }
+        .class-text span {
+            font-weight: 700; font-style: normal; border-bottom: 2px dotted #666; padding: 0 10mm;
+        }
 
-        .event-text { font-size: 20pt; font-style: italic; color: #0a2a5e; margin-bottom: 5mm; }
-        .event-text b { font-family: 'Playfair Display', serif; font-size: 24pt; color: #b71c1c; font-style: normal; }
+        /* Position Plaque & 3D Medal */
+        .position-row {
+            display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 5mm;
+        }
         
-        .desc-text { font-size: 13pt; font-style: italic; color: #555; line-height: 1.5; }
+        /* Plaque */
+        .position-plaque {
+            background: linear-gradient(to bottom, #fff, {{ secondary }}, #fff);
+            border: 3px solid {{ dark }}; border-radius: 12px;
+            padding: 2mm 20mm; font-family: 'Playfair Display', serif;
+            font-size: 34pt; color: {{ dark }}; font-weight: 900;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2), inset 0 0 10px rgba(255,255,255,0.8); 
+            position: relative;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .position-plaque.participation-plaque {
+            background: linear-gradient(to bottom, #fff, #e1bee7, #fff);
+            color: {{ primary }}; font-size: 26pt; padding: 4mm 20mm;
+        }
 
-        /* Bottom Graphics & Image */
-        .bottom-graphic { position: absolute; bottom: 25mm; left: 15mm; width: 60mm; height: 45mm; z-index: 1; }
-        .event-image { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
+        /* 3D Medal CSS */
+        .medal-container {
+            position: relative; width: 80px; height: 100px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .medal-ribbon-left, .medal-ribbon-right {
+            position: absolute; top: 30px; width: 25px; height: 50px;
+            background: {{ primary }}; z-index: 1;
+            border: 1px solid {{ dark }};
+        }
+        .medal-ribbon-left { left: 15px; transform: rotate(15deg); }
+        .medal-ribbon-right { right: 15px; transform: rotate(-15deg); }
+        
+        .medal-circle {
+            width: 70px; height: 70px; border-radius: 50%;
+            background: radial-gradient(circle, {{ secondary }} 30%, {{ dark }} 100%);
+            border: 3px solid #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Playfair Display', serif; font-size: 24pt; color: #fff; font-weight: 700;
+            z-index: 2; position: relative;
+        }
+        .medal-circle::after {
+            content: ''; position: absolute; top: -6px; left: -6px; right: -6px; bottom: -6px;
+            border-radius: 50%; border: 2px dashed {{ dark }}; z-index: -1;
+        }
+
+        /* Event Text */
+        .event-text { font-size: 20pt; font-style: italic; color: #0a2a5e; margin-bottom: 2mm; }
+        .event-text b { font-family: 'Playfair Display', serif; font-size: 24pt; color: {{ primary }}; font-style: normal; }
+        .desc-text { font-size: 13pt; font-style: italic; color: #444; }
+
+        /* Dynamic Event Image (Bottom Left) */
+        .event-image-container {
+            position: absolute; bottom: 20mm; left: 15mm;
+            width: 50mm; height: 50mm; z-index: 3;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; overflow: hidden; 
+            border: 3px solid {{ secondary }}; /* Gold/Silver Border */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .event-image-container img {
+            max-width: 100%; max-height: 100%; object-fit: cover;
+        }
 
         /* Congratulations Ribbon */
         .congrats-ribbon {
-            position: absolute; bottom: 35mm; left: 50%; transform: translateX(-50%);
-            background: linear-gradient(to right, #1b5e20, #2e7d32, #1b5e20);
+            position: absolute; bottom: 24mm; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(to right, {{ dark }}, {{ primary }}, {{ dark }});
             color: #fff; font-family: 'Playfair Display', serif; font-size: 20pt; font-style: italic;
-            padding: 2mm 20mm; width: 60%; text-align: center;
+            padding: 1.5mm 25mm; width: 45%; text-align: center;
             clip-path: polygon(5% 0, 95% 0, 100% 50%, 95% 100%, 5% 100%, 0% 50%);
+            z-index: 4; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
         .congrats-ribbon::before, .congrats-ribbon::after {
-            content: '★'; color: #fbc02d; position: absolute; top: 50%; transform: translateY(-50%); font-size: 14pt;
+            content: '★'; color: {{ secondary }}; position: absolute;
+            top: 50%; transform: translateY(-50%); font-size: 14pt;
         }
-        .congrats-ribbon::before { left: 10%; }
-        .congrats-ribbon::after { right: 10%; }
+        .congrats-ribbon::before { left: 8%; }
+        .congrats-ribbon::after { right: 8%; }
 
         /* Footer Signatures */
         .footer {
-            position: absolute; bottom: 12mm; left: 15mm; right: 15mm;
-            display: flex; justify-content: space-between; z-index: 2;
+            position: absolute; bottom: 10mm; left: 15mm; right: 15mm;
+            display: flex; justify-content: space-between; z-index: 3;
         }
-        .sig-block { text-align: center; width: 50mm; }
-        .sig-line { border-top: 1.5px solid #0a2a5e; margin-bottom: 2mm; }
+        .sig-block { text-align: center; width: 60mm; }
+        .sig-line { border-top: 1.5px solid #333; margin-bottom: 2mm; }
         .sig-title { font-size: 12pt; font-weight: 700; color: #0a2a5e; }
-        .sig-subtitle { font-size: 9pt; color: #555; margin-top: 1mm; }
+        .sig-subtitle { font-size: 10pt; color: #555; margin-top: 1mm; }
 
         /* Print Button */
-        .no-print { position: fixed; top: 20px; right: 20px; padding: 12px 24px; background: #0b3c6b; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9999; }
+        .no-print {
+            position: fixed; top: 20px; right: 20px; padding: 12px 24px;
+            background: #0b3c6b; color: #fff; border: none; border-radius: 8px;
+            cursor: pointer; font-size: 14px; font-weight: bold; z-index: 9999;
+        }
         @media print { .no-print { display: none; } }
     </style>
 </head>
@@ -123,99 +269,108 @@
 <button class="no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
 
 <div class="cert-wrapper">
+    <!-- Background Elements -->
+    <div class="flag-top-left"></div>
+    <div class="flag-bottom-right"></div>
+    <div class="bg-chakra"></div>
+    <div class="bg-monument"></div>
+
+    <!-- Main Border -->
     <div class="cert-border">
-        <div class="flag-top"></div>
-        <div class="flag-bottom"></div>
         
-        <div class="cert-inner-border">
-            
-            <!-- HEADER -->
-            <div class="header">
-                <div style="width: 28mm;"></div> <!-- Spacer to center the text -->
-                <div class="school-info">
-                    <h1 class="school-name">{{ school_name|upper }}</h1>
-                    <div class="school-address">Navinagar, Jamui (Bihar)</div>
-                </div>
-                <!-- School Logo -->
-                <img src="{{ url_for('static', filename='images/school_logo.png') }}" class="school-logo" alt="Logo">
+        <!-- Header -->
+        <div class="header">
+            <img src="{{ url_for('static', filename='images/school_logo.png') }}" class="school-logo" alt="Logo">
+            <div class="school-info">
+                <h1 class="school-name">RES. SHANTI NIKETAN<br>SHISHU VIDYA MANDIR</h1>
+                <div class="school-address">Navinagar, Jamui (Bihar)</div>
             </div>
+            <div class="slogan">
+                Learn...<br>Grow...<br>Excel...
+            </div>
+        </div>
 
-            <!-- TITLE -->
+        <!-- 3D Title Ribbon -->
+        <div class="title-ribbon-wrap">
             <div class="title-ribbon">
-                <span>
-                    {% if cert.certificate_type == 'first' %}Certificate of Excellence
-                    {% elif cert.certificate_type == 'second' %}Certificate of Merit
-                    {% elif cert.certificate_type == 'third' %}Certificate of Achievement
-                    {% elif cert.certificate_type == 'achievement' %}Special Recognition
-                    {% else %}Certificate of Participation{% endif %}
-                </span>
+                {{ ribbon_text }}
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="body-content">
+            <div class="certify-text">This is to certify that</div>
+            
+            <div class="student-name">{{ cert.student_name }}</div>
+            
+            <div class="class-text">
+                Class: <span>{{ cert.class_name }}{% if cert.section %} - {{ cert.section }}{% endif %}</span> 
+                has secured the
             </div>
 
-            <!-- BODY -->
-            <div class="body-content">
-                <div class="certify-text">This is to certify that</div>
-                
-                <div class="student-name-box">{{ cert.student_name }}</div>
-                
-                <div class="class-text">
-                    Class: <span>{{ cert.class_name }}{% if cert.section %} - {{ cert.section }}{% endif %}</span> 
-                    has secured the
-                </div>
-
-                <!-- Dynamic Position Box -->
-                <div class="position-box">
-                    {% if cert.certificate_type == 'first' %}1<span>st</span> Position
-                    {% elif cert.certificate_type == 'second' %}2<span>nd</span> Position
-                    {% elif cert.certificate_type == 'third' %}3<span>rd</span> Position
-                    {% elif cert.certificate_type == 'achievement' %}Special Mention
-                    {% else %}Active Participation{% endif %}
-                </div>
-
-                <div class="event-text">
-                    in <b>{{ cert.event_title }}</b>
-                </div>
-
-                <div class="desc-text">
-                    {% if cert.position %}
-                        for {{ cert.position }} and has demonstrated exceptional talent and enthusiasm.
+            <!-- Position Plaque & 3D Medal -->
+            <div class="position-row">
+                <div class="position-plaque {% if cert.certificate_type == 'participation' %}participation-plaque{% endif %}">
+                    {% if cert.certificate_type == 'participation' %}
+                        Active Participation
                     {% else %}
-                        and has demonstrated exceptional creativity, talent and enthusiasm.
+                        {{ pos_text | safe }} Position
                     {% endif %}
                 </div>
-            </div>
-
-            <!-- CONGRATULATIONS RIBBON -->
-            <div class="congrats-ribbon">
-                Congratulations!
-            </div>
-
-            <!-- DYNAMIC EVENT IMAGE (Replaces Rangoli/Diya) -->
-            {% if event.cover_image_url %}
-            <div class="bottom-graphic">
-                <img src="{{ url_for('static', filename='images/' + event.cover_image_url) }}" class="event-image" alt="Event Art">
-            </div>
-            {% endif %}
-
-            <!-- FOOTER SIGNATURES -->
-            <div class="footer">
-                <div class="sig-block">
-                    <div class="sig-line"></div>
-                    <div class="sig-title">Event Coordinator</div>
-                    <div class="sig-subtitle">{{ event.title }}</div>
+                
+                {% if cert.certificate_type != 'participation' %}
+                <div class="medal-container">
+                    <div class="medal-ribbon-left"></div>
+                    <div class="medal-ribbon-right"></div>
+                    <div class="medal-circle">{{ pos_text | safe }}</div>
                 </div>
-                <div class="sig-block">
-                    <div class="sig-line"></div>
-                    <div class="sig-title">Principal</div>
-                    <div class="sig-subtitle">Res. Shanti Niketan</div>
-                </div>
-                <div class="sig-block">
-                    <div class="sig-line"></div>
-                    <div class="sig-title">Manager</div>
-                    <div class="sig-subtitle">Navinagar, Jamui</div>
-                </div>
+                {% endif %}
             </div>
 
+            <div class="event-text">
+                in <b>{{ event.title }}</b>
+            </div>
+
+            <div class="desc-text">
+                {% if cert.position %}
+                    for {{ cert.position }} and has demonstrated exceptional talent and enthusiasm.
+                {% else %}
+                    and has demonstrated exceptional creativity, talent and enthusiasm.
+                {% endif %}
+            </div>
         </div>
+
+        <!-- Dynamic Event Image (Rangoli, Sports, etc.) -->
+        {% if event.cover_image_url %}
+        <div class="event-image-container">
+            <img src="{{ url_for('static', filename='images/' + event.cover_image_url) }}" alt="Event Image">
+        </div>
+        {% endif %}
+
+        <!-- Congratulations -->
+        <div class="congrats-ribbon">
+            Congratulations!
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="sig-block">
+                <div class="sig-line"></div>
+                <div class="sig-title">Event Coordinator</div>
+                <div class="sig-subtitle">{{ event.title|truncate(25) }}</div>
+            </div>
+            <div class="sig-block">
+                <div class="sig-line"></div>
+                <div class="sig-title">Principal</div>
+                <div class="sig-subtitle">Res. Shanti Niketan</div>
+            </div>
+            <div class="sig-block">
+                <div class="sig-line"></div>
+                <div class="sig-title">Manager</div>
+                <div class="sig-subtitle">Navinagar, Jamui</div>
+            </div>
+        </div>
+
     </div>
 </div>
 

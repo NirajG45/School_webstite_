@@ -4,7 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>{{ notices|length }} Notice{{ 's' if notices|length != 1 }} — Print</title>
+{%- if notices|length == 1 -%}
+  {%- set _doc_title = notices[0]['title'] -%}
+{%- elif notices|length == 2 -%}
+  {%- set _doc_title = notices[0]['title'] ~ ' • ' ~ notices[1]['title'] -%}
+{%- else -%}
+  {%- set _doc_title = notices[0]['title'] ~ ' + ' ~ (notices|length - 1) ~ ' more' -%}
+{%- endif -%}
+<title>{{ _doc_title }} — Residential Shanti Niketan</title>
 
 <style>
 :root {
@@ -13,16 +20,17 @@
   --block-font-size: 8pt; --block-line-height: 1.3;
   --block-pad-y: 1.6mm; --block-pad-x: 2mm;
   --block-gap: 2mm;
+  --name-line-height: 5mm;   /* <-- NEW: space for student to write */
   --cut-color: #333; --meta-color: #6b7280;
   --title-color: #000; --bg-screen: #f3f4f6; --bg-paper: #fff;
   --border-screen: #cbd5e1; --accent: #1f4e79;
   --primary: #0d6efd; --primary-hover: #0b5ed7;
 }
 
-[data-density="tight"]   { --block-font-size: 6.5pt; --block-line-height: 1.2;  --block-pad-y: 1mm;   --block-pad-x: 1.5mm; --block-gap: 1.5mm; }
-[data-density="compact"] { --block-font-size: 7.5pt; --block-line-height: 1.25; --block-pad-y: 1.4mm; --block-pad-x: 1.8mm; --block-gap: 2mm; }
-[data-density="normal"]  { --block-font-size: 8.5pt; --block-line-height: 1.35; --block-pad-y: 2mm;   --block-pad-x: 2.2mm; --block-gap: 2.5mm; }
-[data-density="relaxed"] { --block-font-size: 9.5pt; --block-line-height: 1.4;  --block-pad-y: 2.5mm; --block-pad-x: 2.8mm; --block-gap: 3mm; }
+[data-density="tight"]   { --block-font-size: 6.5pt; --block-line-height: 1.2;  --block-pad-y: 1mm;   --block-pad-x: 1.5mm; --block-gap: 1.5mm; --name-line-height: 4mm; }
+[data-density="compact"] { --block-font-size: 7.5pt; --block-line-height: 1.25; --block-pad-y: 1.4mm; --block-pad-x: 1.8mm; --block-gap: 2mm;   --name-line-height: 4.5mm; }
+[data-density="normal"]  { --block-font-size: 8.5pt; --block-line-height: 1.35; --block-pad-y: 2mm;   --block-pad-x: 2.2mm; --block-gap: 2.5mm; --name-line-height: 5.5mm; }
+[data-density="relaxed"] { --block-font-size: 9.5pt; --block-line-height: 1.4;  --block-pad-y: 2.5mm; --block-pad-x: 2.8mm; --block-gap: 3mm;   --name-line-height: 6mm; }
 
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
@@ -32,7 +40,6 @@ body {
   -webkit-font-smoothing: antialiased; font-kerning: normal;
 }
 
-/* @page — literal margins, NO var() */
 @page { size: A4 portrait; margin: 7mm 6mm; }
 
 /* ---------- Toolbar ---------- */
@@ -108,6 +115,28 @@ body {
   letter-spacing: .3px; color: #4b5563;
 }
 .notice__date { white-space: nowrap; }
+
+/* ---------- NEW: Name line for students ---------- */
+.notice__nameline {
+  display: flex; align-items: flex-end; gap: 2mm;
+  margin: 0 0 1mm 0;
+  min-height: var(--name-line-height);
+  font-size: calc(var(--block-font-size) * 0.9);
+  color: #222;
+  line-height: 1;
+}
+.notice__nameline .nameline__label {
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: .3px;
+}
+.notice__nameline .nameline__fill {
+  flex: 1;
+  min-height: 1em;
+  border-bottom: 1px solid #666;
+  margin-bottom: 1px;
+}
+
 .notice__title {
   font-size: calc(var(--block-font-size) * 1.06);
   font-weight: 700; line-height: 1.2;
@@ -126,7 +155,6 @@ body {
   gap: var(--block-gap);
   height: calc(297mm - 14mm);
   align-content: start;
-  /* NO page-break-inside: avoid — allow overflow to new pages */
 }
 .notice-grid > .notice { margin: 0; }
 
@@ -160,13 +188,15 @@ body {
 </head>
 
 <body data-density="{{ density|default('compact') }}"
-      data-cut="{{ cut|default('on') }}">
+      data-cut="{{ cut|default('on') }}"
+      data-name-line="{{ name_line|default('on') }}">
 
 {%- set _cols     = cols|default('2') -%}
 {%- set _density  = density|default('compact') -%}
 {%- set _cut      = cut|default('on') -%}
 {%- set _repeat   = repeat|default('auto') -%}
 {%- set _init     = initial_copies|default(1)|int -%}
+{%- set _name_ln  = name_line|default('on') -%}
 {%- set _ids_str  = (ids or notices|map(attribute='id')|list)|join(',') -%}
 
 <nav class="print-toolbar" aria-label="Print settings">
@@ -184,7 +214,7 @@ body {
   <span class="lbl">Cols</span>
   <span class="group" role="group" aria-label="Columns">
     {% for c in ['1','2','3'] %}
-      <a href="{{ url_for('admin_print_notices', ids=_ids_str, cols=c, density=_density, cut=_cut, repeat=_repeat) }}"
+      <a href="{{ url_for('admin_print_notices', ids=_ids_str, cols=c, density=_density, cut=_cut, name_line=_name_ln, repeat=_repeat) }}"
          class="{{ 'active' if _cols == c else '' }}"
          aria-pressed="{{ 'true' if _cols == c else 'false' }}">{{ c }}</a>
     {% endfor %}
@@ -193,7 +223,7 @@ body {
   <span class="lbl">Copies</span>
   <span class="group" role="group" aria-label="Copies per notice">
     {% for r in ['auto','1','2','3','4','5','6','7','8','9','10','12','15','20'] %}
-      <a href="{{ url_for('admin_print_notices', ids=_ids_str, cols=_cols, density=_density, cut=_cut, repeat=r) }}"
+      <a href="{{ url_for('admin_print_notices', ids=_ids_str, cols=_cols, density=_density, cut=_cut, name_line=_name_ln, repeat=r) }}"
          class="{{ 'active' if _repeat == r else '' }}"
          aria-pressed="{{ 'true' if _repeat == r else 'false' }}"
          title="{{ 'Auto-fill whole page' if r == 'auto' else (r + ' copies') }}">{{ r|capitalize }}</a>
@@ -203,14 +233,22 @@ body {
   <span class="lbl">Density</span>
   <span class="group" role="group" aria-label="Font density">
     {% for d in ['tight','compact','normal','relaxed'] %}
-      <a href="{{ url_for('admin_print_notices', ids=_ids_str, cols=_cols, density=d, cut=_cut, repeat=_repeat) }}"
+      <a href="{{ url_for('admin_print_notices', ids=_ids_str, cols=_cols, density=d, cut=_cut, name_line=_name_ln, repeat=_repeat) }}"
          class="{{ 'active' if _density == d else '' }}"
          aria-pressed="{{ 'true' if _density == d else 'false' }}">{{ d|capitalize }}</a>
     {% endfor %}
   </span>
 
-  <a href="{{ url_for('admin_print_notices', ids=_ids_str, cols=_cols, density=_density, cut=('off' if _cut == 'on' else 'on'), repeat=_repeat) }}">
+  <a href="{{ url_for('admin_print_notices', ids=_ids_str, cols=_cols, density=_density, cut=('off' if _cut == 'on' else 'on'), name_line=_name_ln, repeat=_repeat) }}">
     Cut: {{ 'On' if _cut == 'on' else 'Off' }}
+  </a>
+
+  {# ---------- NEW: Name line toggle ---------- #}
+  <a href="{{ url_for('admin_print_notices', ids=_ids_str, cols=_cols, density=_density, cut=_cut, name_line=('off' if _name_ln == 'on' else 'on'), repeat=_repeat) }}"
+     class="{{ 'active' if _name_ln == 'on' else '' }}"
+     aria-pressed="{{ 'true' if _name_ln == 'on' else 'false' }}"
+     title="Show name line for students to write their name">
+    <i class="fa-solid fa-pen"></i> Name: {{ 'On' if _name_ln == 'on' else 'Off' }}
   </a>
 
   <button type="button" class="btn-print" onclick="window.print()">Print</button>
@@ -232,6 +270,12 @@ body {
           <span class="notice__tag">{{ n.tag }}</span>
           <span class="notice__date">{{ n.date }}</span>
         </header>
+        {% if _name_ln == 'on' %}
+        <div class="notice__nameline">
+          <span class="nameline__label">Name:</span>
+          <span class="nameline__fill"></span>
+        </div>
+        {% endif %}
         <h3 class="notice__title">{{ n.title }}</h3>
         {% if n.description %}<p class="notice__body">{{ n.description }}</p>{% endif %}
       </article>
@@ -240,19 +284,6 @@ body {
   </div>
 
   <script>
-  /* ================================================================
-     Notice Grid Filler — FINAL
-     ────────────────────────────────────────────────────────────────
-     auto mode:
-       • measure natural block height (fresh)
-       • compute rows that fit
-       • clone cyclically → fill ALL slots → stretch equally
-     explicit mode:
-       • compute rows needed = ceil(count / cols)
-       • if natural block ≤ cell height  → stretch to fill page ✓
-       • else → leave natural, allow overflow to next page
-       • NEVER trim user's requested copies
-     ================================================================ */
   (function () {
     'use strict';
     var grid = document.getElementById('noticeGrid');
@@ -267,22 +298,18 @@ body {
       if (!copyEl) return;
       copyEl.textContent = '· ' + n + (tail || ' cop' + (n === 1 ? 'y' : 'ies'));
     }
-
     function readGapPx() {
       var cs = window.getComputedStyle(grid);
       var raw = cs.rowGap || cs.gap || '';
       var val = parseFloat(raw);
       return isNaN(val) ? 7.5 : val;
     }
-
     function reset() {
       grid.style.gridTemplateRows = '';
       grid.style.height = '';
       grid.classList.remove('mode-auto');
-      // Force reflow so offsetHeight reflects natural size
       void grid.offsetHeight;
     }
-
     function naturalHeight() {
       var all = grid.querySelectorAll('.notice');
       var max = 0;
@@ -302,7 +329,6 @@ body {
       var natural    = naturalHeight();
       if (!containerH || !natural) return;
 
-      /* ---------- AUTO MODE ---------- */
       if (isAuto) {
         var safeH = natural * 1.02;
         var rows  = Math.max(1, Math.floor((containerH + gapPx) / (safeH + gapPx)));
@@ -326,28 +352,23 @@ body {
         return;
       }
 
-      /* ---------- EXPLICIT MODE (1..20) ---------- */
       var count = blocks.length;
       var rows  = Math.ceil(count / cols);
       var cellH = (containerH - (rows - 1) * gapPx) / rows;
 
       if (natural > cellH) {
-        // Won't fit if stretched — flow naturally across pages
         grid.style.height = 'auto';
         grid.style.pageBreakInside = 'auto';
         grid.style.breakInside = 'auto';
         setCount(count, ' copies (overflow)');
       } else {
-        // Fits — stretch to fill page perfectly
         grid.style.gridTemplateRows = 'repeat(' + rows + ', minmax(0, 1fr))';
         setCount(count);
       }
     }
 
     try { run(); }
-    catch (err) {
-      if (window.console) console.warn('[notice-print]', err);
-    }
+    catch (err) { if (window.console) console.warn('[notice-print]', err); }
 
     var timer;
     window.addEventListener('resize', function () {
@@ -367,6 +388,12 @@ body {
         <span class="notice__tag">{{ n.tag }}</span>
         <span class="notice__date">{{ n.date }}</span>
       </header>
+      {% if _name_ln == 'on' %}
+      <div class="notice__nameline">
+        <span class="nameline__label">Name:</span>
+        <span class="nameline__fill"></span>
+      </div>
+      {% endif %}
       <h3 class="notice__title">{{ n.title }}</h3>
       {% if n.description %}<p class="notice__body">{{ n.description }}</p>{% endif %}
     </article>

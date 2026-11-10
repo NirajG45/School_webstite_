@@ -35,3 +35,18 @@ class Mark(db.Model):
     exam_type     = db.Column(db.String(100))                         # keep for backward-compat
     marks_obtained= db.Column(db.Float)
     __table_args__ = (db.UniqueConstraint('student_id','subject_id','exam_id', name='uq_mark'),)
+    
+class EventParticipant(db.Model):
+    __tablename__ = 'event_participants'
+    id         = db.Column(db.Integer, primary_key=True)
+    event_id   = db.Column(db.Integer, db.ForeignKey('events.id'),   nullable=False, index=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False, index=True)
+    role       = db.Column(db.String(40), default='participant')   # participant / volunteer / winner
+    added_on   = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('event_id', 'student_id',
+                                          name='uq_event_student'),)
+
+    event   = db.relationship('Event',   backref=db.backref('participants',
+                                cascade='all, delete-orphan', lazy='dynamic'))
+    student = db.relationship('Student')

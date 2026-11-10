@@ -1,0 +1,200 @@
+{% extends "admin_base.html" %}
+{% block title %}Manage Participants — {{ event.title }}{% endblock %}
+{% block page_title %}Manage Participants{% endblock %}
+
+{% block content %}
+<style>
+.mp-wrap{display:grid;gap:16px;color:#182b40}
+.mp-head{background:linear-gradient(135deg,#0b3c6b 0%,#1e5a96 100%);color:#fff;
+    border-radius:15px;padding:19px;display:flex;justify-content:space-between;
+    align-items:center;gap:12px;flex-wrap:wrap}
+.mp-head h2{margin:0;font-size:20px}
+.mp-head p{margin:5px 0 0;font-size:12px;color:#c9dbef}
+.mp-panel{background:#fff;border:1px solid #e4eaf1;border-radius:15px;padding:19px}
+.mp-filter{display:grid;grid-template-columns:1fr 1fr 1.5fr auto auto;gap:10px;align-items:end}
+.mp-field{display:grid;gap:6px}
+.mp-field label{font-size:11px;font-weight:800;color:#53657a}
+.mp-field input,.mp-field select{height:40px;border:1px solid #dbe3ed;border-radius:8px;
+    padding:0 10px;font-size:12px;background:#fff;outline:none}
+.mp-btn{border:0;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:800;
+    cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.mp-primary{background:#0b3c6b;color:#fff}
+.mp-light{background:#edf2f7;color:#334155}
+.mp-success{background:#167548;color:#fff}
+.mp-danger{background:#b91c1c;color:#fff}
+.mp-table{width:100%;border-collapse:collapse}
+.mp-table th{background:#f5f8fc;text-align:left;padding:12px 10px;font-size:10px;
+    text-transform:uppercase;letter-spacing:.5px;color:#64748b}
+.mp-table td{padding:11px 10px;border-bottom:1px solid #edf1f5;font-size:12px}
+.mp-table tr.is-participant{background:#f9fdfb}
+.mp-badge{display:inline-flex;align-items:center;gap:4px;border-radius:20px;
+    padding:4px 9px;font-size:10px;font-weight:800}
+.mp-badge.in{background:#eaf7ef;color:#167548}
+.mp-badge.out{background:#f1f5f9;color:#64748b}
+.mp-bulk{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;
+    background:#f5f8fc;border:1px solid #e4eaf1;padding:12px;border-radius:10px}
+@media(max-width:700px){.mp-filter{grid-template-columns:1fr 1fr}.mp-filter .s{grid-column:1/-1}}
+</style>
+
+<div class="mp-wrap">
+
+  <section class="mp-head">
+    <div>
+      <h2><i class="fa-solid fa-user-plus"></i> Manage Participants</h2>
+      <p>
+        Event: <strong>{{ event.title }}</strong> ·
+        {{ event.event_date }}
+        {% if event.location %} · {{ event.location }}{% endif %}
+      </p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="mp-btn mp-light" href="{{ url_for('admin_events') }}">
+        <i class="fa-solid fa-arrow-left"></i> Back
+      </a>
+      <a class="mp-btn mp-primary"
+         href="{{ url_for('admin_event_certificates', eid=event.id) }}">
+        <i class="fa-solid fa-certificate"></i> Certificates
+      </a>
+    </div>
+  </section>
+
+  <section class="mp-panel">
+    <form method="GET" class="mp-filter"
+          action="{{ url_for('admin_event_participants', eid=event.id) }}">
+      <div class="mp-field">
+        <label>CLASS</label>
+        <select name="class_name">
+          <option value="">All Classes</option>
+          {% for item in classes %}
+          <option value="{{ item.class_name }}"
+            {% if class_filter==item.class_name %}selected{% endif %}>
+            {{ item.class_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mp-field">
+        <label>SECTION</label>
+        <select name="section">
+          <option value="">All Sections</option>
+          {% for item in sections %}
+          <option value="{{ item.section }}"
+            {% if section_filter==item.section %}selected{% endif %}>
+            {{ item.section }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mp-field s">
+        <label>SEARCH</label>
+        <input type="search" name="q" value="{{ search }}"
+               placeholder="Name / Roll / Admission no.">
+      </div>
+      <button class="mp-btn mp-primary" type="submit">
+        <i class="fa-solid fa-filter"></i> Filter
+      </button>
+      {% if class_filter or section_filter or search %}
+      <a class="mp-btn mp-light"
+         href="{{ url_for('admin_event_participants', eid=event.id) }}">
+        Reset
+      </a>
+      {% else %}<span></span>{% endif %}
+    </form>
+  </section>
+
+  <section class="mp-panel">
+    <form method="POST"
+          action="{{ url_for('admin_event_participants_save', eid=event.id) }}"
+          id="partForm">
+
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <!-- preserve filters -->
+      <input type="hidden" name="class_name" value="{{ class_filter }}">
+      <input type="hidden" name="section"    value="{{ section_filter }}">
+      <input type="hidden" name="q"          value="{{ search }}">
+
+      <div class="mp-bulk">
+        <button type="button" class="mp-btn mp-light" id="selAll">
+          <i class="fa-solid fa-list-check"></i> Select All Visible
+        </button>
+        <button type="button" class="mp-btn mp-light" id="clrAll">
+          <i class="fa-solid fa-xmark"></i> Clear
+        </button>
+        <button type="submit" name="action" value="add" class="mp-btn mp-success">
+          <i class="fa-solid fa-plus"></i> Add Selected as Participants
+        </button>
+        <button type="submit" name="action" value="remove" class="mp-btn mp-danger"
+                onclick="return confirm('Remove selected students from this event?');">
+          <i class="fa-solid fa-minus"></i> Remove Selected
+        </button>
+        <span style="margin-left:auto;font-size:12px;color:#64748b;align-self:center">
+          <strong id="cnt">0</strong> selected ·
+          <strong>{{ participant_ids|length }}</strong> participants
+        </span>
+      </div>
+
+      <div style="overflow-x:auto">
+        <table class="mp-table">
+          <thead>
+            <tr>
+              <th style="width:38px">
+                <input type="checkbox" id="allCheck">
+              </th>
+              <th>Student</th>
+              <th>Class / Section</th>
+              <th>Roll / Admission</th>
+              <th>Participant?</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for s in students %}
+            {% set is_in = s.id in participant_ids %}
+            <tr class="{{ 'is-participant' if is_in else '' }}">
+              <td>
+                <input type="checkbox" class="chk" name="student_ids"
+                       value="{{ s.id }}">
+              </td>
+              <td>
+                <strong>{{ s.name }}</strong><br>
+                <small style="color:#8290a2">{{ s.unique_id or '' }}</small>
+              </td>
+              <td>{{ s.class_name or '-' }} / {{ s.section or '-' }}</td>
+              <td>R: {{ s.roll_no or '-' }}<br>
+                  <small style="color:#8290a2">A: {{ s.admission_no or '-' }}</small>
+              </td>
+              <td>
+                {% if is_in %}
+                  <span class="mp-badge in"><i class="fa-solid fa-check"></i> Participant</span>
+                {% else %}
+                  <span class="mp-badge out">Not added</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </form>
+  </section>
+</div>
+
+<script>
+(() => {
+  const chks = [...document.querySelectorAll('.chk')];
+  const all  = document.getElementById('allCheck');
+  const cnt  = document.getElementById('cnt');
+
+  const refresh = () => {
+    const n = chks.filter(c => c.checked).length;
+    cnt.textContent = n;
+    all.checked = chks.length && n === chks.length;
+    all.indeterminate = n > 0 && n < chks.length;
+  };
+  all.addEventListener('change', () => { chks.forEach(c => c.checked = all.checked); refresh(); });
+  chks.forEach(c => c.addEventListener('change', refresh));
+  document.getElementById('selAll').addEventListener('click',
+    () => { chks.forEach(c => c.checked = true); refresh(); });
+  document.getElementById('clrAll').addEventListener('click',
+    () => { chks.forEach(c => c.checked = false); refresh(); });
+  refresh();
+})();
+</script>
+{% endblock %}

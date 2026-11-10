@@ -1,3 +1,4 @@
+from models import db, Student, Event, Certificate, EventParticipant
 from dotenv import load_dotenv
 from pathlib import Path
 import os
@@ -2013,7 +2014,6 @@ def admin_notices():
 @app.route('/admin/notices/print')
 @admin_required
 def admin_print_notices():
-    """A4 print — grid fill (repeat=auto) or explicit copies (repeat=N)."""
     db = get_db()
 
     raw_ids = (request.args.get('ids') or '').strip()
@@ -2032,7 +2032,6 @@ def admin_print_notices():
         flash('No notices available to print.', 'error')
         return redirect(url_for('admin_notices'))
 
-    # ---- Layout params ----
     cols = request.args.get('cols', '2')
     if cols not in ('1', '2', '3'):
         cols = '2'
@@ -2045,22 +2044,21 @@ def admin_print_notices():
     if cut not in ('on', 'off'):
         cut = 'on'
 
-    # ---- Repeat mode (THE CRITICAL PART) ----
-    repeat_raw = (request.args.get('repeat') or '').strip().lower()
+    # ---- NEW: Name line toggle ----
+    name_line = request.args.get('name_line', 'on')
+    if name_line not in ('on', 'off'):
+        name_line = 'on'
 
+    repeat_raw = (request.args.get('repeat') or '').strip().lower()
     if repeat_raw == 'auto':
-        repeat = 'auto'
-        initial_copies = 1
+        repeat, initial_copies = 'auto', 1
     elif repeat_raw.isdigit() and 1 <= int(repeat_raw) <= 20:
-        repeat = repeat_raw
-        initial_copies = int(repeat_raw)
+        repeat, initial_copies = repeat_raw, int(repeat_raw)
     elif not repeat_raw:
-        # Smart default: single notice → auto-fill; many → flow
         repeat = 'auto' if len(notices) == 1 else '1'
         initial_copies = 1
     else:
-        repeat = '1'
-        initial_copies = 1
+        repeat, initial_copies = '1', 1
 
     return render_template(
         'admin_notices_print.html',
@@ -2069,10 +2067,11 @@ def admin_print_notices():
         cols=cols,
         density=density,
         cut=cut,
+        name_line=name_line,
         repeat=repeat,
         initial_copies=initial_copies,
     )
-
+    
 @app.route('/admin/notices/edit/<int:nid>', methods=['GET', 'POST'])
 @admin_required
 def admin_edit_notice(nid):
@@ -2721,6 +2720,70 @@ def admin_add_event():
     flash(f'Event "{title}" published!', 'success')
     return redirect(url_for('admin_events'))
 
+# ---------- Manage Participants ----------
+@app.route('/admin/events/<int:eid>/participants', methods=['GET'])
+def admin_event_participants(eid):
+    event = Event.query.get_or_404(eid)
+
+    q              = request.args.get('q', '')
+    class_filter   = request.args.get('class_name', '')
+    section_filter = request.args.get('section', '')
+
+    query = Student.query
+    if class_filter:   query = query.filter_by(class_name=class_filter)
+    if section_filter: query = query.filter_by(section=section_filter)
+    if q:
+        like = f'%{q}%'
+        query = query.filter(db.or_(
+            Student.name.ilike(like),
+            Student.roll_no.ilike(like),
+            Student.admission_no.ilike(like),
+        ))
+
+    students        = query.order_by(Student.class_name, Student.section, Student.roll_no).all()
+    participant_ids = {p.student_id for p in event.participants}
+
+    classes  = [type('X', (), {'class_name': c[0]}) for c in
+                db.session.query(Student.class_name).distinct().all() if c[0]]
+    sections = [type('X', (), {'section': s[0]}) for s in
+                db.session.query(Student.section).distinct().all() if s[0]]
+
+    return render_template('admin_event_participants.html',
+                           event=event, students=students,
+                           participant_ids=participant_ids,
+                           classes=classes, sections=sections,
+                           class_filter=class_filter,
+                           section_filter=section_filter, search=q)
+
+
+@app.route('/admin/events/<int:eid>/participants', methods=['POST'])
+def admin_event_participants_save(eid):
+    event  = Event.query.get_or_404(eid)
+    action = request.form.get('action', 'add')
+    sids   = [int(x) for x in request.form.getlist('student_ids') if x.isdigit()]
+
+    if action == 'add' and sids:
+        existing = {p.student_id for p in EventParticipant.query
+                    .filter_by(event_id=eid)
+                    .filter(EventParticipant.student_id.in_(sids)).all()}
+        for sid in sids:
+            if sid not in existing:
+                db.session.add(EventParticipant(event_id=eid, student_id=sid))
+        db.session.commit()
+        flash(f'{len(sids) - len(existing)} participant(s) added.', 'success')
+
+    elif action == 'remove' and sids:
+        EventParticipant.query.filter_by(event_id=eid) \
+            .filter(EventParticipant.student_id.in_(sids)) \
+            .delete(synchronize_session=False)
+        db.session.commit()
+        flash(f'{len(sids)} participant(s) removed.', 'success')
+
+    return redirect(url_for('admin_event_participants', eid=eid,
+                            class_name=request.form.get('class_name', ''),
+                            section=request.form.get('section', ''),
+                            q=request.form.get('q', '')))
+
 @app.route('/admin/events/edit/<int:eid>', methods=['GET', 'POST'])
 @admin_required
 def admin_edit_event(eid):
@@ -2773,66 +2836,45 @@ def admin_delete_event(eid):
 # EVENT CERTIFICATES — ADMIN
 # =========================================
 @app.route('/admin/events/<int:eid>/certificates')
-@admin_required
 def admin_event_certificates(eid):
-    db = get_db()
-    event = db.execute('SELECT * FROM events WHERE id = ?', (eid,)).fetchone()
-    if not event:
-        flash('Event not found.', 'error')
-        return redirect(url_for('admin_events'))
+    event = Event.query.get_or_404(eid)
 
-    class_filter   = (request.args.get('class_name') or '').strip()
-    section_filter = (request.args.get('section') or '').strip()
-    search         = (request.args.get('q') or '').strip()
+    q              = request.args.get('q', '')
+    class_filter   = request.args.get('class_name', '')
+    section_filter = request.args.get('section', '')
 
-    query  = "SELECT id, name, unique_id, phone, is_active, " \
-             "COALESCE(class_name, child_class) AS class_name, " \
-             "section, roll_no, admission_no " \
-             "FROM users WHERE role='student' AND is_active=1"
-    params = []
+    query = (Student.query
+             .join(EventParticipant, EventParticipant.student_id == Student.id)
+             .filter(EventParticipant.event_id == eid))
 
-    if class_filter:
-        query += " AND (class_name = ? OR child_class = ?)"
-        params.extend([class_filter, class_filter])
-    if section_filter:
-        query += " AND section = ?"
-        params.append(section_filter)
-    if search:
-        like = f"%{search}%"
-        query += " AND (name LIKE ? OR unique_id LIKE ? OR roll_no LIKE ? OR admission_no LIKE ?)"
-        params.extend([like, like, like, like])
+    if class_filter:   query = query.filter(Student.class_name == class_filter)
+    if section_filter: query = query.filter(Student.section    == section_filter)
+    if q:
+        like = f'%{q}%'
+        query = query.filter(db.or_(
+            Student.name.ilike(like),
+            Student.roll_no.ilike(like),
+            Student.admission_no.ilike(like),
+        ))
 
-    query += " ORDER BY COALESCE(class_name, child_class), section, name"
-    students = db.execute(query, tuple(params)).fetchall()
+    students   = query.order_by(Student.class_name, Student.section, Student.roll_no).all()
+    issued_map = {c.student_id: c for c in
+                  Certificate.query.filter_by(event_id=eid).all()}
 
-    issued_rows = db.execute(
-        'SELECT id, student_id, certificate_type, position '
-        'FROM event_certificates WHERE event_id = ?', (eid,)
-    ).fetchall()
-    issued_map = {r['student_id']: dict(r) for r in issued_rows}
+    classes = [type('X', (), {'class_name': c[0]}) for c in
+               db.session.query(Student.class_name)
+               .join(EventParticipant, EventParticipant.student_id == Student.id)
+               .filter(EventParticipant.event_id == eid).distinct().all() if c[0]]
+    sections = [type('X', (), {'section': s[0]}) for s in
+                db.session.query(Student.section)
+                .join(EventParticipant, EventParticipant.student_id == Student.id)
+                .filter(EventParticipant.event_id == eid).distinct().all() if s[0]]
 
-    all_classes_list = get_all_classes(db)
-    classes = [{'class_name': c} for c in all_classes_list]
-
-    section_rows = db.execute(
-        "SELECT DISTINCT section FROM users "
-        "WHERE role='student' AND is_active=1 "
-        "AND section IS NOT NULL AND section != '' ORDER BY section"
-    ).fetchall()
-    sections = [{'section': r['section']} for r in section_rows]
-
-    return render_template(
-        'admin_event_certificates.html',
-        event=event,
-        students=students,
-        classes=classes,
-        sections=sections,
-        class_filter=class_filter,
-        section_filter=section_filter,
-        search=search,
-        issued_map=issued_map,
-        active_page='events'
-    )
+    return render_template('admin_event_certificates.html',
+                           event=event, students=students,
+                           issued_map=issued_map, classes=classes, sections=sections,
+                           class_filter=class_filter,
+                           section_filter=section_filter, search=q)
 
 @app.route('/admin/events/<int:eid>/certificates/print-all')
 @admin_required
@@ -2867,75 +2909,46 @@ def admin_print_all_event_certificates(eid):
     )
 
 @app.route('/admin/events/<int:eid>/certificates/issue', methods=['POST'])
-@admin_required
 def admin_issue_event_certificates(eid):
-    db = get_db()
-    event = db.execute('SELECT * FROM events WHERE id = ?', (eid,)).fetchone()
-    if not event:
-        flash('Event not found.', 'error')
-        return redirect(url_for('admin_events'))
+    event = Event.query.get_or_404(eid)
+    student_ids = [int(x) for x in request.form.getlist('student_ids') if x.isdigit()]
 
-    student_ids = request.form.getlist('student_ids')
     if not student_ids:
-        flash('Please select at least one student.', 'error')
-        return redirect(url_for('admin_event_certificates', eid=eid))
+        flash('Please select at least one student.', 'warning')
+    else:
+        participant_ids = {p.student_id for p in event.participants}
+        skipped = 0
 
-    valid_types = {'participation', 'first', 'second', 'third', 'achievement'}
-    issued_count  = 0
-    updated_count = 0
+        for sid in student_ids:
+            if sid not in participant_ids:
+                skipped += 1
+                continue   # non-participant — skip silently
 
-    try:
-        db.execute('BEGIN')
+            cert_type = request.form.get(f'certificate_type_{sid}', 'participation')
+            position  = (request.form.get(f'position_{sid}') or '').strip() or None
 
-        for raw_sid in student_ids:
-            try:
-                sid = int(raw_sid)
-            except (TypeError, ValueError):
-                continue
-
-            if not db.execute(
-                "SELECT 1 FROM users WHERE id=? AND role='student'", (sid,)
-            ).fetchone():
-                continue
-
-            cert_type = (request.form.get(f'certificate_type_{sid}') or 'participation').strip()
-            if cert_type not in valid_types:
-                cert_type = 'participation'
-
-            position = (request.form.get(f'position_{sid}') or '').strip()[:100] or None
-
-            existing = db.execute(
-                'SELECT id FROM event_certificates WHERE event_id=? AND student_id=?',
-                (eid, sid)
-            ).fetchone()
-
-            if existing:
-                db.execute(
-                    'UPDATE event_certificates SET certificate_type=?, position=? WHERE id=?',
-                    (cert_type, position, existing['id'])
-                )
-                updated_count += 1
+            cert = Certificate.query.filter_by(event_id=eid, student_id=sid).first()
+            if cert:
+                cert.certificate_type = cert_type
+                cert.position = position
             else:
-                db.execute(
-                    'INSERT INTO event_certificates '
-                    '(event_id, student_id, certificate_type, position) '
-                    'VALUES (?, ?, ?, ?)',
-                    (eid, sid, cert_type, position)
-                )
-                issued_count += 1
+                db.session.add(Certificate(
+                    event_id=eid, student_id=sid,
+                    certificate_type=cert_type, position=position))
+        db.session.commit()
 
-        db.commit()
-    except Exception:
-        db.rollback()
-        app.logger.exception('Certificate generation failed for event %s', eid)
-        flash('Certificates could not be generated. Please try again.', 'error')
-        return redirect(url_for('admin_event_certificates', eid=eid))
+        msg = 'Certificates generated / updated.'
+        if skipped:
+            msg += f' ({skipped} non-participant student(s) skipped.)'
+        flash(msg, 'success' if not skipped else 'warning')
 
-    parts = []
-    if issued_count:  parts.append(f'{issued_count} new certificate(s) generated')
-    if updated_count: parts.append(f'{updated_count} updated')
-    flash(' and '.join(parts) or 'Nothing to update.', 'success')
-    return redirect(url_for('admin_event_certificates', eid=eid))
+    # ✅ redirect WITH filters — page reset nahi hoga
+    return redirect(url_for(
+        'admin_event_certificates', eid=eid,
+        class_name=request.form.get('class_name', ''),
+        section=request.form.get('section', ''),
+        q=request.form.get('q', ''),
+    ))
 
 
 @app.route('/event-certificates/<int:certificate_id>')

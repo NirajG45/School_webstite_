@@ -293,7 +293,7 @@ def init_db():
             role TEXT DEFAULT 'participant',
             added_on TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(event_id) REFERENCES events (id) ON DELETE CASCADE,
-            FOREIGN KEY(student_id) REFERENCES students (id) ON DELETE CASCADE,
+            FOREIGN KEY(student_id) REFERENCES users (id) ON DELETE CASCADE,
             UNIQUE(event_id, student_id)
         )''')
 
@@ -2349,6 +2349,248 @@ def admin_mark_attendance():
     flash(f'Attendance marked for {date} ({subject}).', 'success')
     return redirect(url_for('admin_attendance', date=date, role=role,
                             class_filter=class_filter, subject_filter=subject))
+    
+
+# --------- Attendance record export route system ---------
+@app.route('/admin/attendance/export')
+@admin_required
+def admin_attendance_export():
+    """Professional B&W attendance report — print / save-as-PDF.
+
+    Guarantees:
+      • Every enrolled user appears (even with 0 records).
+      • Names always render (name → unique_id → '—' fallback).
+      • Class-wise grouping in natural school order.
+      • Each class group has header + subtotal + grand total.
+      • All context vars (school_name, logo, etc.) always defined.
+    """
+    from collections import OrderedDict
+
+    db = get_db()
+
+    # ---------- 1. Query params ----------
+    period = (request.args.get('period') or 'daily').strip().lower()
+    if period not in ('daily', 'weekly', 'monthly', 'yearly'):
+        period = 'daily'
+
+    role = (request.args.get('role') or 'student').strip().lower()
+    if role not in ('student', 'teacher'):
+        role = 'student'
+
+    date_str = (request.args.get('date')
+                or datetime.now().strftime('%Y-%m-%d')).strip()
+    try:
+        base_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except (ValueError, TypeError):
+        base_date = date.today()
+
+    subject = ((request.args.get('subject_filter')
+                or request.args.get('subject')
+                or 'General').strip()[:100]) or 'General'
+
+    class_filter = (request.args.get('class_filter') or 'all').strip()
+
+    # ---------- 2. Date range ----------
+    if period == 'daily':
+        start = end = base_date
+        period_label = base_date.strftime('%d %B %Y')
+        period_sub = 'Daily Attendance Report'
+    elif period == 'weekly':
+        start = base_date - timedelta(days=base_date.weekday())
+        end = start + timedelta(days=6)
+        period_label = (f"{start.strftime('%d %b %Y')} — "
+                        f"{end.strftime('%d %b %Y')}")
+        period_sub = 'Weekly Attendance Report'
+    elif period == 'monthly':
+        start = base_date.replace(day=1)
+        if base_date.month == 12:
+            end = (base_date.replace(year=base_date.year + 1,
+                                     month=1, day=1)
+                   - timedelta(days=1))
+        else:
+            end = (base_date.replace(month=base_date.month + 1, day=1)
+                   - timedelta(days=1))
+        period_label = base_date.strftime('%B %Y')
+        period_sub = 'Monthly Attendance Report'
+    else:  # yearly
+        start = base_date.replace(month=1, day=1)
+        end = base_date.replace(month=12, day=31)
+        period_label = str(base_date.year)
+        period_sub = 'Yearly Attendance Report'
+
+    # ---------- 3. Enrolled users ----------
+    if role == 'student':
+        user_query = ("SELECT * FROM users "
+                      "WHERE role = ? AND is_active = 1")
+        user_params = [role]
+        if class_filter != 'all':
+            user_query += " AND (class_name = ? OR child_class = ?)"
+            user_params.extend([class_filter, class_filter])
+        user_query += (
+            " ORDER BY "
+            "COALESCE(class_name, child_class, 'Unassigned') COLLATE NOCASE, "
+            "name COLLATE NOCASE"
+        )
+    else:
+        user_query = ("SELECT * FROM users "
+                      "WHERE role = ? AND is_active = 1 "
+                      "ORDER BY name COLLATE NOCASE")
+        user_params = [role]
+
+    users = db.execute(user_query, tuple(user_params)).fetchall()
+
+    # ---------- 4. Attendance records ----------
+    attendance_records = []
+    if users:
+        user_ids = [u['id'] for u in users]
+        ph = ','.join(['?'] * len(user_ids))
+        attendance_records = db.execute(f"""
+            SELECT a.id, a.user_id, a.date, a.status, a.subject
+            FROM attendance a
+            WHERE a.date BETWEEN ? AND ?
+              AND a.subject = ?
+              AND a.user_id IN ({ph})
+            ORDER BY a.date, a.user_id
+        """, [start.isoformat(), end.isoformat(), subject, *user_ids]).fetchall()
+
+    # ---------- 5. Per-user summary (seeded for ALL users) ----------
+    summary = {
+        u['id']: {'present': 0, 'absent': 0, 'leave': 0,
+                  'half-day': 0, 'total_marked': 0}
+        for u in users
+    }
+    daily_status = {}
+
+    for rec in attendance_records:
+        uid = rec['user_id']
+        st  = rec['status']
+        if uid in summary and st in ('present', 'absent', 'leave', 'half-day'):
+            summary[uid][st] += 1
+            summary[uid]['total_marked'] += 1
+        if period == 'daily':
+            daily_status[uid] = st
+
+    # ---------- 6. Grand totals ----------
+    grand_present = sum(s['present']  for s in summary.values())
+    grand_absent  = sum(s['absent']   for s in summary.values())
+    grand_leave   = sum(s['leave']    for s in summary.values())
+    grand_halfday = sum(s['half-day'] for s in summary.values())
+    grand_marked  = grand_present + grand_absent + grand_leave + grand_halfday
+    overall_pct = (round(((grand_present + 0.5 * grand_halfday)
+                          / grand_marked) * 100, 1)
+                   if grand_marked else 0.0)
+
+    # ---------- 7. Class-wise grouping ----------
+    STANDARD_CLASS_ORDER = [
+        'Pre-Nursery', 'Nursery', 'LKG', 'UKG',
+        '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th',
+    ]
+    _CLASS_RANK = {n.lower(): i for i, n in enumerate(STANDARD_CLASS_ORDER)}
+
+    def _class_sort_key(name):
+        return (_CLASS_RANK.get(name.lower(), len(STANDARD_CLASS_ORDER)),
+                name.lower())
+
+    raw_groups = OrderedDict()
+    for u in users:
+        if role == 'student':
+            cname = (u['class_name'] or u['child_class'] or 'Unassigned')
+            cname = (cname or '').strip() or 'Unassigned'
+        else:
+            cname = 'All Teachers'
+        raw_groups.setdefault(cname, []).append(u)
+
+    grouped = []
+    for cname in sorted(raw_groups.keys(), key=_class_sort_key):
+        ulist = raw_groups[cname]
+        if not ulist:
+            continue
+
+        student_display = []
+        for u in ulist:
+            raw_name = (u['name'] or '').strip()
+            uid_val  = (u['unique_id'] or '').strip()
+            if role == 'student':
+                row_class = (u['class_name']
+                             or u['child_class']
+                             or 'Unassigned')
+                row_class = (row_class or '').strip() or 'Unassigned'
+            else:
+                row_class = 'All Teachers'
+            student_display.append({
+                'id':         u['id'],
+                'name':       raw_name or uid_val or '—',
+                'unique_id':  uid_val or '—',
+                'class_name': row_class,
+            })
+
+        g_present = sum(summary[u['id']]['present']   for u in ulist)
+        g_absent  = sum(summary[u['id']]['absent']    for u in ulist)
+        g_leave   = sum(summary[u['id']]['leave']     for u in ulist)
+        g_halfday = sum(summary[u['id']]['half-day']  for u in ulist)
+        g_marked  = g_present + g_absent + g_leave + g_halfday
+        g_pct = (round(((g_present + 0.5 * g_halfday) / g_marked) * 100, 1)
+                 if g_marked else 0.0)
+
+        grouped.append({
+            'class_name': cname,
+            'students':   student_display,
+            'count':      len(student_display),
+            'present':    g_present,
+            'absent':     g_absent,
+            'leave':      g_leave,
+            'halfday':    g_halfday,
+            'marked':     g_marked,
+            'pct':        g_pct,
+        })
+
+    # ---------- 8. SAFE context vars (school_name / logo) ----------
+    # Every value guaranteed non-empty → no UndefinedError possible.
+    school_name    = (get_setting('school_name')
+                      or 'Residential Shanti Niketan')
+    school_address = (get_setting('school_address')
+                      or 'Navinagar (Jamui)')
+
+    logo_setting = get_setting('school_logo_url')
+    if logo_setting:
+        school_logo = logo_setting
+    else:
+        # Fallback to bundled logo file at static/images/school_logo.png
+        school_logo = url_for('static',
+                              filename='images/school_logo.png')
+
+    # ---------- 9. Render ----------
+    return render_template(
+        'admin_attendance_export.html',
+
+        period=period,
+        period_label=period_label,
+        period_sub=period_sub,
+        start=start, end=end, base_date=base_date,
+
+        role=role,
+        subject=subject,
+        class_filter=class_filter,
+
+        users=users,
+        summary=summary,
+        daily_status=daily_status,
+        grouped=grouped,
+
+        grand_present=grand_present,
+        grand_absent=grand_absent,
+        grand_leave=grand_leave,
+        grand_halfday=grand_halfday,
+        grand_marked=grand_marked,
+        overall_pct=overall_pct,
+        total_users=len(users),
+
+        generated_at=datetime.now().strftime('%d %b %Y, %I:%M %p'),
+        school_name=school_name,
+        school_address=school_address,
+        school_logo=school_logo,
+        auto_print=(request.args.get('auto') == '1'),
+    )
 
 # === LEAVE REQUESTS ===
 @app.route('/admin/leaves')
@@ -2743,7 +2985,8 @@ def admin_event_participants(eid):
     class_filter   = request.args.get('class_name', '')
     section_filter = request.args.get('section', '')
 
-    query = Student.query
+    query = Student.query.filter_by(role='student') 
+    
     if class_filter:   query = query.filter_by(class_name=class_filter)
     if section_filter: query = query.filter_by(section=section_filter)
     if q:
@@ -2758,9 +3001,9 @@ def admin_event_participants(eid):
     participant_ids = {p.student_id for p in event.participants}
 
     classes  = [type('X', (), {'class_name': c[0]}) for c in
-                db.session.query(Student.class_name).distinct().all() if c[0]]
+                db.session.query(Student.class_name).filter_by(role='student').distinct().all() if c[0]]
     sections = [type('X', (), {'section': s[0]}) for s in
-                db.session.query(Student.section).distinct().all() if s[0]]
+                db.session.query(Student.section).filter_by(role='student').distinct().all() if s[0]]
 
     return render_template('admin_event_participants.html',
                            event=event, students=students,
@@ -2769,7 +3012,6 @@ def admin_event_participants(eid):
                            class_filter=class_filter,
                            section_filter=section_filter, search=q)
 
-
 @app.route('/admin/events/<int:eid>/participants', methods=['POST'])
 def admin_event_participants_save(eid):
     event  = Event.query.get_or_404(eid)
@@ -2777,14 +3019,20 @@ def admin_event_participants_save(eid):
     sids   = [int(x) for x in request.form.getlist('student_ids') if x.isdigit()]
 
     if action == 'add' and sids:
+        valid_student_ids = {s.id for s in Student.query.filter(Student.id.in_(sids), Student.role == 'student').all()}
+        
         existing = {p.student_id for p in EventParticipant.query
                     .filter_by(event_id=eid)
-                    .filter(EventParticipant.student_id.in_(sids)).all()}
-        for sid in sids:
+                    .filter(EventParticipant.student_id.in_(valid_student_ids)).all()}
+        
+        added_count = 0
+        for sid in valid_student_ids:
             if sid not in existing:
                 db.session.add(EventParticipant(event_id=eid, student_id=sid))
+                added_count += 1
+                
         db.session.commit()
-        flash(f'{len(sids) - len(existing)} participant(s) added.', 'success')
+        flash(f'{added_count} participant(s) added.', 'success')
 
     elif action == 'remove' and sids:
         EventParticipant.query.filter_by(event_id=eid) \
@@ -2809,7 +3057,7 @@ def admin_edit_event(eid):
         event_time = request.form.get('event_time', '').strip()
         location = request.form.get('location', '').strip()
         category = request.form.get('category', 'general')
-        is_featured = 1 if request.form.get('is_featured') else 0   # ✅ ADD
+        is_featured = 1 if request.form.get('is_featured') else 0
 
         if not title or not event_date:
             flash('Title and Date are required.', 'error')
@@ -2833,7 +3081,7 @@ def admin_edit_event(eid):
     return render_template(
         'admin_events.html',
         events=events, edit_event=event,
-        now_date=date.today().isoformat(),   # ✅ ADD
+        now_date=date.today().isoformat(),
         active_page='events'
     )
 
@@ -2841,9 +3089,20 @@ def admin_edit_event(eid):
 @admin_required
 def admin_delete_event(eid):
     db = get_db()
-    db.execute('DELETE FROM events WHERE id = ?', (eid,))
-    db.commit()
-    flash('Event deleted.', 'success')
+    
+    try:
+        db.execute('DELETE FROM event_participants WHERE event_id = ?', (eid,))
+        db.execute('DELETE FROM event_certificates WHERE event_id = ?', (eid,))
+        db.execute('DELETE FROM events WHERE id = ?', (eid,))
+        
+        db.commit()
+        flash('Event and related data deleted successfully.', 'success')
+        
+    except Exception:
+        db.rollback()
+        app.logger.exception(f"Error deleting event {eid}")
+        flash('Failed to delete the event. Please check server logs.', 'error')
+        
     return redirect(url_for('admin_events'))
 
 # =========================================
@@ -2858,6 +3117,7 @@ def admin_event_certificates(eid):
     section_filter = request.args.get('section', '')
 
     query = (Student.query
+             .filter(Student.role == 'student') 
              .join(EventParticipant, EventParticipant.student_id == Student.id)
              .filter(EventParticipant.event_id == eid))
 
@@ -2877,10 +3137,13 @@ def admin_event_certificates(eid):
 
     classes = [type('X', (), {'class_name': c[0]}) for c in
                db.session.query(Student.class_name)
+               .filter(Student.role == 'student')
                .join(EventParticipant, EventParticipant.student_id == Student.id)
                .filter(EventParticipant.event_id == eid).distinct().all() if c[0]]
+               
     sections = [type('X', (), {'section': s[0]}) for s in
                 db.session.query(Student.section)
+                .filter(Student.role == 'student')
                 .join(EventParticipant, EventParticipant.student_id == Student.id)
                 .filter(EventParticipant.event_id == eid).distinct().all() if s[0]]
 

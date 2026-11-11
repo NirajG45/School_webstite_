@@ -4,31 +4,29 @@
 
 {% block content %}
 <style>
-    /* === Stats === */
+    /* ============ STAT CARDS ============ */
     .att-stats {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
         gap: 12px;
-        margin-bottom: 20px;
+        margin-bottom: 22px;
     }
     .att-stat-card {
+        position: relative;
         background: #fff;
         border: 1px solid var(--line);
         border-radius: 12px;
-        padding: 16px;
-        position: relative;
+        padding: 16px 16px 14px;
         overflow: hidden;
         transition: transform .2s ease, box-shadow .2s ease;
     }
     .att-stat-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(9,47,88,0.06);
+        box-shadow: 0 10px 24px rgba(9,47,88,0.07);
     }
     .att-stat-card::before {
         content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 3px;
+        position: absolute; top: 0; left: 0; right: 0; height: 3px;
     }
     .att-stat-card.present::before    { background: #168254; }
     .att-stat-card.absent::before     { background: #d71938; }
@@ -37,19 +35,27 @@
     .att-stat-card.not-marked::before { background: #94a3b8; }
     .att-stat-card.total::before      { background: var(--navy); }
 
-    .att-stat-label {
-        font-size: 10.5px;
-        font-weight: 700;
-        color: var(--muted);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 6px;
+    .att-stat-head {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 10px;
     }
+    .att-stat-label {
+        font-size: 10.5px; font-weight: 700; color: var(--muted);
+        text-transform: uppercase; letter-spacing: .5px;
+    }
+    .att-stat-icon {
+        width: 26px; height: 26px; border-radius: 7px;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 11px; background: #f1f5f9; color: var(--muted);
+    }
+    .att-stat-card.present    .att-stat-icon { background:#e3f5eb; color:#168254; }
+    .att-stat-card.absent     .att-stat-icon { background:#ffeaee; color:#d71938; }
+    .att-stat-card.leave      .att-stat-icon { background:#fff1d6; color:#a86a00; }
+    .att-stat-card.halfday    .att-stat-icon { background:#f0e7ff; color:#7439b2; }
+    .att-stat-card.total      .att-stat-icon { background:#e1f1ff; color:#1768a7; }
+
     .att-stat-value {
-        font-size: 26px;
-        font-weight: 800;
-        color: var(--navy);
-        line-height: 1;
+        font-size: 26px; font-weight: 800; color: var(--navy); line-height: 1;
     }
     .att-stat-card.present .att-stat-value    { color: #168254; }
     .att-stat-card.absent .att-stat-value     { color: #d71938; }
@@ -57,212 +63,209 @@
     .att-stat-card.halfday .att-stat-value    { color: #7439b2; }
     .att-stat-card.not-marked .att-stat-value { color: #64748b; }
 
-    /* === Overall panel === */
-    .att-overall {
-        background: #f8fafc;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 16px 18px;
-        margin-bottom: 20px;
-    }
-    .att-overall-title {
-        font-size: 12px;
-        font-weight: 800;
-        color: var(--navy);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .att-overall-title i { color: var(--red); font-size: 12px; }
-    .att-overall-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 12px;
-    }
-    .att-overall-role {
+    /* ============ SECTION SHELL ============ */
+    .att-section {
         background: #fff;
         border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 12px;
+        border-radius: 12px;
+        margin-bottom: 18px;
+        overflow: hidden;
     }
-    .att-overall-role-name {
-        font-size: 11px;
-        font-weight: 800;
-        color: var(--navy);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .att-section-head {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--line);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; flex-wrap: wrap;
     }
-    .att-overall-role-name span {
-        background: #e1f1ff;
-        color: #1768a7;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 10px;
-        font-weight: 800;
+    .att-section-title {
+        display: flex; align-items: center; gap: 9px;
+        font-size: 13px; font-weight: 800; color: var(--navy);
+        text-transform: uppercase; letter-spacing: .4px;
     }
-    .att-overall-pills {
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
+    .att-section-title i {
+        width: 26px; height: 26px; border-radius: 7px;
+        background: #e1f1ff; color: #1768a7;
+        display: inline-flex; align-items: center; justify-content: center;
         font-size: 11px;
     }
-    .att-overall-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 3px 8px;
-        border-radius: 5px;
-        font-weight: 700;
-        font-size: 10.5px;
+    .att-section-hint {
+        font-size: 11.5px; color: var(--muted); font-weight: 600;
     }
-    .att-overall-pill i { font-size: 9px; }
-    .att-overall-pill.present    { background: #e3f5eb; color: #168254; }
-    .att-overall-pill.absent     { background: #ffeaee; color: #d71938; }
-    .att-overall-pill.leave      { background: #fff1d6; color: #a86a00; }
-    .att-overall-pill.halfday    { background: #f0e7ff; color: #7439b2; }
-    .att-overall-pill.not-marked { background: #f1f5f9; color: #64748b; }
 
-    /* === Filters === */
+    /* ============ FILTERS ============ */
     .att-filters {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 12px;
-        padding: 16px 20px;
+        gap: 14px;
+        padding: 16px 18px;
     }
     .att-filters label {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        font-size: 11px;
-        font-weight: 700;
-        color: var(--navy);
-        text-transform: uppercase;
-        letter-spacing: 0.4px;
+        display: flex; flex-direction: column; gap: 6px;
+        font-size: 10.5px; font-weight: 700; color: var(--muted);
+        text-transform: uppercase; letter-spacing: .5px;
     }
-    .att-filters select, .att-filters input {
-        font: inherit;
-        font-size: 13px;
-        padding: 8px 12px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        color: var(--navy);
-        background: #fff;
-        outline: none;
-        transition: all .2s;
+    .att-filters select,
+    .att-filters input {
+        font: inherit; font-size: 13px; padding: 9px 12px;
+        border: 1px solid var(--line); border-radius: 8px;
+        color: var(--navy); background: #fff;
+        outline: none; transition: border-color .18s, box-shadow .18s;
     }
-    .att-filters select:focus, .att-filters input:focus {
+    .att-filters select:focus,
+    .att-filters input:focus {
         border-color: #b0c4d8;
         box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
     }
 
-    /* === Refresh note === */
-    .att-refresh-note {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    /* ============ EXPORT PANEL ============ */
+    .att-export {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 16px; flex-wrap: wrap;
+        padding: 16px 18px;
+    }
+    .att-export-info {
+        display: flex; align-items: center; gap: 12px; min-width: 240px;
+    }
+    .att-export-info .icon {
+        width: 42px; height: 42px; border-radius: 11px;
+        background: linear-gradient(135deg, #ffe0e5, #ffeaee);
+        color: #d71938; font-size: 16px;
+        display: inline-flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+    }
+    .att-export-info strong {
+        display: block; font-size: 13px; font-weight: 800; color: var(--navy);
+        margin-bottom: 2px;
+    }
+    .att-export-info span {
+        font-size: 11.5px; color: var(--muted); font-weight: 600;
+    }
+    .att-export-actions {
+        display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .att-export-btn {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 9px 14px; border-radius: 9px;
+        border: 1px solid var(--line);
+        background: #fff;
+        font: inherit; font-size: 12.5px; font-weight: 700;
+        color: var(--navy); cursor: pointer;
+        transition: all .18s ease; white-space: nowrap;
+    }
+    .att-export-btn i { font-size: 11px; color: var(--muted); }
+    .att-export-btn:hover {
+        background: #f4f8fc; border-color: #b0c4d8;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(9,47,88,0.06);
+    }
+    .att-export-btn:hover i { color: var(--navy); }
+
+    /* ============ OVERALL GLANCE ============ */
+    .att-overall {
+        padding: 16px 18px;
+    }
+    .att-overall-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: 12px;
-        font-size: 11.5px;
-        color: var(--muted);
-        margin-bottom: 12px;
-        padding: 12px 20px 0;
-        font-weight: 600;
+    }
+    .att-overall-role {
+        background: #f8fafc; border: 1px solid var(--line);
+        border-radius: 10px; padding: 12px 14px;
+    }
+    .att-overall-role-name {
+        font-size: 11px; font-weight: 800; color: var(--navy);
+        text-transform: uppercase; letter-spacing: .5px;
+        margin-bottom: 10px;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .att-overall-role-name span {
+        background: #e1f1ff; color: #1768a7;
+        padding: 2px 8px; border-radius: 5px;
+        font-size: 10px; font-weight: 800;
+    }
+    .att-overall-pills {
+        display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .att-overall-pill {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 4px 9px; border-radius: 6px;
+        font-weight: 700; font-size: 10.5px;
+    }
+    .att-overall-pill i { font-size: 9px; }
+    .att-overall-pill.present    { background:#e3f5eb; color:#168254; }
+    .att-overall-pill.absent     { background:#ffeaee; color:#d71938; }
+    .att-overall-pill.leave      { background:#fff1d6; color:#a86a00; }
+    .att-overall-pill.halfday    { background:#f0e7ff; color:#7439b2; }
+    .att-overall-pill.not-marked { background:#f1f5f9; color:#64748b; }
+
+    /* ============ REFRESH NOTE ============ */
+    .att-refresh-note {
+        display: flex; justify-content: space-between; align-items: center;
+        gap: 12px; padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: #fbfcfe;
+        font-size: 12px; color: var(--muted); font-weight: 600;
     }
     .att-refresh-note i { color: var(--red); margin-right: 4px; font-size: 10px; }
+    .att-refresh-note strong { color: var(--navy); font-weight: 800; }
     .att-refresh-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        background: #fff;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        font-size: 11.5px;
-        font-weight: 700;
-        color: var(--navy);
-        text-decoration: none;
-        transition: all 0.2s;
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 6px 12px; background: #fff;
+        border: 1px solid var(--line); border-radius: 8px;
+        font-size: 11.5px; font-weight: 700; color: var(--navy);
+        text-decoration: none; transition: all .18s;
     }
     .att-refresh-btn:hover { background: #f4f8fc; border-color: #b0c4d8; }
 
-    /* === Badges === */
+    /* ============ BADGES ============ */
     .att-badge {
-        display: inline-block;
-        padding: 3px 9px;
-        border-radius: 5px;
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
+        display: inline-block; padding: 4px 10px; border-radius: 6px;
+        font-size: 10px; font-weight: 800;
+        text-transform: uppercase; letter-spacing: .3px;
     }
-    .att-badge.present    { background: #e3f5eb; color: #168254; }
-    .att-badge.absent     { background: #ffeaee; color: #d71938; }
-    .att-badge.leave      { background: #fff1d6; color: #a86a00; }
-    .att-badge.half-day   { background: #f0e7ff; color: #7439b2; }
-    .att-badge.not-marked { background: #f1f5f9; color: #64748b; }
+    .att-badge.present    { background:#e3f5eb; color:#168254; }
+    .att-badge.absent     { background:#ffeaee; color:#d71938; }
+    .att-badge.leave      { background:#fff1d6; color:#a86a00; }
+    .att-badge.half-day   { background:#f0e7ff; color:#7439b2; }
+    .att-badge.not-marked { background:#f1f5f9; color:#64748b; }
 
-    /* === NEW: Bulk action + search bar === */
+    /* ============ BULK BAR ============ */
     .att-bulk-bar {
-        display: flex;
-        gap: 12px;
+        display: flex; gap: 12px;
         padding: 14px 18px;
-        background: #fff;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        margin-bottom: 16px;
-        align-items: center;
-        flex-wrap: wrap;
+        background: #fbfcfe;
+        border-bottom: 1px solid var(--line);
+        align-items: center; flex-wrap: wrap;
     }
-    .att-bulk-actions {
-        display: flex; gap: 8px; flex-wrap: wrap;
-    }
+    .att-bulk-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .att-bulk-btn {
         display: inline-flex; align-items: center; gap: 7px;
-        padding: 9px 14px;
-        border-radius: 9px;
+        padding: 9px 14px; border-radius: 9px;
         border: 1px solid transparent;
         font: inherit; font-size: 12.5px; font-weight: 700;
-        cursor: pointer;
-        transition: all .2s ease;
-        white-space: nowrap;
+        cursor: pointer; transition: all .18s ease; white-space: nowrap;
     }
     .att-bulk-btn i { font-size: 11px; }
-    .att-bulk-btn.present {
-        background: #e3f5eb; color: #168254; border-color: #c8e9d7;
-    }
-    .att-bulk-btn.present:hover { background: #d0eddb; }
-    .att-bulk-btn.absent {
-        background: #ffeaee; color: #d71938; border-color: #f8c9d2;
-    }
-    .att-bulk-btn.absent:hover { background: #ffd9e0; }
-    .att-bulk-btn.reset {
-        background: #f1f5f9; color: #475569; border-color: #e2e8f0;
-    }
-    .att-bulk-btn.reset:hover { background: #e2e8f0; }
+    .att-bulk-btn.present { background:#e3f5eb; color:#168254; border-color:#c8e9d7; }
+    .att-bulk-btn.present:hover { background:#d0eddb; }
+    .att-bulk-btn.absent  { background:#ffeaee; color:#d71938; border-color:#f8c9d2; }
+    .att-bulk-btn.absent:hover { background:#ffd9e0; }
+    .att-bulk-btn.reset   { background:#f1f5f9; color:#475569; border-color:#e2e8f0; }
+    .att-bulk-btn.reset:hover { background:#e2e8f0; }
 
     .att-search-wrap {
-        margin-left: auto;
-        display: flex; align-items: center; gap: 10px;
+        margin-left: auto; display: flex; align-items: center; gap: 10px;
         flex-wrap: wrap;
     }
     .att-search-input {
         display: flex; align-items: center; gap: 8px;
-        background: #f1f5f9;
-        border: 1px solid transparent;
-        border-radius: 9px;
-        padding: 0 12px;
-        height: 40px;
-        width: 280px;
-        transition: all .2s;
+        background: #fff; border: 1px solid var(--line);
+        border-radius: 9px; padding: 0 12px;
+        height: 38px; width: 260px;
+        transition: all .18s;
     }
     .att-search-input:focus-within {
-        background: #fff;
         border-color: #b0c4d8;
         box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
     }
@@ -272,149 +275,121 @@
         font: inherit; font-size: 13px; color: var(--navy);
     }
     .att-search-input input::placeholder { color: #a0aec0; }
-    .att-counter {
-        font-size: 11.5px; font-weight: 700; color: var(--muted);
-        white-space: nowrap;
-    }
+    .att-counter { font-size: 11.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
     .att-counter b { color: var(--navy); font-weight: 800; }
 
-    /* === NEW: Quick toggle buttons in table === */
-    .att-quick-toggle {
-        display: flex;
-        gap: 4px;
-    }
+    /* ============ TOGGLE ============ */
+    .att-quick-toggle { display: flex; gap: 4px; }
     .att-toggle-btn {
-        width: 36px; height: 36px;
-        border-radius: 8px;
-        border: 2px solid var(--line);
-        background: #fff;
-        font: inherit;
-        font-weight: 800;
-        font-size: 12px;
-        color: var(--muted);
-        cursor: pointer;
-        transition: all .15s ease;
-        padding: 0;
+        width: 36px; height: 36px; border-radius: 8px;
+        border: 2px solid var(--line); background: #fff;
+        font: inherit; font-weight: 800; font-size: 12px;
+        color: var(--muted); cursor: pointer;
+        transition: all .15s ease; padding: 0;
     }
     .att-toggle-btn:hover { transform: translateY(-1px); border-color: #b0c4d8; }
-    .att-toggle-btn.p.active { background: #168254; border-color: #168254; color: #fff; }
-    .att-toggle-btn.a.active { background: #d71938; border-color: #d71938; color: #fff; }
-    .att-toggle-btn.l.active { background: #a86a00; border-color: #a86a00; color: #fff; }
-    .att-toggle-btn.h.active { background: #7439b2; border-color: #7439b2; color: #fff; }
+    .att-toggle-btn.p.active { background:#168254; border-color:#168254; color:#fff; }
+    .att-toggle-btn.a.active { background:#d71938; border-color:#d71938; color:#fff; }
+    .att-toggle-btn.l.active { background:#a86a00; border-color:#a86a00; color:#fff; }
+    .att-toggle-btn.h.active { background:#7439b2; border-color:#7439b2; color:#fff; }
 
-    /* === NEW: Row highlight === */
-    .att-row-marked-present    { background: #f0fdf4 !important; }
-    .att-row-marked-absent     { background: #fef2f2 !important; }
-    .att-row-marked-leave      { background: #fffbeb !important; }
-    .att-row-marked-half-day   { background: #f5f3ff !important; }
+    .att-row-marked-present  { background: #f0fdf4 !important; }
+    .att-row-marked-absent   { background: #fef2f2 !important; }
+    .att-row-marked-leave    { background: #fffbeb !important; }
+    .att-row-marked-half-day { background: #f5f3ff !important; }
 
-    /* === NEW: Sticky save bar === */
+    /* ============ CLASS PILLS ============ */
+    .att-class-pills {
+        display: flex; flex-wrap: wrap; gap: 6px;
+        padding: 12px 18px;
+        background: #f8fafc;
+        border-bottom: 1px solid var(--line);
+    }
+    .att-class-pills-label {
+        font-size: 10.5px; font-weight: 800; color: var(--muted);
+        text-transform: uppercase; letter-spacing: .4px;
+        align-self: center; margin-right: 6px;
+    }
+    .att-class-pill {
+        padding: 5px 12px; border-radius: 6px;
+        background: #fff; border: 1px solid var(--line);
+        font-size: 11px; font-weight: 700; color: var(--navy);
+        cursor: pointer; transition: all .15s;
+    }
+    .att-class-pill:hover { background:#e1f1ff; border-color:#b0c4d8; }
+    .att-class-pill.active {
+        background: var(--navy); color: #fff; border-color: var(--navy);
+    }
+
+    /* ============ SAVE BAR ============ */
     .att-save-bar {
-        position: sticky;
-        bottom: 16px;
+        position: sticky; bottom: 16px;
         padding: 14px 20px;
         background: #fff;
         border: 1px solid var(--line);
         border-radius: 12px;
         margin-top: 16px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 -4px 20px rgba(9,47,88,0.08);
-        z-index: 100;
-        gap: 12px;
+        display: flex; justify-content: space-between; align-items: center;
+        box-shadow: 0 8px 24px rgba(9,47,88,0.08);
+        z-index: 100; gap: 12px;
     }
-    .att-save-info {
-        font-size: 12.5px; font-weight: 600; color: var(--muted);
-    }
+    .att-save-info { font-size: 12.5px; font-weight: 600; color: var(--muted); }
     .att-save-info strong { color: var(--navy); font-weight: 800; }
-
-    /* === NEW: Class bulk select (admin-only shortcut) === */
-    .att-class-pills {
-        display: flex; flex-wrap: wrap; gap: 6px;
-        padding: 12px 20px;
-        background: #f8fafc;
-        border-top: 1px solid var(--line);
-        border-bottom: 1px solid var(--line);
-    }
-    .att-class-pill {
-        padding: 5px 11px;
-        border-radius: 6px;
-        background: #fff;
-        border: 1px solid var(--line);
-        font-size: 11px;
-        font-weight: 700;
-        color: var(--navy);
-        cursor: pointer;
-        transition: all .15s;
-    }
-    .att-class-pill:hover { background: #e1f1ff; border-color: #b0c4d8; }
-    .att-class-pill.active {
-        background: var(--navy);
-        color: #fff;
-        border-color: var(--navy);
-    }
 </style>
 
-<!-- Live stats for current view -->
+<!-- ============ STATS ============ -->
 <div class="att-stats">
     <div class="att-stat-card total">
-        <div class="att-stat-label">Total {{ role|capitalize }}s</div>
+        <div class="att-stat-head">
+            <span class="att-stat-label">Total {{ role|capitalize }}s</span>
+            <span class="att-stat-icon"><i class="fa-solid fa-users"></i></span>
+        </div>
         <div class="att-stat-value" id="statTotal">{{ users|length }}</div>
     </div>
     <div class="att-stat-card present">
-        <div class="att-stat-label">Present</div>
+        <div class="att-stat-head">
+            <span class="att-stat-label">Present</span>
+            <span class="att-stat-icon"><i class="fa-solid fa-check"></i></span>
+        </div>
         <div class="att-stat-value" id="statPresent">{{ present_count }}</div>
     </div>
     <div class="att-stat-card absent">
-        <div class="att-stat-label">Absent</div>
+        <div class="att-stat-head">
+            <span class="att-stat-label">Absent</span>
+            <span class="att-stat-icon"><i class="fa-solid fa-xmark"></i></span>
+        </div>
         <div class="att-stat-value" id="statAbsent">{{ absent_count }}</div>
     </div>
     <div class="att-stat-card leave">
-        <div class="att-stat-label">On Leave</div>
+        <div class="att-stat-head">
+            <span class="att-stat-label">On Leave</span>
+            <span class="att-stat-icon"><i class="fa-solid fa-plane"></i></span>
+        </div>
         <div class="att-stat-value" id="statLeave">{{ leave_count }}</div>
     </div>
     <div class="att-stat-card halfday">
-        <div class="att-stat-label">Half Day</div>
+        <div class="att-stat-head">
+            <span class="att-stat-label">Half Day</span>
+            <span class="att-stat-icon"><i class="fa-solid fa-clock"></i></span>
+        </div>
         <div class="att-stat-value" id="statHalfday">{{ halfday_count }}</div>
     </div>
     <div class="att-stat-card not-marked">
-        <div class="att-stat-label">Not Marked</div>
+        <div class="att-stat-head">
+            <span class="att-stat-label">Not Marked</span>
+            <span class="att-stat-icon"><i class="fa-solid fa-minus"></i></span>
+        </div>
         <div class="att-stat-value" id="statNotMarked">{{ not_marked }}</div>
     </div>
 </div>
 
-<!-- Today at a glance across all roles -->
-<div class="att-overall">
-    <div class="att-overall-title">
-        <i class="fa-solid fa-chart-simple"></i>
-        Today at a glance — {{ date }} · {{ subject_filter }}
-    </div>
-    <div class="att-overall-grid">
-        {% for role_name, data in overall.items() %}
-        {% if data.total > 0 %}
-        <div class="att-overall-role">
-            <div class="att-overall-role-name">
-                {{ role_name|capitalize }}s
-                <span>{{ data.total }} total</span>
-            </div>
-            <div class="att-overall-pills">
-                <span class="att-overall-pill present"><i class="fa-solid fa-check"></i> {{ data.present }} present</span>
-                <span class="att-overall-pill absent"><i class="fa-solid fa-xmark"></i> {{ data.absent }} absent</span>
-                {% if data.leave %}<span class="att-overall-pill leave"><i class="fa-solid fa-plane"></i> {{ data.leave }} leave</span>{% endif %}
-                {% if data['half-day'] %}<span class="att-overall-pill halfday"><i class="fa-solid fa-clock"></i> {{ data['half-day'] }} half-day</span>{% endif %}
-                {% if data['not-marked'] %}<span class="att-overall-pill not-marked">{{ data['not-marked'] }} not marked</span>{% endif %}
-            </div>
+<!-- ============ FILTERS ============ -->
+<div class="att-section">
+    <div class="att-section-head">
+        <div class="att-section-title">
+            <i class="fa-solid fa-filter"></i> Filter View
         </div>
-        {% endif %}
-        {% endfor %}
-    </div>
-</div>
-
-<!-- Filters -->
-<div class="admin-panel">
-    <div class="admin-panel-head">
-        <h3><i class="fa-solid fa-filter"></i> Filter View</h3>
+        <div class="att-section-hint">Records refresh live from database</div>
     </div>
     <form method="GET" class="admin-form">
         <div class="att-filters">
@@ -422,11 +397,11 @@
                 <select name="role" onchange="this.form.submit()">
                     <option value="student" {% if role=='student' %}selected{% endif %}>Students</option>
                     <option value="teacher" {% if role=='teacher' %}selected{% endif %}>Teachers</option>
-                    <option value="parent" {% if role=='parent' %}selected{% endif %}>Parents</option>
                 </select>
             </label>
             <label>Date
-                <input type="date" name="date" value="{{ date }}" onchange="this.form.elements['subject_filter'].disabled = true; this.form.submit()">
+                <input type="date" name="date" value="{{ date }}"
+                       onchange="this.form.elements['subject_filter'].disabled = true; this.form.submit()">
             </label>
             <label>Subject
                 <select name="subject_filter" onchange="this.form.submit()">
@@ -449,20 +424,76 @@
     </form>
 </div>
 
-<!-- Marking table with bulk actions + search -->
-<div class="admin-panel">
-    <div class="admin-panel-head">
-        <h3>
+<!-- ============ EXPORT PANEL ============ -->
+<div class="att-section">
+    <div class="att-export">
+        <div class="att-export-info">
+            <span class="icon"><i class="fa-solid fa-file-pdf"></i></span>
+            <div>
+                <strong>Export Attendance Report</strong>
+                <span>Download a printable PDF of the current filter selection</span>
+            </div>
+        </div>
+        <div class="att-export-actions">
+            <button type="button" class="att-export-btn" onclick="exportAttendance('daily')">
+                <i class="fa-solid fa-calendar-day"></i> Daily
+            </button>
+            <button type="button" class="att-export-btn" onclick="exportAttendance('weekly')">
+                <i class="fa-solid fa-calendar-week"></i> Weekly
+            </button>
+            <button type="button" class="att-export-btn" onclick="exportAttendance('monthly')">
+                <i class="fa-solid fa-calendar-days"></i> Monthly
+            </button>
+            <button type="button" class="att-export-btn" onclick="exportAttendance('yearly')">
+                <i class="fa-solid fa-calendar"></i> Yearly
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============ OVERALL GLANCE ============ -->
+<div class="att-section">
+    <div class="att-section-head">
+        <div class="att-section-title">
+            <i class="fa-solid fa-chart-simple"></i> Today at a Glance
+        </div>
+        <div class="att-section-hint">{{ date }} · {{ subject_filter }}</div>
+    </div>
+    <div class="att-overall">
+        <div class="att-overall-grid">
+            {% for role_name, data in overall.items() %}
+            {% if data.total > 0 %}
+            <div class="att-overall-role">
+                <div class="att-overall-role-name">
+                    {{ role_name|capitalize }}s
+                    <span>{{ data.total }} total</span>
+                </div>
+                <div class="att-overall-pills">
+                    <span class="att-overall-pill present"><i class="fa-solid fa-check"></i> {{ data.present }} present</span>
+                    <span class="att-overall-pill absent"><i class="fa-solid fa-xmark"></i> {{ data.absent }} absent</span>
+                    {% if data.leave %}<span class="att-overall-pill leave"><i class="fa-solid fa-plane"></i> {{ data.leave }} leave</span>{% endif %}
+                    {% if data['half-day'] %}<span class="att-overall-pill halfday"><i class="fa-solid fa-clock"></i> {{ data['half-day'] }} half-day</span>{% endif %}
+                    {% if data['not-marked'] %}<span class="att-overall-pill not-marked">{{ data['not-marked'] }} not marked</span>{% endif %}
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ============ MARKING TABLE ============ -->
+<div class="att-section">
+    <div class="att-section-head">
+        <div class="att-section-title">
             <i class="fa-solid fa-users"></i>
             {{ users|length }} {{ role|capitalize }}{{ 's' if users|length != 1 }} — {{ date }} · {{ subject_filter }}
-        </h3>
-        <span class="att-counter" style="font-size: 11.5px;">
-            Tip: press <b>Ctrl + S</b> to save
-        </span>
+        </div>
+        <div class="att-section-hint">Tip: press <b>Ctrl + S</b> to save</div>
     </div>
 
     <form method="POST" action="{{ url_for('admin_mark_attendance') }}" id="attendanceForm">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="date" value="{{ date }}">
         <input type="hidden" name="subject" value="{{ subject_filter }}">
         <input type="hidden" name="role" value="{{ role }}">
@@ -471,7 +502,7 @@
         <div class="att-refresh-note">
             <span>
                 <i class="fa-solid fa-clock"></i>
-                Marked <strong id="markedCountInline">{{ marked }}</strong> of <strong>{{ users|length }}</strong> · Live from database
+                Marked <strong id="markedCountInline">{{ marked }}</strong> of <strong>{{ users|length }}</strong>
             </span>
             <a href="{{ url_for('admin_attendance', role=role, date=date, subject_filter=subject_filter, class_filter=class_filter) }}"
                class="att-refresh-btn">
@@ -479,7 +510,6 @@
             </a>
         </div>
 
-        <!-- Bulk actions bar -->
         <div class="att-bulk-bar">
             <div class="att-bulk-actions">
                 <button type="button" class="att-bulk-btn present" onclick="markAllVisible('present')">
@@ -497,8 +527,7 @@
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="search" id="searchInput"
                            placeholder="Search by name, ID or class..."
-                           oninput="filterRows(this.value)"
-                           autofocus>
+                           oninput="filterRows(this.value)" autofocus>
                 </div>
                 <span class="att-counter">
                     Showing <b id="visibleCount">{{ users|length }}</b> of {{ users|length }}
@@ -506,12 +535,9 @@
             </div>
         </div>
 
-        <!-- Class quick-pills (only for students — admin shortcut) -->
         {% if role == 'student' and class_list %}
         <div class="att-class-pills">
-            <span style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; align-self:center; margin-right:6px;">
-                Quick class filter:
-            </span>
+            <span class="att-class-pills-label">Quick class filter:</span>
             <button type="button" class="att-class-pill {% if class_filter=='all' %}active{% endif %}"
                     onclick="applyClassFilter('all')">All</button>
             {% for c in class_list %}
@@ -542,7 +568,6 @@
                         data-userid="{{ u.unique_id|lower }}"
                         data-class="{{ (u.class_name or u.child_class or '')|lower }}"
                         data-status="{{ st }}">
-
                         <td><strong>{{ u.unique_id }}</strong></td>
                         <td>{{ u.name }}</td>
                         {% if role == 'student' %}
@@ -558,20 +583,16 @@
                             <div class="att-quick-toggle">
                                 <button type="button"
                                         class="att-toggle-btn p {% if st=='present' %}active{% endif %}"
-                                        onclick="setStatus('{{ u.id }}', 'present')"
-                                        title="Present">P</button>
+                                        onclick="setStatus('{{ u.id }}', 'present')" title="Present">P</button>
                                 <button type="button"
                                         class="att-toggle-btn a {% if st=='absent' %}active{% endif %}"
-                                        onclick="setStatus('{{ u.id }}', 'absent')"
-                                        title="Absent">A</button>
+                                        onclick="setStatus('{{ u.id }}', 'absent')" title="Absent">A</button>
                                 <button type="button"
                                         class="att-toggle-btn l {% if st=='leave' %}active{% endif %}"
-                                        onclick="setStatus('{{ u.id }}', 'leave')"
-                                        title="On Leave">L</button>
+                                        onclick="setStatus('{{ u.id }}', 'leave')" title="On Leave">L</button>
                                 <button type="button"
                                         class="att-toggle-btn h {% if st=='half-day' %}active{% endif %}"
-                                        onclick="setStatus('{{ u.id }}', 'half-day')"
-                                        title="Half Day">H</button>
+                                        onclick="setStatus('{{ u.id }}', 'half-day')" title="Half Day">H</button>
                             </div>
                         </td>
                     </tr>
@@ -603,22 +624,32 @@
 (function () {
     'use strict';
 
-    /* ---- Init counters on load ---- */
     document.addEventListener('DOMContentLoaded', updateCounters);
 
-    /* ---- Set status for a single user (with toggle-off) ---- */
+    /* ---- Export handler (opens print-ready report) ---- */
+    window.exportAttendance = function (period) {
+        const params = new URLSearchParams({
+            period: period,
+            date: '{{ date }}',
+            role: '{{ role }}',
+            subject_filter: '{{ subject_filter }}',
+            class_filter: '{{ class_filter }}'
+        });
+        window.open('{{ url_for("admin_attendance_export") }}?' + params.toString(), '_blank');
+    };
+
+    /* ---- Set status for a single user (toggle-off) ---- */
     window.setStatus = function (uid, status) {
         const row = document.querySelector('.att-row-item[data-uid="' + uid + '"]');
         if (!row) return;
 
         const input = row.querySelector('.status-input');
         const current = input.value;
-        const newStatus = (current === status) ? '' : status;  // toggle off if same
+        const newStatus = (current === status) ? '' : status;
 
         input.value = newStatus;
         row.dataset.status = newStatus;
 
-        // Row highlight
         row.classList.remove(
             'att-row-marked-present',
             'att-row-marked-absent',
@@ -627,12 +658,11 @@
         );
         if (newStatus) row.classList.add('att-row-marked-' + newStatus);
 
-        // Badge
         const badge = row.querySelector('.current-badge');
         badge.className = 'att-badge ' + (newStatus || 'not-marked') + ' current-badge';
-        badge.textContent = (newStatus || 'not-marked').replace('-', ' ').replace(/\b\w/g, c => c.toUpperCase());
+        badge.textContent = (newStatus || 'not-marked').replace('-', ' ')
+                              .replace(/\b\w/g, c => c.toUpperCase());
 
-        // Button active states
         row.querySelectorAll('.att-toggle-btn').forEach(b => b.classList.remove('active'));
         if (newStatus) {
             const cls = newStatus === 'present' ? 'p'
@@ -646,7 +676,6 @@
         updateCounters();
     };
 
-    /* ---- Mark all visible rows (respects search filter) ---- */
     window.markAllVisible = function (status) {
         document.querySelectorAll('.att-row-item').forEach(row => {
             if (row.style.display === 'none') return;
@@ -654,11 +683,9 @@
         });
     };
 
-    /* ---- Search filter (name, ID, class) ---- */
     window.filterRows = function (query) {
         const q = (query || '').toLowerCase().trim();
         let visible = 0;
-
         document.querySelectorAll('.att-row-item').forEach(row => {
             const match = !q
                 || row.dataset.name.includes(q)
@@ -667,21 +694,17 @@
             row.style.display = match ? '' : 'none';
             if (match) visible++;
         });
-
         document.getElementById('visibleCount').textContent = visible;
     };
 
-    /* ---- Class quick-pill filter → reload page ---- */
     window.applyClassFilter = function (cls) {
         const url = new URL(window.location.href);
         url.searchParams.set('class_filter', cls);
         window.location.href = url.toString();
     };
 
-    /* ---- Update all live counters ---- */
     function updateCounters() {
         let present = 0, absent = 0, leave = 0, halfday = 0, total = 0;
-
         document.querySelectorAll('.att-row-item').forEach(row => {
             total++;
             const st = row.dataset.status;
@@ -690,22 +713,18 @@
             else if (st === 'leave')    leave++;
             else if (st === 'half-day') halfday++;
         });
-
         const notMarked = total - (present + absent + leave + halfday);
         const marked    = total - notMarked;
-
         document.getElementById('statTotal').textContent     = total;
         document.getElementById('statPresent').textContent   = present;
         document.getElementById('statAbsent').textContent    = absent;
         document.getElementById('statLeave').textContent     = leave;
         document.getElementById('statHalfday').textContent   = halfday;
         document.getElementById('statNotMarked').textContent = notMarked;
-
         document.getElementById('saveCounter').textContent       = marked;
         document.getElementById('markedCountInline').textContent = marked;
     }
 
-    /* ---- Ctrl/Cmd + S to save ---- */
     document.addEventListener('keydown', function (e) {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
             e.preventDefault();
@@ -714,5 +733,4 @@
     });
 })();
 </script>
-
 {% endblock %}

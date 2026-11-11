@@ -690,7 +690,7 @@
                 <label>Class <span class="req">*</span>
                     <select name="class_name" class="{{ cls('class_name') }}">
                         <option value="">Select</option>
-                        {% for c in ['Pre-Nursery','Nursery','LKG','UKG','Class 1','Class 2','Class 3','Class 4','Class 5','Class 6','Class 7','Class 8'] %}
+                        {% for c in ['Pre-Nursery','Nursery','LKG','UKG','Class 4','Class 5','Class 6','Class 7','Class 8'] %}
                         <option {% if form.get('class_name') == c %}selected{% endif %}>{{ c }}</option>
                         {% endfor %}
                     </select>

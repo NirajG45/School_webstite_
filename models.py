@@ -3,12 +3,12 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-# ---- Ye 3 classes add karo ----
 class Student(db.Model):
-    __tablename__ = 'students'
+    __tablename__ = 'users'
     id           = db.Column(db.Integer, primary_key=True)
     unique_id    = db.Column(db.String(50), unique=True)
     name         = db.Column(db.String(100), nullable=False)
+    role         = db.Column(db.String(50))
     class_name   = db.Column(db.String(50))
     section      = db.Column(db.String(50))
     roll_no      = db.Column(db.String(50))
@@ -30,7 +30,7 @@ class Certificate(db.Model):
     __tablename__ = 'certificates'
     id               = db.Column(db.Integer, primary_key=True)
     event_id         = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
-    student_id       = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
+    student_id       = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     certificate_type = db.Column(db.String(50), default='participation')
     position         = db.Column(db.String(100)) 
 
@@ -74,7 +74,7 @@ class EventParticipant(db.Model):
     __tablename__ = 'event_participants'
     id         = db.Column(db.Integer, primary_key=True)
     event_id   = db.Column(db.Integer, db.ForeignKey('events.id'),   nullable=False, index=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False, index=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     role       = db.Column(db.String(40), default='participant')
     added_on   = db.Column(db.DateTime, default=datetime.utcnow)
 

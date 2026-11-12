@@ -510,6 +510,55 @@ def init_db():
 
         db.commit()
 
+COMMON_SUBJECTS = [
+    ('HINDI', 100),
+    ('ENGLISH', 100),
+    ('MATH', 100),
+    ('SCIENCE', 100),
+    ('GRAMMAR', 100),
+    ('GK/NETHIK SHIKSHA', 100),
+    ('DRAWING', 100),
+]
+
+
+def ensure_common_subjects(db, class_name):
+    """Insert any missing common subjects for the given class.
+
+    - Per-subject existence check → only missing ones insert hote hain.
+    - Never deletes or overwrites existing subjects.
+    - Safe to call on every page load (idempotent).
+    - Returns count of newly inserted rows.
+    """
+    if not class_name:
+        return 0
+
+    class_name = str(class_name).strip()
+    if not class_name:
+        return 0
+
+    existing_names = {
+        row['subject_name']
+        for row in db.execute(
+            'SELECT subject_name FROM subjects WHERE class_name = ?',
+            (class_name,)
+        ).fetchall()
+    }
+
+    added = 0
+    for subject_name, default_max in COMMON_SUBJECTS:
+        if subject_name in existing_names:
+            continue
+        db.execute(
+            'INSERT INTO subjects (class_name, subject_name, max_marks) '
+            'VALUES (?, ?, ?)',
+            (class_name, subject_name, default_max)
+        )
+        added += 1
+
+    if added:
+        db.commit()
+    return added
+
 # =========================================
 # 🚀 HELPER: Get All Standard + Dynamic Classes
 # =========================================
@@ -5201,6 +5250,10 @@ def admin_exam_create():
         return redirect(url_for('admin_exam_edit', eid=cur.lastrowid))
 
     class_list = get_all_classes(db)
+
+    for cls in class_list:
+        ensure_common_subjects(db, cls)
+
     return render_template('admin_exam_form.html', exam=None,
                            subjects_by_class={}, class_list=class_list, active_page='exams')
 
@@ -5233,7 +5286,10 @@ def admin_exam_edit(eid):
         flash('Exam updated successfully!', 'success')
         return redirect(url_for('admin_exams_list'))
 
-    # Subjects fetch karein (Latest data from DB)
+    class_list = get_all_classes(db)
+    for cls in class_list:
+        ensure_common_subjects(db, cls)
+
     subjects_by_class = {}
     subject_rows = db.execute(
         'SELECT id, class_name, subject_name, max_marks, display_order '
@@ -5249,7 +5305,7 @@ def admin_exam_edit(eid):
             'display_order': row['display_order']
         })
 
-    # Selected subjects fetch karein
+    # to fetch Selected subjects
     selected_subjects_by_class = {}
     selected_max_marks_by_class = {}
     selected_rows = db.execute(
@@ -5260,9 +5316,6 @@ def admin_exam_edit(eid):
         class_name = row['class_name']
         selected_subjects_by_class.setdefault(class_name, []).append(str(row['subject_id']))
         selected_max_marks_by_class.setdefault(class_name, {})[str(row['subject_id'])] = row['max_marks']
-
-    # Classes list
-    class_list = get_all_classes(db)
 
     return render_template(
         'admin_exam_form.html', exam=exam,
@@ -5581,11 +5634,14 @@ def admin_reports_dashboard():
     selected_class = request.args.get('class', '').strip()
     selected_exam_id = request.args.get('exam_id', type=int)
 
-    # 🚀 YAHAN FIX KIYA GAYA HAI
+    # 🚀 Saari standard + dynamic classes ki list
     class_list = get_all_classes(db)
 
     subjects = []
     if selected_class:
+        # 🚀 Auto-seed missing common subjects for the selected class
+        ensure_common_subjects(db, selected_class)
+
         subjects = db.execute(
             'SELECT * FROM subjects WHERE class_name = ? ORDER BY display_order, id',
             (selected_class,)).fetchall()
@@ -5596,7 +5652,8 @@ def admin_reports_dashboard():
 
     selected_exam = None
     if selected_exam_id:
-        selected_exam = db.execute('SELECT * FROM exams WHERE id = ?', (selected_exam_id,)).fetchone()
+        selected_exam = db.execute(
+            'SELECT * FROM exams WHERE id = ?', (selected_exam_id,)).fetchone()
 
     return render_template('admin_reports_dashboard.html',
                            class_list=class_list,
@@ -5606,7 +5663,7 @@ def admin_reports_dashboard():
                            selected_exam=selected_exam,
                            selected_exam_id=selected_exam_id,
                            active_page='reports_dashboard')
-
+    
 
 # NEW: ADMIN VIEW SUBMITTED EXAM FORMS
 @app.route('/admin/exam-forms')

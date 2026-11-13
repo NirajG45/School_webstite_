@@ -6593,3 +6593,857 @@ button:focus-visible {
 
 /* Secure POST logout controls retain the appearance of their former links. */
 .logout-form{display:inline;margin:0;padding:0}.logout-form>button{appearance:none;-webkit-appearance:none;background:transparent;border:0;padding:0;margin:0;color:inherit;font:inherit;font-weight:inherit;text-align:inherit;cursor:pointer;text-decoration:inherit;line-height:inherit}.logout-form>button:hover{color:inherit}
+
+/* ==========================================================================
+   RESIDENTIAL SHANTI NIKETAN — HOMEPAGE VISUAL DESIGN LAYER
+   --------------------------------------------------------------------------
+   CSS-only refinement. Existing HTML, Flask/Jinja routes, IDs, classes,
+   JavaScript hooks, forms and responsive menu behavior remain untouched.
+   ========================================================================== */
+
+/* 1) Refined school brand palette */
+:root {
+    --navy: #092b50;
+    --blue: #15558a;
+    --blue2: #2476ad;
+    --red: #c9233e;
+    --yellow: #f7c948;
+    --ink: #172b40;
+    --muted: #687b90;
+    --line: #e3eaf2;
+    --paper: #f5f8fc;
+    --white: #ffffff;
+    --green: #16845b;
+    --shadow: 0 14px 38px rgba(9, 43, 80, .085);
+    --shadow-lg: 0 22px 55px rgba(9, 43, 80, .14);
+    --radius: 20px;
+    --transition: all .28s cubic-bezier(.2, .75, .25, 1);
+}
+
+body {
+    color: var(--ink);
+    background:
+        radial-gradient(ellipse at 8% 12%, rgba(36, 118, 173, .045), transparent 34rem),
+        var(--paper);
+    letter-spacing: .005em;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+    color: #fff;
+    background: var(--blue);
+}
+
+/* 2) Header and navigation — appearance only */
+.site-header {
+    background: rgba(255, 255, 255, .94);
+    border-bottom: 1px solid rgba(9, 43, 80, .08);
+    box-shadow: 0 5px 24px rgba(9, 43, 80, .055);
+    backdrop-filter: blur(18px) saturate(150%);
+}
+
+.site-header.scrolled {
+    box-shadow: 0 12px 32px rgba(9, 43, 80, .12);
+}
+
+.brand-mark {
+    border: 2px solid #f3c94e;
+    box-shadow: 0 5px 16px rgba(9, 43, 80, .14);
+}
+
+.brand-copy strong {
+    color: #092b50;
+    letter-spacing: -.55px;
+}
+
+.brand-copy b {
+    color: #c9233e;
+}
+
+.brand-copy small {
+    color: #718096;
+}
+
+.desktop-nav {
+    gap: 3px;
+}
+
+.desktop-nav .nav-link {
+    border-radius: 11px;
+    color: #294763;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.desktop-nav .nav-link:hover,
+.desktop-nav .nav-link:focus-visible {
+    color: #b51d37;
+    background: #fff1f3;
+}
+
+.desktop-nav .nav-link.active {
+    color: #fff;
+    background: linear-gradient(135deg, #c9233e, #a91630);
+    box-shadow: 0 7px 17px rgba(201, 35, 62, .2);
+}
+
+.login-btn,
+.enquire-btn-secondary {
+    border-radius: 12px;
+    box-shadow: 0 7px 18px rgba(201, 35, 62, .16);
+}
+
+.login-btn {
+    background: linear-gradient(135deg, #c9233e, #a91630);
+}
+
+.enquire-btn-secondary {
+    border: 1px solid rgba(201, 35, 62, .18);
+    background: #fff5f6;
+    color: #b51d37;
+}
+
+.enquire-btn-secondary:hover {
+    background: #ffe9ed;
+}
+
+.menu-toggle {
+    border-color: #dce6f0;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(9, 43, 80, .06);
+}
+
+/* 3) Hero — stronger contrast, depth and premium school identity */
+.hero {
+    background: linear-gradient(115deg, #071f3b 0%, #0b3b68 53%, #17618e 100%);
+}
+
+.hero:before {
+    opacity: .19;
+    filter: saturate(.82);
+}
+
+.hero-shade {
+    background:
+        radial-gradient(circle at 78% 45%, rgba(45, 126, 173, .22), transparent 34%),
+        linear-gradient(90deg, rgba(4, 25, 48, .97) 0%, rgba(6, 43, 77, .91) 48%, rgba(7, 43, 74, .52) 100%);
+}
+
+.hero-inner {
+    gap: clamp(28px, 4vw, 58px);
+    padding-top: 54px;
+    padding-bottom: 64px;
+}
+
+.hero-copy {
+    position: relative;
+    z-index: 1;
+}
+
+.eyebrow {
+    color: #d9e9f8;
+    letter-spacing: 2.2px;
+}
+
+.eyebrow span {
+    background: var(--yellow);
+    box-shadow: 0 0 14px rgba(247, 201, 72, .35);
+}
+
+.hero h1 {
+    text-shadow: 0 5px 24px rgba(0, 0, 0, .13);
+    letter-spacing: -2.6px;
+}
+
+.hero h1 em {
+    color: #ffd966;
+}
+
+.hero-school {
+    color: #fff;
+}
+
+.hero-school strong {
+    color: #ffdc69;
+}
+
+.hero-desc {
+    color: #dce9f5;
+    max-width: 475px;
+}
+
+.btn {
+    min-height: 48px;
+    border-radius: 13px;
+    letter-spacing: .01em;
+}
+
+.btn-yellow {
+    color: #17334d;
+    background: linear-gradient(135deg, #ffdf75, #f5c33e);
+    box-shadow: 0 9px 23px rgba(247, 201, 72, .22);
+}
+
+.btn-yellow:hover {
+    background: linear-gradient(135deg, #ffe99c, #ffd45b);
+}
+
+.btn-glass {
+    border-color: rgba(255, 255, 255, .34);
+    background: rgba(255, 255, 255, .09);
+    backdrop-filter: blur(8px);
+}
+
+.hero-points {
+    color: #eaf2f9;
+    gap: 13px 20px;
+}
+
+.hero-points span {
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 30px;
+    background: rgba(255, 255, 255, .055);
+}
+
+.hero-photo-card {
+    padding: 9px;
+    border: 1px solid rgba(255, 255, 255, .3);
+    border-radius: 25px;
+    background: rgba(255, 255, 255, .12);
+    box-shadow: 0 28px 65px rgba(0, 0, 0, .27);
+    backdrop-filter: blur(10px);
+}
+
+.hero-photo-card > img {
+    border-radius: 18px;
+    filter: saturate(.94) contrast(1.02);
+}
+
+.photo-caption {
+    padding: 10px 8px 6px;
+}
+
+.caption-icon {
+    border-radius: 14px;
+    color: #102e4c;
+    background: linear-gradient(135deg, #ffe58a, #f4c13c);
+}
+
+/* 4) Shared section headings */
+.section-heading-center {
+    max-width: 720px;
+    margin-inline: auto;
+    text-align: center;
+}
+
+.section-heading-center .section-kicker {
+    color: #c9233e;
+    letter-spacing: 2px;
+}
+
+.section-heading-center h2 {
+    color: #092b50;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(27px, 3vw, 36px);
+    line-height: 1.2;
+    letter-spacing: -.7px;
+    margin: 0 0 10px;
+}
+
+.section-heading-center > p:not(.section-kicker) {
+    color: #718096;
+    font-size: 14px;
+    line-height: 1.75;
+}
+
+/* 5) Upcoming events */
+.home-events-section {
+    padding-top: 62px;
+    padding-bottom: 12px;
+}
+
+.home-events-section .section-heading-center {
+    margin-bottom: 28px;
+}
+
+.home-events-grid {
+    gap: 18px;
+}
+
+.home-event-card {
+    border: 1px solid #e4ebf3;
+    border-radius: 17px;
+    background: linear-gradient(145deg, #fff, #fbfdff);
+    box-shadow: 0 8px 25px rgba(9, 43, 80, .055);
+    overflow: hidden;
+}
+
+.home-event-card:hover {
+    border-color: rgba(21, 85, 138, .22);
+    box-shadow: 0 18px 38px rgba(9, 43, 80, .11);
+}
+
+.home-event-date {
+    border-radius: 13px;
+    background: linear-gradient(145deg, #0d4778, #092b50);
+    color: #fff;
+    box-shadow: 0 8px 17px rgba(9, 43, 80, .18);
+}
+
+.he-month {
+    color: #ffdc69;
+}
+
+.home-event-info h3 {
+    color: #102f4d;
+    font-size: 17px;
+    line-height: 1.35;
+}
+
+.home-event-info p {
+    color: #718096;
+    line-height: 1.7;
+}
+
+.event-meta {
+    color: #718096;
+}
+
+.home-events-section .btn-primary {
+    border-radius: 12px;
+    background: linear-gradient(135deg, #15558a, #0b3b68);
+    box-shadow: 0 8px 20px rgba(21, 85, 138, .17);
+}
+
+/* 6) Shortcut strip */
+.quick-strip {
+    margin-top: 30px;
+    border: 1px solid #e4ebf3;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, .96);
+    box-shadow: 0 13px 34px rgba(9, 43, 80, .075);
+}
+
+.quick-strip > a {
+    min-height: 88px;
+    color: #24435f;
+    border-color: #edf1f6;
+}
+
+.quick-strip > a:hover {
+    background: #f7faff;
+}
+
+.shortcut-icon {
+    width: 41px;
+    height: 41px;
+    border-radius: 14px;
+}
+
+.shortcut-arrow {
+    color: #a2afbd;
+}
+
+/* 7) Main content cards */
+.content-grid {
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.panel {
+    border: 1px solid #e5ebf2;
+    border-radius: 19px;
+    background: #fff;
+    box-shadow: 0 8px 26px rgba(9, 43, 80, .055);
+}
+
+.panel:hover {
+    border-color: #d5e0eb;
+    box-shadow: 0 18px 42px rgba(9, 43, 80, .105);
+}
+
+.about-image img {
+    filter: saturate(.92);
+}
+
+.about-copy {
+    padding: 28px 25px;
+}
+
+.about-copy h2,
+.form-heading h2 {
+    color: #092b50;
+    font-size: clamp(23px, 2.1vw, 29px);
+}
+
+.about-copy > p:not(.section-kicker) {
+    color: #687b90;
+    font-size: 13px;
+}
+
+.class-note {
+    border: 1px solid #e8eff6;
+    background: #f5f9fd;
+    border-radius: 13px;
+}
+
+.about-copy .nav-link {
+    color: #bd203b;
+    background: #fff2f4;
+    border-radius: 10px;
+    padding-inline: 14px;
+}
+
+.about-copy .nav-link:hover {
+    color: #fff;
+    background: #bd203b;
+}
+
+.panel-title {
+    min-height: 66px;
+    padding: 15px 19px;
+    background: linear-gradient(100deg, #fff, #fbfdff);
+}
+
+.panel-title-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: #eaf3fb;
+    color: #15558a;
+}
+
+.panel-title h2 {
+    color: #102f4d;
+    font-size: 15px;
+    letter-spacing: .01em;
+}
+
+.quick-list {
+    padding: 8px 15px 14px;
+}
+
+.quick-list > a {
+    padding: 13px 5px;
+    border-color: #edf1f5;
+}
+
+.quick-list > a > span:nth-child(2) {
+    color: #24435f;
+    font-size: 12px;
+}
+
+.quick-list small {
+    color: #8291a2;
+    font-size: 10.5px;
+}
+
+.quick-item-icon {
+    width: 37px;
+    height: 37px;
+    border-radius: 12px;
+    background: #eef4fa;
+}
+
+.notice-title {
+    background: linear-gradient(100deg, #fffafa, #fff);
+}
+
+.notice-list {
+    padding-inline: 18px;
+}
+
+.notice {
+    padding-block: 15px;
+}
+
+.notice p {
+    color: #29445f;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.notice-file {
+    background: #fff0f2;
+    color: #c9233e;
+}
+
+.all-notices {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 18px 17px;
+    color: #bd203b;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+/* 8) Statistics band */
+.stats {
+    position: relative;
+    margin-top: 30px;
+    padding: 25px 26px 34px;
+    border: 1px solid #e4ebf3;
+    border-radius: 19px;
+    background: linear-gradient(135deg, #fff 0%, #f7faff 100%);
+    box-shadow: 0 10px 28px rgba(9, 43, 80, .055);
+}
+
+.stat {
+    gap: 13px;
+}
+
+.stat-icon {
+    width: 47px;
+    height: 47px;
+    border-radius: 15px;
+    box-shadow: inset 0 0 0 1px rgba(9, 43, 80, .035);
+}
+
+.stat strong {
+    color: #092b50;
+    font-size: clamp(21px, 2vw, 27px);
+    letter-spacing: -.5px;
+}
+
+.stat small {
+    color: #718096;
+    font-size: 11px;
+}
+
+.stat-footnote {
+    color: #8b98a7;
+    font-size: 10px;
+}
+
+/* 9) Testimonials */
+.home-testimonials {
+    position: relative;
+    overflow: hidden;
+    margin-top: 64px;
+    padding: 65px 0 70px;
+    background:
+        radial-gradient(circle at 12% 10%, rgba(64, 132, 184, .2), transparent 28rem),
+        linear-gradient(125deg, #071f3b, #0b3b68 58%, #124d78);
+}
+
+.home-testimonials:before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: .12;
+    background-image: radial-gradient(rgba(255,255,255,.8) .7px, transparent .7px);
+    background-size: 19px 19px;
+}
+
+.home-testimonials .wrap {
+    position: relative;
+    z-index: 1;
+}
+
+.testimonial-card {
+    border: 1px solid rgba(255, 255, 255, .13);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, .97);
+    box-shadow: 0 15px 38px rgba(0, 0, 0, .16);
+}
+
+.testimonial-card:hover {
+    border-color: rgba(255, 217, 102, .55);
+}
+
+.testimonial-quote {
+    color: #c9233e;
+}
+
+.testimonial-stars {
+    color: #e9b632;
+}
+
+.testimonial-text {
+    color: #53677c;
+    line-height: 1.8;
+}
+
+.testimonial-avatar {
+    color: #fff;
+    background: linear-gradient(135deg, #15558a, #092b50);
+}
+
+/* 10) Gallery, lower content and admission area */
+.lower-grid {
+    margin-top: 48px;
+    margin-bottom: 48px;
+    gap: 22px;
+}
+
+.gallery-slider-box,
+.classes-banner {
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 14px 36px rgba(9, 43, 80, .1);
+}
+
+.lower-grid .panel,
+.lower-grid > * {
+    min-width: 0;
+}
+
+.form-heading,
+.admission-heading {
+    color: #092b50;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible,
+a:focus-visible {
+    outline: 3px solid rgba(36, 118, 173, .35);
+    outline-offset: 3px;
+}
+
+/* 11) Footer */
+.site-footer {
+    position: relative;
+    overflow: hidden;
+    padding-top: 66px;
+    border-top: 4px solid #f7c948;
+    background:
+        radial-gradient(circle at 88% 12%, rgba(44, 112, 159, .22), transparent 24rem),
+        linear-gradient(135deg, #071f3b, #092f58 60%, #0d426d);
+}
+
+.footer-inner {
+    gap: 48px;
+    padding-bottom: 46px;
+}
+
+.footer-links-col h4,
+.footer-contact-col h4 {
+    color: #fff;
+    letter-spacing: .7px;
+}
+
+.footer-links-col h4:after,
+.footer-contact-col h4:after {
+    width: 38px;
+    height: 3px;
+    border-radius: 3px;
+    background: #f7c948;
+}
+
+.footer-links-col a,
+.footer-contact-col a {
+    color: #c1d0df;
+}
+
+.footer-links-col a:hover,
+.footer-contact-col a:hover {
+    color: #ffdc69;
+}
+
+.back-top {
+    border-color: rgba(247, 201, 72, .35);
+    color: #ffdc69 !important;
+    background: rgba(247, 201, 72, .055);
+}
+
+/* 12) Login/user menu and messages on the homepage */
+.user-dropdown {
+    border: 1px solid #e3eaf2;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(9, 43, 80, .18);
+}
+
+.user-info-head {
+    background: linear-gradient(135deg, #f6faff, #fff);
+}
+
+.user-role-tag,
+.mobile-role-badge {
+    border-radius: 30px;
+}
+
+.flash {
+    border-radius: 13px;
+    box-shadow: 0 12px 28px rgba(9, 43, 80, .12);
+}
+
+/* 13) Responsive visual tuning — no breakpoint/menu logic changes */
+@media (max-width: 1120px) {
+    .header-inner {
+        gap: 12px;
+    }
+
+    .desktop-nav .nav-link {
+        padding-inline: 9px;
+        font-size: 11.5px;
+    }
+
+    .brand-copy strong {
+        font-size: clamp(14px, 1.35vw, 18px);
+    }
+
+    .hero-inner {
+        gap: 30px;
+    }
+
+    .quick-strip > a {
+        padding-inline: 12px;
+    }
+}
+
+@media (max-width: 900px) {
+    .hero-inner {
+        padding-top: 45px;
+        padding-bottom: 54px;
+    }
+
+    .hero-photo-card > img {
+        height: 265px;
+    }
+
+    .content-grid {
+        gap: 16px;
+    }
+
+    .about-copy {
+        padding: 22px 19px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-inner {
+        width: min(100% - 36px, 620px);
+        gap: 28px;
+    }
+
+    .hero h1 {
+        font-size: clamp(42px, 9vw, 60px);
+    }
+
+    .hero-photo-card {
+        border-radius: 21px;
+    }
+
+    .quick-strip {
+        border-radius: 15px;
+    }
+
+    .quick-strip > a {
+        min-height: 75px;
+    }
+
+    .home-events-section {
+        padding-top: 48px;
+    }
+
+    .stats {
+        padding: 22px 18px 32px;
+    }
+
+    .home-testimonials {
+        margin-top: 48px;
+        padding: 52px 0 56px;
+    }
+
+    .site-footer {
+        padding-top: 50px;
+    }
+}
+
+@media (max-width: 600px) {
+    .wrap {
+        width: min(100% - 30px, 1240px);
+    }
+
+    .hero-inner {
+        width: min(100% - 30px, 560px);
+        padding-top: 38px;
+        padding-bottom: 48px;
+    }
+
+    .hero h1 {
+        letter-spacing: -1.6px;
+    }
+
+    .hero-desc {
+        font-size: 14px;
+    }
+
+    .hero-points {
+        gap: 8px;
+    }
+
+    .hero-points span {
+        font-size: 10px;
+        padding: 5px 8px;
+    }
+
+    .hero-photo-card > img {
+        height: 225px;
+    }
+
+    .section-heading-center h2 {
+        font-size: 27px;
+    }
+
+    .quick-strip > a {
+        padding: 11px 10px;
+        font-size: 11px;
+    }
+
+    .shortcut-icon {
+        width: 35px;
+        height: 35px;
+    }
+
+    .about-copy {
+        padding: 22px 18px;
+    }
+
+    .stats {
+        border-radius: 16px;
+    }
+
+    .lower-grid {
+        margin-top: 36px;
+        margin-bottom: 36px;
+    }
+}
+
+@media (max-width: 380px) {
+    .hero-actions .btn {
+        width: 100%;
+    }
+
+    .hero-photo-card > img {
+        height: 195px;
+    }
+
+    .quick-strip > a {
+        gap: 7px;
+        font-size: 10px;
+    }
+}
+
+/* Respect reduced-motion preferences while retaining the original layout. */
+@media (prefers-reduced-motion: reduce) {
+    .site-header,
+    .nav-link,
+    .btn,
+    .panel,
+    .home-event-card,
+    .quick-strip > a,
+    .hero-photo-card,
+    .footer-links-col a,
+    .footer-contact-col a {
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

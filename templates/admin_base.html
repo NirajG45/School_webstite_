@@ -1872,6 +1872,484 @@
     </style>
 
     {% block extra_head %}{% endblock %}
+
+    <!-- ============================================================
+         ADMIN UI ENHANCEMENT LAYER
+         Additive CSS only: original HTML, Jinja, routes and JavaScript
+         are intentionally preserved.
+         ============================================================ -->
+    <style id="admin-ui-enhancement-layer">
+        :root {
+            --admin-ink: #142b45;
+            --admin-muted: #718198;
+            --admin-line: #e4eaf2;
+            --admin-canvas: #f3f6fb;
+            --admin-surface: #ffffff;
+            --admin-primary: #1d5f96;
+            --admin-primary-dark: #123e67;
+            --admin-accent: #e9bd4d;
+            --admin-radius-sm: 10px;
+            --admin-radius-md: 14px;
+            --admin-radius-lg: 18px;
+            --admin-shadow-soft: 0 5px 18px rgba(20, 43, 69, .055);
+            --admin-shadow-card: 0 12px 32px rgba(20, 43, 69, .075);
+            --admin-focus: 0 0 0 3px rgba(35, 103, 165, .16);
+        }
+
+        body.admin-body {
+            background:
+                radial-gradient(ellipse at 90% 0%, rgba(218, 231, 246, .42), transparent 34%),
+                var(--admin-canvas);
+            color: var(--admin-ink);
+            line-height: 1.5;
+        }
+
+        /* Sidebar: clearer hierarchy and calmer contrast */
+        .admin-sidebar {
+            background: linear-gradient(180deg, #102e50 0%, #0b2039 100%);
+            border-right: 1px solid rgba(255,255,255,.075);
+            box-shadow: 10px 0 34px rgba(10, 31, 54, .10);
+            overscroll-behavior: contain;
+        }
+
+        .admin-sidebar-head {
+            min-height: 78px;
+            padding: 15px 16px;
+            background: rgba(255,255,255,.018);
+        }
+
+        .admin-logo .school_logo {
+            border-radius: 13px;
+            box-shadow: 0 5px 16px rgba(0,0,0,.18);
+        }
+
+        .admin-logo .brand-text strong {
+            font-size: 14px;
+            letter-spacing: -.2px;
+        }
+
+        .admin-logo .brand-text small {
+            font-size: 9px;
+            letter-spacing: .14em;
+        }
+
+        .admin-user-box {
+            margin: 14px 12px 11px;
+            padding: 12px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, rgba(255,255,255,.085), rgba(255,255,255,.035));
+            border-color: rgba(255,255,255,.12);
+        }
+
+        .admin-user-box:hover {
+            background: rgba(255,255,255,.11);
+            border-color: rgba(233,189,77,.30);
+        }
+
+        .admin-user-avatar {
+            box-shadow: 0 0 0 3px rgba(255,255,255,.06);
+        }
+
+        .admin-role-badge {
+            font-size: 8px;
+            letter-spacing: .08em;
+        }
+
+        .admin-sidebar-search {
+            margin: 12px 12px 14px;
+            min-height: 41px;
+            border-radius: 10px;
+            background: rgba(3,15,29,.30);
+            border-color: rgba(255,255,255,.13);
+        }
+
+        .admin-sidebar-search input {
+            font-size: 12px;
+        }
+
+        .admin-quick-stats {
+            margin: 0 12px 15px;
+            gap: 7px;
+        }
+
+        .admin-qstat {
+            min-height: 58px;
+            border-radius: 10px;
+            background: rgba(255,255,255,.055);
+            border-color: rgba(255,255,255,.085);
+        }
+
+        .admin-qstat strong {
+            font-size: 17px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .admin-qstat small {
+            font-size: 8px;
+            letter-spacing: .075em;
+        }
+
+        .admin-nav {
+            padding: 3px 10px 18px;
+        }
+
+        .admin-nav-group-label {
+            margin: 18px 9px 7px;
+            padding: 0 8px 3px;
+            color: #8da6c0;
+            font-size: 9px;
+            letter-spacing: .14em;
+        }
+
+        .admin-nav-link {
+            min-height: 42px;
+            margin: 3px 0;
+            padding: 9px 12px;
+            border-radius: 10px;
+            color: #c7d5e4;
+            font-size: 12.5px;
+        }
+
+        .admin-nav-link i {
+            width: 19px;
+            font-size: 14px;
+            color: #9db2c8;
+        }
+
+        .admin-nav-link:hover {
+            background: rgba(255,255,255,.085);
+            border-color: rgba(255,255,255,.06);
+            color: #fff;
+            transform: translateX(2px);
+        }
+
+        .admin-nav-link.active {
+            background: linear-gradient(100deg, rgba(42,111,168,.42), rgba(42,111,168,.18)) !important;
+            border-color: rgba(139,190,231,.24);
+            color: #fff !important;
+            box-shadow: inset 3px 0 0 var(--admin-accent), 0 5px 14px rgba(0,0,0,.10);
+        }
+
+        .admin-nav-link.active::before {
+            display: none;
+        }
+
+        .admin-nav-link.active i {
+            color: #f5d477 !important;
+        }
+
+        .admin-sidebar-foot {
+            margin-top: auto;
+            padding: 12px 12px 15px;
+            background: linear-gradient(180deg, rgba(11,32,57,.94), #081a2e);
+        }
+
+        .admin-sidebar-foot-link {
+            min-height: 40px;
+            border-radius: 10px;
+        }
+
+        /* Main workspace and topbar */
+        .admin-main {
+            min-width: 0;
+            min-height: 100vh;
+            background: transparent;
+        }
+
+        .admin-topbar {
+            min-height: 76px;
+            padding: 12px clamp(16px, 2.4vw, 34px);
+            gap: clamp(10px, 1.3vw, 18px);
+            background: rgba(255,255,255,.92);
+            border-bottom: 1px solid var(--admin-line);
+            box-shadow: 0 4px 18px rgba(20,43,69,.035);
+            backdrop-filter: blur(16px) saturate(150%);
+        }
+
+        .admin-page-title {
+            color: var(--admin-ink);
+            font-size: clamp(18px, 1.55vw, 23px);
+            font-weight: 800;
+            letter-spacing: -.65px;
+        }
+
+        .admin-search {
+            max-width: 480px;
+            min-width: 130px;
+            height: 43px;
+            border-radius: 11px;
+            background: #f7f9fc;
+            border-color: #e5ebf2;
+        }
+
+        .admin-search input {
+            font-size: 13px;
+        }
+
+        .admin-topbar-icon {
+            width: 41px;
+            height: 41px;
+            border-radius: 11px;
+            background: #fff;
+            border-color: #e5ebf2;
+            color: #3f5872;
+        }
+
+        .admin-topbar-icon:hover {
+            background: #f4f8fc;
+            border-color: #c8d8e8;
+            color: var(--admin-primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .admin-my-dash-btn {
+            background: linear-gradient(135deg, #1c6098, #174b79) !important;
+            border-color: #1c6098 !important;
+            box-shadow: 0 5px 13px rgba(28,96,152,.20);
+        }
+
+        .admin-user-btn {
+            min-height: 46px;
+            border-radius: 12px;
+        }
+
+        .admin-user-btn:hover,
+        .admin-user-profile.dropdown-open .admin-user-btn {
+            background: #f4f7fb;
+            border-color: #e2eaf2;
+            box-shadow: var(--admin-shadow-soft);
+        }
+
+        /* Content canvas: consistent spacing without changing child templates */
+        .admin-content {
+            width: min(100%, 1740px);
+            padding: clamp(18px, 2.2vw, 32px) clamp(14px, 2.4vw, 36px) 46px;
+        }
+
+        .admin-content > * {
+            min-width: 0;
+        }
+
+        .admin-content :is(.card, .panel, .content-card, .stat-card, .table-container, .form-card) {
+            border: 1px solid var(--admin-line);
+            border-radius: var(--admin-radius-md);
+            background: var(--admin-surface);
+            box-shadow: var(--admin-shadow-soft);
+            overflow: hidden;
+            transition: box-shadow .2s ease, border-color .2s ease, transform .2s ease;
+        }
+
+        .admin-content :is(.card, .panel, .content-card, .stat-card, .form-card):hover {
+            border-color: #d8e3ee;
+            box-shadow: var(--admin-shadow-card);
+        }
+
+        .admin-content :is(h1, h2, h3, h4) {
+            color: #18334f;
+            letter-spacing: -.35px;
+            line-height: 1.3;
+        }
+
+        .admin-content :is(p, .text-muted, small) {
+            line-height: 1.55;
+        }
+
+        /* Tables: readable headers, row separation and horizontal safety */
+        .admin-content .table-container {
+            max-width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .admin-content table {
+            width: 100%;
+            min-width: 620px;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .admin-content th {
+            padding: 13px 15px;
+            color: #536b83;
+            background: #f5f8fc;
+            border-bottom: 1px solid #e5ebf2;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .075em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .admin-content td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #edf1f6;
+            color: #40566d;
+            font-size: 12.5px;
+            vertical-align: middle;
+        }
+
+        .admin-content tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .admin-content tbody tr:hover {
+            background: #f8fbff;
+        }
+
+        /* Inputs and buttons */
+        .admin-content :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+            min-height: 40px;
+            border: 1px solid #dce5ee;
+            border-radius: 9px;
+            background-color: #fff;
+            color: #233d57;
+            transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+        }
+
+        .admin-content :is(input, select, textarea):focus {
+            border-color: #78a6cf;
+            outline: 0;
+            box-shadow: var(--admin-focus);
+        }
+
+        .admin-content :is(button, .btn, input[type="submit"]) {
+            transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+        }
+
+        .admin-content :is(.btn, button[type="submit"], input[type="submit"]):hover {
+            filter: brightness(1.025);
+        }
+
+        .admin-content :is(.btn, button):focus-visible,
+        .admin-topbar :is(button, a):focus-visible,
+        .admin-sidebar :is(button, a, input):focus-visible {
+            outline: 2px solid #77a8d2;
+            outline-offset: 3px;
+        }
+
+        /* Menus, alerts and floating panels */
+        .admin-notif-dropdown,
+        .admin-user-dropdown {
+            border: 1px solid #e3eaf2;
+            border-radius: 15px;
+            box-shadow: 0 20px 55px rgba(16,43,78,.18);
+        }
+
+        .notif-head,
+        .notif-footer {
+            background: #f8fafd;
+        }
+
+        .notif-item {
+            min-height: 58px;
+        }
+
+        .admin-content .flash-stack {
+            top: 88px;
+            right: clamp(12px, 2vw, 24px);
+            width: min(430px, calc(100% - 24px));
+        }
+
+        .flash {
+            border: 1px solid rgba(20,43,69,.08);
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(20,43,69,.13);
+        }
+
+        /* Collapsed navigation remains compatible with existing toggle JS */
+        .admin-sidebar.collapsed {
+            width: 78px !important;
+            min-width: 78px !important;
+        }
+
+        .admin-sidebar.collapsed .admin-nav-link {
+            min-height: 43px;
+            border-radius: 10px;
+        }
+
+        /* Responsive layout refinements */
+        @media (max-width: 1100px) {
+            .admin-topbar {
+                padding-inline: 18px;
+            }
+            .admin-content {
+                padding-inline: 20px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .admin-sidebar {
+                width: min(300px, 88vw);
+                min-width: min(300px, 88vw);
+            }
+            .admin-topbar {
+                min-height: 66px;
+                padding: 10px 14px;
+            }
+            .admin-content {
+                padding: 18px 14px 30px;
+            }
+            .admin-user-btn-info,
+            .admin-user-chevron {
+                display: none;
+            }
+            .admin-user-btn {
+                max-width: none;
+                padding: 3px;
+            }
+            .admin-user-btn:hover,
+            .admin-user-profile.dropdown-open .admin-user-btn {
+                max-width: none;
+                padding: 3px;
+            }
+            .admin-notif-dropdown {
+                position: fixed;
+                top: 62px;
+                right: 10px;
+                width: min(340px, calc(100vw - 20px));
+            }
+        }
+
+        @media (max-width: 560px) {
+            .admin-topbar {
+                gap: 8px;
+                padding-inline: 10px;
+            }
+            .admin-page-title {
+                font-size: 15px;
+            }
+            .admin-content {
+                padding: 14px 10px 25px;
+            }
+            .admin-content :is(.card, .panel, .content-card, .stat-card, .form-card) {
+                border-radius: 12px;
+            }
+            .admin-user-dropdown {
+                position: fixed;
+                top: 62px;
+                right: 10px;
+                left: auto;
+                min-width: min(270px, calc(100vw - 20px));
+            }
+            .admin-content .flash-stack {
+                top: 72px;
+                right: 10px;
+                width: calc(100% - 20px);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            body.admin-body *,
+            body.admin-body *::before,
+            body.admin-body *::after {
+                scroll-behavior: auto !important;
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+
 </head>
 
 <body class="admin-body">

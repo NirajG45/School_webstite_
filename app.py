@@ -210,7 +210,6 @@ def migrate_faculty_table(db):
             db.execute('''INSERT INTO faculty (user_id, name, subject, qualification, experience, photo_url) 
                           VALUES (?, ?, ?, ?, ?, ?)''',
                        (t['id'], t['name'], t['subject'] or 'General', t['qualification'] or '', t['experience'] or '', t['photo_url']))
-
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(DB_PATH) as db:
@@ -382,7 +381,7 @@ def init_db():
             FOREIGN KEY (faculty_id) REFERENCES faculty(id) ON DELETE CASCADE)''')
 
         # =========================================
-        # NEW: EXAM SYSTEM TABLES
+        # -> EXAM SYSTEM TABLES
         # =========================================
         db.execute('''CREATE TABLE IF NOT EXISTS subjects (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -462,8 +461,45 @@ def init_db():
             selected_subjects TEXT,
             status TEXT DEFAULT 'pending',
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
-        
-                # NEW: Question Paper Generator Tables
+
+        # ---------- exam_registrations migrations ----------
+        _exam_reg_cols = {
+            row[1] for row in db.execute(
+                "PRAGMA table_info(exam_registrations)"
+            ).fetchall()
+        }
+
+        # Add declaration_accepted column if missing
+        if 'declaration_accepted' not in _exam_reg_cols:
+            db.execute(
+                "ALTER TABLE exam_registrations "
+                "ADD COLUMN declaration_accepted INTEGER DEFAULT 0"
+            )
+
+        # NOTE: academic_year column intentionally NOT added (removed from logic).
+        # Agar purane DB me academic_year column already exists → SQLite me
+        # ALTER TABLE DROP COLUMN se hata sakte hain, ya chhod dena safe hai
+        # (koi query ise touch nahi karegi).
+
+        # Drop old 3-column unique index if it exists (academic_year wala)
+        db.execute('DROP INDEX IF EXISTS idx_exam_reg_unique')
+
+        # Duplicates clean karo — sirf latest row per (student_id, exam_type)
+        db.execute('''
+            DELETE FROM exam_registrations
+            WHERE id NOT IN (
+                SELECT MAX(id) FROM exam_registrations
+                GROUP BY student_id, exam_type
+            )
+        ''')
+
+        # Naya 2-column UNIQUE index (student_id + exam_type)
+        db.execute('''
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_exam_reg_unique
+            ON exam_registrations (student_id, exam_type)
+        ''')
+
+        # NEW: Question Paper Generator Tables
         db.execute('''CREATE TABLE IF NOT EXISTS exam_papers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
@@ -509,6 +545,7 @@ def init_db():
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('upi_link', '')")
 
         db.commit()
+
 
 COMMON_SUBJECTS = [
     ('HINDI', 100),
@@ -559,6 +596,7 @@ def ensure_common_subjects(db, class_name):
         db.commit()
     return added
 
+
 # =========================================
 # 🚀 HELPER: Get All Standard + Dynamic Classes
 # =========================================
@@ -587,6 +625,7 @@ def get_all_classes(db):
     extra_classes = sorted([c for c in dynamic_classes if c.lower() not in standard_lower])
     
     return standard_classes + extra_classes
+
 
 # =========================================
 # 3. UTILITY HELPERS
@@ -636,10 +675,56 @@ def get_setting(key, default=''):
     row = db.execute('SELECT value FROM school_settings WHERE key = ?', (key,)).fetchone()
     return row['value'] if row else default
 
+
 def set_setting(key, value):
     db = get_db()
     db.execute('INSERT OR REPLACE INTO school_settings (key, value) VALUES (?, ?)', (key, value))
     db.commit()
+
+
+# =========================================
+# EXAM FORM — HELPERS
+# =========================================
+EXAM_TYPES = ('Half Yearly', 'Annual')
+
+
+def _resolve_exam_student(db, user):
+    """Return (student_row, error_msg). Handles student + parent roles."""
+    if user['role'] == 'student':
+        return user, None
+
+    if user['role'] == 'parent':
+        child = get_parent_child(db, user)
+        if not child:
+            return None, ('Aapke account se koi student linked nahi hai. '
+                          'Office se contact karein.')
+        return child, None
+
+    return None, 'Sirf student ya parent hi examination form bhar sakte hain.'
+
+
+def _get_subjects_dict(db):
+    """Build {class_name: [subject_name, ...]} for template JS."""
+    rows = db.execute(
+        "SELECT class_name, subject_name FROM subjects "
+        "ORDER BY class_name, display_order, id"
+    ).fetchall()
+
+    subjects_dict = {}
+    for row in rows:
+        subjects_dict.setdefault(row['class_name'], []).append(row['subject_name'])
+    return subjects_dict
+
+
+def _decode_subjects(row_dict):
+    """Safe decode selected_subjects JSON."""
+    try:
+        row_dict['selected_subjects'] = json.loads(
+            row_dict.get('selected_subjects') or '[]'
+        )
+    except (ValueError, TypeError):
+        row_dict['selected_subjects'] = []
+    return row_dict
 
 
 def safe_redirect_url(default_url):
@@ -655,6 +740,7 @@ def safe_redirect_url(default_url):
     except (TypeError, ValueError):
         pass
     return default_url
+
 
 def get_combined_faculty():
     """Fetches faculty records. Ensures every active teacher has a faculty row
@@ -693,7 +779,6 @@ def get_combined_faculty():
         'photo_url, bio, display_order FROM faculty ORDER BY display_order, id'
     ).fetchall()
     return [dict(r) for r in rows]
-
 
 # =========================================
 # HELPER: Find a parent's child (student) record
@@ -5019,92 +5104,200 @@ def results_page():
                           exam_marks=exam_marks,
                           grouped=grouped)
 
-
 # =========================================
-# NEW: ONLINE EXAM FORM ROUTE
+# EXAM FORM — GET (render) + POST (submit)
 # =========================================
 @app.route('/exam-form', methods=['GET', 'POST'])
 @login_required
 def exam_form():
+    db = get_db()
     user = get_user_by_id(session['user_id'])
     if not user:
+        session.clear()
         return redirect(url_for('login_page'))
 
-    db = get_db()
-    
-    # Agar form submit hua hai
-    if request.method == 'POST':
-        selected_subjects = request.form.getlist('subjects')
-        
-        db.execute('''INSERT INTO exam_registrations 
-                      (student_id, student_name, father_name, mother_name, dob, gender, 
-                       class_name, section, roll_no, admission_no, student_mobile, 
-                       parent_mobile, address, exam_type, selected_subjects)
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                   (user['id'], request.form.get('studentName'), request.form.get('fatherName'),
-                    request.form.get('motherName'), request.form.get('dob'), request.form.get('gender'),
-                    request.form.get('className'), request.form.get('section'), request.form.get('rollNumber'),
-                    request.form.get('admissionNumber'), request.form.get('studentMobile'),
-                    request.form.get('parentMobile'), request.form.get('address'), request.form.get('examType'),
-                    json.dumps(selected_subjects)))
-        db.commit()
-        flash('Exam form submitted successfully!', 'success')
+    student, resolve_error = _resolve_exam_student(db, user)
+    if resolve_error:
+        flash(resolve_error, 'error')
         return redirect(url_for('user_dashboard'))
 
-    # Agar page open kiya hai (GET)
-    # 🚀 YAHAN FIX KIYA GAYA HAI
-    classes = get_all_classes(db)
-    
-    # Admin dwara add kiye gaye subjects fetch karein
-    subjects_raw = db.execute('SELECT class_name, subject_name FROM subjects').fetchall()
-    subjects_dict = {}
-    for row in subjects_raw:
-        cls = row['class_name']
-        if cls not in subjects_dict:
-            subjects_dict[cls] = []
-        subjects_dict[cls].append(row['subject_name'])
+    student_id = student['id']
 
-    # Auto-fill ke liye data taiyar karein
-    prefill = {
-        'studentName': '', 'fatherName': '', 'motherName': '', 'dob': '',
-        'gender': '', 'className': '', 'section': '', 'rollNumber': '',
-        'admissionNumber': '', 'studentMobile': '', 'parentMobile': '', 'address': ''
+    # ==================================================
+    # POST — form submission
+    # ==================================================
+    if request.method == 'POST':
+
+        # ---------- Read & sanitize ----------
+        student_name   = (request.form.get('studentName')      or '').strip()[:100]
+        father_name    = (request.form.get('fatherName')       or '').strip()[:100]
+        mother_name    = (request.form.get('motherName')       or '').strip()[:100]
+        dob            = (request.form.get('dob')              or '').strip()
+        gender         = (request.form.get('gender')           or '').strip()
+        class_name     = (request.form.get('className')        or '').strip()
+        section        = (request.form.get('section')          or '').strip()[:20]
+        roll_no        = (request.form.get('rollNumber')       or '').strip()[:30]
+        admission_no   = (request.form.get('admissionNumber')  or '').strip()[:50]
+        student_mobile = (request.form.get('studentMobile')    or '').strip()
+        parent_mobile  = (request.form.get('parentMobile')     or '').strip()
+        address        = (request.form.get('address')          or '').strip()[:500]
+        exam_type      = (request.form.get('examType')         or '').strip()
+        declaration    = request.form.get('declaration') == 'yes'
+        subjects       = request.form.getlist('subjects')
+
+        # ---------- Validate ----------
+        errors = []
+
+        if not student_name:
+            errors.append('Student full name required hai.')
+        if not father_name:
+            errors.append('Father name required hai.')
+        if not dob:
+            errors.append('Date of birth required hai.')
+        elif dob > date.today().isoformat():
+            errors.append('Date of birth future me nahi ho sakti.')
+        if gender not in ('Male', 'Female', 'Other'):
+            errors.append('Valid gender select karein.')
+        if not class_name:
+            errors.append('Class select karein.')
+        if not section:
+            errors.append('Section required hai.')
+        if not parent_mobile:
+            errors.append('Parent mobile required hai.')
+        elif not re.match(r'^[6-9]\d{9}$', parent_mobile):
+            errors.append('Parent mobile valid 10-digit hona chahiye.')
+        if student_mobile and not re.match(r'^[6-9]\d{9}$', student_mobile):
+            errors.append('Student mobile valid 10-digit hona chahiye.')
+        if not address:
+            errors.append('Complete address required hai.')
+        if exam_type not in EXAM_TYPES:
+            errors.append(f'Exam type {", ".join(EXAM_TYPES)} me se hona chahiye.')
+        if not subjects:
+            errors.append('Kam se kam ek subject select karein.')
+        if not declaration:
+            errors.append('Declaration accept karna zaroori hai.')
+
+        if errors:
+            for e in errors:
+                flash(e, 'error')
+            return redirect(url_for('exam_form'))
+
+        # ---------- Duplicate check (per exam_type only) ----------
+        existing = db.execute(
+            "SELECT id FROM exam_registrations "
+            "WHERE student_id = ? AND exam_type = ?",
+            (student_id, exam_type)
+        ).fetchone()
+
+        if existing:
+            flash(
+                f'Aap "{exam_type}" examination ka form pehle hi submit kar chuke hain. '
+                f'Dobara submit karne ki zaroorat nahi hai.',
+                'info'
+            )
+            return redirect(url_for('exam_form'))
+
+        # ---------- Insert ----------
+        try:
+            db.execute('''
+                INSERT INTO exam_registrations (
+                    student_id, student_name, father_name, mother_name,
+                    dob, gender, class_name, section, roll_no, admission_no,
+                    student_mobile, parent_mobile, address,
+                    exam_type, selected_subjects, status,
+                    declaration_accepted
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                student_id,
+                student_name,
+                father_name,
+                mother_name or None,
+                dob,
+                gender,
+                class_name,
+                section,
+                roll_no or None,
+                admission_no or None,
+                student_mobile or None,
+                parent_mobile,
+                address,
+                exam_type,
+                json.dumps(subjects),
+                'pending',
+                1 if declaration else 0,
+            ))
+            db.commit()
+
+        except sqlite3.IntegrityError:
+            db.rollback()
+            flash('Aapka form pehle hi submit ho chuka hai.', 'info')
+            return redirect(url_for('exam_form'))
+
+        except Exception:
+            db.rollback()
+            app.logger.exception(
+                'Exam form insert failed for student_id=%s', student_id
+            )
+            flash('Form submit nahi ho paaya. Thodi der baad try karein.', 'error')
+            return redirect(url_for('exam_form'))
+
+        flash(
+            f'Aapka "{exam_type}" examination form successfully submit ho gaya!',
+            'success'
+        )
+        # PRG — refresh pe double-submit nahi
+        return redirect(url_for('exam_form'))
+
+    # ==================================================
+    # GET — render form OR already-submitted card
+    # ==================================================
+    submitted_rows = db.execute(
+        "SELECT * FROM exam_registrations "
+        "WHERE student_id = ? ORDER BY id DESC",
+        (student_id,)
+    ).fetchall()
+
+    submitted_map = {
+        row['exam_type']: _decode_subjects(dict(row))
+        for row in submitted_rows
     }
 
-    if user['role'] == 'student':
-        prefill['studentName'] = user['name']
-        prefill['fatherName'] = user['father_name'] or ''
-        prefill['motherName'] = user['mother_name'] or ''
-        prefill['dob'] = user['dob'] or ''
-        prefill['gender'] = user['gender'] or ''
-        prefill['className'] = user['class_name'] or user['child_class'] or ''
-        prefill['section'] = user['section'] or ''
-        prefill['rollNumber'] = user['roll_no'] or ''
-        prefill['admissionNumber'] = user['admission_no'] or ''
-        prefill['studentMobile'] = user['phone'] or ''
-        prefill['parentMobile'] = user['father_mobile'] or ''
-        prefill['address'] = user['address'] or ''
-    elif user['role'] == 'parent':
-        child = get_parent_child(db, user)
-        if child:
-            prefill['studentName'] = child['name']
-            prefill['fatherName'] = child['father_name'] or ''
-            prefill['motherName'] = child['mother_name'] or ''
-            prefill['dob'] = child['dob'] or ''
-            prefill['gender'] = child['gender'] or ''
-            prefill['className'] = child['class_name'] or ''
-            prefill['section'] = child['section'] or ''
-            prefill['rollNumber'] = child['roll_no'] or ''
-            prefill['admissionNumber'] = child['admission_no'] or ''
-            prefill['parentMobile'] = child['father_mobile'] or ''
-            prefill['address'] = child['address'] or ''
-            
-    return render_template('exam_form.html', 
-                           user=user, 
-                           classes=classes, 
-                           subjects_dict=subjects_dict,
-                           prefill=prefill)
-    
+    available_exams = [e for e in EXAM_TYPES if e not in submitted_map]
+    already_submitted = not available_exams   # sab submit ho gaye → card
+
+    # ---------- Prefill from student record ----------
+    prefill = {
+        'studentName':     student['name']              or '',
+        'fatherName':      student['father_name']       or '',
+        'motherName':      student['mother_name']       or '',
+        'dob':             student['dob']               or '',
+        'gender':          student['gender']            or '',
+        'className':       student['class_name']
+                           or student['child_class']    or '',
+        'section':         student['section']           or '',
+        'rollNumber':      student['roll_no']           or '',
+        'admissionNumber': student['admission_no']      or '',
+        'studentMobile':   student['phone']             or '',
+        'parentMobile':    (student['father_mobile']
+                            or student['guardian_mobile']
+                            or student['emergency_contact']
+                            or ''),
+        'address':         student['address']           or '',
+    }
+
+    classes       = get_all_classes(db)
+    subjects_dict = _get_subjects_dict(db)
+
+    return render_template(
+        'exam_form.html',
+        already_submitted=already_submitted,
+        submitted_map=submitted_map,
+        available_exams=available_exams,
+        classes=classes,
+        subjects_dict=subjects_dict,
+        prefill=prefill,
+    )
+
 # =========================================
 # 10.10. SETTINGS PAGE
 # =========================================

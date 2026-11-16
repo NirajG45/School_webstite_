@@ -1,126 +1,1528 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Online Examination Form | Shanti Niketan</title>
+    <title>Online Examination Form | Residential Shanti Niketan</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}" media="print">
+
     <style>
-        /* Chhota sa CSS fix print/preview ke liye */
-        .page-shell.hidden, .hidden { display: none !important; }
+        :root {
+            --navy: #102b4e;
+            --navy-dark: #081b32;
+            --navy-light: #1d4774;
+            --gold: #e8b542;
+            --gold-light: #fff1c6;
+            --ink: #192b40;
+            --muted: #718096;
+            --line: #e4eaf1;
+            --surface: #ffffff;
+            --bg: #f3f6fa;
+            --success: #16845b;
+            --danger: #d94343;
+            --radius: 16px;
+            --shadow: 0 12px 35px rgba(16, 43, 78, .07);
+        }
+
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: 'DM Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        button, input, select, textarea { font: inherit; }
+        button { cursor: pointer; }
+        [hidden] { display: none !important; }
+
+        .page-shell {
+            width: min(1050px, calc(100% - 36px));
+            margin: 38px auto;
+        }
+
+        /* FLASH MESSAGES */
+        .flash-stack { padding: 14px 24px 0; }
+        .flash {
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid;
+        }
+        .flash-success { background: #e7f7ef; color: #0d6c48; border-color: #b9e6ce; }
+        .flash-error   { background: #fdecec; color: #a52a2a; border-color: #f4c7c7; }
+        .flash-info    { background: #eaf2fd; color: #1c3f77; border-color: #c5d9f5; }
+        .flash-warning { background: #fff8e7; color: #76561c; border-color: #f1e2bb; }
+
+        /* HEADER */
+        .school-header {
+            position: relative;
+            display: grid;
+            grid-template-columns: 90px 1fr 90px;
+            align-items: center;
+            gap: 20px;
+            padding: 30px 35px;
+            overflow: hidden;
+            color: white;
+            background:
+                radial-gradient(circle at 90% 0%, rgba(232, 181, 66, .19), transparent 30%),
+                linear-gradient(125deg, var(--navy-dark), var(--navy), #1d4774);
+            border-radius: 22px 22px 0 0;
+        }
+
+        .school-header::after {
+            content: "";
+            position: absolute;
+            width: 230px;
+            height: 230px;
+            right: -100px;
+            bottom: -150px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: 50%;
+            box-shadow: 0 0 0 25px rgba(255, 255, 255, .025), 0 0 0 50px rgba(255, 255, 255, .02);
+            pointer-events: none;
+        }
+
+        .school_logo {
+            width: 78px;
+            height: 78px;
+            object-fit: contain;
+            padding: 7px;
+            background: white;
+            border: 2px solid rgba(232, 181, 66, .7);
+            border-radius: 16px;
+        }
+
+        .school-heading {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .school-heading h1 {
+            margin: 0;
+            color: white;
+            font-size: clamp(17px, 2.5vw, 25px);
+            font-weight: 800;
+            letter-spacing: .5px;
+        }
+
+        .school-heading > p {
+            margin: 5px 0;
+            color: #dbe7f4;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .school-heading .exam-session {
+            display: inline-block;
+            margin: 10px 0;
+            padding: 6px 13px;
+            color: #ffe4a0;
+            background: rgba(232, 181, 66, .13);
+            border: 1px solid rgba(232, 181, 66, .3);
+            border-radius: 30px;
+            font-size: 11px;
+            letter-spacing: 1.2px;
+        }
+
+        .school-heading h2 {
+            margin: 5px 0 0;
+            color: white;
+            font-family: 'Playfair Display', serif;
+            font-size: 23px;
+            letter-spacing: 1px;
+        }
+
+        /* NOTICE */
+        .notice {
+            padding: 14px 24px;
+            color: #76561c;
+            background: #fff8e7;
+            border-bottom: 1px solid #f1e2bb;
+            font-size: 13px;
+        }
+        .notice i { margin-right: 7px; color: #c18b20; }
+
+        /* META STRIP */
+        .meta-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 18px 24px;
+            background: white;
+            border-bottom: 1px solid var(--line);
+        }
+        .meta-strip > div {
+            padding: 8px 14px;
+            border-left: 3px solid var(--gold);
+        }
+        .meta-strip span {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+        }
+        .meta-strip strong { color: var(--navy); font-size: 14px; }
+
+        main {
+            padding: 25px;
+            background: white;
+            border-radius: 0 0 22px 22px;
+            box-shadow: var(--shadow);
+        }
+
+        /* FORM SECTIONS */
+        .form-section {
+            margin-bottom: 25px;
+            padding: 24px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: 0 5px 18px rgba(16, 43, 78, .035);
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 23px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .section-icon {
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            color: var(--navy);
+            background: #edf3fa;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+
+        .section-heading h3 {
+            margin: 0;
+            color: var(--navy);
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: .8px;
+        }
+        .section-heading p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+        .field { min-width: 0; }
+        .field.wide { grid-column: 1 / -1; }
+
+        .field label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34465c;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .required { color: var(--danger); }
+
+        .field input, .field select, .field textarea {
+            width: 100%;
+            min-height: 46px;
+            padding: 11px 13px;
+            color: var(--ink);
+            background: #fbfcfe;
+            border: 1px solid #dfe6ee;
+            border-radius: 9px;
+            outline: none;
+            transition: .2s ease;
+        }
+        .field textarea { min-height: 90px; resize: vertical; }
+
+        .field input:focus, .field select:focus, .field textarea:focus {
+            background: white;
+            border-color: var(--navy-light);
+            box-shadow: 0 0 0 4px rgba(29, 71, 116, .09);
+        }
+        .field input[readonly] { color: var(--muted); background: #f1f4f8; }
+
+        .field input.invalid, .field select.invalid, .field textarea.invalid {
+            border-color: var(--danger);
+            background: #fffafa;
+        }
+
+        .error {
+            display: block;
+            min-height: 15px;
+            margin-top: 5px;
+            color: var(--danger);
+            font-size: 11px;
+        }
+
+        /* EXAM DETAILS */
+        .exam-highlight {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+            margin-bottom: 26px;
+        }
+
+        .exam-info {
+            padding: 17px;
+            background: #f7f9fc;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+        }
+        .exam-info label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .6px;
+            text-transform: uppercase;
+        }
+        .exam-info input, .exam-info select {
+            width: 100%;
+            padding: 10px;
+            color: var(--navy);
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            font-weight: 700;
+        }
+
+        .submitted-note {
+            display: block;
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+        .submitted-note i { color: var(--success); margin-right: 4px; }
+
+        .subject-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 10px 0 15px;
+        }
+        .subject-heading h4 {
+            margin: 0;
+            color: var(--navy);
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: .5px;
+        }
+        .subject-count {
+            padding: 7px 12px;
+            color: var(--navy);
+            background: var(--gold-light);
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .subject-option { position: relative; }
+        .subject-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .subject-option label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 52px;
+            padding: 12px;
+            color: #45566c;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: .2s ease;
+        }
+        .subject-option label::before {
+            content: "";
+            flex-shrink: 0;
+            width: 17px;
+            height: 17px;
+            border: 1.5px solid #bdc9d7;
+            border-radius: 5px;
+            background: white;
+        }
+        .subject-option input:checked + label {
+            color: var(--navy);
+            background: #edf4fc;
+            border-color: var(--navy-light);
+            box-shadow: 0 4px 12px rgba(16, 43, 78, .07);
+        }
+        .subject-option input:checked + label::before {
+            content: "✓";
+            display: grid;
+            place-items: center;
+            color: white;
+            background: var(--navy);
+            border-color: var(--navy);
+            font-size: 12px;
+        }
+        .subject-option input:focus-visible + label {
+            outline: 3px solid rgba(232, 181, 66, .45);
+            outline-offset: 2px;
+        }
+
+        .subject-empty {
+            grid-column: 1 / -1;
+            padding: 25px;
+            color: var(--muted);
+            background: #f8fafc;
+            border: 1px dashed #ccd6e2;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        /* DECLARATION */
+        .declaration {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 17px;
+            background: #f7f9fc;
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            color: #40536a;
+            font-size: 12px;
+            line-height: 1.7;
+            cursor: pointer;
+        }
+        .declaration input {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            margin: 1px 0 0;
+            accent-color: var(--navy);
+        }
+
+        /* BUTTONS */
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            padding: 18px;
+            background: #f7f9fc;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            min-height: 44px;
+            padding: 11px 20px;
+            border: 1px solid transparent;
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 800;
+            text-decoration: none;
+            transition: .2s ease;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-primary { color: white; background: var(--navy); }
+        .btn-primary:hover { background: var(--navy-light); }
+        .btn-gold { color: #342509; background: linear-gradient(135deg, #ffe8a2, var(--gold)); }
+        .btn-outline { color: var(--navy); background: white; border-color: #d9e2ed; }
+        .btn-danger { color: #b33232; background: #fff1f1; border-color: #f3d5d5; }
+        .btn-back { margin-left: auto; }
+
+        /* PREVIEW */
+        .preview-toolbar {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 18px;
+            padding: 16px;
+            background: var(--navy);
+            border-radius: 12px;
+        }
+        .preview-toolbar h3 {
+            margin: 0 auto 0 0;
+            color: white;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .preview-document {
+            padding: 35px;
+            background: white;
+            border: 1px solid #dce3ec;
+            border-radius: 12px;
+        }
+
+        .preview-school {
+            padding-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--navy);
+        }
+        .preview-school h2 {
+            margin: 0;
+            color: var(--navy);
+            font-family: 'Playfair Display', serif;
+            font-size: 21px;
+        }
+        .preview-school p { margin: 5px; color: #526276; font-size: 12px; }
+        .preview-school h3 { margin: 15px 0 0; color: var(--navy); font-size: 16px; }
+
+        .preview-block { margin-top: 24px; }
+        .preview-block h4 {
+            margin: 0 0 12px;
+            padding: 10px;
+            color: white;
+            background: var(--navy);
+            font-size: 12px;
+            letter-spacing: .8px;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .preview-table td, .preview-table th {
+            padding: 11px;
+            border: 1px solid #dce3ec;
+            text-align: left;
+        }
+        .preview-table th {
+            width: 35%;
+            color: #40536a;
+            background: #f5f7fa;
+        }
+
+        .preview-subjects {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+        }
+        .preview-subjects span {
+            padding: 8px 12px;
+            color: var(--navy);
+            background: #edf3fa;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .preview-declaration {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .preview-signatures {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 65px;
+            text-align: center;
+        }
+        .preview-signatures div {
+            padding-top: 10px;
+            border-top: 1px solid #45566c;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* SUBMITTED CARD */
+        .submitted-card {
+            text-align: center;
+            padding: 40px 24px;
+        }
+        .submitted-card .success-icon {
+            font-size: 56px;
+            color: var(--success);
+            margin-bottom: 12px;
+        }
+        .submitted-card h3 {
+            font-size: 22px;
+            color: var(--navy);
+            margin: 0 0 8px;
+        }
+        .submitted-card > p {
+            color: #526276;
+            font-size: 14px;
+            max-width: 520px;
+            margin: 0 auto 22px;
+        }
+        .submitted-card .preview-table {
+            max-width: 600px;
+            margin: 0 auto 24px;
+            text-align: left;
+        }
+        .submission-block {
+            max-width: 600px;
+            margin: 0 auto 24px;
+            text-align: left;
+        }
+        .submission-block .submission-header {
+            padding: 10px;
+            color: white;
+            background: var(--navy);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: .8px;
+        }
+        .submission-block .preview-subjects {
+            padding: 12px;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-top: 0;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .4px;
+            text-transform: uppercase;
+        }
+        .status-approved { background: #e7f7ef; color: #0d6c48; }
+        .status-rejected { background: #fdecec; color: #a52a2a; }
+        .status-pending  { background: #fff8e7; color: #76561c; }
+
+        /* NOTIFICATION */
+        .notification {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 9999;
+            max-width: 350px;
+            padding: 15px 20px;
+            color: white;
+            background: var(--navy);
+            border-radius: 10px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .2);
+            font-size: 13px;
+        }
+        .notification.error-message { background: #b83232; }
+
+        /* RESPONSIVE */
+        @media(max-width: 760px) {
+            .page-shell { width: calc(100% - 22px); margin: 15px auto; }
+            .school-header { grid-template-columns: 55px 1fr 55px; gap: 9px; padding: 22px 12px; }
+            .school_logo { width: 52px; height: 52px; border-radius: 11px; }
+            .school-heading h1 { font-size: 15px; }
+            .school-heading > p { font-size: 10px; }
+            .school-heading h2 { font-size: 17px; }
+            main { padding: 14px; }
+            .form-section { padding: 17px; }
+            .subjects-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .preview-document { padding: 17px; }
+            .preview-toolbar h3 { width: 100%; }
+            .btn-back { margin-left: 0; }
+        }
+
+        @media(max-width: 480px) {
+            .form-grid, .exam-highlight {
+                grid-template-columns: 1fr;
+                gap: 13px;
+            }
+            .meta-strip { padding: 12px 8px; gap: 5px; }
+            .meta-strip > div { padding: 6px; }
+            .meta-strip span { font-size: 9px; }
+            .meta-strip strong { font-size: 11px; }
+            .school-heading h1 { font-size: 12px; }
+            .school-heading .exam-session { font-size: 9px; padding: 5px 7px; }
+            .school-heading h2 { font-size: 14px; }
+            .subjects-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .subject-option label { min-height: 47px; padding: 9px; font-size: 10px; }
+            .actions { flex-direction: column; align-items: stretch; }
+            .actions .btn { width: 100%; }
+            .preview-signatures { gap: 20px; }
+            .preview-table { font-size: 10px; }
+            .preview-table td, .preview-table th { padding: 7px; }
+        }
+
+        @media(prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                animation-duration: .01ms !important;
+                transition-duration: .01ms !important;
+            }
+        }
+
+        /* PRINT */
+        @media print {
+            @page { size: A4; margin: 14mm; }
+            body { background: white !important; color: black !important; }
+            .page-shell { width: 100%; margin: 0; }
+            .school-header {
+                color: black !important;
+                background: white !important;
+                border: 2px solid #222;
+                border-radius: 0;
+                padding: 15px;
+            }
+            .school-heading h1, .school-heading h2, .school-heading > p { color: black !important; }
+            .school-heading .exam-session {
+                color: black !important;
+                background: white !important;
+                border-color: #888;
+            }
+            .school_logo { border-color: #888; }
+            .notice, .meta-strip, .actions, .preview-toolbar, .notification,
+            .flash-stack, #examForm { display: none !important; }
+            main { padding: 0; box-shadow: none; }
+            #previewPanel { display: block !important; }
+            .preview-document { padding: 0; border: 0; }
+            .preview-block, .preview-school, .preview-table, .preview-signatures {
+                break-inside: avoid;
+            }
+            .preview-block h4 {
+                color: white !important;
+                background: #102b4e !important;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+            .preview-subjects span {
+                border: 1px solid #bbb;
+                background: white !important;
+                print-color-adjust: exact;
+            }
+        }
     </style>
 </head>
-<body>
-    <div class="page-shell">
-        <header class="school-header">
-            <img class="school_logo" src="{{ url_for('static', filename='assets/school_logo-left.svg') }}" alt="Logo">
-            <div class="school-heading">
-                <h1>RES. SHANTI NIKETAN SHISHU VIDYA MANDIR</h1>
-                <p>NAVINAGAR (JAMUI)</p>
-                <p class="exam-session">HALF YEARLY EXAMINATION 2026–2027</p>
-                <h2>ONLINE EXAMINATION FORM</h2>
-            </div>
-            <img class="school_logo" src="{{ url_for('static', filename='assets/school_logo-right.svg') }}" alt="Logo">
-        </header>
 
-        <div class="notice"><b>Instructions:</b> Enter details carefully. <b>*</b> Required fields.</div>
-        
-        <div class="meta-strip">
-            <div><span>Academic Session</span><strong>2026–2027</strong></div>
-            <div><span>Examination</span><strong id="metaExam">Half Yearly</strong></div>
-            <div><span>Form No.</span><strong id="formNumber">SN-2026</strong></div>
+<body>
+<div class="page-shell">
+
+    <!-- SCHOOL HEADER -->
+    <header class="school-header">
+        <img class="school_logo"
+             src="{{ url_for('static', filename='assets/school_logo-left.svg') }}"
+             alt="School Logo">
+
+        <div class="school-heading">
+            <h1>RES. SHANTI NIKETAN SHISHU VIDYA MANDIR</h1>
+            <p>NAVINAGAR (JAMUI)</p>
+            <p class="exam-session">EXAMINATION 2026–2027</p>
+            <h2>ONLINE EXAMINATION FORM</h2>
         </div>
 
-        <main>
-            <!-- ACTUAL FORM START -->
-            <form id="examForm" method="POST" action="{{ url_for('exam_form') }}">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <section class="form-section">
-                    <h3>STUDENT DETAILS</h3>
-                    <div class="form-grid">
-                        <div class="field"><label>Student's Full Name *</label><input id="studentName" name="studentName" required value="{{ prefill.studentName }}"><small id="studentNameError" class="error"></small></div>
-                        <div class="field"><label>Father's Name *</label><input id="fatherName" name="fatherName" required value="{{ prefill.fatherName }}"><small id="fatherNameError" class="error"></small></div>
-                        <div class="field"><label>Mother's Name</label><input id="motherName" name="motherName" value="{{ prefill.motherName }}"><small id="motherNameError" class="error"></small></div>
-                        <div class="field"><label>Date of Birth *</label><input id="dob" name="dob" type="date" required value="{{ prefill.dob }}"><small id="dobError" class="error"></small></div>
-                        <div class="field"><label>Gender *</label><select id="gender" name="gender" required>
-                            <option value="">Select gender</option>
-                            <option {% if prefill.gender == 'Female' %}selected{% endif %}>Female</option>
-                            <option {% if prefill.gender == 'Male' %}selected{% endif %}>Male</option>
-                        </select><small id="genderError" class="error"></small></div>
-                        <div class="field"><label>Class *</label><select id="className" name="className" required>
-                            <option value="">Select class</option>
-                            {% for c in classes %}
-                                <option value="{{ c }}" {% if prefill.className == c %}selected{% endif %}>{{ c }}</option>
-                            {% endfor %}
-                        </select><small id="classNameError" class="error"></small></div>
-                        <div class="field"><label>Section *</label><input id="section" name="section" value="{{ prefill.section }}" required><small id="sectionError" class="error"></small></div>
-                        <div class="field"><label>Roll Number</label><input id="rollNumber" name="rollNumber" value="{{ prefill.rollNumber }}"></div>
-                        <div class="field"><label>Admission Number</label><input id="admissionNumber" name="admissionNumber" value="{{ prefill.admissionNumber }}"></div>
-                        <div class="field"><label>Student Mobile</label><input id="studentMobile" name="studentMobile" maxlength="10" value="{{ prefill.studentMobile }}"><small id="studentMobileError" class="error"></small></div>
-                        <div class="field"><label>Parent Mobile *</label><input id="parentMobile" name="parentMobile" maxlength="10" required value="{{ prefill.parentMobile }}"><small id="parentMobileError" class="error"></small></div>
-                        <div class="field wide"><label>Full Address *</label><textarea id="address" name="address" rows="2" required>{{ prefill.address }}</textarea><small id="addressError" class="error"></small></div>
-                    </div>
-                </section>
+        <img class="school_logo"
+             src="{{ url_for('static', filename='assets/school_logo-right.svg') }}"
+             alt="School Logo">
+    </header>
 
-                <section class="form-section">
-                    <h3>EXAMINATION DETAILS</h3>
-                    <div class="form-grid">
-                        <div class="field"><label>Academic Session</label><input value="2026–2027" readonly></div>
-                        <div class="field"><label>Examination Type *</label><select id="examType" name="examType" required>
-                            <option>Half Yearly</option>
-                            <option>Annual</option>
-                        </select><small id="examTypeError" class="error"></small></div>
-                    </div>
-                    
-                    <div class="subject-heading">
-                        <div><b>SUBJECT SELECTION *</b></div><b><span id="subjectCount">0</span> selected</b>
-                    </div>
-                    <div id="subjects" class="subjects-grid"></div>
-                    <small id="subjectsError" class="error"></small>
-                </section>
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-stack no-print">
+        {% for category, msg in messages %}
+        <div class="flash flash-{{ category }}">
+            <i class="fa-solid fa-circle-info"></i> {{ msg }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
 
-                <section class="form-section">
-                    <h3>PARENT / GUARDIAN DECLARATION</h3>
-                    <label class="declaration"><input id="declaration" type="checkbox"> I confirm that the information provided is correct to the best of my knowledge.</label>
-                    <small id="declarationError" class="error"></small>
-                </section>
-
-                <div class="actions no-print">
-                    <button type="button" id="previewForm" class="dark">Preview Form</button>
-                    <!-- YEH HAI ACTUAL SUBMIT BUTTON -->
-                    <button type="submit" id="submitForm" class="dark">Submit Form</button>
-                    <button type="button" id="printForm">Print Form</button>
-                    <a href="{{ url_for('user_dashboard') }}" style="margin-left:auto; padding:10px; text-decoration:none; color:#111; font-weight:bold; border:1px solid #111;">Back to Dashboard</a>
-                </div>
-            </form>
-
-            <!-- PREVIEW PANEL -->
-            <section id="previewPanel" hidden>
-                <div class="preview-toolbar no-print">
-                    <h3>FORM PREVIEW</h3>
-                    <button id="editForm" type="button">Edit Form</button>
-                    <button id="previewSubmit" type="button" class="dark">Confirm & Submit</button>
-                    <button id="previewPrint" type="button">Print</button>
-                </div>
-                <div id="previewContent" class="preview-document"></div>
-            </section>
-            
-            <div id="notification" class="notification no-print" hidden></div>
-        </main>
+    <div class="notice">
+        <i class="fa-solid fa-circle-info"></i>
+        <strong>Instructions:</strong>
+        Enter all information carefully. Fields marked with
+        <span class="required">*</span> are mandatory.
     </div>
 
-    <!-- Pass dynamic subjects to JS -->
-    <script>
-        // Safe way to pass data from Jinja to JS
-        const DB_SUBJECTS = {{ subjects_dict | tojson }};
-    </script>
-    
-    <script src="{{ url_for('static', filename='js/storage.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/validation.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/preview.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <!-- FORM META -->
+    <div class="meta-strip">
+        <div>
+            <span>Academic Session</span>
+            <strong>2026–2027</strong>
+        </div>
+        <div>
+            <span>Examination</span>
+            <strong id="metaExam">Half Yearly</strong>
+        </div>
+        <div>
+            <span>Form Reference</span>
+            <strong id="formNumber">SN-2026</strong>
+        </div>
+    </div>
+
+    <main>
+
+        {% if already_submitted %}
+        <!-- ============ ALL SUBMITTED STATE ============ -->
+        <section class="form-section submitted-card">
+            <div class="success-icon">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+
+            <h3>Examination Forms Submitted</h3>
+
+            <p>
+                Aapne saare available examination forms pehle hi submit
+                kar diye hain. Dobara submit karne ki zaroorat nahi hai.
+            </p>
+
+            {% for etype, sub in submitted_map.items() %}
+            <div class="submission-block">
+                <div class="submission-header">{{ etype|upper }} — SUBMITTED</div>
+
+                <table class="preview-table" style="margin-bottom:0;">
+                    <tr><th>Student Name</th><td>{{ sub.student_name }}</td></tr>
+                    <tr>
+                        <th>Class / Section</th>
+                        <td>{{ sub.class_name }} — {{ sub.section }}</td>
+                    </tr>
+                    <tr><th>Exam Type</th><td>{{ sub.exam_type }}</td></tr>
+                    <tr><th>Submitted On</th><td>{{ sub.created_at }}</td></tr>
+                    <tr>
+                        <th>Status</th>
+                        <td>
+                            {% if sub.status == 'approved' %}
+                                <span class="status-badge status-approved">Approved</span>
+                            {% elif sub.status == 'rejected' %}
+                                <span class="status-badge status-rejected">Rejected</span>
+                            {% else %}
+                                <span class="status-badge status-pending">Pending Verification</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+
+                {% if sub.selected_subjects %}
+                <div class="preview-subjects">
+                    {% for s in sub.selected_subjects %}
+                        <span>{{ s }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <a href="{{ url_for('user_dashboard') }}" class="btn btn-primary" style="margin-top:12px;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </section>
+
+        {% else %}
+        <!-- ============ ORIGINAL FORM ============ -->
+        <form id="examForm"
+              method="POST"
+              action="{{ url_for('exam_form') }}"
+              novalidate>
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- STUDENT DETAILS -->
+            <section class="form-section">
+
+                <div class="section-heading">
+                    <div class="section-icon">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <div>
+                        <h3>STUDENT DETAILS</h3>
+                        <p>Enter the student's personal information</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="field">
+                        <label for="studentName">
+                            Student's Full Name <span class="required">*</span>
+                        </label>
+                        <input id="studentName" name="studentName"
+                               type="text" required maxlength="100"
+                               autocomplete="name"
+                               value="{{ prefill.studentName | default('', true) }}">
+                        <small id="studentNameError" class="error"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="fatherName">
+                            Father's Name <span class="required">*</span>
+                        </label>
+                        <input id="fatherName" name="fatherName"
+                               type="text" required maxlength="100"
+                               value="{{ prefill.fatherName | default('', true) }}">
+                        <small id="fatherNameError" class="error"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="motherName">Mother's Name</label>
+                        <input id="motherName" name="motherName"
+                               type="text" maxlength="100"
+                               value="{{ prefill.motherName | default('', true) }}">
+                        <small id="motherNameError" class="error"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="dob">
+                            Date of Birth <span class="required">*</span>
+                        </label>
+                        <input id="dob" name="dob" type="date" required
+                               value="{{ prefill.dob | default('', true) }}">
+                        <small id="dobError" class="error"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="gender">
+                            Gender <span class="required">*</span>
+                        </label>
+                        <select id="gender" name="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male"   {% if prefill.gender == 'Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if prefill.gender == 'Female' %}selected{% endif %}>Female</option>
+                            <option value="Other"  {% if prefill.gender == 'Other' %}selected{% endif %}>Other</option>
+                        </select>
+                        <small id="genderError" class="error"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="className">
+                            Class <span class="required">*</span>
+                        </label>
+                        <select id="className" name="className" required>
+                            <option value="">Select Class</option>
+                            {% for c in classes %}
+                            <option value="{{ c }}" {% if prefill.className == c %}selected{% endif %}>
+                                {{ c }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small id="classNameError" class="error"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="section">
+                            Section <span class="required">*</span>
+                        </label>
+                        <input id="section" name="section"
+                               type="text" required maxlength="20"
+                               value="{{ prefill.section | default('', true) }}">
+                        <small id="sectionError" class="error"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="rollNumber">Roll Number</label>
+                        <input id="rollNumber" name="rollNumber"
+                               type="text" maxlength="30"
+                               value="{{ prefill.rollNumber | default('', true) }}">
+                    </div>
+
+                    <div class="field">
+                        <label for="admissionNumber">Admission Number</label>
+                        <input id="admissionNumber" name="admissionNumber"
+                               type="text" maxlength="50"
+                               value="{{ prefill.admissionNumber | default('', true) }}">
+                    </div>
+
+                    <div class="field">
+                        <label for="studentMobile">Student Mobile</label>
+                        <input id="studentMobile" name="studentMobile"
+                               type="tel" inputmode="numeric" maxlength="10"
+                               value="{{ prefill.studentMobile | default('', true) }}">
+                        <small id="studentMobileError" class="error"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="parentMobile">
+                            Parent Mobile <span class="required">*</span>
+                        </label>
+                        <input id="parentMobile" name="parentMobile"
+                               type="tel" inputmode="numeric" maxlength="10" required
+                               value="{{ prefill.parentMobile | default('', true) }}">
+                        <small id="parentMobileError" class="error"></small>
+                    </div>
+
+                    <div class="field wide">
+                        <label for="address">
+                            Full Address <span class="required">*</span>
+                        </label>
+                        <textarea id="address" name="address"
+                                  rows="3" required maxlength="500">{{ prefill.address | default('', true) }}</textarea>
+                        <small id="addressError" class="error"></small>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- EXAM DETAILS -->
+            <section class="form-section">
+
+                <div class="section-heading">
+                    <div class="section-icon">
+                        <i class="fa-solid fa-file-circle-check"></i>
+                    </div>
+                    <div>
+                        <h3>EXAMINATION DETAILS</h3>
+                        <p>Select the examination and applicable subjects</p>
+                    </div>
+                </div>
+
+                <div class="exam-highlight">
+                    <div class="exam-info">
+                        <label>Academic Session</label>
+                        <input type="text" value="2026–2027" readonly>
+                    </div>
+
+                    <div class="exam-info">
+                        <label for="examType">
+                            Examination Type <span class="required">*</span>
+                        </label>
+                        <select id="examType" name="examType" required>
+                            <option value="">Select Exam Type</option>
+                            {% for e in available_exams %}
+                                <option value="{{ e }}">{{ e }}</option>
+                            {% endfor %}
+                        </select>
+                        <small id="examTypeError" class="error"></small>
+
+                        {% if submitted_map %}
+                        <small class="submitted-note">
+                            <i class="fa-solid fa-circle-check"></i>
+                            Already submitted: {{ submitted_map.keys()|list|join(', ') }}
+                        </small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="subject-heading">
+                    <h4>SUBJECT SELECTION <span class="required">*</span></h4>
+                    <span class="subject-count">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span id="subjectCount">0</span> Selected
+                    </span>
+                </div>
+
+                <div id="subjects" class="subjects-grid">
+                    <div class="subject-empty">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <p>Please select a class to load subjects.</p>
+                    </div>
+                </div>
+
+                <small id="subjectsError" class="error"></small>
+
+            </section>
+
+            <!-- DECLARATION -->
+            <section class="form-section">
+                <div class="section-heading">
+                    <div class="section-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h3>PARENT / GUARDIAN DECLARATION</h3>
+                        <p>Confirmation of the submitted information</p>
+                    </div>
+                </div>
+
+                <label class="declaration">
+                    <input type="checkbox" id="declaration" name="declaration" value="yes">
+                    <span>
+                        I hereby confirm that all the information provided
+                        in this examination form is correct to the best
+                        of my knowledge. I accept responsibility for
+                        the accuracy of the information.
+                        <span class="required">*</span>
+                    </span>
+                </label>
+
+                <small id="declarationError" class="error"></small>
+            </section>
+
+            <!-- ACTIONS -->
+            <div class="actions no-print">
+
+                <button type="button" id="previewForm" class="btn btn-primary">
+                    <i class="fa-solid fa-eye"></i> Preview Form
+                </button>
+
+                <button type="submit" id="submitForm" class="btn btn-gold">
+                    <i class="fa-solid fa-paper-plane"></i> Submit Form
+                </button>
+
+                <button type="button" id="printForm" class="btn btn-outline">
+                    <i class="fa-solid fa-print"></i> Print Form
+                </button>
+
+                <a href="{{ url_for('user_dashboard') }}"
+                   class="btn btn-danger btn-back">
+                    <i class="fa-solid fa-arrow-left"></i> Dashboard
+                </a>
+
+            </div>
+        </form>
+
+        <!-- PREVIEW PANEL -->
+        <section id="previewPanel" hidden>
+            <div class="preview-toolbar no-print">
+                <h3><i class="fa-solid fa-file-lines"></i> FORM PREVIEW</h3>
+
+                <button type="button" id="editForm" class="btn btn-outline">
+                    <i class="fa-solid fa-pen"></i> Edit Form
+                </button>
+
+                <button type="button" id="previewSubmit" class="btn btn-gold">
+                    <i class="fa-solid fa-check"></i> Confirm & Submit
+                </button>
+
+                <button type="button" id="previewPrint" class="btn btn-outline">
+                    <i class="fa-solid fa-print"></i> Print
+                </button>
+            </div>
+
+            <div id="previewContent" class="preview-document"></div>
+        </section>
+
+        <div id="notification" class="notification no-print" hidden
+             role="status" aria-live="polite"></div>
+
+        {% endif %}
+    </main>
+</div>
+
+{% if not already_submitted %}
+<!-- DYNAMIC SUBJECT DATA -->
+<script>
+    const DB_SUBJECTS = {{ subjects_dict | tojson }};
+    const ACADEMIC_YEAR = '2026-2027';
+</script>
+
+<script>
+(function () {
+    "use strict";
+
+    const $ = id => document.getElementById(id);
+
+    const form = $("examForm");
+    if (!form) return;
+
+    const previewPanel = $("previewPanel");
+    const previewContent = $("previewContent");
+    const subjectBox = $("subjects");
+    const classSelect = $("className");
+    const subjectCount = $("subjectCount");
+    const notification = $("notification");
+    const examTypeSelect = $("examType");
+
+    let notificationTimer;
+    let isSubmitting = false;
+
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, char => ({
+            "&": "&amp;", "<": "&lt;", ">": "&gt;",
+            '"': "&quot;", "'": "&#39;"
+        })[char]);
+    }
+
+    function showNotification(message, error = false) {
+        notification.textContent = message;
+        notification.classList.toggle("error-message", error);
+        notification.hidden = false;
+
+        clearTimeout(notificationTimer);
+        notificationTimer = setTimeout(() => {
+            notification.hidden = true;
+        }, 3500);
+    }
+
+    function getSubjects(className) {
+        if (!className || !DB_SUBJECTS) return [];
+        const raw = DB_SUBJECTS[className];
+        if (!raw) return [];
+        const list = Array.isArray(raw) ? raw : [];
+
+        return list.map(item => {
+            if (typeof item === "string" || typeof item === "number") {
+                return { value: String(item), label: String(item) };
+            }
+            if (item && typeof item === "object") {
+                const value = item.value ?? item.name ?? item.subject ?? "";
+                const label = item.label ?? item.name ?? item.subject ?? value;
+                return { value: String(value), label: String(label) };
+            }
+            return null;
+        }).filter(item => item && item.value.trim());
+    }
+
+    function renderSubjects() {
+        const className = classSelect.value;
+        const selected = new Set(
+            Array.from(
+                subjectBox.querySelectorAll('input[name="subjects"]:checked')
+            ).map(input => input.value)
+        );
+
+        subjectBox.innerHTML = "";
+
+        if (!className) {
+            subjectBox.innerHTML = `
+                <div class="subject-empty">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <p>Please select a class first.</p>
+                </div>`;
+            updateSubjectCount();
+            return;
+        }
+
+        const subjects = getSubjects(className);
+        if (!subjects.length) {
+            subjectBox.innerHTML = `
+                <div class="subject-empty">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <p>No subjects are available for this class.</p>
+                </div>`;
+            updateSubjectCount();
+            return;
+        }
+
+        subjects.forEach((subject, index) => {
+            const id = "subject_" + index;
+            const wrapper = document.createElement("div");
+            wrapper.className = "subject-option";
+
+            const input = document.createElement("input");
+            input.type = "checkbox";
+            input.id = id;
+            input.name = "subjects";
+            input.value = subject.value;
+            input.checked = selected.has(subject.value);
+
+            const label = document.createElement("label");
+            label.htmlFor = id;
+            label.textContent = subject.label;
+
+            wrapper.append(input, label);
+            subjectBox.appendChild(wrapper);
+
+            input.addEventListener("change", () => {
+                updateSubjectCount();
+                clearError("subjects");
+            });
+        });
+
+        updateSubjectCount();
+    }
+
+    function updateSubjectCount() {
+        const count = subjectBox.querySelectorAll(
+            'input[name="subjects"]:checked'
+        ).length;
+        subjectCount.textContent = count;
+    }
+
+    classSelect.addEventListener("change", () => {
+        renderSubjects();
+        clearError("className");
+    });
+
+    if (examTypeSelect) {
+        examTypeSelect.addEventListener("change", function () {
+            const metaExam = $("metaExam");
+            if (metaExam) metaExam.textContent = this.value || '—';
+            clearError("examType");
+        });
+    }
+
+    function setError(id, message) {
+        const input = $(id);
+        const error = $(id + "Error");
+        if (input) input.classList.add("invalid");
+        if (error) error.textContent = message;
+    }
+
+    function clearError(id) {
+        const input = $(id);
+        const error = $(id + "Error");
+        if (input) input.classList.remove("invalid");
+        if (error) error.textContent = "";
+    }
+
+    function clearAllErrors() {
+        document.querySelectorAll(".error").forEach(el => { el.textContent = ""; });
+        document.querySelectorAll(".invalid").forEach(el => { el.classList.remove("invalid"); });
+    }
+
+    function validateForm() {
+        clearAllErrors();
+        let valid = true;
+        let firstInvalid = null;
+
+        function fail(id, message) {
+            setError(id, message);
+            valid = false;
+            if (!firstInvalid) firstInvalid = $(id);
+        }
+
+        const requiredFields = [
+            ["studentName", "Please enter student's full name."],
+            ["fatherName", "Please enter father's name."],
+            ["dob", "Please select date of birth."],
+            ["gender", "Please select gender."],
+            ["className", "Please select class."],
+            ["section", "Please enter section."],
+            ["parentMobile", "Please enter parent mobile number."],
+            ["address", "Please enter complete address."]
+        ];
+
+        requiredFields.forEach(([id, message]) => {
+            const el = $(id);
+            if (!el || !el.value.trim()) fail(id, message);
+        });
+
+        const dob = $("dob").value;
+        if (dob && dob > new Date().toISOString().slice(0, 10)) {
+            fail("dob", "Date of birth cannot be in the future.");
+        }
+
+        ["studentMobile", "parentMobile"].forEach(id => {
+            const el = $(id);
+            if (!el) return;
+            const value = el.value.trim();
+            if (value && !/^[6-9]\d{9}$/.test(value)) {
+                fail(id, "Enter a valid 10-digit Indian mobile number.");
+            }
+        });
+
+        if (!examTypeSelect.value) {
+            fail("examType", "Please select examination type.");
+        }
+
+        const selectedSubjects = subjectBox.querySelectorAll(
+            'input[name="subjects"]:checked'
+        );
+        if (!selectedSubjects.length) {
+            $("subjectsError").textContent = "Please select at least one subject.";
+            valid = false;
+            if (!firstInvalid) firstInvalid = subjectBox;
+        }
+
+        if (!$("declaration").checked) {
+            $("declarationError").textContent =
+                "Please accept the declaration before continuing.";
+            valid = false;
+            if (!firstInvalid) firstInvalid = $("declaration");
+        }
+
+        if (!valid && firstInvalid) {
+            firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+            if (firstInvalid.focus) firstInvalid.focus({ preventScroll: true });
+            showNotification("Please correct the highlighted fields.", true);
+        }
+
+        return valid;
+    }
+
+    function getFormData() {
+        const data = {};
+
+        form.querySelectorAll(
+            "input:not([type=checkbox]):not([type=hidden]), select, textarea"
+        ).forEach(input => {
+            data[input.name] = input.value.trim();
+        });
+
+        data.subjects = Array.from(
+            subjectBox.querySelectorAll('input[name="subjects"]:checked')
+        ).map(input => input.value);
+
+        data.declaration = $("declaration").checked;
+        return data;
+    }
+
+    function createPreview() {
+        const d = getFormData();
+
+        const row = (label, value) => `
+            <tr>
+                <th>${escapeHTML(label)}</th>
+                <td>${escapeHTML(value || "—")}</td>
+            </tr>`;
+
+        const subjects = d.subjects.map(subject =>
+            `<span>${escapeHTML(subject)}</span>`
+        ).join("");
+
+        previewContent.innerHTML = `
+            <div class="preview-school">
+                <h2>RES. SHANTI NIKETAN SHISHU VIDYA MANDIR</h2>
+                <p>NAVINAGAR (JAMUI)</p>
+                <p>Academic Session: ${escapeHTML(ACADEMIC_YEAR)}</p>
+                <h3>ONLINE EXAMINATION FORM</h3>
+            </div>
+
+            <div class="preview-block">
+                <h4>STUDENT DETAILS</h4>
+                <table class="preview-table">
+                    ${row("Student Name", d.studentName)}
+                    ${row("Father's Name", d.fatherName)}
+                    ${row("Mother's Name", d.motherName)}
+                    ${row("Date of Birth", d.dob)}
+                    ${row("Gender", d.gender)}
+                    ${row("Class", d.className)}
+                    ${row("Section", d.section)}
+                    ${row("Roll Number", d.rollNumber)}
+                    ${row("Admission Number", d.admissionNumber)}
+                    ${row("Student Mobile", d.studentMobile)}
+                    ${row("Parent Mobile", d.parentMobile)}
+                    ${row("Full Address", d.address)}
+                </table>
+            </div>
+
+            <div class="preview-block">
+                <h4>EXAMINATION DETAILS</h4>
+                <table class="preview-table">
+                    ${row("Academic Session", ACADEMIC_YEAR)}
+                    ${row("Examination Type", d.examType)}
+                    ${row("Selected Subjects", d.subjects.length)}
+                </table>
+            </div>
+
+            <div class="preview-block">
+                <h4>SELECTED SUBJECTS</h4>
+                <div class="preview-subjects">${subjects}</div>
+            </div>
+
+            <div class="preview-declaration">
+                <strong>PARENT / GUARDIAN DECLARATION</strong>
+                <p>
+                    I confirm that the information provided in this form
+                    is correct to the best of my knowledge.
+                </p>
+                <strong>Status: Accepted</strong>
+            </div>
+
+            <div class="preview-signatures">
+                <div>Parent / Guardian Signature</div>
+                <div>School Authority Signature</div>
+            </div>
+        `;
+    }
+
+    $("previewForm").addEventListener("click", () => {
+        if (!validateForm()) return;
+        createPreview();
+        form.hidden = true;
+        previewPanel.hidden = false;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    $("editForm").addEventListener("click", () => {
+        previewPanel.hidden = true;
+        form.hidden = false;
+        window.scrollTo({ top: form.offsetTop - 20, behavior: "smooth" });
+    });
+
+    function submitExamForm() {
+        if (isSubmitting) return;
+        if (!validateForm()) {
+            previewPanel.hidden = true;
+            form.hidden = false;
+            return;
+        }
+
+        isSubmitting = true;
+        const submitButton = $("submitForm");
+        submitButton.disabled = true;
+        submitButton.innerHTML =
+            '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+
+        form.submit();
+    }
+
+    form.addEventListener("submit", event => {
+        event.preventDefault();
+        if (!validateForm()) return;
+        submitExamForm();
+    });
+
+    $("previewSubmit").addEventListener("click", submitExamForm);
+
+    function printForm() {
+        if (!validateForm()) return;
+        createPreview();
+        form.hidden = true;
+        previewPanel.hidden = false;
+        window.print();
+    }
+
+    $("printForm").addEventListener("click", printForm);
+    $("previewPrint").addEventListener("click", () => window.print());
+
+    form.querySelectorAll("input, select, textarea").forEach(input => {
+        input.addEventListener("input", () => {
+            clearError(input.id);
+            if (input.id === "studentMobile" || input.id === "parentMobile") {
+                input.value = input.value.replace(/\D/g, "").slice(0, 10);
+            }
+        });
+
+        input.addEventListener("change", () => {
+            clearError(input.id);
+        });
+    });
+
+    // Initialize
+    renderSubjects();
+
+    const metaExam = $("metaExam");
+    if (metaExam && examTypeSelect) {
+        metaExam.textContent = examTypeSelect.value || 'Half Yearly';
+    }
+})();
+</script>
+{% endif %}
+
 </body>
 </html>

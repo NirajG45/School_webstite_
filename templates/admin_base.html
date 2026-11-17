@@ -2354,15 +2354,27 @@
 
 <body class="admin-body">
 
-    <!-- SIDEBAR (upgraded with exam system) -->
+    {# ============================================================
+       ROLE FLAGS — sidebar + topbar conditional rendering ke liye
+       Session ke 'user_role' ke hisaab se visibility decide hoti hai.
+       Existing routes / Jinja / JS me koi change nahi kiya.
+       ============================================================ #}
+    {% set role       = (session.get('user_role') or '').lower() %}
+    {% set is_admin   = role in ['administrator', 'admin'] %}
+    {% set is_teacher = role in ['teacher', 'faculty'] %}
+    {% set is_student = role in ['student'] %}
+    {% set is_parent  = role in ['parent', 'guardian'] %}
+
+    <!-- SIDEBAR (role-aware — sirf role ke allowed links render honge) -->
     <aside class="admin-sidebar" id="adminSidebar" aria-label="Admin sidebar">
         <div class="admin-sidebar-head">
-            <a href="{{ url_for('admin_dashboard') }}" class="admin-logo" aria-label="Admin home">
+            <a href="{{ url_for('admin_dashboard') if is_admin else url_for('user_dashboard') }}" class="admin-logo"
+                aria-label="Home">
                 <img src="{{ url_for('static', filename='images/school_logo.png') }}" alt="School Logo"
                     class="school_logo">
                 <div class="brand-text">
                     <strong>Shanti Niketan</strong>
-                    <small>Admin Panel</small>
+                    <small>{% if is_admin %}Admin Panel{% else %}Portal{% endif %}</small>
                 </div>
             </a>
             <button type="button" class="admin-sidebar-collapse-btn" id="sidebarCollapseBtn"
@@ -2387,7 +2399,11 @@
                 <strong>{{ session['user_name'].split()[0] }}</strong>
                 <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}</small>
                 <span class="admin-role-badge">
-                    {% if session.get('user_role') == 'administrator' %}Administrator{% else %}Admin{% endif %}
+                    {% if is_admin %}Administrator
+                    {% elif is_teacher %}Teacher
+                    {% elif is_student %}Student
+                    {% elif is_parent %}Parent
+                    {% else %}User{% endif %}
                 </span>
             </div>
         </div>
@@ -2398,6 +2414,10 @@
             <input type="text" id="sidebarSearch" placeholder="Filter menu..." autocomplete="off">
         </div>
 
+        {# ============================================================
+           QUICK STATS — sirf admin ko dikhega (counts admin-only hain)
+           ============================================================ #}
+        {% if is_admin %}
         <div class="admin-quick-stats">
             <a href="{{ url_for('admin_leaves') }}" class="admin-qstat amber {% if not pending_leaves %}zero{% endif %}"
                 title="Pending leave requests">
@@ -2421,13 +2441,26 @@
                 <small>Exams</small>
             </a>
         </div>
+        {% endif %}
 
         <nav class="admin-nav">
+            {# ---------------- MAIN ---------------- #}
             <div class="admin-nav-group-label">Main</div>
+
+            {# Dashboard — admin ke liye admin_dashboard, baaki sab ke liye user_dashboard #}
+            {% if is_admin %}
             <a href="{{ url_for('admin_dashboard') }}"
                 class="admin-nav-link {% if active_page == 'dashboard' %}active{% endif %}" data-label="Dashboard">
                 <i class="fa-solid fa-gauge"></i><span class="nav-label">Dashboard</span>
             </a>
+            {% else %}
+            <a href="{{ url_for('user_dashboard') }}"
+                class="admin-nav-link {% if active_page == 'dashboard' %}active{% endif %}" data-label="Dashboard">
+                <i class="fa-solid fa-gauge"></i><span class="nav-label">Dashboard</span>
+            </a>
+            {% endif %}
+
+            {% if is_admin %}
             <a href="{{ url_for('admin_users') }}"
                 class="admin-nav-link {% if active_page == 'users' %}active{% endif %}" data-label="All Users">
                 <i class="fa-solid fa-users"></i><span class="nav-label">All Users</span>
@@ -2439,28 +2472,24 @@
             <a href="{{ url_for('user_dashboard') }}" class="admin-nav-link" data-label="My Dashboard">
                 <i class="fa-solid fa-id-card"></i><span class="nav-label">My Dashboard</span>
             </a>
+            {% endif %}
 
+            {# ---------------- ACADEMICS ---------------- #}
+            {% if is_admin or is_teacher %}
             <div class="admin-nav-group-label">Academics</div>
             <a href="{{ url_for('admin_attendance') }}"
                 class="admin-nav-link {% if active_page == 'attendance' %}active{% endif %}" data-label="Attendance">
                 <i class="fa-solid fa-clipboard-check"></i><span class="nav-label">Attendance</span>
             </a>
-            <!-- NEW: Examinations -->
+            <!-- Examinations -->
             <a href="{{ url_for('admin_exams_list') }}"
                 class="admin-nav-link {% if active_page == 'exams' %}active{% endif %}" data-label="Examinations">
                 <i class="fa-solid fa-file-pen"></i><span class="nav-label">Examinations</span>
-                {% if pending_exam_submissions and pending_exam_submissions > 0 %}
+                {% if is_admin and pending_exam_submissions and pending_exam_submissions > 0 %}
                 <span class="nav-badge danger">{{ pending_exam_submissions }}</span>
                 {% endif %}
             </a>
-            <!-- NEW: Reports Dashboard (subject + exam management) -->
-            <a href="{{ url_for('admin_reports_dashboard') }}"
-                class="admin-nav-link {% if active_page == 'reports_dashboard' %}active{% endif %}"
-                data-label="Reports Dashboard">
-                <i class="fa-solid fa-chart-line"></i><span class="nav-label">Reports Dashboard</span>
-            </a>
-
-            <!-- QUESTION PAPERS LINK (Sahi CSS ke saath) -->
+            <!-- Question Papers -->
             <a href="{{ url_for('teacher_question_papers') }}"
                 class="admin-nav-link {% if active_page == 'question_papers' %}active{% endif %}"
                 data-label="Question Papers">
@@ -2493,6 +2522,15 @@
                 class="admin-nav-link {% if active_page == 'reports' %}active{% endif %}" data-label="Reports">
                 <i class="fa-solid fa-chart-pie"></i><span class="nav-label">Reports</span>
             </a>
+            {% endif %}
+
+            {# Admin-only academic extras #}
+            {% if is_admin %}
+            <a href="{{ url_for('admin_reports_dashboard') }}"
+                class="admin-nav-link {% if active_page == 'reports_dashboard' %}active{% endif %}"
+                data-label="Reports Dashboard">
+                <i class="fa-solid fa-chart-line"></i><span class="nav-label">Reports Dashboard</span>
+            </a>
             <a href="{{ url_for('admin_generate_reports') }}"
                 class="admin-nav-link {% if active_page == 'generate_reports' %}active{% endif %}"
                 data-label="Generate Reports">
@@ -2512,11 +2550,14 @@
                 <span class="nav-badge danger">{{ pending_fees }}</span>
                 {% endif %}
             </a>
+            {% endif %}
 
+            {# ---------------- COMMUNICATION ---------------- #}
             <div class="admin-nav-group-label">Communication</div>
             <a href="{{ url_for('messages_inbox') }}" class="admin-nav-link" data-label="Inbox">
                 <i class="fa-solid fa-inbox"></i><span class="nav-label">Inbox</span>
             </a>
+            {% if is_admin %}
             <a href="{{ url_for('admin_messages') }}"
                 class="admin-nav-link {% if active_page == 'messages' %}active{% endif %}"
                 data-label="Send / Broadcast">
@@ -2526,7 +2567,10 @@
                 class="admin-nav-link {% if active_page == 'enquiries' %}active{% endif %}" data-label="Enquiries">
                 <i class="fa-solid fa-envelope"></i><span class="nav-label">Enquiries</span>
             </a>
+            {% endif %}
 
+            {# ---------------- CONTENT (admin only) ---------------- #}
+            {% if is_admin %}
             <div class="admin-nav-group-label">Content</div>
             <a href="{{ url_for('admin_notices') }}"
                 class="admin-nav-link {% if active_page == 'notices' %}active{% endif %}" data-label="Notices">
@@ -2568,7 +2612,9 @@
                 <i class="fa-solid fa-award"></i>
                 <span class="nav-label">Participants & Certificates</span>
             </a>
+            {% endif %}
 
+            {# ---------------- SYSTEM (sab ke liye) ---------------- #}
             <div class="admin-nav-group-label">System</div>
             <a href="{{ url_for('home') }}" target="_blank" rel="noopener" class="admin-nav-link"
                 data-label="View Website">
@@ -2603,14 +2649,18 @@
 
             <h1 class="admin-page-title">{% block page_title %}Dashboard{% endblock %}</h1>
 
+            {# Search sirf admin ko — kyunki ye admin_users route pe jaata hai #}
+            {% if is_admin %}
             <form class="admin-search" action="{{ url_for('admin_users') }}" method="get" role="search">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <input type="search" name="q" value="{{ request.args.get('q', '') }}"
                     placeholder="Search students, teachers, parents..." aria-label="Search">
             </form>
+            {% endif %}
 
             <div class="admin-user-info">
-                <!-- NOTIFICATION BELL -->
+                {# NOTIFICATION BELL — sirf admin (counts admin-only hain) #}
+                {% if is_admin %}
                 <div class="admin-topbar-notif" id="adminNotifWrapper">
                     <button type="button" class="admin-topbar-icon admin-notif-btn" id="adminNotifBtn"
                         aria-haspopup="true" aria-expanded="false" aria-controls="adminNotifDropdown"
@@ -2629,7 +2679,7 @@
                             <span class="notif-head-tag">Admin</span>
                         </div>
                         <div class="notif-list">
-                            <!-- NEW: Exam submissions pending -->
+                            <!-- Exam submissions pending -->
                             <a href="{{ url_for('admin_exams_list') }}" class="notif-item" role="menuitem">
                                 <div class="notif-icon teal"><i class="fa-solid fa-file-pen"></i></div>
                                 <div class="notif-body">
@@ -2694,8 +2744,9 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
 
-                <!-- MY DASHBOARD TOPBAR BUTTON -->
+                <!-- MY DASHBOARD TOPBAR BUTTON (sab roles ke liye) -->
                 <a href="{{ url_for('user_dashboard') }}" class="admin-topbar-icon admin-my-dash-btn"
                     aria-label="My Dashboard" title="My Dashboard">
                     <i class="fa-solid fa-id-card"></i>
@@ -2718,8 +2769,13 @@
                         {% endif %}
                         <div class="admin-user-btn-info">
                             <strong>{{ session['user_name'].split()[0] }}</strong>
-                            <small>{% if session.get('user_role') == 'administrator' %}Administrator{% else %}Admin{%
-                                endif %}</small>
+                            <small>
+                                {% if is_admin %}Administrator
+                                {% elif is_teacher %}Teacher
+                                {% elif is_student %}Student
+                                {% elif is_parent %}Parent
+                                {% else %}User{% endif %}
+                            </small>
                         </div>
                         <i class="fa-solid fa-chevron-down admin-user-chevron"></i>
                     </button>
@@ -2741,16 +2797,22 @@
                                 <small><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A')
                                     }}</small>
                                 <span class="admin-user-role-tag">
-                                    {% if session.get('user_role') == 'administrator' %}Administrator{% else %}Admin{%
-                                    endif %}
+                                    {% if is_admin %}Administrator
+                                    {% elif is_teacher %}Teacher
+                                    {% elif is_student %}Student
+                                    {% elif is_parent %}Parent
+                                    {% else %}User{% endif %}
                                 </span>
                             </div>
                         </div>
                         <hr class="admin-user-divider">
 
+                        {# Admin Panel link — sirf admin ko #}
+                        {% if is_admin %}
                         <a href="{{ url_for('admin_dashboard') }}" role="menuitem" class="admin-panel-link">
                             <i class="fa-solid fa-user-gear"></i> <strong>Admin Panel</strong>
                         </a>
+                        {% endif %}
 
                         <a href="{{ url_for('user_dashboard') }}" role="menuitem">
                             <i class="fa-solid fa-id-card"></i> My Dashboard

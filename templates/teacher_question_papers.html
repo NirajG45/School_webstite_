@@ -3,6 +3,7 @@
 {% block page_title %}Question Paper Management{% endblock %}
 {% block content %}
 <style>
+    /* ───── existing styles (unchanged) ───── */
     .qpl {
         color: #26384d
     }
@@ -203,6 +204,90 @@
         display: none !important
     }
 
+    /* ───── NEW: class-wise subject grid ───── */
+    .qpl-subjects-section {
+        margin-bottom: 22px;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #e2eaf2;
+        border-radius: 16px;
+    }
+
+    .qpl-subjects-section h3 {
+        margin: 0 0 4px;
+        color: #123b60;
+        font-size: 16px;
+        font-weight: 850;
+    }
+
+    .qpl-subjects-section .muted {
+        color: #718096;
+        font-size: 12px;
+        margin: 0 0 14px;
+    }
+
+    .qpl-class-group {
+        margin-bottom: 14px;
+    }
+
+    .qpl-class-group h4 {
+        margin: 0 0 8px;
+        color: #e11d48;
+        font-size: 13px;
+        font-weight: 850;
+        letter-spacing: .5px;
+    }
+
+    .qpl-grid-subjects {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .qpl-subject-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 13px;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        background: #fff;
+        color: #334155;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: .18s ease;
+        max-width: 100%;
+    }
+
+    .qpl-subject-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 14px rgba(0, 0, 0, .07);
+        border-color: #94a3b8;
+    }
+
+    .qpl-subject-btn.started {
+        background: #fef3c7;
+        border-color: #f59e0b;
+        color: #92400e;
+    }
+
+    .qpl-subject-btn.has-questions {
+        background: #dcfce7;
+        border-color: #16a34a;
+        color: #14532d;
+    }
+
+    .qpl-qcount {
+        font-size: 10px;
+        background: #166534;
+        color: #fff;
+        border-radius: 20px;
+        padding: 2px 7px;
+        font-weight: 800;
+    }
+
     @media(max-width:1050px) {
         .qpl-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr))
@@ -235,7 +320,10 @@
         }
     }
 </style>
+
 <div class="qpl">
+
+    <!-- HERO -->
     <section class="qpl-hero">
         <div>
             <h2><i class="fa-solid fa-file-signature"></i>
@@ -244,10 +332,57 @@
             <p>Create, organize, manage and print examination question papers.</p>
         </div>
         <a href="{{ url_for('create_question_paper') }}" class="qpl-btn">
-            <i class="fa-solid fa-plus"></i> Create new paper
+            <i class="fa-solid fa-plus"></i> Create custom paper
         </a>
     </section>
 
+    {# ───────── NEW: Class-wise subject grid (teacher only) ───────── #}
+    {% if not is_admin and subject_grid_grouped %}
+    <section class="qpl-subjects-section">
+        <h3><i class="fa-solid fa-table-cells"></i> Class-wise Subjects</h3>
+        <p class="muted">
+            Apni class ka subject box click karein aur questions add karein.
+            <span style="color:#92400e;font-weight:700;">Yellow</span> = paper started ·
+            <span style="color:#14532d;font-weight:700;">Green</span> = questions added.
+        </p>
+        {% for class_name, items in subject_grid_grouped.items() %}
+        <div class="qpl-class-group">
+            <h4>{{ class_name }}</h4>
+            <div class="qpl-grid-subjects">
+                {% for item in items %}
+                <a class="qpl-subject-btn
+                          {% if item.question_count > 0 %}has-questions
+                          {% elif item.paper_id %}started{% endif %}"
+                    href="{{ url_for('teacher_start_paper', class=item.class_name, subject=item.subject_name) }}"
+                    title="{{ item.subject_name }} — {{ item.class_name }}">
+                    {% if item.question_count > 0 %}
+                    <i class="fa-solid fa-circle-check"></i>
+                    {% elif item.paper_id %}
+                    <i class="fa-solid fa-pen"></i>
+                    {% else %}
+                    <i class="fa-solid fa-plus"></i>
+                    {% endif %}
+                    {{ item.subject_name }}
+                    {% if item.question_count > 0 %}
+                    <span class="qpl-qcount">{{ item.question_count }}</span>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+    {% elif not is_admin %}
+    <section class="qpl-subjects-section">
+        <p class="muted" style="margin:0;">
+            <i class="fa-solid fa-circle-info"></i>
+            Abhi koi published exam aapki class ke liye nahi hai.
+            Admin ke exam publish karne ke baad yahan class-wise subjects dikhenge.
+        </p>
+    </section>
+    {% endif %}
+
+    <!-- TOOLBAR (existing) -->
     <div class="qpl-toolbar">
         <div><strong id="paperCount">{{ papers|length }}</strong> <span class="text-muted small">papers</span></div>
         <div class="d-flex flex-wrap gap-2">
@@ -258,13 +393,12 @@
             </label>
             <select id="classFilter" class="qpl-filter" aria-label="Filter by class">
                 <option value="">All classes</option>
-                {% for c in class_list %}
-                <option value="{{ c|lower }}">Class {{ c }}</option>
-                {% endfor %}
+                {% for c in class_list %}<option value="{{ c|lower }}">Class {{ c }}</option>{% endfor %}
             </select>
         </div>
     </div>
 
+    <!-- PAPERS LIST (existing) -->
     <div class="qpl-grid" id="paperGrid">
         {% for p in papers %}
         <article class="qpl-card"
@@ -296,7 +430,7 @@
                 </a>
                 <form method="POST" action="{{ url_for('delete_question_paper', paper_id=p['id']) }}"
                     onsubmit="return confirm('Delete this paper and all its questions?');">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="qpl-action qpl-delete"><i class="fa-solid fa-trash"></i>
                         Delete</button>
                 </form>
@@ -306,7 +440,7 @@
         <div class="qpl-empty" id="emptyPapers">
             <i class="fa-solid fa-file-circle-xmark"></i>
             <h3>No question papers yet</h3>
-            <p>Create your first examination question paper.</p>
+            <p>Upar diye gaye subject box se shuru karein.</p>
             <a href="{{ url_for('create_question_paper') }}" class="qpl-btn"><i class="fa-solid fa-plus"></i> Create
                 question paper</a>
         </div>
@@ -318,6 +452,7 @@
         </div>
     </div>
 </div>
+
 <script>
     (function () {
         const search = document.getElementById('paperSearch');

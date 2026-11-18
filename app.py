@@ -541,7 +541,8 @@ def init_db():
 
         # Default school settings (required — not dummy data)
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('fee_qr_url', '')")
-        db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('school_name', 'Residential Shanti Niketan')")
+        db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('school_name', 'RES. SHANTI NIKETAN SHISHU VIDYA MANDIR')")
+        db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('school_address', 'NAVINAGAR (JAMUI)')")
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('upi_link', '')")
 
         db.commit()
@@ -598,7 +599,7 @@ def ensure_common_subjects(db, class_name):
 
 
 # =========================================
-# 🚀 HELPER: Get All Standard + Dynamic Classes
+# HELPER: Get All Standard + Dynamic Classes
 # =========================================
 def get_all_classes(db):
     """Hamesha standard classes (Pre-Nursery se 8th) dikhata hai, 
@@ -1121,6 +1122,27 @@ def generate_csrf_token():
 def inject_csrf_token():
     return {'csrf_token': generate_csrf_token}
 
+@app.context_processor
+def inject_school_info():
+    """School branding globally available in ALL templates.
+    Explicit render_template(..., school_name=...) still overrides this."""
+    try:
+        return {
+            'school_name':    get_setting('school_name')    or 'Residential Shanti Niketan',
+            'school_address': get_setting('school_address') or 'Navinagar (Jamui)',
+            'school_phone':   get_setting('school_phone')   or '',
+            'school_email':   get_setting('school_email')   or '',
+            'school_logo':    get_setting('school_logo_url') or
+                              url_for('static', filename='images/school_logo.png'),
+        }
+    except Exception:
+        return {
+            'school_name':    'Residential Shanti Niketan',
+            'school_address': 'Navinagar (Jamui)',
+            'school_phone':   '',
+            'school_email':   '',
+            'school_logo':    url_for('static', filename='images/school_logo.png'),
+        }
 
 @app.before_request
 def csrf_token_protection():
@@ -2012,7 +2034,7 @@ def admin_create_user():
         flash(f'{role.capitalize()} created! ID: {unique_id} | '
               f'Temporary Password: {temporary_password} (share securely; change at first login)', 'success')
         
-        # 🚀 NAYA LOGIC: Agar student add hua hai, toh direct Admission Form print page open ho
+        # NAYA LOGIC: Agar student add hua hai, toh direct Admission Form print page open ho
         if role == 'student':
             return redirect(url_for('admin_print_admission_form', student_id=new_user_id))
             
@@ -3353,7 +3375,7 @@ def admin_issue_event_certificates(eid):
             msg += f' ({skipped} non-participant student(s) skipped.)'
         flash(msg, 'success' if not skipped else 'warning')
 
-    # ✅ redirect WITH filters — page reset nahi hoga
+    # redirect WITH filters — page reset nahi hoga
     return redirect(url_for(
         'admin_event_certificates', eid=eid,
         class_name=request.form.get('class_name', ''),
@@ -3367,7 +3389,7 @@ def admin_issue_event_certificates(eid):
 def event_certificate(certificate_id):
     db = get_db()
     
-    # 🚀 Yahan ec.event_id add kiya gaya hai
+    # Yahan ec.event_id add kiya gaya hai
     cert = db.execute('''
         SELECT ec.id, ec.event_id, ec.certificate_type, ec.position, ec.issued_at,
                e.title AS event_title, e.event_date, e.location, e.category,
@@ -3384,7 +3406,7 @@ def event_certificate(certificate_id):
         flash('Certificate not found.', 'error')
         return redirect(url_for('admin_events'))
 
-    # 🚀 Event ki details fetch karein (cover_image ke liye)
+    # Event ki details fetch karein (cover_image ke liye)
     event = db.execute('SELECT * FROM events WHERE id = ?', (cert['event_id'],)).fetchone()
 
     # Access control
@@ -3402,7 +3424,7 @@ def event_certificate(certificate_id):
             flash('You are not allowed to view this certificate.', 'error')
             return redirect(url_for('user_dashboard'))
 
-    # 🚀 Template me event=event pass karein
+    # Template me event=event pass karein
     return render_template(
         'event_certificate_print.html',
         cert=cert,
@@ -4002,7 +4024,7 @@ def teacher_question_papers():
             ORDER BY p.id DESC
         """, (user['id'],)).fetchall()
 
-    # 🚀 Dropdown ke liye saari standard classes nikalain
+    # Dropdown ke liye saari standard classes nikalain
     class_list = get_all_classes(db)
 
     return render_template(
@@ -4025,7 +4047,7 @@ def get_question_paper_classes(db, user):
     role = user['role']
     
     if role in ('admin', 'administrator'):
-        return get_all_classes(db)  # 🚀 Saari classes (Pre-Nursery se 8th tak) return karega
+        return get_all_classes(db)  # Saari classes (Pre-Nursery se 8th tak) return karega
     else:
         classes = set()
         # Teacher ke directly assigned classes
@@ -4041,7 +4063,7 @@ def get_question_paper_classes(db, user):
             rows = db.execute("SELECT DISTINCT class_name FROM faculty_subject_assignments WHERE faculty_id = ? AND TRIM(class_name) != ''", (faculty['id'],)).fetchall()
             classes.update(row['class_name'].strip() for row in rows)
             
-        # 🚀 Agar koi teacher ki class assigned nahi hai, toh usko standard classes show karo (optional)
+        # Agar koi teacher ki class assigned nahi hai, toh usko standard classes show karo (optional)
         if not classes:
             return get_all_classes(db)
             
@@ -5601,7 +5623,7 @@ def admin_exam_save_subjects(eid):
 
 
 # =========================================
-# 🚀 API — ADD NEW SUBJECT ON THE FLY (For Exam Form)
+# API — ADD NEW SUBJECT ON THE FLY (For Exam Form)
 # =========================================
 @app.route('/admin/subjects/api/add', methods=['POST'])
 @admin_required
@@ -5827,12 +5849,12 @@ def admin_reports_dashboard():
     selected_class = request.args.get('class', '').strip()
     selected_exam_id = request.args.get('exam_id', type=int)
 
-    # 🚀 Saari standard + dynamic classes ki list
+    # Saari standard + dynamic classes ki list
     class_list = get_all_classes(db)
 
     subjects = []
     if selected_class:
-        # 🚀 Auto-seed missing common subjects for the selected class
+        # Auto-seed missing common subjects for the selected class
         ensure_common_subjects(db, selected_class)
 
         subjects = db.execute(
@@ -5981,7 +6003,7 @@ def admin_generate_reports():
     selected_class = request.args.get('class', '').strip()
     exam_id = request.args.get('exam_id', type=int)
 
-    # 🚀 YAHAN FIX KIYA GAYA HAI
+    # YAHAN FIX KIYA GAYA HAI
     class_list = get_all_classes(db)
 
     all_exams = db.execute('SELECT * FROM exams ORDER BY id DESC').fetchall()

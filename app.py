@@ -687,7 +687,6 @@ def set_setting(key, value):
 # =========================================
 EXAM_TYPES = ('Half Yearly', 'Annual')
 
-
 def _resolve_exam_student(db, user):
     """Return (student_row, error_msg). Handles student + parent roles."""
     if user['role'] == 'student':

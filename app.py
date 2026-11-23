@@ -2323,11 +2323,15 @@ def admin_attendance():
     role         = request.args.get('role', 'student')
     date         = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     class_filter = request.args.get('class_filter', 'all')
+
+    # ============================================================
+    # EXISTING LOGIC — subject auto-detection (UNCHANGED)
     # If the admin opens Attendance without choosing a subject, automatically
     # show the subject that has the most student attendance records for this date.
     # Teacher student attendance is saved under the teacher's subject, while
     # teacher self-attendance is saved under 'General'. Defaulting to General
     # therefore hid student records on the admin page.
+    # ============================================================
     requested_subject = (request.args.get('subject_filter') or '').strip()
     if requested_subject:
         subject_filter = requested_subject
@@ -2347,6 +2351,39 @@ def admin_attendance():
         """, (date,)).fetchone()
         subject_filter = latest_student_subject['subject'] if latest_student_subject else 'General'
 
+    # ============================================================
+    # NEW BLOCK — EVENT SELECTION MODE
+    # Har event ka button dikhane ke liye saare events fetch karo,
+    # aur agar koi specific event select hua hai to uske already
+    # selected students ki list bhi nikaal lo.
+    # ============================================================
+    event_id_raw = (request.args.get('event_id') or '').strip()
+    selected_event = None
+    selected_student_ids = set()
+
+    if event_id_raw.isdigit():
+        selected_event = db.execute(
+            'SELECT * FROM events WHERE id = ?', (int(event_id_raw),)
+        ).fetchone()
+        if selected_event:
+            rows = db.execute(
+                'SELECT student_id FROM event_certificates WHERE event_id = ?',
+                (selected_event['id'],)
+            ).fetchall()
+            selected_student_ids = {row['student_id'] for row in rows}
+
+    # Saare events — top pe buttons render karne ke liye
+    events_list = db.execute(
+        'SELECT id, title, event_date, category FROM events '
+        'ORDER BY event_date DESC, id DESC'
+    ).fetchall()
+    # ============================================================
+    # END NEW BLOCK
+    # ============================================================
+
+    # ============================================================
+    # EXISTING LOGIC — users query (UNCHANGED)
+    # ============================================================
     query = "SELECT * FROM users WHERE role = ? AND is_active = 1"
     params = [role]
     if role == 'student' and class_filter != 'all':
@@ -2425,8 +2462,15 @@ def admin_attendance():
         leave_count=leave_count, halfday_count=halfday_count,
         marked=marked, not_marked=not_marked,
         overall=overall,
-        active_page='attendance'
+        active_page='attendance',
+        # ============================================================
+        # NEW — template ko naye variables pass karo
+        # ============================================================
+        events_list=events_list,
+        selected_event=selected_event,
+        selected_student_ids=selected_student_ids,
     )
+
 
 @app.route('/admin/attendance/mark', methods=['POST'])
 @admin_required
@@ -2501,6 +2545,90 @@ def admin_mark_attendance():
     flash(f'Attendance marked for {date} ({subject}).', 'success')
     return redirect(url_for('admin_attendance', date=date, role=role,
                             class_filter=class_filter, subject_filter=subject))
+    
+
+@app.route('/admin/attendance/save-event-selection', methods=['POST'])
+@admin_required
+def admin_save_event_selection():
+    """Save which students are selected for an event → auto-create certificates."""
+    event_id   = (request.form.get('event_id') or '').strip()
+    role       = (request.form.get('role') or 'student').strip()
+    date       = (request.form.get('date') or '').strip()
+    subject_f  = (request.form.get('subject_filter') or 'General').strip()
+    class_f    = (request.form.get('class_filter') or 'all').strip()
+
+    # ---------- Validate event id ----------
+    if not event_id.isdigit():
+        flash('Invalid event selected.', 'error')
+        return redirect(url_for('admin_attendance'))
+
+    eid = int(event_id)
+    db = get_db()
+    event = db.execute('SELECT * FROM events WHERE id = ?', (eid,)).fetchone()
+    if not event:
+        flash('Event not found.', 'error')
+        return redirect(url_for('admin_attendance'))
+
+    # ---------- Collect checked student IDs ----------
+    selected_ids = []
+    for key, val in request.form.items():
+        if key.startswith('select_') and val in ('on', '1', 'true'):
+            try:
+                selected_ids.append(int(key[len('select_'):]))
+            except (ValueError, TypeError):
+                continue
+
+    try:
+        db.execute('BEGIN IMMEDIATE')
+
+        # ---------- Validate: only active students ----------
+        if selected_ids:
+            ph = ','.join(['?'] * len(selected_ids))
+            valid_rows = db.execute(
+                f"SELECT id FROM users WHERE id IN ({ph}) "
+                f"AND role='student' AND is_active=1",
+                tuple(selected_ids)
+            ).fetchall()
+            valid_ids = [row['id'] for row in valid_rows]
+        else:
+            valid_ids = []
+
+        # ---------- Replace participants + certificates ----------
+        # Full replace strategy: admin jo bhi selection bhejta hai, wahi final hai.
+        db.execute('DELETE FROM event_participants WHERE event_id = ?', (eid,))
+        db.execute('DELETE FROM event_certificates WHERE event_id = ?', (eid,))
+
+        for sid in valid_ids:
+            db.execute(
+                'INSERT INTO event_participants (event_id, student_id, role) '
+                'VALUES (?, ?, ?)',
+                (eid, sid, 'participant')
+            )
+            db.execute(
+                "INSERT INTO event_certificates "
+                "(event_id, student_id, certificate_type) "
+                "VALUES (?, ?, 'participation')",
+                (eid, sid)
+            )
+
+        db.commit()
+
+        event_title = event['title']
+        flash(
+            f'✓ {len(valid_ids)} student(s) selected for "{event_title}". '
+            f'Certificates are now ready to generate on the event certificates page.',
+            'success'
+        )
+    except Exception:
+        db.rollback()
+        app.logger.exception('Event selection save failed for event_id=%s', eid)
+        flash('Could not save event selection. Please try again.', 'error')
+
+    return redirect(url_for(
+        'admin_attendance',
+        event_id=eid, role=role, date=date,
+        subject_filter=subject_f, class_filter=class_f
+    ))
     
 
 # --------- Attendance record export route system ---------

@@ -2478,13 +2478,31 @@ def admin_attendance():
     users = db.execute(query, tuple(params)).fetchall()
 
     # FIX: Fetch class list regardless of selected role to show in Event mode
-    class_list = []
-    rows = db.execute(
-        "SELECT DISTINCT COALESCE(class_name, child_class) AS c FROM users "
-        "WHERE role='student' AND COALESCE(class_name, child_class) IS NOT NULL "
-        "AND COALESCE(class_name, child_class) != '' ORDER BY c"
-    ).fetchall()
-    class_list = [r['c'] for r in rows if r['c']]
+    rows = db.execute("""
+        SELECT DISTINCT
+            COALESCE(
+                NULLIF(TRIM(class_name), ''),
+                NULLIF(TRIM(child_class), '')
+            ) AS class_name
+        FROM users
+        WHERE role = 'student'
+        AND is_active = 1
+        AND (
+            NULLIF(TRIM(class_name), '') IS NOT NULL
+            OR NULLIF(TRIM(child_class), '') IS NOT NULL
+        )
+        ORDER BY class_name COLLATE NOCASE
+    """).fetchall()
+
+    class_list = [
+        row['class_name']
+        for row in rows
+        if row['class_name']
+    ]
+
+    # Validate selected class
+    if class_filter != 'all' and class_filter not in class_list:
+        class_filter = 'all'
 
     records = db.execute(
         "SELECT * FROM attendance WHERE date = ? AND subject = ?",

@@ -23,91 +23,177 @@
 .qpc-status{margin-top:10px;min-height:18px}
 .qpc-submit{width:100%;min-height:49px;border:0;border-radius:10px;background:#0f766e;color:#fff;font-size:15px;font-weight:800;cursor:pointer}
 .qpc-submit:disabled{opacity:.6;cursor:wait}
+
+/* New styles for Auto-filled Exams */
+.qpc-exam-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05);}
+.qpc-exam-table th, .qpc-exam-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+.qpc-exam-table th { background: #f8fafc; font-weight: 700; color: #475569; font-size: 13px;}
+.qpc-exam-table tr:last-child td { border-bottom: none; }
+.qpc-exam-table .btn-add-q { background: #0f766e; color: #fff; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 12px; }
+.qpc-exam-table .btn-add-q:hover { background: #115e59; }
 @media(max-width:620px){.qpc-grid{grid-template-columns:1fr}.qpc-field.full{grid-column:auto}.qpc-card{padding:17px}.qpc-head{padding:19px}}
 </style>
 
 <div class="qpc">
   <header class="qpc-head">
     <h1><i class="fa-solid fa-file-circle-plus"></i> Create Question Paper</h1>
-    <p>Enter paper details, choose a class and select one or more subjects.</p>
+    <p>Select a published exam to add questions, or create an extra custom paper.</p>
   </header>
 
-  <form method="POST" action="{{ url_for('create_question_paper') }}" id="createQuestionPaperForm">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
+  {% if selected_exam %}
+    <!-- ✅ MODE A: Admin ne exam publish kiya hai, ab auto-created papers dikhao -->
     <section class="qpc-card">
-      <h2><i class="fa-solid fa-circle-info"></i> Paper Information</h2>
-      <div class="qpc-grid">
-        <div class="qpc-field full">
-          <label for="qp-title">Question Paper Title *</label>
-          <input id="qp-title" name="title" maxlength="200" required
-                 placeholder="e.g. Annual Examination 2026"
-                 value="{{ request.form.get('title', '') }}">
-        </div>
-        <div class="qpc-field">
-          <label for="qp-class">Class *</label>
-          <select id="qp-class" name="class_name" required>
-            <option value="">Select class</option>
-            {% for class_name in classes %}
-            <option value="{{ class_name }}" {% if selected_class == class_name %}selected{% endif %}>{{ class_name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="qpc-field">
-          <label for="qp-year">Academic / Examination Year *</label>
-          <input id="qp-year" name="exam_year" maxlength="30" required
-                 placeholder="e.g. 2026-27" value="{{ request.form.get('exam_year', '') }}">
-        </div>
-        <div class="qpc-field">
-          <label for="qp-time">Time Allowed *</label>
-          <input id="qp-time" name="time_allowed" maxlength="40" required
-                 placeholder="e.g. 3 Hours" value="{{ request.form.get('time_allowed', '') }}">
-        </div>
-        <div class="qpc-field">
-          <label for="qp-marks">Full Marks *</label>
-          <input id="qp-marks" type="number" name="max_marks" min="1" max="1000" required
-                 value="{{ request.form.get('max_marks', '100') }}">
-        </div>
-      </div>
-    </section>
-
-    <section class="qpc-card">
-      <h2><i class="fa-solid fa-book-open"></i> Select Subjects</h2>
-      <div class="qpc-tools">
-        <p>Choose one or multiple subjects for the selected class.</p>
-        <div>
-          <button type="button" id="qp-select-all">Select All</button>
-          <button type="button" id="qp-clear-all">Clear All</button>
-        </div>
-      </div>
-
-      <div class="qpc-subjects" id="qp-subjects"
-           data-url="{{ url_for('question_paper_subjects_api') }}">
-        {% if subjects %}
-          {% for subject in subjects %}
-          <label class="qpc-subject">
-            <input type="checkbox" name="subject[]" value="{{ subject['subject_name'] }}"
-              {% if subject['subject_name'] in selected_subjects %}checked{% endif %}>
-            <span>{{ subject['subject_name'] }}</span>
-          </label>
-          {% endfor %}
-        {% else %}
-          <div class="qpc-empty">
-            {% if selected_class %}No subjects are registered for this class.{% else %}Select a class to load its subjects.{% endif %}
-          </div>
-        {% endif %}
-      </div>
-      <p class="qpc-status" id="qp-status" aria-live="polite">
-        {% if subjects %}{{ subjects|length }} subject(s) available.{% endif %}
+      <h2><i class="fa-solid fa-list-check"></i> {{ selected_exam.title }} - Ready Papers</h2>
+      <p style="color:#64748b; font-size:14px; margin-bottom:15px;">
+        Admin dwara exam publish hote hi sabhi classes aur subjects ke papers ready ho gaye hain. 
+        Aapko bas questions add karne hain. Koi subject select karne ki zaroorat nahi hai.
       </p>
+      
+      {% if auto_papers %}
+      <table class="qpc-exam-table">
+        <thead>
+          <tr>
+            <th>Class</th>
+            <th>Subject</th>
+            <th>Max Marks</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in auto_papers %}
+          <tr>
+            <td><strong>{{ p.class_name }}</strong></td>
+            <td>{{ p.subject }}</td>
+            <td>{{ p.max_marks }}</td>
+            <td>{{ p.time_allowed or '2 hours' }}</td>
+            <td>
+              {% if p.question_count > 0 %}
+                <span style="color:#16a34a; font-weight:bold;"><i class="fa-solid fa-check-circle"></i> {{ p.question_count }} Questions</span>
+              {% else %}
+                <span style="color:#d97706; font-weight:bold;">Empty</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('edit_question_paper', paper_id=p.id) }}" class="btn-add-q">
+                <i class="fa-solid fa-plus"></i> Add Questions
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <div class="qpc-empty">No papers found for this exam. Please check with the admin.</div>
+      {% endif %}
+      
+      <div style="margin-top: 20px;">
+        <a href="{{ url_for('create_question_paper') }}" class="qpc-tools button" style="text-decoration:none; background:#f1f5f9; border:1px solid #cbd5e1; color:#334155;">
+            <i class="fa-solid fa-arrow-left"></i> Back to Exam Selection
+        </a>
+      </div>
     </section>
 
-    <button type="submit" class="qpc-submit" id="qp-submit">
-      <i class="fa-solid fa-arrow-right"></i> Create Question Paper(s)
-    </button>
-  </form>
+  {% else %}
+    <!-- ✅ MODE B: Exam select karo ya Extra Paper banao -->
+    <section class="qpc-card" style="margin-bottom: 25px;">
+      <h2><i class="fa-solid fa-file-signature"></i> Option 1: Fill Auto-Created Papers</h2>
+      <p style="color:#64748b; font-size:14px; margin-bottom:15px;">Select a published exam to view its auto-created papers.</p>
+      
+      <form method="GET" action="{{ url_for('create_question_paper') }}" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <select name="exam_id" required style="flex:1; min-width:250px; padding:12px; border-radius:8px; border:1px solid #cbd5e1;">
+          <option value="">-- Select Published Exam --</option>
+          {% for e in published_exams %}
+            <option value="{{ e.id }}">{{ e.title }} ({{ e.term_label }} - {{ e.academic_year }})</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="qpc-submit" style="width:auto; padding:0 25px; background:#1d4ed8;">
+          View Papers <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </form>
+    </section>
+
+    <hr style="border:0; border-top:1px solid #e2e8f0; margin: 30px 0;">
+
+    <header class="qpc-head" style="background:linear-gradient(130deg,#fff,#fdf4ff);">
+      <h1><i class="fa-solid fa-file-circle-plus"></i> Option 2: Create Extra Subject Paper</h1>
+      <p>Use this only if you want to add a subject paper not covered in the admin's exam.</p>
+    </header>
+
+    <form method="POST" action="{{ url_for('create_question_paper') }}" id="createQuestionPaperForm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <!-- exam_id blank rakha hai taaki ye extra paper count ho -->
+      <input type="hidden" name="exam_id" value="">
+
+      <section class="qpc-card">
+        <h2><i class="fa-solid fa-circle-info"></i> Paper Information</h2>
+        <div class="qpc-grid">
+          <div class="qpc-field full">
+            <label for="qp-title">Question Paper Title *</label>
+            <input id="qp-title" name="title" maxlength="200" required placeholder="e.g. Extra Class Test 2026" value="{{ request.form.get('title', '') }}">
+          </div>
+          <div class="qpc-field">
+            <label for="qp-class">Class *</label>
+            <select id="qp-class" name="class_name" required>
+              <option value="">Select class</option>
+              {% for class_name in classes %}
+              <option value="{{ class_name }}" {% if selected_class == class_name %}selected{% endif %}>{{ class_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="qpc-field">
+            <label for="qp-year">Academic / Examination Year *</label>
+            <input id="qp-year" name="exam_year" maxlength="30" required placeholder="e.g. 2026-27" value="{{ request.form.get('exam_year', '') }}">
+          </div>
+          <div class="qpc-field">
+            <label for="qp-time">Time Allowed *</label>
+            <input id="qp-time" name="time_allowed" maxlength="40" required placeholder="e.g. 3 Hours" value="{{ request.form.get('time_allowed', '') }}">
+          </div>
+          <div class="qpc-field">
+            <label for="qp-marks">Full Marks *</label>
+            <input id="qp-marks" type="number" name="max_marks" min="1" max="1000" required value="{{ request.form.get('max_marks', '100') }}">
+          </div>
+        </div>
+      </section>
+
+      <section class="qpc-card">
+        <h2><i class="fa-solid fa-book-open"></i> Select Subjects</h2>
+        <div class="qpc-tools">
+          <p>Choose one or multiple subjects for the selected class.</p>
+          <div>
+            <button type="button" id="qp-select-all">Select All</button>
+            <button type="button" id="qp-clear-all">Clear All</button>
+          </div>
+        </div>
+
+        <div class="qpc-subjects" id="qp-subjects" data-url="{{ url_for('question_paper_subjects_api') }}">
+          {% if subjects %}
+            {% for subject in subjects %}
+            <label class="qpc-subject">
+              <input type="checkbox" name="subject[]" value="{{ subject['subject_name'] }}" {% if subject['subject_name'] in selected_subjects %}checked{% endif %}>
+              <span>{{ subject['subject_name'] }}</span>
+            </label>
+            {% endfor %}
+          {% else %}
+            <div class="qpc-empty">
+              {% if selected_class %}No subjects are registered for this class.{% else %}Select a class to load its subjects.{% endif %}
+            </div>
+          {% endif %}
+        </div>
+        <p class="qpc-status" id="qp-status" aria-live="polite">
+          {% if subjects %}{{ subjects|length }} subject(s) available.{% endif %}
+        </p>
+      </section>
+
+      <button type="submit" class="qpc-submit" id="qp-submit">
+        <i class="fa-solid fa-arrow-right"></i> Create Extra Paper(s)
+      </button>
+    </form>
+  {% endif %}
 </div>
 
+{% if not selected_exam %}
 <script>
 (() => {
   const classSelect = document.getElementById('qp-class');
@@ -123,7 +209,7 @@
     if (!Array.isArray(subjects) || !subjects.length) {
       const empty = document.createElement('div');
       empty.className = 'qpc-empty';
-      empty.textContent = 'No subjects are registered for this class. Add subjects in subject management first.';
+      empty.textContent = 'No subjects are registered for this class.';
       subjectBox.appendChild(empty);
       status.textContent = 'No subjects available.';
       return;
@@ -193,4 +279,5 @@
   }
 })();
 </script>
+{% endif %}
 {% endblock %}

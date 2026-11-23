@@ -5,397 +5,251 @@
 {% block content %}
 <style>
     /* ============ STAT CARDS ============ */
-    .att-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
-        gap: 12px;
-        margin-bottom: 22px;
-    }
-    .att-stat-card {
-        position: relative;
-        background: #fff;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 16px 16px 14px;
-        overflow: hidden;
-        transition: transform .2s ease, box-shadow .2s ease;
-    }
-    .att-stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 24px rgba(9,47,88,0.07);
-    }
-    .att-stat-card::before {
-        content: '';
-        position: absolute; top: 0; left: 0; right: 0; height: 3px;
-    }
-    .att-stat-card.present::before    { background: #168254; }
-    .att-stat-card.absent::before     { background: #d71938; }
-    .att-stat-card.leave::before      { background: #a86a00; }
-    .att-stat-card.halfday::before    { background: #7439b2; }
+    .att-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 12px; margin-bottom: 22px; }
+    .att-stat-card { position: relative; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px 16px 14px; overflow: hidden; transition: transform .2s ease, box-shadow .2s ease; }
+    .att-stat-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(9,47,88,0.07); }
+    .att-stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .att-stat-card.present::before { background: #168254; }
+    .att-stat-card.absent::before { background: #d71938; }
+    .att-stat-card.leave::before { background: #a86a00; }
+    .att-stat-card.halfday::before { background: #7439b2; }
     .att-stat-card.not-marked::before { background: #94a3b8; }
-    .att-stat-card.total::before      { background: var(--navy); }
-
-    .att-stat-head {
-        display: flex; align-items: center; justify-content: space-between;
-        margin-bottom: 10px;
-    }
-    .att-stat-label {
-        font-size: 10.5px; font-weight: 700; color: var(--muted);
-        text-transform: uppercase; letter-spacing: .5px;
-    }
-    .att-stat-icon {
-        width: 26px; height: 26px; border-radius: 7px;
-        display: inline-flex; align-items: center; justify-content: center;
-        font-size: 11px; background: #f1f5f9; color: var(--muted);
-    }
-    .att-stat-card.present    .att-stat-icon { background:#e3f5eb; color:#168254; }
-    .att-stat-card.absent     .att-stat-icon { background:#ffeaee; color:#d71938; }
-    .att-stat-card.leave      .att-stat-icon { background:#fff1d6; color:#a86a00; }
-    .att-stat-card.halfday    .att-stat-icon { background:#f0e7ff; color:#7439b2; }
-    .att-stat-card.total      .att-stat-icon { background:#e1f1ff; color:#1768a7; }
-
-    .att-stat-value {
-        font-size: 26px; font-weight: 800; color: var(--navy); line-height: 1;
-    }
-    .att-stat-card.present .att-stat-value    { color: #168254; }
-    .att-stat-card.absent .att-stat-value     { color: #d71938; }
-    .att-stat-card.leave .att-stat-value      { color: #a86a00; }
-    .att-stat-card.halfday .att-stat-value    { color: #7439b2; }
+    .att-stat-card.total::before { background: var(--navy); }
+    .att-stat-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .att-stat-label { font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+    .att-stat-icon { width: 26px; height: 26px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; background: #f1f5f9; color: var(--muted); }
+    .att-stat-card.present .att-stat-icon { background:#e3f5eb; color:#168254; }
+    .att-stat-card.absent .att-stat-icon { background:#ffeaee; color:#d71938; }
+    .att-stat-card.leave .att-stat-icon { background:#fff1d6; color:#a86a00; }
+    .att-stat-card.halfday .att-stat-icon { background:#f0e7ff; color:#7439b2; }
+    .att-stat-card.total .att-stat-icon { background:#e1f1ff; color:#1768a7; }
+    .att-stat-value { font-size: 26px; font-weight: 800; color: var(--navy); line-height: 1; }
+    .att-stat-card.present .att-stat-value { color: #168254; }
+    .att-stat-card.absent .att-stat-value { color: #d71938; }
+    .att-stat-card.leave .att-stat-value { color: #a86a00; }
+    .att-stat-card.halfday .att-stat-value { color: #7439b2; }
     .att-stat-card.not-marked .att-stat-value { color: #64748b; }
 
     /* ============ SECTION SHELL ============ */
-    .att-section {
-        background: #fff;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        margin-bottom: 18px;
-        overflow: hidden;
-    }
-    .att-section-head {
-        padding: 14px 18px;
-        border-bottom: 1px solid var(--line);
-        display: flex; align-items: center; justify-content: space-between;
-        gap: 12px; flex-wrap: wrap;
-    }
-    .att-section-title {
-        display: flex; align-items: center; gap: 9px;
-        font-size: 13px; font-weight: 800; color: var(--navy);
-        text-transform: uppercase; letter-spacing: .4px;
-    }
-    .att-section-title i {
-        width: 26px; height: 26px; border-radius: 7px;
-        background: #e1f1ff; color: #1768a7;
-        display: inline-flex; align-items: center; justify-content: center;
-        font-size: 11px;
-    }
-    .att-section-hint {
-        font-size: 11.5px; color: var(--muted); font-weight: 600;
-    }
+    .att-section { background: #fff; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 18px; overflow: hidden; }
+    .att-section-head { padding: 14px 18px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .att-section-title { display: flex; align-items: center; gap: 9px; font-size: 13px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: .4px; }
+    .att-section-title i { width: 26px; height: 26px; border-radius: 7px; background: #e1f1ff; color: #1768a7; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; }
+    .att-section-hint { font-size: 11.5px; color: var(--muted); font-weight: 600; }
 
     /* ============ FILTERS ============ */
-    .att-filters {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 14px;
-        padding: 16px 18px;
-    }
-    .att-filters label {
-        display: flex; flex-direction: column; gap: 6px;
-        font-size: 10.5px; font-weight: 700; color: var(--muted);
-        text-transform: uppercase; letter-spacing: .5px;
-    }
-    .att-filters select,
-    .att-filters input {
-        font: inherit; font-size: 13px; padding: 9px 12px;
-        border: 1px solid var(--line); border-radius: 8px;
-        color: var(--navy); background: #fff;
-        outline: none; transition: border-color .18s, box-shadow .18s;
-    }
-    .att-filters select:focus,
-    .att-filters input:focus {
-        border-color: #b0c4d8;
-        box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
-    }
+    .att-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; padding: 16px 18px; }
+    .att-filters label { display: flex; flex-direction: column; gap: 6px; font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+    .att-filters select, .att-filters input { font: inherit; font-size: 13px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--navy); background: #fff; outline: none; transition: border-color .18s, box-shadow .18s; }
+    .att-filters select:focus, .att-filters input:focus { border-color: #b0c4d8; box-shadow: 0 0 0 3px rgba(11,53,98,0.06); }
 
     /* ============ EXPORT PANEL ============ */
-    .att-export {
-        display: flex; align-items: center; justify-content: space-between;
-        gap: 16px; flex-wrap: wrap;
-        padding: 16px 18px;
-    }
-    .att-export-info {
-        display: flex; align-items: center; gap: 12px; min-width: 240px;
-    }
-    .att-export-info .icon {
-        width: 42px; height: 42px; border-radius: 11px;
-        background: linear-gradient(135deg, #ffe0e5, #ffeaee);
-        color: #d71938; font-size: 16px;
-        display: inline-flex; align-items: center; justify-content: center;
-        flex-shrink: 0;
-    }
-    .att-export-info strong {
-        display: block; font-size: 13px; font-weight: 800; color: var(--navy);
-        margin-bottom: 2px;
-    }
-    .att-export-info span {
-        font-size: 11.5px; color: var(--muted); font-weight: 600;
-    }
-    .att-export-actions {
-        display: flex; flex-wrap: wrap; gap: 8px;
-    }
-    .att-export-btn {
-        display: inline-flex; align-items: center; gap: 7px;
-        padding: 9px 14px; border-radius: 9px;
-        border: 1px solid var(--line);
-        background: #fff;
-        font: inherit; font-size: 12.5px; font-weight: 700;
-        color: var(--navy); cursor: pointer;
-        transition: all .18s ease; white-space: nowrap;
-    }
+    .att-export { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 16px 18px; }
+    .att-export-info { display: flex; align-items: center; gap: 12px; min-width: 240px; }
+    .att-export-info .icon { width: 42px; height: 42px; border-radius: 11px; background: linear-gradient(135deg, #ffe0e5, #ffeaee); color: #d71938; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .att-export-info strong { display: block; font-size: 13px; font-weight: 800; color: var(--navy); margin-bottom: 2px; }
+    .att-export-info span { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+    .att-export-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .att-export-btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 9px; border: 1px solid var(--line); background: #fff; font: inherit; font-size: 12.5px; font-weight: 700; color: var(--navy); cursor: pointer; transition: all .18s ease; white-space: nowrap; }
     .att-export-btn i { font-size: 11px; color: var(--muted); }
-    .att-export-btn:hover {
-        background: #f4f8fc; border-color: #b0c4d8;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(9,47,88,0.06);
-    }
+    .att-export-btn:hover { background: #f4f8fc; border-color: #b0c4d8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(9,47,88,0.06); }
     .att-export-btn:hover i { color: var(--navy); }
 
     /* ============ OVERALL GLANCE ============ */
-    .att-overall {
-        padding: 16px 18px;
-    }
-    .att-overall-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 12px;
-    }
-    .att-overall-role {
-        background: #f8fafc; border: 1px solid var(--line);
-        border-radius: 10px; padding: 12px 14px;
-    }
-    .att-overall-role-name {
-        font-size: 11px; font-weight: 800; color: var(--navy);
-        text-transform: uppercase; letter-spacing: .5px;
-        margin-bottom: 10px;
-        display: flex; justify-content: space-between; align-items: center;
-    }
-    .att-overall-role-name span {
-        background: #e1f1ff; color: #1768a7;
-        padding: 2px 8px; border-radius: 5px;
-        font-size: 10px; font-weight: 800;
-    }
-    .att-overall-pills {
-        display: flex; gap: 6px; flex-wrap: wrap;
-    }
-    .att-overall-pill {
-        display: inline-flex; align-items: center; gap: 4px;
-        padding: 4px 9px; border-radius: 6px;
-        font-weight: 700; font-size: 10.5px;
-    }
+    .att-overall { padding: 16px 18px; }
+    .att-overall-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    .att-overall-role { background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+    .att-overall-role-name { font-size: 11px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .att-overall-role-name span { background: #e1f1ff; color: #1768a7; padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: 800; }
+    .att-overall-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .att-overall-pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; border-radius: 6px; font-weight: 700; font-size: 10.5px; }
     .att-overall-pill i { font-size: 9px; }
-    .att-overall-pill.present    { background:#e3f5eb; color:#168254; }
-    .att-overall-pill.absent     { background:#ffeaee; color:#d71938; }
-    .att-overall-pill.leave      { background:#fff1d6; color:#a86a00; }
-    .att-overall-pill.halfday    { background:#f0e7ff; color:#7439b2; }
+    .att-overall-pill.present { background:#e3f5eb; color:#168254; }
+    .att-overall-pill.absent { background:#ffeaee; color:#d71938; }
+    .att-overall-pill.leave { background:#fff1d6; color:#a86a00; }
+    .att-overall-pill.halfday { background:#f0e7ff; color:#7439b2; }
     .att-overall-pill.not-marked { background:#f1f5f9; color:#64748b; }
 
     /* ============ REFRESH NOTE ============ */
-    .att-refresh-note {
-        display: flex; justify-content: space-between; align-items: center;
-        gap: 12px; padding: 12px 18px;
-        border-bottom: 1px solid var(--line);
-        background: #fbfcfe;
-        font-size: 12px; color: var(--muted); font-weight: 600;
-    }
+    .att-refresh-note { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--line); background: #fbfcfe; font-size: 12px; color: var(--muted); font-weight: 600; }
     .att-refresh-note i { color: var(--red); margin-right: 4px; font-size: 10px; }
     .att-refresh-note strong { color: var(--navy); font-weight: 800; }
-    .att-refresh-btn {
-        display: inline-flex; align-items: center; gap: 6px;
-        padding: 6px 12px; background: #fff;
-        border: 1px solid var(--line); border-radius: 8px;
-        font-size: 11.5px; font-weight: 700; color: var(--navy);
-        text-decoration: none; transition: all .18s;
-    }
+    .att-refresh-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #fff; border: 1px solid var(--line); border-radius: 8px; font-size: 11.5px; font-weight: 700; color: var(--navy); text-decoration: none; transition: all .18s; }
     .att-refresh-btn:hover { background: #f4f8fc; border-color: #b0c4d8; }
 
     /* ============ BADGES ============ */
-    .att-badge {
-        display: inline-block; padding: 4px 10px; border-radius: 6px;
-        font-size: 10px; font-weight: 800;
-        text-transform: uppercase; letter-spacing: .3px;
-    }
-    .att-badge.present    { background:#e3f5eb; color:#168254; }
-    .att-badge.absent     { background:#ffeaee; color:#d71938; }
-    .att-badge.leave      { background:#fff1d6; color:#a86a00; }
-    .att-badge.half-day   { background:#f0e7ff; color:#7439b2; }
+    .att-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .3px; }
+    .att-badge.present { background:#e3f5eb; color:#168254; }
+    .att-badge.absent { background:#ffeaee; color:#d71938; }
+    .att-badge.leave { background:#fff1d6; color:#a86a00; }
+    .att-badge.half-day { background:#f0e7ff; color:#7439b2; }
     .att-badge.not-marked { background:#f1f5f9; color:#64748b; }
 
     /* ============ BULK BAR ============ */
-    .att-bulk-bar {
-        display: flex; gap: 12px;
-        padding: 14px 18px;
-        background: #fbfcfe;
-        border-bottom: 1px solid var(--line);
-        align-items: center; flex-wrap: wrap;
-    }
+    .att-bulk-bar { display: flex; gap: 12px; padding: 14px 18px; background: #fbfcfe; border-bottom: 1px solid var(--line); align-items: center; flex-wrap: wrap; }
     .att-bulk-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .att-bulk-btn {
-        display: inline-flex; align-items: center; gap: 7px;
-        padding: 9px 14px; border-radius: 9px;
-        border: 1px solid transparent;
-        font: inherit; font-size: 12.5px; font-weight: 700;
-        cursor: pointer; transition: all .18s ease; white-space: nowrap;
-    }
+    .att-bulk-btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 9px; border: 1px solid transparent; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all .18s ease; white-space: nowrap; }
     .att-bulk-btn i { font-size: 11px; }
     .att-bulk-btn.present { background:#e3f5eb; color:#168254; border-color:#c8e9d7; }
     .att-bulk-btn.present:hover { background:#d0eddb; }
-    .att-bulk-btn.absent  { background:#ffeaee; color:#d71938; border-color:#f8c9d2; }
+    .att-bulk-btn.absent { background:#ffeaee; color:#d71938; border-color:#f8c9d2; }
     .att-bulk-btn.absent:hover { background:#ffd9e0; }
-    .att-bulk-btn.reset   { background:#f1f5f9; color:#475569; border-color:#e2e8f0; }
+    .att-bulk-btn.reset { background:#f1f5f9; color:#475569; border-color:#e2e8f0; }
     .att-bulk-btn.reset:hover { background:#e2e8f0; }
 
-    .att-search-wrap {
-        margin-left: auto; display: flex; align-items: center; gap: 10px;
-        flex-wrap: wrap;
-    }
-    .att-search-input {
-        display: flex; align-items: center; gap: 8px;
-        background: #fff; border: 1px solid var(--line);
-        border-radius: 9px; padding: 0 12px;
-        height: 38px; width: 260px;
-        transition: all .18s;
-    }
-    .att-search-input:focus-within {
-        border-color: #b0c4d8;
-        box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
-    }
+    .att-search-wrap { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .att-search-input { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--line); border-radius: 9px; padding: 0 12px; height: 38px; width: 260px; transition: all .18s; }
+    .att-search-input:focus-within { border-color: #b0c4d8; box-shadow: 0 0 0 3px rgba(11,53,98,0.06); }
     .att-search-input i { color: #65758a; font-size: 12px; }
-    .att-search-input input {
-        flex: 1; border: 0; outline: 0; background: transparent;
-        font: inherit; font-size: 13px; color: var(--navy);
-    }
+    .att-search-input input { flex: 1; border: 0; outline: 0; background: transparent; font: inherit; font-size: 13px; color: var(--navy); }
     .att-search-input input::placeholder { color: #a0aec0; }
     .att-counter { font-size: 11.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
     .att-counter b { color: var(--navy); font-weight: 800; }
 
     /* ============ TOGGLE ============ */
     .att-quick-toggle { display: flex; gap: 4px; }
-    .att-toggle-btn {
-        width: 36px; height: 36px; border-radius: 8px;
-        border: 2px solid var(--line); background: #fff;
-        font: inherit; font-weight: 800; font-size: 12px;
-        color: var(--muted); cursor: pointer;
-        transition: all .15s ease; padding: 0;
-    }
+    .att-toggle-btn { width: 36px; height: 36px; border-radius: 8px; border: 2px solid var(--line); background: #fff; font: inherit; font-weight: 800; font-size: 12px; color: var(--muted); cursor: pointer; transition: all .15s ease; padding: 0; }
     .att-toggle-btn:hover { transform: translateY(-1px); border-color: #b0c4d8; }
     .att-toggle-btn.p.active { background:#168254; border-color:#168254; color:#fff; }
     .att-toggle-btn.a.active { background:#d71938; border-color:#d71938; color:#fff; }
     .att-toggle-btn.l.active { background:#a86a00; border-color:#a86a00; color:#fff; }
     .att-toggle-btn.h.active { background:#7439b2; border-color:#7439b2; color:#fff; }
 
-    .att-row-marked-present  { background: #f0fdf4 !important; }
-    .att-row-marked-absent   { background: #fef2f2 !important; }
-    .att-row-marked-leave    { background: #fffbeb !important; }
+    .att-row-marked-present { background: #f0fdf4 !important; }
+    .att-row-marked-absent { background: #fef2f2 !important; }
+    .att-row-marked-leave { background: #fffbeb !important; }
     .att-row-marked-half-day { background: #f5f3ff !important; }
 
     /* ============ CLASS PILLS ============ */
-    .att-class-pills {
-        display: flex; flex-wrap: wrap; gap: 6px;
-        padding: 12px 18px;
-        background: #f8fafc;
-        border-bottom: 1px solid var(--line);
-    }
-    .att-class-pills-label {
-        font-size: 10.5px; font-weight: 800; color: var(--muted);
-        text-transform: uppercase; letter-spacing: .4px;
-        align-self: center; margin-right: 6px;
-    }
-    .att-class-pill {
-        padding: 5px 12px; border-radius: 6px;
-        background: #fff; border: 1px solid var(--line);
-        font-size: 11px; font-weight: 700; color: var(--navy);
-        cursor: pointer; transition: all .15s;
-    }
+    .att-class-pills { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 18px; background: #f8fafc; border-bottom: 1px solid var(--line); }
+    .att-class-pills-label { font-size: 10.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; align-self: center; margin-right: 6px; }
+    .att-class-pill { padding: 5px 12px; border-radius: 6px; background: #fff; border: 1px solid var(--line); font-size: 11px; font-weight: 700; color: var(--navy); cursor: pointer; transition: all .15s; }
     .att-class-pill:hover { background:#e1f1ff; border-color:#b0c4d8; }
-    .att-class-pill.active {
-        background: var(--navy); color: #fff; border-color: var(--navy);
-    }
+    .att-class-pill.active { background: var(--navy); color: #fff; border-color: var(--navy); }
 
     /* ============ SAVE BAR ============ */
-    .att-save-bar {
-        position: sticky; bottom: 16px;
-        padding: 14px 20px;
-        background: #fff;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        margin-top: 16px;
-        display: flex; justify-content: space-between; align-items: center;
-        box-shadow: 0 8px 24px rgba(9,47,88,0.08);
-        z-index: 100; gap: 12px;
-    }
+    .att-save-bar { position: sticky; bottom: 16px; padding: 14px 20px; background: #fff; border: 1px solid var(--line); border-radius: 12px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px rgba(9,47,88,0.08); z-index: 100; gap: 12px; }
     .att-save-info { font-size: 12.5px; font-weight: 600; color: var(--muted); }
     .att-save-info strong { color: var(--navy); font-weight: 800; }
 
-    /* ============ EVENT SELECTION PANEL (NEW) ============ */
-    .evt-mode-toggle {
-        display: flex; gap: 6px; flex-wrap: wrap;
-        padding: 12px 18px;
-        background: #f8fafc;
-        border-bottom: 1px solid var(--line);
-        align-items: center;
-    }
-    .evt-mode-toggle-label {
-        font-size: 10.5px; font-weight: 800; color: var(--muted);
-        text-transform: uppercase; letter-spacing: .4px;
-        margin-right: 6px;
-    }
-    .evt-mode-pill {
-        display: inline-flex; align-items: center; gap: 6px;
-        padding: 6px 14px; border-radius: 7px;
-        background: #fff; border: 1px solid var(--line);
-        font-size: 11.5px; font-weight: 700; color: var(--navy);
-        text-decoration: none; transition: all .15s ease;
-        white-space: nowrap;
-    }
-    .evt-mode-pill:hover {
-        background: #e1f1ff; border-color: #b0c4d8;
-        transform: translateY(-1px);
-    }
-    .evt-mode-pill.active {
-        background: var(--navy); color: #fff; border-color: var(--navy);
-    }
+    /* ============ EVENT MODE SWITCHER ============ */
+    .evt-mode-toggle { display: flex; gap: 6px; flex-wrap: wrap; padding: 12px 18px; background: #f8fafc; border-bottom: 1px solid var(--line); align-items: center; }
+    .evt-mode-toggle-label { font-size: 10.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-right: 6px; }
+    .evt-mode-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 7px; background: #fff; border: 1px solid var(--line); font-size: 11.5px; font-weight: 700; color: var(--navy); text-decoration: none; transition: all .15s ease; white-space: nowrap; }
+    .evt-mode-pill:hover { background: #e1f1ff; border-color: #b0c4d8; transform: translateY(-1px); }
+    .evt-mode-pill.active { background: var(--navy); color: #fff; border-color: var(--navy); }
     .evt-mode-pill i { font-size: 10px; }
-    .evt-mode-pill small {
-        font-size: 9.5px; font-weight: 600;
-        opacity: .75; margin-left: 2px;
-    }
+    .evt-mode-pill small { font-size: 9.5px; font-weight: 600; opacity: .75; margin-left: 2px; }
 
-    /* Event selection row states */
     .evt-row-selected { background: #f0fdf4 !important; }
-    .evt-checkbox {
-        width: 18px; height: 18px;
-        cursor: pointer; accent-color: #168254;
-        margin: 0; vertical-align: middle;
-    }
-    .evt-empty-hint {
-        padding: 24px 18px; text-align: center;
-        color: var(--muted); font-size: 12.5px;
-        font-weight: 600;
-    }
-    .evt-empty-hint i {
-        color: var(--navy); margin-right: 4px;
-        font-size: 12px;
-    }
-    .evt-empty-hint a {
-        color: var(--navy); font-weight: 800;
-        text-decoration: underline;
-    }
+    .evt-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: #168254; margin: 0; vertical-align: middle; }
 </style>
 
-{# ============================================================ #}
-{# ATTENDANCE MODE ONLY — hidden when selecting for an event   #}
-{# ============================================================ #}
+<!-- ============ EVENT SWITCHER PANEL (Always Visible) ============ -->
+<div class="att-section">
+    <div class="att-section-head">
+        <div class="att-section-title">
+            <i class="fa-solid fa-certificate"></i> Event Certificate Selection
+        </div>
+        <div class="att-section-hint">
+            {% if selected_event %}
+                Currently: <strong>{{ selected_event.title }}</strong>
+            {% else %}
+                Click an event below to select students for certificates
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="evt-mode-toggle">
+        <span class="evt-mode-toggle-label">Mode:</span>
+
+        <a href="{{ url_for('admin_attendance', role=role, date=date, subject_filter=subject_filter, class_filter=class_filter) }}"
+           class="evt-mode-pill {% if not selected_event %}active{% endif %}"
+           title="Back to attendance marking">
+            <i class="fa-solid fa-users"></i> Attendance Mode
+        </a>
+
+        {% if events_list %}
+            {% for ev in events_list %}
+            <a href="{{ url_for('admin_attendance', event_id=ev.id, role=role, date=date, subject_filter=subject_filter, class_filter=class_filter) }}"
+               class="evt-mode-pill {% if selected_event and selected_event.id == ev.id %}active{% endif %}"
+               title="{{ ev.event_date }} · {{ ev.category }}">
+                <i class="fa-solid fa-certificate"></i> {{ ev.title }}
+                <small>{{ ev.event_date }}</small>
+            </a>
+            {% endfor %}
+        {% else %}
+            <span style="font-size:11.5px; color:var(--muted); font-style:italic;">
+                <i class="fa-solid fa-info-circle"></i> Koi event nahi mila — pehle Events page se create karein.
+            </span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ============ FILTER VIEW (Shared between both modes) ============ -->
+<div class="att-section">
+    <div class="att-section-head">
+        <div class="att-section-title">
+            <i class="fa-solid fa-filter"></i> Filter View
+        </div>
+        <div class="att-section-hint">
+            {% if selected_event %}
+                Filtering students for: <strong>{{ selected_event.title }}</strong>
+            {% else %}
+                Records refresh live from database
+            {% endif %}
+        </div>
+    </div>
+    <form method="GET" class="admin-form">
+        {% if selected_event %}
+            <!-- Event Mode: hidden fields to preserve context on filter change -->
+            <input type="hidden" name="event_id" value="{{ selected_event.id }}">
+            <input type="hidden" name="role" value="student">
+            <input type="hidden" name="date" value="{{ date }}">
+            <input type="hidden" name="subject_filter" value="{{ subject_filter }}">
+        {% endif %}
+        
+        <div class="att-filters">
+            {% if not selected_event %}
+                <!-- Attendance Mode Filters -->
+                <label>Role
+                    <select name="role" onchange="this.form.submit()">
+                        <option value="student" {% if role=='student' %}selected{% endif %}>Students</option>
+                        <option value="teacher" {% if role=='teacher' %}selected{% endif %}>Teachers</option>
+                    </select>
+                </label>
+                <label>Date
+                    <input type="date" name="date" value="{{ date }}"
+                           onchange="this.form.elements['subject_filter'].disabled = true; this.form.submit()">
+                </label>
+                <label>Subject
+                    <select name="subject_filter" onchange="this.form.submit()">
+                        {% for s in subjects %}
+                        <option value="{{ s }}" {% if s==subject_filter %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+            {% endif %}
+            
+            {% if selected_event or role == 'student' %}
+                <!-- Class Filter (Event mode always, Attendance mode only for students) -->
+                <label>Class
+                    <select name="class_filter" onchange="this.form.submit()">
+                        <option value="all" {% if class_filter=='all' %}selected{% endif %}>All Classes</option>
+                        {% for c in class_list %}
+                        <option value="{{ c }}" {% if c==class_filter %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
 {% if not selected_event %}
+<!-- ============================================================ -->
+<!-- ATTENDANCE MODE CONTENT                                      -->
+<!-- ============================================================ -->
 
 <!-- ============ STATS ============ -->
 <div class="att-stats">
@@ -443,47 +297,6 @@
     </div>
 </div>
 
-<!-- ============ FILTERS ============ -->
-<div class="att-section">
-    <div class="att-section-head">
-        <div class="att-section-title">
-            <i class="fa-solid fa-filter"></i> Filter View
-        </div>
-        <div class="att-section-hint">Records refresh live from database</div>
-    </div>
-    <form method="GET" class="admin-form">
-        <div class="att-filters">
-            <label>Role
-                <select name="role" onchange="this.form.submit()">
-                    <option value="student" {% if role=='student' %}selected{% endif %}>Students</option>
-                    <option value="teacher" {% if role=='teacher' %}selected{% endif %}>Teachers</option>
-                </select>
-            </label>
-            <label>Date
-                <input type="date" name="date" value="{{ date }}"
-                       onchange="this.form.elements['subject_filter'].disabled = true; this.form.submit()">
-            </label>
-            <label>Subject
-                <select name="subject_filter" onchange="this.form.submit()">
-                    {% for s in subjects %}
-                    <option value="{{ s }}" {% if s==subject_filter %}selected{% endif %}>{{ s }}</option>
-                    {% endfor %}
-                </select>
-            </label>
-            {% if role == 'student' %}
-            <label>Class
-                <select name="class_filter" onchange="this.form.submit()">
-                    <option value="all" {% if class_filter=='all' %}selected{% endif %}>All Classes</option>
-                    {% for c in class_list %}
-                    <option value="{{ c }}" {% if c==class_filter %}selected{% endif %}>{{ c }}</option>
-                    {% endfor %}
-                </select>
-            </label>
-            {% endif %}
-        </div>
-    </form>
-</div>
-
 <!-- ============ EXPORT PANEL ============ -->
 <div class="att-section">
     <div class="att-export">
@@ -495,18 +308,10 @@
             </div>
         </div>
         <div class="att-export-actions">
-            <button type="button" class="att-export-btn" onclick="exportAttendance('daily')">
-                <i class="fa-solid fa-calendar-day"></i> Daily
-            </button>
-            <button type="button" class="att-export-btn" onclick="exportAttendance('weekly')">
-                <i class="fa-solid fa-calendar-week"></i> Weekly
-            </button>
-            <button type="button" class="att-export-btn" onclick="exportAttendance('monthly')">
-                <i class="fa-solid fa-calendar-days"></i> Monthly
-            </button>
-            <button type="button" class="att-export-btn" onclick="exportAttendance('yearly')">
-                <i class="fa-solid fa-calendar"></i> Yearly
-            </button>
+            <button type="button" class="att-export-btn" onclick="exportAttendance('daily')"><i class="fa-solid fa-calendar-day"></i> Daily</button>
+            <button type="button" class="att-export-btn" onclick="exportAttendance('weekly')"><i class="fa-solid fa-calendar-week"></i> Weekly</button>
+            <button type="button" class="att-export-btn" onclick="exportAttendance('monthly')"><i class="fa-solid fa-calendar-days"></i> Monthly</button>
+            <button type="button" class="att-export-btn" onclick="exportAttendance('yearly')"><i class="fa-solid fa-calendar"></i> Yearly</button>
         </div>
     </div>
 </div>
@@ -514,9 +319,7 @@
 <!-- ============ OVERALL GLANCE ============ -->
 <div class="att-section">
     <div class="att-section-head">
-        <div class="att-section-title">
-            <i class="fa-solid fa-chart-simple"></i> Today at a Glance
-        </div>
+        <div class="att-section-title"><i class="fa-solid fa-chart-simple"></i> Today at a Glance</div>
         <div class="att-section-hint">{{ date }} · {{ subject_filter }}</div>
     </div>
     <div class="att-overall">
@@ -524,10 +327,7 @@
             {% for role_name, data in overall.items() %}
             {% if data.total > 0 %}
             <div class="att-overall-role">
-                <div class="att-overall-role-name">
-                    {{ role_name|capitalize }}s
-                    <span>{{ data.total }} total</span>
-                </div>
+                <div class="att-overall-role-name">{{ role_name|capitalize }}s <span>{{ data.total }} total</span></div>
                 <div class="att-overall-pills">
                     <span class="att-overall-pill present"><i class="fa-solid fa-check"></i> {{ data.present }} present</span>
                     <span class="att-overall-pill absent"><i class="fa-solid fa-xmark"></i> {{ data.absent }} absent</span>
@@ -561,48 +361,34 @@
 
         <div class="att-refresh-note">
             <span>
-                <i class="fa-solid fa-clock"></i>
-                Marked <strong id="markedCountInline">{{ marked }}</strong> of <strong>{{ users|length }}</strong>
+                <i class="fa-solid fa-clock"></i> Marked <strong id="markedCountInline">{{ marked }}</strong> of <strong>{{ users|length }}</strong>
             </span>
-            <a href="{{ url_for('admin_attendance', role=role, date=date, subject_filter=subject_filter, class_filter=class_filter) }}"
-               class="att-refresh-btn">
+            <a href="{{ url_for('admin_attendance', role=role, date=date, subject_filter=subject_filter, class_filter=class_filter) }}" class="att-refresh-btn">
                 <i class="fa-solid fa-rotate"></i> Refresh
             </a>
         </div>
 
         <div class="att-bulk-bar">
             <div class="att-bulk-actions">
-                <button type="button" class="att-bulk-btn present" onclick="markAllVisible('present')">
-                    <i class="fa-solid fa-check-double"></i> Mark All Present
-                </button>
-                <button type="button" class="att-bulk-btn absent" onclick="markAllVisible('absent')">
-                    <i class="fa-solid fa-xmark"></i> Mark All Absent
-                </button>
-                <button type="button" class="att-bulk-btn reset" onclick="markAllVisible('')">
-                    <i class="fa-solid fa-rotate-left"></i> Reset Visible
-                </button>
+                <button type="button" class="att-bulk-btn present" onclick="markAllVisible('present')"><i class="fa-solid fa-check-double"></i> Mark All Present</button>
+                <button type="button" class="att-bulk-btn absent" onclick="markAllVisible('absent')"><i class="fa-solid fa-xmark"></i> Mark All Absent</button>
+                <button type="button" class="att-bulk-btn reset" onclick="markAllVisible('')"><i class="fa-solid fa-rotate-left"></i> Reset Visible</button>
             </div>
             <div class="att-search-wrap">
                 <div class="att-search-input">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="search" id="searchInput"
-                           placeholder="Search by name, ID or class..."
-                           oninput="filterRows(this.value)" autofocus>
+                    <input type="search" id="searchInput" placeholder="Search by name, ID or class..." oninput="filterRows(this.value)" autofocus>
                 </div>
-                <span class="att-counter">
-                    Showing <b id="visibleCount">{{ users|length }}</b> of {{ users|length }}
-                </span>
+                <span class="att-counter">Showing <b id="visibleCount">{{ users|length }}</b> of {{ users|length }}</span>
             </div>
         </div>
 
         {% if role == 'student' and class_list %}
         <div class="att-class-pills">
             <span class="att-class-pills-label">Quick class filter:</span>
-            <button type="button" class="att-class-pill {% if class_filter=='all' %}active{% endif %}"
-                    onclick="applyClassFilter('all')">All</button>
+            <button type="button" class="att-class-pill {% if class_filter=='all' %}active{% endif %}" onclick="applyClassFilter('all')">All</button>
             {% for c in class_list %}
-            <button type="button" class="att-class-pill {% if c==class_filter %}active{% endif %}"
-                    onclick="applyClassFilter('{{ c }}')">{{ c }}</button>
+            <button type="button" class="att-class-pill {% if c==class_filter %}active{% endif %}" onclick="applyClassFilter('{{ c }}')">{{ c }}</button>
             {% endfor %}
         </div>
         {% endif %}
@@ -622,46 +408,23 @@
                     {% for u in users %}
                     {% set raw_st = attendance_map.get(u.id, '') %}
                     {% set st = raw_st if raw_st in ['present', 'absent', 'leave', 'half-day'] else '' %}
-                    <tr class="att-row-item {% if st %}att-row-marked-{{ st }}{% endif %}"
-                        data-uid="{{ u.id }}"
-                        data-name="{{ u.name|lower }}"
-                        data-userid="{{ u.unique_id|lower }}"
-                        data-class="{{ (u.class_name or u.child_class or '')|lower }}"
-                        data-status="{{ st }}">
+                    <tr class="att-row-item {% if st %}att-row-marked-{{ st }}{% endif %}" data-uid="{{ u.id }}" data-name="{{ u.name|lower }}" data-userid="{{ u.unique_id|lower }}" data-class="{{ (u.class_name or u.child_class or '')|lower }}" data-status="{{ st }}">
                         <td><strong>{{ u.unique_id }}</strong></td>
                         <td>{{ u.name }}</td>
-                        {% if role == 'student' %}
-                        <td>{{ u.class_name or u.child_class or '—' }}</td>
-                        {% endif %}
-                        <td>
-                            <span class="att-badge {{ st or 'not-marked' }} current-badge">
-                                {{ (st or 'not-marked')|replace('-', ' ')|title }}
-                            </span>
-                        </td>
+                        {% if role == 'student' %}<td>{{ u.class_name or u.child_class or '—' }}</td>{% endif %}
+                        <td><span class="att-badge {{ st or 'not-marked' }} current-badge">{{ (st or 'not-marked')|replace('-', ' ')|title }}</span></td>
                         <td>
                             <input type="hidden" name="status_{{ u.id }}" value="{{ st }}" class="status-input">
                             <div class="att-quick-toggle">
-                                <button type="button"
-                                        class="att-toggle-btn p {% if st=='present' %}active{% endif %}"
-                                        onclick="setStatus('{{ u.id }}', 'present')" title="Present">P</button>
-                                <button type="button"
-                                        class="att-toggle-btn a {% if st=='absent' %}active{% endif %}"
-                                        onclick="setStatus('{{ u.id }}', 'absent')" title="Absent">A</button>
-                                <button type="button"
-                                        class="att-toggle-btn l {% if st=='leave' %}active{% endif %}"
-                                        onclick="setStatus('{{ u.id }}', 'leave')" title="On Leave">L</button>
-                                <button type="button"
-                                        class="att-toggle-btn h {% if st=='half-day' %}active{% endif %}"
-                                        onclick="setStatus('{{ u.id }}', 'half-day')" title="Half Day">H</button>
+                                <button type="button" class="att-toggle-btn p {% if st=='present' %}active{% endif %}" onclick="setStatus('{{ u.id }}', 'present')" title="Present">P</button>
+                                <button type="button" class="att-toggle-btn a {% if st=='absent' %}active{% endif %}" onclick="setStatus('{{ u.id }}', 'absent')" title="Absent">A</button>
+                                <button type="button" class="att-toggle-btn l {% if st=='leave' %}active{% endif %}" onclick="setStatus('{{ u.id }}', 'leave')" title="On Leave">L</button>
+                                <button type="button" class="att-toggle-btn h {% if st=='half-day' %}active{% endif %}" onclick="setStatus('{{ u.id }}', 'half-day')" title="Half Day">H</button>
                             </div>
                         </td>
                     </tr>
                     {% else %}
-                    <tr>
-                        <td colspan="{% if role == 'student' %}5{% else %}4{% endif %}" class="empty-row">
-                            No {{ role }}s found for this filter.
-                        </td>
-                    </tr>
+                    <tr><td colspan="{% if role == 'student' %}5{% else %}4{% endif %}" class="empty-row">No {{ role }}s found for this filter.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -669,73 +432,29 @@
 
         {% if users %}
         <div class="att-save-bar">
-            <div class="att-save-info">
-                <strong id="saveCounter">{{ marked }}</strong> of {{ users|length }} marked
-            </div>
-            <button type="submit" class="btn-admin-primary" style="padding: 11px 24px;">
-                <i class="fa-solid fa-save"></i> Save Attendance
-            </button>
+            <div class="att-save-info"><strong id="saveCounter">{{ marked }}</strong> of {{ users|length }} marked</div>
+            <button type="submit" class="btn-admin-primary" style="padding: 11px 24px;"><i class="fa-solid fa-save"></i> Save Attendance</button>
         </div>
         {% endif %}
     </form>
 </div>
 
-{% endif %}{# end if not selected_event #}
+{% else %}
+<!-- ============================================================ -->
+<!-- EVENT SELECTION MODE CONTENT                                 -->
+<!-- ============================================================ -->
 
-{% if selected_event %}
-{# ============================================================ #}
-{# EVENT CERTIFICATE SELECTION MODE                            #}
-{# ============================================================ #}
-
-<!-- ============ EVENT MODE HEADER + SWITCHER ============ -->
+<!-- ============ INFO BANNER ============ -->
 <div class="att-section">
     <div class="att-section-head">
         <div class="att-section-title">
-            <i class="fa-solid fa-certificate"></i> Event Certificate Selection
+            <i class="fa-solid fa-info-circle" style="background:#fff1d6; color:#a86a00;"></i> How this works
         </div>
-        <div class="att-section-hint">
-            Selected event: <strong>{{ selected_event.title }}</strong>
-            <span style="margin-left:6px; font-weight:600;">({{ selected_event.event_date }})</span>
-        </div>
-    </div>
-
-    <div class="evt-mode-toggle">
-        <span class="evt-mode-toggle-label">Switch Mode:</span>
-
-        <a href="{{ url_for('admin_attendance', role=role, date=date, subject_filter=subject_filter, class_filter=class_filter) }}"
-           class="evt-mode-pill" title="Back to attendance marking">
-            <i class="fa-solid fa-users"></i> Attendance Mode
-        </a>
-
-        {% for ev in events_list %}
-        <a href="{{ url_for('admin_attendance', event_id=ev.id, role=role, date=date, subject_filter=subject_filter, class_filter=class_filter) }}"
-           class="evt-mode-pill {% if selected_event.id == ev.id %}active{% endif %}"
-           title="{{ ev.event_date }} · {{ ev.category }}">
-            <i class="fa-solid fa-certificate"></i> {{ ev.title }}
-            <small>{{ ev.event_date }}</small>
-        </a>
-        {% endfor %}
-    </div>
-</div>
-
-<!-- ============ EVENT MODE INFO BANNER ============ -->
-<div class="att-section">
-    <div class="att-section-head">
-        <div class="att-section-title">
-            <i class="fa-solid fa-info-circle" style="background:#fff1d6; color:#a86a00;"></i>
-            How this works
-        </div>
-        <div class="att-section-hint">
-            Select students → Save → Certificates auto-generate
-        </div>
+        <div class="att-section-hint">Select students → Save → Certificates auto-generate</div>
     </div>
     <div style="padding: 14px 18px; font-size: 12.5px; color: var(--muted); line-height: 1.6; font-weight: 600;">
         <i class="fa-solid fa-check-circle" style="color:#168254; margin-right:6px;"></i>
-        Students ko checkbox se select karein, phir <strong style="color:var(--navy);">"Save Selection"</strong> button dabayein.
-        Selected students automatically <code>event_certificates</code> table me add ho jayenge —
-        aur <a href="{{ url_for('admin_event_certificates', eid=selected_event.id) if 'admin_event_certificates' in config else '#' }}"
-              style="color:var(--navy); font-weight:800; text-decoration:underline;">Event Certificates page</a>
-        pe certificate generate/print kar sakte hain.
+        Students ko checkbox se select karein, phir <strong style="color:var(--navy);">"Save Selection"</strong> button dabayein. Selected students automatically <code>event_certificates</code> table me add ho jayenge.
     </div>
 </div>
 
@@ -743,18 +462,15 @@
 <div class="att-section">
     <div class="att-section-head">
         <div class="att-section-title">
-            <i class="fa-solid fa-users"></i>
-            {{ users|length }} {{ role|capitalize }}{{ 's' if users|length != 1 }} — {{ selected_event.title }}
+            <i class="fa-solid fa-users"></i> {{ users|length }} Students — {{ selected_event.title }}
         </div>
-        <div class="att-section-hint">
-            {{ selected_student_ids|length }} already selected
-        </div>
+        <div class="att-section-hint">{{ selected_student_ids|length }} already selected</div>
     </div>
 
     <form method="POST" action="{{ url_for('admin_save_event_selection') }}" id="eventSelectionForm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="event_id" value="{{ selected_event.id }}">
-        <input type="hidden" name="role" value="{{ role }}">
+        <input type="hidden" name="role" value="student">
         <input type="hidden" name="date" value="{{ date }}">
         <input type="hidden" name="subject_filter" value="{{ subject_filter }}">
         <input type="hidden" name="class_filter" value="{{ class_filter }}">
@@ -762,45 +478,33 @@
         <div class="att-refresh-note">
             <span>
                 <i class="fa-solid fa-check-circle" style="color:#168254;"></i>
-                Selected <strong id="evtSelectedCount">{{ selected_student_ids|length }}</strong>
-                of <strong>{{ users|length }}</strong>
+                Selected <strong id="evtSelectedCount">{{ selected_student_ids|length }}</strong> of <strong>{{ users|length }}</strong>
             </span>
-            <a href="{{ url_for('admin_attendance', event_id=selected_event.id, role=role, date=date, subject_filter=subject_filter, class_filter=class_filter) }}"
-               class="att-refresh-btn">
+            <a href="{{ url_for('admin_attendance', event_id=selected_event.id, role=role, date=date, subject_filter=subject_filter, class_filter=class_filter) }}" class="att-refresh-btn">
                 <i class="fa-solid fa-rotate"></i> Refresh
             </a>
         </div>
 
         <div class="att-bulk-bar">
             <div class="att-bulk-actions">
-                <button type="button" class="att-bulk-btn present" onclick="evtSelectAllVisible(true)">
-                    <i class="fa-solid fa-check-double"></i> Select All Visible
-                </button>
-                <button type="button" class="att-bulk-btn absent" onclick="evtSelectAllVisible(false)">
-                    <i class="fa-solid fa-xmark"></i> Deselect All Visible
-                </button>
+                <button type="button" class="att-bulk-btn present" onclick="evtSelectAllVisible(true)"><i class="fa-solid fa-check-double"></i> Select All Visible</button>
+                <button type="button" class="att-bulk-btn absent" onclick="evtSelectAllVisible(false)"><i class="fa-solid fa-xmark"></i> Deselect All Visible</button>
             </div>
             <div class="att-search-wrap">
                 <div class="att-search-input">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="search" id="evtSearchInput"
-                           placeholder="Search by name, ID or class..."
-                           oninput="evtFilterRows(this.value)">
+                    <input type="search" id="evtSearchInput" placeholder="Search by name, ID or class..." oninput="evtFilterRows(this.value)">
                 </div>
-                <span class="att-counter">
-                    Showing <b id="evtVisibleCount">{{ users|length }}</b> of {{ users|length }}
-                </span>
+                <span class="att-counter">Showing <b id="evtVisibleCount">{{ users|length }}</b> of {{ users|length }}</span>
             </div>
         </div>
 
         {% if role == 'student' and class_list %}
         <div class="att-class-pills">
             <span class="att-class-pills-label">Quick class filter:</span>
-            <button type="button" class="att-class-pill {% if class_filter=='all' %}active{% endif %}"
-                    onclick="evtApplyClassFilter('all')">All</button>
+            <button type="button" class="att-class-pill {% if class_filter=='all' %}active{% endif %}" onclick="applyClassFilter('all')">All</button>
             {% for c in class_list %}
-            <button type="button" class="att-class-pill {% if c==class_filter %}active{% endif %}"
-                    onclick="evtApplyClassFilter('{{ c }}')">{{ c }}</button>
+            <button type="button" class="att-class-pill {% if c==class_filter %}active{% endif %}" onclick="applyClassFilter('{{ c }}')">{{ c }}</button>
             {% endfor %}
         </div>
         {% endif %}
@@ -810,10 +514,7 @@
                 <thead>
                     <tr>
                         <th style="width:52px; text-align:center;">
-                            <input type="checkbox" id="evtSelectAllHeader"
-                                   class="evt-checkbox"
-                                   onchange="evtSelectAllVisible(this.checked)"
-                                   title="Select / deselect all visible">
+                            <input type="checkbox" id="evtSelectAllHeader" class="evt-checkbox" onchange="evtSelectAllVisible(this.checked)" title="Select / deselect all visible">
                         </th>
                         <th>Unique ID</th>
                         <th>Name</th>
@@ -824,25 +525,13 @@
                 <tbody id="eventRows">
                     {% for u in users %}
                     {% set is_sel = (u.id in selected_student_ids) %}
-                    <tr class="att-row-item {% if is_sel %}evt-row-selected{% endif %}"
-                        data-uid="{{ u.id }}"
-                        data-name="{{ u.name|lower }}"
-                        data-userid="{{ u.unique_id|lower }}"
-                        data-class="{{ (u.class_name or u.child_class or '')|lower }}"
-                        data-selected="{{ '1' if is_sel else '0' }}">
+                    <tr class="att-row-item {% if is_sel %}evt-row-selected{% endif %}" data-uid="{{ u.id }}" data-name="{{ u.name|lower }}" data-userid="{{ u.unique_id|lower }}" data-class="{{ (u.class_name or u.child_class or '')|lower }}" data-selected="{{ '1' if is_sel else '0' }}">
                         <td style="text-align:center;">
-                            <input type="checkbox"
-                                   name="select_{{ u.id }}"
-                                   value="on"
-                                   class="evt-checkbox evt-select-cb"
-                                   {% if is_sel %}checked{% endif %}
-                                   onchange="evtOnRowChange(this)">
+                            <input type="checkbox" name="select_{{ u.id }}" value="on" class="evt-checkbox evt-select-cb" {% if is_sel %}checked{% endif %} onchange="evtOnRowChange(this)">
                         </td>
                         <td><strong>{{ u.unique_id }}</strong></td>
                         <td>{{ u.name }}</td>
-                        {% if role == 'student' %}
-                        <td>{{ u.class_name or u.child_class or '—' }}</td>
-                        {% endif %}
+                        {% if role == 'student' %}<td>{{ u.class_name or u.child_class or '—' }}</td>{% endif %}
                         <td>
                             <span class="att-badge {% if is_sel %}present{% else %}not-marked{% endif %} evt-status-badge">
                                 {% if is_sel %}✓ Selected{% else %}Not Selected{% endif %}
@@ -850,11 +539,7 @@
                         </td>
                     </tr>
                     {% else %}
-                    <tr>
-                        <td colspan="{% if role == 'student' %}5{% else %}4{% endif %}" class="empty-row">
-                            No {{ role }}s found for this filter.
-                        </td>
-                    </tr>
+                    <tr><td colspan="{% if role == 'student' %}5{% else %}4{% endif %}" class="empty-row">No students found for this class filter.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -863,9 +548,7 @@
         {% if users %}
         <div class="att-save-bar">
             <div class="att-save-info">
-                <strong id="evtSaveCounter">{{ selected_student_ids|length }}</strong>
-                student(s) will receive certificates for
-                <strong>{{ selected_event.title }}</strong>
+                <strong id="evtSaveCounter">{{ selected_student_ids|length }}</strong> student(s) will receive certificates for <strong>{{ selected_event.title }}</strong>
             </div>
             <button type="submit" class="btn-admin-primary" style="padding: 11px 24px;">
                 <i class="fa-solid fa-certificate"></i> Save Selection
@@ -875,7 +558,7 @@
     </form>
 </div>
 
-{% endif %}{# end if selected_event #}
+{% endif %}
 
 <script>
 (function () {
@@ -883,7 +566,6 @@
 
     document.addEventListener('DOMContentLoaded', updateCounters);
 
-    /* ---- Export handler (opens print-ready report) ---- */
     window.exportAttendance = function (period) {
         const params = new URLSearchParams({
             period: period,
@@ -895,11 +577,9 @@
         window.open('{{ url_for("admin_attendance_export") }}?' + params.toString(), '_blank');
     };
 
-    /* ---- Set status for a single user (toggle-off) ---- */
     window.setStatus = function (uid, status) {
         const row = document.querySelector('.att-row-item[data-uid="' + uid + '"]');
         if (!row) return;
-
         const input = row.querySelector('.status-input');
         if (!input) return;
         const current = input.value;
@@ -908,31 +588,21 @@
         input.value = newStatus;
         row.dataset.status = newStatus;
 
-        row.classList.remove(
-            'att-row-marked-present',
-            'att-row-marked-absent',
-            'att-row-marked-leave',
-            'att-row-marked-half-day'
-        );
+        row.classList.remove('att-row-marked-present', 'att-row-marked-absent', 'att-row-marked-leave', 'att-row-marked-half-day');
         if (newStatus) row.classList.add('att-row-marked-' + newStatus);
 
         const badge = row.querySelector('.current-badge');
         if (badge) {
             badge.className = 'att-badge ' + (newStatus || 'not-marked') + ' current-badge';
-            badge.textContent = (newStatus || 'not-marked').replace('-', ' ')
-                                  .replace(/\b\w/g, c => c.toUpperCase());
+            badge.textContent = (newStatus || 'not-marked').replace('-', ' ').replace(/\b\w/g, c => c.toUpperCase());
         }
 
         row.querySelectorAll('.att-toggle-btn').forEach(b => b.classList.remove('active'));
         if (newStatus) {
-            const cls = newStatus === 'present' ? 'p'
-                      : newStatus === 'absent'  ? 'a'
-                      : newStatus === 'leave'   ? 'l'
-                      : 'h';
+            const cls = newStatus === 'present' ? 'p' : newStatus === 'absent' ? 'a' : newStatus === 'leave' ? 'l' : 'h';
             const btn = row.querySelector('.att-toggle-btn.' + cls);
             if (btn) btn.classList.add('active');
         }
-
         updateCounters();
     };
 
@@ -949,10 +619,7 @@
         let visible = 0;
         document.querySelectorAll('.att-row-item').forEach(row => {
             if (!row.querySelector('.status-input')) return;
-            const match = !q
-                || row.dataset.name.includes(q)
-                || row.dataset.userid.includes(q)
-                || row.dataset.class.includes(q);
+            const match = !q || row.dataset.name.includes(q) || row.dataset.userid.includes(q) || row.dataset.class.includes(q);
             row.style.display = match ? '' : 'none';
             if (match) visible++;
         });
@@ -974,61 +641,37 @@
         rows.forEach(row => {
             total++;
             const st = row.dataset.status;
-            if (st === 'present')       present++;
-            else if (st === 'absent')   absent++;
-            else if (st === 'leave')    leave++;
+            if (st === 'present') present++;
+            else if (st === 'absent') absent++;
+            else if (st === 'leave') leave++;
             else if (st === 'half-day') halfday++;
         });
         const notMarked = total - (present + absent + leave + halfday);
-        const marked    = total - notMarked;
+        const marked = total - notMarked;
 
-        const set = (id, val) => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = val;
-        };
-        set('statTotal', total);
-        set('statPresent', present);
-        set('statAbsent', absent);
-        set('statLeave', leave);
-        set('statHalfday', halfday);
-        set('statNotMarked', notMarked);
-        set('saveCounter', marked);
-        set('markedCountInline', marked);
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        set('statTotal', total); set('statPresent', present); set('statAbsent', absent); set('statLeave', leave); set('statHalfday', halfday); set('statNotMarked', notMarked); set('saveCounter', marked); set('markedCountInline', marked);
     }
 
     document.addEventListener('keydown', function (e) {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
             const form = document.getElementById('attendanceForm');
-            if (form) {
-                e.preventDefault();
-                form.submit();
-            }
+            if (form) { e.preventDefault(); form.submit(); }
         }
     });
-
-    /* ============================================================ */
-    /* EVENT SELECTION MODE HELPERS (NEW)                           */
-    /* ============================================================ */
 
     window.evtOnRowChange = function (checkbox) {
         const row = checkbox.closest('.att-row-item');
         if (!row) return;
         const badge = row.querySelector('.evt-status-badge');
-
         if (checkbox.checked) {
             row.classList.add('evt-row-selected');
             row.dataset.selected = '1';
-            if (badge) {
-                badge.className = 'att-badge present evt-status-badge';
-                badge.textContent = '✓ Selected';
-            }
+            if (badge) { badge.className = 'att-badge present evt-status-badge'; badge.textContent = '✓ Selected'; }
         } else {
             row.classList.remove('evt-row-selected');
             row.dataset.selected = '0';
-            if (badge) {
-                badge.className = 'att-badge not-marked evt-status-badge';
-                badge.textContent = 'Not Selected';
-            }
+            if (badge) { badge.className = 'att-badge not-marked evt-status-badge'; badge.textContent = 'Not Selected'; }
         }
         evtUpdateCounter();
         evtSyncHeaderCheckbox();
@@ -1052,10 +695,7 @@
         const q = (query || '').toLowerCase().trim();
         let visible = 0;
         document.querySelectorAll('#eventRows .att-row-item').forEach(row => {
-            const match = !q
-                || row.dataset.name.includes(q)
-                || row.dataset.userid.includes(q)
-                || row.dataset.class.includes(q);
+            const match = !q || row.dataset.name.includes(q) || row.dataset.userid.includes(q) || row.dataset.class.includes(q);
             row.style.display = match ? '' : 'none';
             if (match) visible++;
         });
@@ -1064,11 +704,8 @@
         evtSyncHeaderCheckbox();
     };
 
-    window.evtApplyClassFilter = function (cls) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('class_filter', cls);
-        window.location.href = url.toString();
-    };
+    // evtApplyClassFilter is now just an alias for applyClassFilter
+    window.evtApplyClassFilter = window.applyClassFilter;
 
     function evtUpdateCounter() {
         let selected = 0;
@@ -1088,30 +725,15 @@
         document.querySelectorAll('#eventRows .att-row-item').forEach(row => {
             if (row.style.display !== 'none') visibleRows.push(row);
         });
-        if (visibleRows.length === 0) {
-            headerCb.checked = false;
-            headerCb.indeterminate = false;
-            return;
-        }
+        if (visibleRows.length === 0) { headerCb.checked = false; headerCb.indeterminate = false; return; }
         const selectedCount = visibleRows.filter(r => r.dataset.selected === '1').length;
-        if (selectedCount === 0) {
-            headerCb.checked = false;
-            headerCb.indeterminate = false;
-        } else if (selectedCount === visibleRows.length) {
-            headerCb.checked = true;
-            headerCb.indeterminate = false;
-        } else {
-            headerCb.checked = false;
-            headerCb.indeterminate = true;
-        }
+        if (selectedCount === 0) { headerCb.checked = false; headerCb.indeterminate = false; }
+        else if (selectedCount === visibleRows.length) { headerCb.checked = true; headerCb.indeterminate = false; }
+        else { headerCb.checked = false; headerCb.indeterminate = true; }
     }
 
-    /* Init event-mode header checkbox state on page load */
     document.addEventListener('DOMContentLoaded', function () {
-        if (document.getElementById('eventRows')) {
-            evtSyncHeaderCheckbox();
-            evtUpdateCounter();
-        }
+        if (document.getElementById('eventRows')) { evtSyncHeaderCheckbox(); evtUpdateCounter(); }
     });
 })();
 </script>

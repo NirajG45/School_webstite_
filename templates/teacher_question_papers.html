@@ -353,7 +353,11 @@
                 <a class="qpl-subject-btn
                           {% if item.question_count > 0 %}has-questions
                           {% elif item.paper_id %}started{% endif %}"
-                    href="{{ url_for('teacher_start_paper', class=item.class_name, subject=item.subject_name) }}"
+                    {% if item.paper_id %}
+href="{{ url_for('edit_question_paper', paper_id=item.paper_id) }}"
+{% else %}
+href="{{ url_for('create_question_paper', class_name=item.class_name, subject=item.subject_name) }}"
+{% endif %}
                     title="{{ item.subject_name }} — {{ item.class_name }}">
                     {% if item.question_count > 0 %}
                     <i class="fa-solid fa-circle-check"></i>

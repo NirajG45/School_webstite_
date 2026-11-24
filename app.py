@@ -199,17 +199,45 @@ def migrate_attendance_table(db):
         db.execute("ALTER TABLE attendance ADD COLUMN subject TEXT DEFAULT 'General'")
 
 def migrate_faculty_table(db):
-    """Sync users table teachers to faculty table."""
+    """Sync users table teachers to faculty table without orphaning old assignments."""
     existing = {row[1] for row in db.execute("PRAGMA table_info(faculty)").fetchall()}
     if 'user_id' not in existing:
         db.execute('ALTER TABLE faculty ADD COLUMN user_id INTEGER')
 
-    teachers = db.execute("SELECT id, name, subject, qualification, experience, photo_url FROM users WHERE role='teacher'").fetchall()
+    teachers = db.execute(
+        "SELECT id, name, subject, qualification, experience, photo_url "
+        "FROM users WHERE role='teacher'"
+    ).fetchall()
+
     for t in teachers:
-        if not db.execute("SELECT 1 FROM faculty WHERE user_id = ? OR name = ?", (t['id'], t['name'])).fetchone():
-            db.execute('''INSERT INTO faculty (user_id, name, subject, qualification, experience, photo_url) 
-                          VALUES (?, ?, ?, ?, ?, ?)''',
-                       (t['id'], t['name'], t['subject'] or 'General', t['qualification'] or '', t['experience'] or '', t['photo_url']))
+        linked = db.execute(
+            "SELECT 1 FROM faculty WHERE user_id = ? LIMIT 1",
+            (t['id'],)
+        ).fetchone()
+        if linked:
+            continue
+
+        existing_by_name = db.execute(
+            "SELECT id FROM faculty WHERE user_id IS NULL "
+            "AND LOWER(TRIM(name)) = LOWER(TRIM(?)) ORDER BY id LIMIT 1",
+            (t['name'],)
+        ).fetchone()
+
+        if existing_by_name:
+            db.execute(
+                "UPDATE faculty SET user_id = ? WHERE id = ? AND user_id IS NULL",
+                (t['id'], existing_by_name['id'])
+            )
+        else:
+            db.execute(
+                "INSERT INTO faculty "
+                "(user_id, name, subject, qualification, experience, photo_url) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (t['id'], t['name'], t['subject'] or 'General',
+                 t['qualification'] or '', t['experience'] or '', t['photo_url'])
+            )
+
+
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(DB_PATH) as db:
@@ -648,7 +676,7 @@ def auto_create_exam_papers_for_exam(db, exam_id):
         return 0, 0
 
     combos = db.execute('''
-        SELECT es.class_name,
+        SELECT DISTINCT es.class_name,
                s.subject_name,
                es.max_marks,
                f.user_id AS assigned_teacher
@@ -686,7 +714,7 @@ def auto_create_exam_papers_for_exam(db, exam_id):
              '2 hours',
              combo['max_marks'] or 50,
              exam['academic_year'],
-             combo['assigned_teacher'],   # NULL if no teacher assigned yet
+             combo['assigned_teacher'],   # users.id; None means admin must assign a teacher later
              exam_id)
         )
         created += 1
@@ -4581,14 +4609,62 @@ def question_paper_subjects_api():
 
 
 # ==========================================
+# QUESTION PAPER ACCESS / OWNERSHIP HELPER
+# ==========================================
+def _get_accessible_question_paper(db, user, paper_id):
+    """Return a paper only when the user owns it or is assigned its class/subject."""
+    if not user:
+        return None
+
+    role = user['role']
+    if role in ('admin', 'administrator'):
+        return db.execute(
+            'SELECT * FROM exam_papers WHERE id = ?',
+            (paper_id,)
+        ).fetchone()
+
+    if role != 'teacher':
+        return None
+
+    # Older auto-created papers may have NULL/old teacher_id values.
+    # Also verify the teacher's current class + subject assignment.
+    return db.execute('''
+        SELECT ep.*
+        FROM exam_papers ep
+        WHERE ep.id = ?
+          AND (
+              ep.teacher_id = ?
+              OR EXISTS (
+                  SELECT 1
+                  FROM faculty_subject_assignments fsa
+                  JOIN faculty f ON f.id = fsa.faculty_id
+                  WHERE (
+                        f.user_id = ?
+                        OR (
+                            f.user_id IS NULL
+                            AND LOWER(TRIM(f.name)) = LOWER(TRIM(?))
+                        )
+                    )
+                    AND LOWER(TRIM(fsa.class_name)) = LOWER(TRIM(ep.class_name))
+                    AND LOWER(TRIM(fsa.subject)) = LOWER(TRIM(ep.subject))
+              )
+          )
+    ''', (paper_id, user['id'], user['id'], user['name'])).fetchone()
+
+
+# ==========================================
 # ===>>>: QUESTION PAPER MANAGEMENT  :<<<===
 # ==========================================
 
 @app.route('/admin/question-papers/create', methods=['GET', 'POST'])
-@login_required  # Admin aur Teacher dono access kar sakein
+@login_required
 def create_question_paper():
     db = get_db()
-    user = get_user_by_id(session['user_id'])
+    user = get_user_by_id(session.get('user_id'))
+
+    if not user or user['role'] not in ('teacher', 'admin', 'administrator'):
+        flash('Access denied.', 'error')
+        return redirect(url_for('user_dashboard'))
     
     if request.method == 'POST':
         exam_id = request.form.get('exam_id', type=int)
@@ -4676,13 +4752,30 @@ def teacher_question_papers():
         ''').fetchall()
         subject_grid_grouped = {}
     else:
+        user = get_user_by_id(session['user_id'])
         papers = db.execute('''
-            SELECT ep.*, (SELECT COUNT(*) FROM exam_questions q WHERE q.paper_id = ep.id) as question_count
-            FROM exam_papers ep WHERE ep.teacher_id = ? ORDER BY ep.id DESC
-        ''', (session['user_id'],)).fetchall()
+            SELECT ep.*,
+                   (SELECT COUNT(*) FROM exam_questions q WHERE q.paper_id = ep.id) as question_count
+            FROM exam_papers ep
+            WHERE ep.teacher_id = ?
+               OR EXISTS (
+                    SELECT 1
+                    FROM faculty_subject_assignments fsa
+                    JOIN faculty f ON f.id = fsa.faculty_id
+                    WHERE (
+                          f.user_id = ?
+                          OR (
+                              f.user_id IS NULL
+                              AND LOWER(TRIM(f.name)) = LOWER(TRIM(?))
+                          )
+                      )
+                      AND LOWER(TRIM(fsa.class_name)) = LOWER(TRIM(ep.class_name))
+                      AND LOWER(TRIM(fsa.subject)) = LOWER(TRIM(ep.subject))
+               )
+            ORDER BY ep.id DESC
+        ''', (session['user_id'], session['user_id'], user['name'])).fetchall()
         
         # Build class-wise subject grid
-        user = get_user_by_id(session['user_id'])
         classes = [c.strip() for c in (user['classes_assigned'] or '').split(',') if c.strip()]
         subject_grid_grouped = {}
         if classes:
@@ -4690,7 +4783,32 @@ def teacher_question_papers():
             subjects = db.execute(f'SELECT * FROM subjects WHERE class_name IN ({ph}) ORDER BY class_name, display_order', tuple(classes)).fetchall()
             for sub in subjects:
                 # Find if paper exists
-                paper = db.execute('SELECT id, (SELECT COUNT(*) FROM exam_questions WHERE paper_id = exam_papers.id) as q_count FROM exam_papers WHERE class_name = ? AND subject = ? AND teacher_id = ?', (sub['class_name'], sub['subject_name'], session['user_id'])).fetchone()
+                paper = db.execute('''
+                    SELECT ep.id,
+                           (SELECT COUNT(*) FROM exam_questions WHERE paper_id = ep.id) as q_count
+                    FROM exam_papers ep
+                    WHERE LOWER(TRIM(ep.class_name)) = LOWER(TRIM(?))
+                      AND LOWER(TRIM(ep.subject)) = LOWER(TRIM(?))
+                      AND (
+                          ep.teacher_id = ?
+                          OR EXISTS (
+                              SELECT 1
+                              FROM faculty_subject_assignments fsa
+                              JOIN faculty f ON f.id = fsa.faculty_id
+                              WHERE (
+                                    f.user_id = ?
+                                    OR (
+                                        f.user_id IS NULL
+                                        AND LOWER(TRIM(f.name)) = LOWER(TRIM(?))
+                                    )
+                                )
+                                AND LOWER(TRIM(fsa.class_name)) = LOWER(TRIM(ep.class_name))
+                                AND LOWER(TRIM(fsa.subject)) = LOWER(TRIM(ep.subject))
+                          )
+                      )
+                    ORDER BY ep.id DESC
+                    LIMIT 1
+                ''', (sub['class_name'], sub['subject_name'], session['user_id'], session['user_id'], user['name'])).fetchone()
                 
                 if sub['class_name'] not in subject_grid_grouped:
                     subject_grid_grouped[sub['class_name']] = []
@@ -4710,12 +4828,14 @@ def teacher_question_papers():
 
 
 @app.route('/admin/question-paper/edit/<int:paper_id>', methods=['GET', 'POST'])
-@login_required  # Admin aur Teacher dono edit kar sakein
+@login_required
 def edit_question_paper(paper_id):
     db = get_db()
-    paper = db.execute('SELECT * FROM exam_papers WHERE id = ?', (paper_id,)).fetchone()
+    user = get_user_by_id(session.get('user_id'))
+    paper = _get_accessible_question_paper(db, user, paper_id)
+
     if not paper:
-        flash('Paper not found.', 'error')
+        flash('Paper not found or you do not have permission to access it.', 'error')
         return redirect(url_for('teacher_question_papers'))
         
     if request.method == 'POST':

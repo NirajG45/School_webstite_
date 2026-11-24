@@ -573,21 +573,41 @@ def init_db():
                 SELECT id, title, class_name, subject, time_allowed, max_marks,
                     exam_year, teacher_id, created_at
                 FROM exam_papers_legacy''')
-            db.execute('DROP TABLE exam_papers_legacy')
-
-        db.execute('CREATE INDEX IF NOT EXISTS idx_exam_papers_exam ON exam_papers(exam_id)')
-        db.execute('CREATE INDEX IF NOT EXISTS idx_exam_papers_teacher ON exam_papers(teacher_id)')
-
-        db.execute('''CREATE TABLE IF NOT EXISTS exam_questions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            paper_id INTEGER NOT NULL,
-            section_name TEXT NOT NULL,
-            question_text TEXT NOT NULL,
-            options TEXT,
-            marks INTEGER NOT NULL DEFAULT 1,
-            lines INTEGER NOT NULL DEFAULT 1,
-            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(paper_id) REFERENCES exam_papers(id) ON DELETE CASCADE)''')
+            db.execute('PRAGMA foreign_keys = OFF')  # Temporarily disable FK checks
+        
+        _q_cols = {row[1] for row in db.execute("PRAGMA table_info(exam_questions)").fetchall()}
+        
+        if _q_cols:
+            # Agar table pehle se hai, toh usko rename karke naya sahi FK wala table banayein
+            db.execute('ALTER TABLE exam_questions RENAME TO exam_questions_old')
+            db.execute('''CREATE TABLE exam_questions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                paper_id INTEGER NOT NULL,
+                section_name TEXT NOT NULL,
+                question_text TEXT NOT NULL,
+                options TEXT,
+                marks INTEGER NOT NULL DEFAULT 1,
+                lines INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(paper_id) REFERENCES exam_papers(id) ON DELETE CASCADE)''')
+            # Purana data naye table mein copy karein
+            db.execute('''INSERT INTO exam_questions (id, paper_id, section_name, question_text, options, marks, lines, created_at)
+                          SELECT id, paper_id, section_name, question_text, options, marks, lines, created_at FROM exam_questions_old''')
+            db.execute('DROP TABLE exam_questions_old')
+        else:
+            # Agar naya database hai, toh seedha table banayein
+            db.execute('''CREATE TABLE exam_questions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                paper_id INTEGER NOT NULL,
+                section_name TEXT NOT NULL,
+                question_text TEXT NOT NULL,
+                options TEXT,
+                marks INTEGER NOT NULL DEFAULT 1,
+                lines INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(paper_id) REFERENCES exam_papers(id) ON DELETE CASCADE)''')
+                
+        db.execute('PRAGMA foreign_keys = ON')  # Wapas FK checks enable karein
 
         # Safe migration for databases created before answer-lines support.
         _question_cols = {
@@ -595,16 +615,6 @@ def init_db():
         }
         if 'lines' not in _question_cols:
             db.execute("ALTER TABLE exam_questions ADD COLUMN lines INTEGER NOT NULL DEFAULT 1")
-
-        db.execute(
-            "CREATE INDEX IF NOT EXISTS idx_exam_questions_paper_id "
-            "ON exam_questions(paper_id, id)"
-        )
-
-        # Migrate existing exam_marks table — add exam_id column if missing
-        _mcols = {row[1] for row in db.execute("PRAGMA table_info(exam_marks)").fetchall()}
-        if 'exam_id' not in _mcols:
-            db.execute('ALTER TABLE exam_marks ADD COLUMN exam_id INTEGER')
 
         # Default school settings (required — not dummy data)
         db.execute("INSERT OR IGNORE INTO school_settings (key, value) VALUES ('fee_qr_url', '')")

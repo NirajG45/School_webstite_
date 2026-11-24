@@ -3094,36 +3094,200 @@ def admin_verify_fee(pid):
 @admin_required
 def admin_messages():
     db = get_db()
-    if request.method == 'POST':
-        to_role = request.form.get('to_role', 'all')
-        to_user_id = request.form.get('to_user_id', '')
-        subject = request.form.get('subject', '').strip()
-        body = request.form.get('body', '').strip()
+    current_user_id = session['user_id']
+    allowed_roles = ('all', 'teacher', 'parent', 'student', 'specific')
 
-        if not subject or not body:
-            flash('Subject and body required.', 'error')
+    if request.method == 'POST':
+        to_role = (request.form.get('to_role') or 'all').strip().lower()
+        to_user_id = (request.form.get('to_user_id') or '').strip()
+        subject = (request.form.get('subject') or '').strip()
+        body = (request.form.get('body') or '').strip()
+
+        if to_role not in allowed_roles:
+            flash('Invalid recipient type.', 'error')
             return redirect(url_for('admin_messages'))
+
+        if not subject or len(subject) > 200:
+            flash('Subject is required and must not exceed 200 characters.', 'error')
+            return redirect(url_for('admin_messages'))
+
+        if not body or len(body) > 2000:
+            flash('Message is required and must not exceed 2000 characters.', 'error')
+            return redirect(url_for('admin_messages'))
+
+        recipient_id = None
+        database_role = None
+
+        if to_role == 'specific':
+            try:
+                recipient_id = int(to_user_id)
+            except (TypeError, ValueError):
+                flash('Please select a valid specific recipient.', 'error')
+                return redirect(url_for('admin_messages'))
+
+            recipient = db.execute(
+                '''SELECT id, name, role FROM users
+                   WHERE id = ? AND is_active = 1 AND id != ?''',
+                (recipient_id, current_user_id)
+            ).fetchone()
+
+            if not recipient:
+                flash('Invalid recipient or user is inactive.', 'error')
+                return redirect(url_for('admin_messages'))
+
+        else:
+            database_role = to_role
 
         try:
-            uid = int(to_user_id)
-            if not db.execute('SELECT 1 FROM users WHERE id=?', (uid,)).fetchone():
-                flash('Invalid recipient.', 'error')
-                return redirect(url_for('admin_messages'))
-        except (TypeError, ValueError):
-            flash('Invalid recipient.', 'error')
+            db.execute(
+                '''INSERT INTO messages
+                   (from_user_id, to_user_id, to_role, subject, body, is_read)
+                   VALUES (?, ?, ?, ?, ?, 0)''',
+                (current_user_id, recipient_id, database_role, subject, body)
+            )
+            db.commit()
+        except Exception:
+            db.rollback()
+            app.logger.exception('Admin message sending failed.')
+            flash('Message could not be sent. Please try again.', 'error')
             return redirect(url_for('admin_messages'))
-        else:
-            db.execute('INSERT INTO messages (from_user_id, to_role, subject, body) VALUES (?,?,?,?)',
-                       (session['user_id'], to_role, subject, body))
-        db.commit()
+
         flash('Message sent successfully.', 'success')
         return redirect(url_for('admin_messages'))
 
-    sent = db.execute('''SELECT m.*, u.name as from_name FROM messages m
-                          JOIN users u ON m.from_user_id = u.id
-                          ORDER BY m.id DESC LIMIT 30''').fetchall()
-    users_list = db.execute("SELECT id, name, unique_id, role FROM users ORDER BY name").fetchall()
-    return render_template('admin_messages.html', sent=sent, users_list=users_list, active_page='messages')
+    sent = db.execute(
+        '''SELECT m.*,
+                  sender.name AS from_name,
+                  recipient.name AS to_name,
+                  recipient.unique_id AS to_uid,
+                  recipient.role AS recipient_role,
+                  CASE WHEN m.from_user_id = ? THEN 1 ELSE 0 END AS can_edit
+           FROM messages m
+           LEFT JOIN users sender ON sender.id = m.from_user_id
+           LEFT JOIN users recipient ON recipient.id = m.to_user_id
+           ORDER BY m.id DESC
+           LIMIT 30''',
+        (current_user_id,)
+    ).fetchall()
+
+    users_list = db.execute(
+        '''SELECT id, name, unique_id, role
+           FROM users
+           WHERE is_active = 1 AND id != ?
+           ORDER BY role, name COLLATE NOCASE''',
+        (current_user_id,)
+    ).fetchall()
+
+    return render_template(
+        'admin_messages.html',
+        sent=sent,
+        users_list=users_list,
+        edit_message=None,
+        active_page='messages'
+    )
+
+@app.route('/admin/messages/edit/<int:msg_id>', methods=['GET', 'POST'])
+@admin_required
+def admin_edit_message(msg_id):
+    db = get_db()
+    current_user_id = session['user_id']
+
+    message = db.execute(
+        '''SELECT * FROM messages
+           WHERE id = ? AND from_user_id = ?''',
+        (msg_id, current_user_id)
+    ).fetchone()
+
+    if not message:
+        flash('Message not found or you are not allowed to edit it.', 'error')
+        return redirect(url_for('admin_messages'))
+
+    users_list = db.execute(
+        '''SELECT id, name, unique_id, role
+           FROM users
+           WHERE is_active = 1 AND id != ?
+           ORDER BY role, name COLLATE NOCASE''',
+        (current_user_id,)
+    ).fetchall()
+
+    if request.method == 'POST':
+        to_role = (request.form.get('to_role') or '').strip().lower()
+        to_user_id = (request.form.get('to_user_id') or '').strip()
+        subject = (request.form.get('subject') or '').strip()
+        body = (request.form.get('body') or '').strip()
+
+        allowed_roles = ('all', 'teacher', 'parent', 'student', 'specific')
+
+        if to_role not in allowed_roles:
+            flash('Invalid recipient type.', 'error')
+            return redirect(url_for('admin_edit_message', msg_id=msg_id))
+
+        if not subject or len(subject) > 200:
+            flash('Subject is required and must not exceed 200 characters.', 'error')
+            return redirect(url_for('admin_edit_message', msg_id=msg_id))
+
+        if not body or len(body) > 2000:
+            flash('Message is required and must not exceed 2000 characters.', 'error')
+            return redirect(url_for('admin_edit_message', msg_id=msg_id))
+
+        recipient_id = None
+        database_role = None
+
+        if to_role == 'specific':
+            try:
+                recipient_id = int(to_user_id)
+            except (TypeError, ValueError):
+                flash('Please select a valid recipient.', 'error')
+                return redirect(url_for('admin_edit_message', msg_id=msg_id))
+
+            recipient = db.execute(
+                '''SELECT id FROM users
+                   WHERE id = ? AND is_active = 1 AND id != ?''',
+                (recipient_id, current_user_id)
+            ).fetchone()
+
+            if not recipient:
+                flash('Invalid recipient or user is inactive.', 'error')
+                return redirect(url_for('admin_edit_message', msg_id=msg_id))
+        else:
+            database_role = to_role
+
+        try:
+            db.execute(
+                '''UPDATE messages
+                   SET to_user_id = ?, to_role = ?, subject = ?, body = ?
+                   WHERE id = ? AND from_user_id = ?''',
+                (recipient_id, database_role, subject, body,
+                 msg_id, current_user_id)
+            )
+            db.commit()
+        except Exception:
+            db.rollback()
+            app.logger.exception('Admin message update failed. ID=%s', msg_id)
+            flash('Message could not be updated. Please try again.', 'error')
+            return redirect(url_for('admin_edit_message', msg_id=msg_id))
+
+        flash('Message updated successfully.', 'success')
+        return redirect(url_for('admin_messages'))
+
+    return render_template(
+        'admin_messages.html',
+        sent=db.execute(
+            '''SELECT m.*, sender.name AS from_name,
+                      recipient.name AS to_name,
+                      recipient.unique_id AS to_uid,
+                      recipient.role AS recipient_role,
+                      CASE WHEN m.from_user_id = ? THEN 1 ELSE 0 END AS can_edit
+               FROM messages m
+               LEFT JOIN users sender ON sender.id = m.from_user_id
+               LEFT JOIN users recipient ON recipient.id = m.to_user_id
+               ORDER BY m.id DESC LIMIT 30''',
+            (current_user_id,)
+        ).fetchall(),
+        users_list=users_list,
+        edit_message=message,
+        active_page='messages'
+    )
 
 # === ENQUIRIES ===
 @app.route('/admin/enquiries')
@@ -5019,14 +5183,14 @@ def messages_inbox():
         ).fetchall()
     else:
         rows = db.execute(
-            '''SELECT m.*, 
-                   uf.name AS from_name, uf.unique_id AS from_uid, uf.role AS from_role,
-                   ut.name AS to_name, ut.unique_id AS to_uid, ut.role AS to_role
-               FROM messages m
-               LEFT JOIN users uf ON m.from_user_id = uf.id
-               LEFT JOIN users ut ON m.to_user_id = ut.id
-               WHERE (m.to_user_id = ? OR m.to_role = ?)
-               ORDER BY m.id DESC''',
+            '''SELECT m.*,
+                    uf.name AS from_name, uf.unique_id AS from_uid, uf.role AS from_role,
+                    ut.name AS to_name, ut.unique_id AS to_uid, ut.role AS to_role
+            FROM messages m
+            LEFT JOIN users uf ON m.from_user_id = uf.id
+            LEFT JOIN users ut ON m.to_user_id = ut.id
+            WHERE (m.to_user_id = ? OR m.to_role IN ('all', ?))
+            ORDER BY m.id DESC''',
             (user['id'], user['role'])
         ).fetchall()
 
@@ -5039,8 +5203,13 @@ def messages_inbox():
             or search_q in (r['to_name'] or '').lower()
         ]
 
+    # inbox_count = db.execute(
+    #     "SELECT COUNT(*) FROM messages WHERE to_user_id = ? OR to_role = ?",
+    #     (user['id'], user['role'])
+    # ).fetchone()[0]
+    
     inbox_count = db.execute(
-        "SELECT COUNT(*) FROM messages WHERE to_user_id = ? OR to_role = ?",
+        "SELECT COUNT(*) FROM messages WHERE to_user_id = ? OR to_role IN ('all', ?)",
         (user['id'], user['role'])
     ).fetchone()[0]
 
@@ -5159,7 +5328,7 @@ def messages_view(msg_id):
 
     is_sender      = (msg['from_user_id'] == user['id'])
     is_recipient   = (msg['to_user_id'] == user['id'])
-    is_role_recip  = (msg['to_user_id'] is None and msg['to_role'] == user['role'])
+    is_role_recip = (msg['to_user_id'] is None and msg['to_role'] in ('all', user['role']))
 
     if not (is_sender or is_recipient or is_role_recip):
         flash('You do not have access to this message.', 'error')

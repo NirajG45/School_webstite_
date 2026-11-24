@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,165 +12,84 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: 'DM Sans', system-ui, sans-serif;
-            background: #f4f7fb;
-            color: #0a2340;
-        }
-        .cp-page { max-width: 780px; margin: 0 auto; padding: 22px; }
-
-        .cp-back {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 9px 14px; background: #fff; border: 1px solid #e1e8f0;
-            border-radius: 10px; font-size: 12.5px; font-weight: 700;
-            color: #0a2340; text-decoration: none; margin-bottom: 18px;
-            transition: all .2s ease;
-        }
-        .cp-back:hover { background: #f4f8fc; border-color: #b0c4d8; }
-
-        .cp-banner {
-            background: linear-gradient(135deg, #0a2340 0%, #12406b 60%, #1768a7 100%);
-            border-radius: 16px; padding: 24px 28px;
-            color: #fff; position: relative; overflow: hidden;
-            margin-bottom: 18px;
-        }
-        .cp-banner::after {
-            content: ''; position: absolute; right: -60px; top: -60px;
-            width: 220px; height: 220px; border-radius: 50%;
-            background: rgba(255,212,71,0.1);
-        }
-        .cp-banner h1 {
-            font-family: 'Playfair Display', Georgia, serif;
-            font-size: 24px; font-weight: 800;
-            margin: 0 0 6px; letter-spacing: -0.3px;
-            position: relative; z-index: 1;
-        }
-        .cp-banner p {
-            margin: 0; font-size: 13px; color: rgba(255,255,255,0.8);
-            position: relative; z-index: 1;
-        }
-
-        .cp-panel {
-            background: #fff;
-            border: 1px solid #e1e8f0;
-            border-radius: 14px;
-            padding: 24px;
-        }
-
-        .cp-form { display: flex; flex-direction: column; gap: 14px; }
-        .cp-form label {
-            display: flex; flex-direction: column; gap: 6px;
-            font-size: 11px; font-weight: 800; color: #0a2340;
-            text-transform: uppercase; letter-spacing: 0.4px;
-        }
-        .cp-form select,
-        .cp-form input,
-        .cp-form textarea {
-            font: inherit; font-size: 13.5px; font-weight: 500;
-            color: #0a2340; background: #fff;
-            border: 1px solid #e1e8f0; border-radius: 9px;
-            padding: 11px 14px; outline: 0; width: 100%;
-            transition: all .2s;
-        }
-        .cp-form select:focus,
-        .cp-form input:focus,
-        .cp-form textarea:focus {
-            border-color: #b0c4d8;
-            box-shadow: 0 0 0 3px rgba(11,53,98,0.06);
-        }
-        .cp-form textarea {
-            resize: vertical; min-height: 160px;
-            font-family: inherit; line-height: 1.5;
-        }
-
-        .cp-hint {
-            padding: 10px 12px;
-            background: #fff1d6;
-            border: 1px solid #f0e0b3;
-            border-radius: 8px;
-            font-size: 11.5px;
-            color: #a86a00;
-            font-weight: 600;
-            display: flex; gap: 6px; align-items: flex-start;
-        }
-        .cp-hint i { margin-top: 2px; font-size: 12px; }
-
-        .cp-actions {
-            display: flex; gap: 10px; justify-content: flex-end;
-            margin-top: 6px;
-        }
-        .cp-btn {
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            padding: 11px 22px;
-            border-radius: 10px;
-            font: inherit; font-size: 13px; font-weight: 700;
-            cursor: pointer;
-            transition: all .2s ease;
-        }
-        .cp-btn-cancel {
-            background: #fff; color: #0a2340;
-            border: 1px solid #e1e8f0;
-            text-decoration: none;
-        }
-        .cp-btn-cancel:hover { background: #f4f8fc; border-color: #b0c4d8; }
-        .cp-btn-send {
-            background: #0a2340; color: #fff;
-            border: 1px solid #0a2340;
-        }
-        .cp-btn-send:hover {
-            background: #061f39;
-            transform: translateY(-1px);
-            box-shadow: 0 8px 18px rgba(9,47,88,0.15);
-        }
-
-        .cp-empty-recipients {
-            padding: 40px 20px;
-            text-align: center;
-            color: #65758a;
-            font-size: 13px;
-        }
-        .cp-empty-recipients i {
-            font-size: 36px; display: block;
-            margin-bottom: 10px; color: #cbd5e1;
-        }
+        *{box-sizing:border-box}
+        body{margin:0;font-family:'DM Sans',system-ui,sans-serif;background:#f4f7fb;color:#0a2340}
+        .cp-page{max-width:780px;margin:0 auto;padding:22px}
+        .cp-back{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;background:#fff;border:1px solid #e1e8f0;border-radius:10px;font-size:12.5px;font-weight:700;color:#0a2340;text-decoration:none;margin-bottom:18px;transition:all .2s ease}
+        .cp-back:hover{background:#f4f8fc;border-color:#b0c4d8}
+        .cp-banner{background:linear-gradient(135deg,#0a2340 0%,#12406b 60%,#1768a7 100%);border-radius:16px;padding:24px 28px;color:#fff;position:relative;overflow:hidden;margin-bottom:18px}
+        .cp-banner::after{content:'';position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:rgba(255,212,71,.1)}
+        .cp-banner h1{font-family:'Playfair Display',Georgia,serif;font-size:24px;font-weight:800;margin:0 0 6px;letter-spacing:-.3px;position:relative;z-index:1;color:#fff}
+        .cp-banner p{margin:0;font-size:13px;color:rgba(255,255,255,.85);position:relative;z-index:1}
+        .cp-panel{background:#fff;border:1px solid #e1e8f0;border-radius:14px;padding:24px}
+        .cp-form{display:flex;flex-direction:column;gap:14px}
+        .cp-form label{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:800;color:#0a2340;text-transform:uppercase;letter-spacing:.4px}
+        .cp-form select,.cp-form input,.cp-form textarea{font:inherit;font-size:13.5px;font-weight:500;color:#0a2340;background:#fff;border:1px solid #e1e8f0;border-radius:9px;padding:11px 14px;outline:0;width:100%;transition:all .2s}
+        .cp-form select:focus,.cp-form input:focus,.cp-form textarea:focus{border-color:#7ba5ce;box-shadow:0 0 0 3px rgba(11,53,98,.08)}
+        .cp-form textarea{resize:vertical;min-height:160px;font-family:inherit;line-height:1.5}
+        .cp-recipient-tools{display:grid;grid-template-columns:1fr 1.5fr;gap:10px;margin-bottom:2px}
+        .cp-recipient-tools select,.cp-recipient-tools input{min-width:0}
+        .cp-search-wrap{position:relative}
+        .cp-search-wrap>i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#8092a7;font-size:13px;pointer-events:none}
+        .cp-search-wrap input{padding-left:36px}
+        .cp-recipient-count{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:7px;color:#718096;font-size:11px;font-weight:600;text-transform:none;letter-spacing:0}
+        .cp-recipient-count strong{color:#315b7f}
+        .cp-no-match{display:none;padding:11px 12px;border:1px solid #f0d9b5;border-radius:8px;background:#fff8ec;color:#946000;font-size:12px;font-weight:600;text-transform:none;letter-spacing:0}
+        .cp-hint{padding:10px 12px;background:#fff1d6;border:1px solid #f0e0b3;border-radius:8px;font-size:11.5px;color:#a86a00;font-weight:600;display:flex;gap:6px;align-items:flex-start}
+        .cp-hint i{margin-top:2px;font-size:12px}
+        .cp-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+        .cp-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 22px;border-radius:10px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s ease}
+        .cp-btn-cancel{background:#fff;color:#0a2340;border:1px solid #e1e8f0;text-decoration:none}
+        .cp-btn-cancel:hover{background:#f4f8fc;border-color:#b0c4d8}
+        .cp-btn-send{background:#0a2340;color:#fff;border:1px solid #0a2340}
+        .cp-btn-send:hover{background:#061f39;transform:translateY(-1px);box-shadow:0 8px 18px rgba(9,47,88,.15)}
+        .cp-btn-send:disabled{opacity:.65;cursor:not-allowed;transform:none}
+        .cp-empty-recipients{padding:40px 20px;text-align:center;color:#65758a;font-size:13px}
+        .cp-empty-recipients i{font-size:36px;display:block;margin-bottom:10px;color:#cbd5e1}
+        @media(max-width:600px){.cp-page{padding:15px}.cp-banner{padding:21px}.cp-panel{padding:17px}.cp-recipient-tools{grid-template-columns:1fr}.cp-actions{flex-direction:column-reverse}.cp-btn{width:100%}}
     </style>
 </head>
 <body>
-
 <div class="cp-page">
-
     <a href="{{ url_for('messages_inbox') }}" class="cp-back">
         <i class="fa-solid fa-arrow-left"></i> Back to Messages
     </a>
-
     <section class="cp-banner">
         <h1>{% if reply_to %}Reply to Message{% else %}New Message{% endif %}</h1>
         <p>{% if reply_to %}Your reply will be sent to the original sender.{% else %}Compose and send a message.{% endif %}</p>
     </section>
-
     <div class="cp-panel">
         {% if recipients %}
-        <form method="POST" action="{{ url_for('messages_compose', reply_to=reply_to) if reply_to else url_for('messages_compose') }}"
-              class="cp-form">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
+        <form method="POST" action="{{ url_for('messages_compose', reply_to=reply_to) if reply_to else url_for('messages_compose') }}" class="cp-form" id="composeMessageForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label>To
-                <select name="to_user_id" required>
+                <div class="cp-recipient-tools">
+                    <select id="recipientRoleFilter" aria-label="Filter recipients by role">
+                        <option value="all">All Users</option>
+                        <option value="admin">Admins</option>
+                        <option value="teacher">Teachers</option>
+                        <option value="parent">Parents</option>
+                        <option value="student">Students</option>
+                    </select>
+                    <div class="cp-search-wrap">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="search" id="recipientSearch" placeholder="Search by name or Unique ID..." autocomplete="off" aria-label="Search recipients">
+                    </div>
+                </div>
+                <select name="to_user_id" id="recipientSelect" required>
                     <option value="">— Select recipient —</option>
                     {% set grouped = {} %}
                     {% for r in recipients %}
-                        {% if r.role not in grouped %}{% set _ = grouped.update({r.role: []}) %}{% endif %}
+                        {% if r.role not in grouped %}
+                            {% set _ = grouped.update({r.role: []}) %}
+                        {% endif %}
                         {% set _ = grouped[r.role].append(r) %}
                     {% endfor %}
-
-                    {% for role_name in ['admin', 'teacher', 'parent', 'student'] %}
+                    {% for role_name in ['admin','teacher','parent','student'] %}
                         {% if grouped.get(role_name) %}
-                        <optgroup label="{{ role_name|capitalize }}s ({{ grouped[role_name]|length }})">
+                        <optgroup label="{{ role_name|capitalize }}s ({{ grouped[role_name]|length }})" data-role-group="{{ role_name }}">
                             {% for r in grouped[role_name] %}
-                            <option value="{{ r.id }}"
-                                    {% if pre_to and pre_to == r.id|string %}selected{% endif %}>
+                            <option value="{{ r.id }}" data-role="{{ r.role }}" data-search="{{ (r.name ~ ' ' ~ r.unique_id)|lower }}" {% if pre_to and pre_to|string == r.id|string %}selected{% endif %}>
                                 {{ r.name }} ({{ r.unique_id }})
                             </option>
                             {% endfor %}
@@ -177,20 +97,20 @@
                         {% endif %}
                     {% endfor %}
                 </select>
+                <div class="cp-recipient-count">
+                    <span id="recipientResultText">Showing all available recipients</span>
+                    <strong id="recipientResultCount">{{ recipients|length }} users</strong>
+                </div>
+                <div class="cp-no-match" id="recipientNoMatch">
+                    <i class="fa-solid fa-circle-info"></i> No users found. Try another name, ID or category.
+                </div>
             </label>
-
             <label>Subject
-                <input type="text" name="subject"
-                       value="{{ pre_subject }}"
-                       required maxlength="200"
-                       placeholder="e.g. Regarding homework submission">
+                <input type="text" name="subject" value="{{ pre_subject }}" required maxlength="200" placeholder="e.g. Regarding homework submission">
             </label>
-
             <label>Message
-                <textarea name="body" rows="8" required maxlength="3000"
-                          placeholder="Type your message..."></textarea>
+                <textarea name="body" rows="8" required maxlength="3000" placeholder="Type your message..."></textarea>
             </label>
-
             <div class="cp-hint">
                 <i class="fa-solid fa-circle-info"></i>
                 <span>You are signed in as <strong>{{ user.role|capitalize }}</strong>.
@@ -205,29 +125,83 @@
                     {% endif %}
                 </span>
             </div>
-
             <div class="cp-actions">
-                <a href="{{ url_for('messages_inbox') }}" class="cp-btn cp-btn-cancel">
-                    Cancel
-                </a>
-                <button type="submit" class="cp-btn cp-btn-send">
+                <a href="{{ url_for('messages_inbox') }}" class="cp-btn cp-btn-cancel">Cancel</a>
+                <button type="submit" class="cp-btn cp-btn-send" id="sendMessageButton">
                     <i class="fa-solid fa-paper-plane"></i>
                     {% if reply_to %}Send Reply{% else %}Send Message{% endif %}
                 </button>
             </div>
-
         </form>
         {% else %}
         <div class="cp-empty-recipients">
             <i class="fa-solid fa-users-slash"></i>
-            <strong style="color: #0a2340;">No recipients available.</strong>
+            <strong style="color:#0a2340">No recipients available.</strong>
             <br><br>
             No users match your role-based messaging rules. Contact the school admin.
         </div>
         {% endif %}
     </div>
-
 </div>
-
+<script>
+(function(){
+    const roleFilter=document.getElementById('recipientRoleFilter');
+    const searchInput=document.getElementById('recipientSearch');
+    const recipientSelect=document.getElementById('recipientSelect');
+    const resultText=document.getElementById('recipientResultText');
+    const resultCount=document.getElementById('recipientResultCount');
+    const noMatch=document.getElementById('recipientNoMatch');
+    const form=document.getElementById('composeMessageForm');
+    const sendButton=document.getElementById('sendMessageButton');
+    if(!roleFilter||!searchInput||!recipientSelect)return;
+    const groups=Array.from(recipientSelect.querySelectorAll('optgroup[data-role-group]'));
+    function filterRecipients(){
+        const selectedRole=roleFilter.value;
+        const searchTerm=searchInput.value.trim().toLowerCase();
+        let visibleCount=0;
+        groups.forEach(function(group){
+            const groupRole=group.dataset.roleGroup;
+            let groupCount=0;
+            Array.from(group.querySelectorAll('option')).forEach(function(option){
+                const matchesRole=selectedRole==='all'||groupRole===selectedRole;
+                const matchesSearch=(option.dataset.search||option.textContent).toLowerCase().includes(searchTerm);
+                const visible=matchesRole&&matchesSearch;
+                option.hidden=!visible;
+                if(visible){groupCount++;visibleCount++;}
+            });
+            group.hidden=groupCount===0;
+        });
+        const selectedOption=recipientSelect.selectedOptions[0];
+        if(selectedOption&&selectedOption.value&&selectedOption.hidden){
+            recipientSelect.value='';
+        }
+        resultCount.textContent=visibleCount+' users';
+        resultText.textContent=searchTerm||selectedRole!=='all'?'Filtered recipients':'Showing all available recipients';
+        noMatch.style.display=visibleCount===0?'block':'none';
+    }
+    roleFilter.addEventListener('change',filterRecipients);
+    searchInput.addEventListener('input',filterRecipients);
+    if(form){
+        form.addEventListener('submit',function(event){
+            if(!recipientSelect.value){
+                event.preventDefault();
+                recipientSelect.focus();
+                alert('Please select a recipient before sending the message.');
+                return;
+            }
+            if(!form.checkValidity()){
+                event.preventDefault();
+                form.reportValidity();
+                return;
+            }
+            if(sendButton){
+                sendButton.disabled=true;
+                sendButton.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+            }
+        });
+    }
+    filterRecipients();
+})();
+</script>
 </body>
 </html>

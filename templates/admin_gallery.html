@@ -2,56 +2,584 @@
 {% block title %}Gallery{% endblock %}
 {% block page_title %}Gallery Management{% endblock %}
 {% block content %}
-<div class="admin-grid-2-uneven">
-    <div class="admin-panel">
-        <div class="admin-panel-head"><h3><i class="fa-solid fa-plus"></i> Add Photo</h3></div>
-        <form method="POST" action="{{ url_for('admin_add_gallery') }}" class="admin-form" enctype="multipart/form-data">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <label>Title * <input type="text" name="title" required maxlength="150"></label>
-            <label>
-                Upload Photo
-                <div style="position:relative;display:flex;align-items:center;gap:10px;border:2px dashed #dbe4ed;border-radius:10px;padding:14px;background:#fbfcfe;cursor:pointer;">
-                    <i class="fa-solid fa-cloud-arrow-up" style="color:var(--red);font-size:20px;"></i>
-                    <span id="galFileName" style="font-size:13px;font-weight:600;color:#0a2340;">Choose image...</span>
-                    <input type="file" name="image_file" accept="image/*" onchange="document.getElementById('galFileName').textContent = this.files[0] ? this.files[0].name : 'Choose image...'" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
-                </div>
-            </label>
-            <label>OR Image Filename/URL <input type="text" name="image_url" placeholder="e.g. campus.jpg"></label>
-            <label>Category
-                <select name="category">
-                    <option value="campus">Campus</option>
-                    <option value="events">Events</option>
-                    <option value="faculty">Faculty</option>
-                    <option value="sports">Sports</option>
-                    <option value="activities">Activities</option>
-                </select>
-            </label>
-            <label>Display Order <input type="number" name="display_order" value="0" min="0"></label>
-            <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-check"></i> Add Photo</button>
-        </form>
+<style>
+    .gallery-page {
+        display: grid;
+        gap: 22px
+    }
+
+    .gallery-hero {
+        position: relative;
+        overflow: hidden;
+        padding: 25px 28px;
+        border-radius: 16px;
+        background: linear-gradient(120deg, #102b4e, #174b75);
+        color: #fff;
+        box-shadow: 0 8px 24px rgba(10, 35, 64, .12)
+    }
+
+    .gallery-hero:after {
+        content: "";
+        position: absolute;
+        width: 190px;
+        height: 190px;
+        border: 35px solid rgba(255, 255, 255, .06);
+        border-radius: 50%;
+        right: 35px;
+        top: -95px
+    }
+
+    .gallery-hero h2 {
+        margin: 0 0 7px;
+        font-size: 23px;
+        font-weight: 800
+    }
+
+    .gallery-hero p {
+        margin: 0;
+        color: rgba(255, 255, 255, .78);
+        font-size: 13px
+    }
+
+    .gallery-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px
+    }
+
+    .gallery-stat {
+        padding: 17px 19px;
+        border: 1px solid #e8edf3;
+        border-radius: 13px;
+        background: #fff;
+        box-shadow: 0 3px 12px rgba(15, 35, 60, .04)
+    }
+
+    .gallery-stat small {
+        display: block;
+        color: #718096;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .6px
+    }
+
+    .gallery-stat strong {
+        display: block;
+        margin-top: 6px;
+        color: #102b4e;
+        font-size: 25px;
+        font-weight: 800
+    }
+
+    .gallery-layout {
+        display: grid;
+        grid-template-columns: minmax(280px, .85fr) minmax(0, 1.5fr);
+        gap: 20px;
+        align-items: start
+    }
+
+    .gallery-panel {
+        min-width: 0;
+        background: #fff;
+        border: 1px solid #e8edf3;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(15, 35, 60, .045)
+    }
+
+    .gallery-panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 18px 20px;
+        border-bottom: 1px solid #edf1f5
+    }
+
+    .gallery-panel-head h3 {
+        margin: 0;
+        color: #102b4e;
+        font-size: 16px;
+        font-weight: 800
+    }
+
+    .gallery-panel-head i {
+        color: var(--red, #c62828);
+        margin-right: 7px
+    }
+
+    .gallery-panel-body {
+        padding: 20px
+    }
+
+    .gallery-form {
+        display: grid;
+        gap: 16px
+    }
+
+    .gallery-form label {
+        display: grid;
+        gap: 7px;
+        color: #26384d;
+        font-size: 12px;
+        font-weight: 700
+    }
+
+    .gallery-form input[type="text"],
+    .gallery-form select {
+        width: 100%;
+        min-height: 43px;
+        padding: 10px 12px;
+        border: 1px solid #dce4ed;
+        border-radius: 9px;
+        background: #fff;
+        color: #26384d;
+        font-size: 13px;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s
+    }
+
+    .gallery-form input:focus,
+    .gallery-form select:focus {
+        border-color: #3478b8;
+        box-shadow: 0 0 0 3px rgba(52, 120, 184, .1)
+    }
+
+    .gallery-upload {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 76px;
+        padding: 14px;
+        border: 2px dashed #cbd8e6;
+        border-radius: 11px;
+        background: #f8fafc;
+        cursor: pointer;
+        transition: .2s
+    }
+
+    .gallery-upload:hover,
+    .gallery-upload.drag-over {
+        border-color: #3478b8;
+        background: #f0f7ff
+    }
+
+    .gallery-upload>i {
+        display: grid;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: #fff0f0;
+        color: var(--red, #c62828);
+        font-size: 19px;
+        flex: 0 0 40px
+    }
+
+    .gallery-upload-text {
+        min-width: 0;
+        display: grid;
+        gap: 4px
+    }
+
+    .gallery-upload-text strong {
+        overflow: hidden;
+        color: #173653;
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap
+    }
+
+    .gallery-upload-text small {
+        color: #7b8794;
+        font-size: 11px
+    }
+
+    .gallery-upload input[type="file"] {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer
+    }
+
+    .gallery-preview {
+        display: none;
+        margin-top: 10px;
+        padding: 9px;
+        border: 1px solid #e7edf3;
+        border-radius: 10px;
+        background: #fafbfd
+    }
+
+    .gallery-preview img {
+        display: block;
+        width: 100%;
+        max-height: 190px;
+        object-fit: contain;
+        border-radius: 7px
+    }
+
+    .gallery-submit {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 9px;
+        width: 100%;
+        min-height: 45px;
+        padding: 11px 16px;
+        border: 0;
+        border-radius: 9px;
+        background: var(--red, #c62828);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: .2s
+    }
+
+    .gallery-submit:hover {
+        filter: brightness(.92);
+        transform: translateY(-1px)
+    }
+
+    .gallery-submit:disabled {
+        opacity: .7;
+        cursor: not-allowed;
+        transform: none
+    }
+
+    .gallery-list {
+        display: grid;
+        gap: 12px;
+        padding: 16px
+    }
+
+    .gallery-item {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        min-width: 0;
+        padding: 12px;
+        border: 1px solid #e9eef4;
+        border-radius: 12px;
+        background: #fff;
+        transition: border-color .2s, box-shadow .2s
+    }
+
+    .gallery-item:hover {
+        border-color: #cbd9e8;
+        box-shadow: 0 4px 13px rgba(15, 35, 60, .05)
+    }
+
+    .gallery-thumb {
+        width: 76px;
+        height: 76px;
+        flex: 0 0 76px;
+        overflow: hidden;
+        border-radius: 9px;
+        background: #f0f3f7;
+        border: 1px solid #e6ebf1
+    }
+
+    .gallery-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover
+    }
+
+    .gallery-item-info {
+        flex: 1;
+        min-width: 0
+    }
+
+    .gallery-item-info small {
+        display: block;
+        margin-bottom: 5px;
+        color: #718096;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .4px
+    }
+
+    .gallery-item-info p {
+        overflow: hidden;
+        margin: 0;
+        color: #173653;
+        font-size: 13px;
+        font-weight: 800;
+        text-overflow: ellipsis;
+        white-space: nowrap
+    }
+
+    .gallery-item-info .gallery-order {
+        display: inline-block;
+        margin-top: 6px;
+        padding: 3px 8px;
+        border-radius: 20px;
+        background: #edf4fb;
+        color: #315b7f;
+        font-size: 10px;
+        font-weight: 700
+    }
+
+    .gallery-delete {
+        flex: 0 0 auto
+    }
+
+    .gallery-delete button {
+        display: grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        border: 1px solid #f1d5d5;
+        border-radius: 9px;
+        background: #fff5f5;
+        color: #c62828;
+        cursor: pointer;
+        transition: .2s
+    }
+
+    .gallery-delete button:hover {
+        background: #c62828;
+        color: #fff
+    }
+
+    .gallery-empty {
+        padding: 35px 15px;
+        text-align: center;
+        color: #8492a3;
+        font-size: 13px
+    }
+
+    .gallery-empty i {
+        display: block;
+        margin-bottom: 10px;
+        color: #bdc9d6;
+        font-size: 32px
+    }
+
+    @media(max-width:900px) {
+        .gallery-layout {
+            grid-template-columns: 1fr
+        }
+    }
+
+    @media(max-width:600px) {
+        .gallery-hero {
+            padding: 21px
+        }
+
+        .gallery-hero h2 {
+            font-size: 20px
+        }
+
+        .gallery-stats {
+            grid-template-columns: repeat(2, minmax(0, 1fr))
+        }
+
+        .gallery-stat:last-child {
+            grid-column: 1/-1
+        }
+
+        .gallery-panel-body {
+            padding: 15px
+        }
+
+        .gallery-panel-head {
+            padding: 15px
+        }
+
+        .gallery-list {
+            padding: 11px
+        }
+
+        .gallery-item {
+            gap: 10px;
+            padding: 9px
+        }
+
+        .gallery-thumb {
+            width: 62px;
+            height: 62px;
+            flex-basis: 62px
+        }
+
+        .gallery-delete button {
+            width: 33px;
+            height: 33px
+        }
+    }
+
+    .gallery-hero h2,
+    .gallery-hero h2 i {
+        color: #ffffff !important;
+        opacity: 1 !important;
+    }
+
+    .gallery-hero p {
+        color: #e8f0fa !important;
+        opacity: 1 !important;
+    }
+</style>
+<div class="gallery-page">
+    <div class="gallery-hero">
+        <h2><i class="fa-regular fa-images"></i> Gallery Management</h2>
+        <p>Manage school photographs, campus memories and event highlights.</p>
     </div>
-    <div class="admin-panel">
-        <div class="admin-panel-head"><h3><i class="fa-regular fa-images"></i> All Photos ({{ images|length }})</h3></div>
-        <div class="admin-notice-list">
-            {% for img in images %}
-            <div class="admin-notice-item">
-                <div style="display:flex;gap:14px;align-items:center;flex:1;min-width:0;">
-                    <img src="{{ url_for('static', filename='images/' + img.image_url) }}" 
-                         onerror="this.src='{{ img.image_url }}'"
-                         style="width:60px;height:60px;border-radius:8px;object-fit:cover;border:2px solid var(--yellow);flex:0 0 60px;" 
-                         alt="{{ img.title }}">
-                    <div class="notice-item-body" style="flex:1;min-width:0;">
-                        <small class="muted">{{ img.category }} • Order: {{ img.display_order }}</small>
-                        <p>{{ img.title }}</p>
-                    </div>
-                </div>
-                <form method="POST" action="{{ url_for('admin_delete_gallery', gid=img.id) }}" data-confirm="Delete?">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn-icon-danger"><i class="fa-solid fa-trash"></i></button>
-                </form>
-            </div>
-            {% else %}<p class="empty-row">No photos yet.</p>{% endfor %}
+    <div class="gallery-stats">
+        <div class="gallery-stat">
+            <small>Total Photos</small>
+            <strong>{{ images|length }}</strong>
+        </div>
+        <div class="gallery-stat">
+            <small>Gallery Categories</small>
+            <strong>5</strong>
+        </div>
+        <div class="gallery-stat">
+            <small>Management</small>
+            <strong><i class="fa-solid fa-shield-halved" style="font-size:21px"></i></strong>
         </div>
     </div>
+    <div class="gallery-layout">
+        <section class="gallery-panel">
+            <div class="gallery-panel-head">
+                <h3><i class="fa-solid fa-plus"></i> Add New Photo</h3>
+            </div>
+            <div class="gallery-panel-body">
+                <form method="POST" action="{{ url_for('admin_add_gallery') }}" class="gallery-form"
+                    enctype="multipart/form-data" id="galleryAddForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <label>Photo Title *
+                        <input type="text" name="title" required maxlength="150" placeholder="Enter photo title">
+                    </label>
+                    <label>Upload Photo
+                        <div class="gallery-upload" id="galleryDropZone">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <div class="gallery-upload-text">
+                                <strong id="galFileName">Choose an image</strong>
+                                <small>Click or drag and drop an image here</small>
+                            </div>
+                            <input type="file" name="image_file" id="galleryImageInput" accept="image/*">
+                        </div>
+                        <div class="gallery-preview" id="galleryPreview">
+                            <img id="galleryPreviewImage" src="" alt="Selected image preview">
+                        </div>
+                    </label>
+                    <label>OR Image Filename / URL
+                        <input type="text" name="image_url" placeholder="e.g. campus.jpg">
+                    </label>
+                    <label>Category
+                        <select name="category">
+                            <option value="campus">Campus</option>
+                            <option value="events">Events</option>
+                            <option value="faculty">Faculty</option>
+                            <option value="sports">Sports</option>
+                            <option value="activities">Activities</option>
+                        </select>
+                    </label>
+                    <button type="submit" class="gallery-submit" id="gallerySubmitButton">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Add Photo
+                    </button>
+                </form>
+            </div>
+        </section>
+        <section class="gallery-panel">
+            <div class="gallery-panel-head">
+                <h3><i class="fa-regular fa-images"></i> All Photos</h3>
+                <span
+                    style="padding:5px 10px;border-radius:20px;background:#edf4fb;color:#315b7f;font-size:11px;font-weight:800">{{
+                    images|length }} Photos</span>
+            </div>
+            <div class="gallery-list">
+                {% for img in images %}
+                <div class="gallery-item">
+                    <div class="gallery-thumb">
+                        <img src="{{ url_for('static', filename='images/' + img.image_url) }}"
+                            onerror="this.onerror=null;this.src='{{ img.image_url }}'" alt="{{ img.title }}">
+                    </div>
+                    <div class="gallery-item-info">
+                        <small>{{ img.category }}</small>
+                        <p title="{{ img.title }}">{{ img.title }}</p>
+                        <span class="gallery-order">Display Order: {{ img.display_order }}</span>
+                    </div>
+                    <form method="POST" action="{{ url_for('admin_delete_gallery', gid=img.id) }}"
+                        class="gallery-delete" data-confirm="Delete?">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" title="Delete Photo" aria-label="Delete {{ img.title }}">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <div class="gallery-empty">
+                    <i class="fa-regular fa-images"></i>
+                    No photos have been added yet.
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
 </div>
+<script>
+    (function () {
+        const input = document.getElementById('galleryImageInput');
+        const fileName = document.getElementById('galFileName');
+        const preview = document.getElementById('galleryPreview');
+        const previewImage = document.getElementById('galleryPreviewImage');
+        const dropZone = document.getElementById('galleryDropZone');
+        const form = document.getElementById('galleryAddForm');
+        const submitButton = document.getElementById('gallerySubmitButton');
+        if (!input || !dropZone || !form) return;
+        let previewUrl = null;
+        function showFile(file) {
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                fileName.textContent = 'Please select a valid image';
+                preview.style.display = 'none';
+                return;
+            }
+            fileName.textContent = file.name;
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+            previewUrl = URL.createObjectURL(file);
+            previewImage.src = previewUrl;
+            preview.style.display = 'block';
+        }
+        input.addEventListener('change', function () { showFile(this.files[0]) });
+        ['dragenter', 'dragover'].forEach(function (eventName) {
+            dropZone.addEventListener(eventName, function (event) {
+                event.preventDefault();
+                dropZone.classList.add('drag-over');
+            });
+        });
+        ['dragleave', 'drop'].forEach(function (eventName) {
+            dropZone.addEventListener(eventName, function (event) {
+                event.preventDefault();
+                dropZone.classList.remove('drag-over');
+            });
+        });
+        dropZone.addEventListener('drop', function (event) {
+            const files = event.dataTransfer.files;
+            if (!files.length) return;
+            try {
+                const transfer = new DataTransfer();
+                transfer.items.add(files[0]);
+                input.files = transfer.files;
+            } catch (error) { }
+            showFile(files[0]);
+        });
+        form.addEventListener('submit', function () {
+            if (!form.checkValidity()) return;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+        });
+        window.addEventListener('beforeunload', function () {
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+        });
+    })();
+</script>
 {% endblock %}

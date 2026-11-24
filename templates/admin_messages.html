@@ -1,62 +1,239 @@
+
 {% extends "admin_base.html" %}
 {% block title %}Messages{% endblock %}
 {% block page_title %}Messages to Users{% endblock %}
-
 {% block content %}
-<div class="admin-grid-2-uneven">
+<style>
+.msg-page{display:grid;grid-template-columns:minmax(320px,.9fr) minmax(380px,1.2fr);gap:20px;align-items:start}
+.msg-page .admin-panel{min-width:0;overflow:hidden}
+.msg-form{display:flex;flex-direction:column;gap:15px;padding:20px}
+.msg-form label{display:flex;flex-direction:column;gap:7px;font-size:11px;font-weight:800;color:#30445e;text-transform:uppercase;letter-spacing:.4px}
+.msg-form input,.msg-form select,.msg-form textarea{width:100%;min-width:0;padding:12px 14px;border:1px solid #dce5ef;border-radius:10px;background:#fff;color:#173451;font-family:inherit;font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s}
+.msg-form input:focus,.msg-form select:focus,.msg-form textarea:focus{border-color:#6e9bc6;box-shadow:0 0 0 3px rgba(35,105,165,.09)}
+.msg-form textarea{resize:vertical;min-height:145px;line-height:1.6}
+.msg-recipient-tools{display:grid;grid-template-columns:1fr 1.3fr;gap:9px}
+.msg-search{position:relative}
+.msg-search i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#8293a7;font-size:13px;pointer-events:none}
+.msg-search input{padding-left:36px}
+.msg-recipient-count{display:flex;justify-content:space-between;gap:10px;margin-top:7px;font-size:11px;color:#75859a;text-transform:none;letter-spacing:0;font-weight:600}
+.msg-recipient-count strong{color:#315d86}
+.msg-no-match{display:none;margin-top:8px;padding:11px;border:1px solid #f0dfbd;border-radius:9px;background:#fff8ec;color:#956000;font-size:12px;text-transform:none;letter-spacing:0}
+.msg-hint{display:flex;gap:9px;align-items:flex-start;padding:12px;border:1px solid #e4eaf2;border-radius:10px;background:#f7f9fc;color:#64758a;font-size:11.5px;line-height:1.6}
+.msg-hint i{color:#47749f;margin-top:2px}
+.msg-hint strong{color:#173451}
+.msg-form-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.msg-form-actions .btn-admin-primary{flex:1;justify-content:center;min-height:43px}
+.msg-cancel-edit{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 16px;border:1px solid #dce5ef;border-radius:9px;background:#fff;color:#40566e;text-decoration:none;font-size:12px;font-weight:700}
+.msg-cancel-edit:hover{background:#f4f7fb}
+.msg-edit-banner{padding:11px 14px;border:1px solid #c9def2;border-radius:9px;background:#eff7ff;color:#285b88;font-size:12px;font-weight:700}
+.msg-history{padding:8px 18px 18px}
+.msg-card{padding:16px 2px;border-bottom:1px solid #edf1f5}
+.msg-card:last-child{border-bottom:0}
+.msg-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.msg-recipient{display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:#708197;font-size:11px;font-weight:600}
+.msg-recipient i{color:#d21f3c}
+.msg-date{font-size:10.5px;color:#8a98a9;white-space:nowrap}
+.msg-subject{margin:9px 0 6px;color:#173451;font-size:14px;font-weight:800;overflow-wrap:anywhere}
+.msg-body{margin:0;color:#718198;font-size:12px;line-height:1.7;overflow-wrap:anywhere;white-space:pre-wrap}
+.msg-card-actions{display:flex;gap:8px;margin-top:12px}
+.msg-edit-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border:1px solid #d8e7f5;border-radius:8px;background:#f1f7fd;color:#285d8d;text-decoration:none;font-size:11px;font-weight:700}
+.msg-edit-btn:hover{background:#e3f0fc}
+.msg-empty{padding:35px 15px;text-align:center;color:#8795a7;font-size:13px}
+.msg-empty i{display:block;margin-bottom:10px;font-size:30px;color:#cbd5e1}
+@media(max-width:1000px){.msg-page{grid-template-columns:1fr}}
+@media(max-width:600px){.msg-recipient-tools{grid-template-columns:1fr}.msg-form{padding:15px}.msg-card-top{flex-direction:column;gap:5px}.msg-form-actions{flex-direction:column}.msg-form-actions>*{width:100%}}
+</style>
+<div class="msg-page">
     <div class="admin-panel">
-        <div class="admin-panel-head"><h3><i class="fa-solid fa-paper-plane"></i> Send New Message</h3></div>
-        <form method="POST" action="{{ url_for('admin_messages') }}" class="admin-form">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="admin-panel-head">
+            <h3><i class="fa-solid fa-pen-to-square"></i> {{ 'Edit Message' if edit_message else 'Send New Message' }}</h3>
+        </div>
+        <form method="POST" action="{{ url_for('admin_edit_message',msg_id=edit_message.id) if edit_message else url_for('admin_messages') }}" class="admin-form msg-form" id="adminMessageForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            {% if edit_message %}
+            <div class="msg-edit-banner"><i class="fa-solid fa-circle-info"></i> Editing your previously sent message. Changes will update the existing message.</div>
+            {% endif %}
             <label>Send To
-                <select name="to_role" id="toRole" onchange="toggleUserSelect()">
-                    <option value="all">📢 All Users</option>
-                    <option value="teacher">All Teachers</option>
-                    <option value="parent">All Parents</option>
-                    <option value="student">All Students</option>
-                    <option value="specific">🎯 Specific User</option>
+                {% set current_role = (edit_message.to_role or ('specific' if edit_message.to_user_id else 'all')) if edit_message else 'all' %}
+                <select name="to_role" id="toRole">
+                    <option value="all" {% if current_role == 'all' %}selected{% endif %}>All Users...</option>
+                    <option value="teacher" {% if current_role == 'teacher' %}selected{% endif %}>All Teachers</option>
+                    <option value="parent" {% if current_role == 'parent' %}selected{% endif %}>All Parents</option>
+                    <option value="student" {% if current_role == 'student' %}selected{% endif %}>All Students</option>
+                    <option value="specific" {% if current_role == 'specific' %}selected{% endif %}>__Specific User__</option>
                 </select>
             </label>
             <label id="userSelectWrap" style="display:none;">Select Specific User
-                <select name="to_user_id">
+                <div class="msg-recipient-tools">
+                    <select id="recipientRoleFilter" aria-label="Filter users by category">
+                        <option value="all">All Categories</option>
+                        <option value="admin">Admins</option>
+                        <option value="teacher">Teachers</option>
+                        <option value="parent">Parents</option>
+                        <option value="student">Students</option>
+                    </select>
+                    <div class="msg-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="search" id="recipientSearch" placeholder="Search name or Unique ID..." autocomplete="off">
+                    </div>
+                </div>
+                <select name="to_user_id" id="recipientSelect">
                     <option value="">-- Choose User --</option>
                     {% for u in users_list %}
-                    <option value="{{ u.id }}">{{ u.name }} ({{ u.unique_id }} - {{ u.role }})</option>
+                    <option value="{{ u.id }}" data-role="{{ u.role|lower }}" data-search="{{ (u.name ~ ' ' ~ u.unique_id)|lower }}" {% if edit_message and edit_message.to_user_id and edit_message.to_user_id|string == u.id|string %}selected{% endif %}>{{ u.name }} ({{ u.unique_id }} - {{ u.role|capitalize }})</option>
                     {% endfor %}
                 </select>
+                <div class="msg-recipient-count">
+                    <span id="recipientResultText">Available recipients</span>
+                    <strong id="recipientResultCount">{{ users_list|length }} users</strong>
+                </div>
+                <div class="msg-no-match" id="recipientNoMatch"><i class="fa-solid fa-circle-info"></i> No users found. Try another name, ID or category.</div>
             </label>
             <label>Subject
-                <input type="text" name="subject" required maxlength="200" placeholder="e.g. Exam Schedule Update">
+                <input type="text" name="subject" value="{{ edit_message.subject if edit_message else '' }}" required maxlength="200" placeholder="e.g. Exam Schedule Update">
             </label>
             <label>Message
-                <textarea name="body" rows="6" required maxlength="2000" placeholder="Type your message..."></textarea>
+                <textarea name="body" rows="6" required maxlength="2000" placeholder="Type your message...">{{ edit_message.body if edit_message else '' }}</textarea>
             </label>
-            <button type="submit" class="btn-admin-primary"><i class="fa-solid fa-paper-plane"></i> Send Message</button>
+            <div class="msg-hint">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>
+                    {% if edit_message %}
+                    You are editing an existing message. Saving will update its recipient, subject and content.
+                    {% else %}
+                    Select a recipient category to send a broadcast message, or choose Specific User to send a message to one person.
+                    {% endif %}
+                </span>
+            </div>
+            <div class="msg-form-actions">
+                <button type="submit" class="btn-admin-primary" id="messageSubmitBtn">
+                    <i class="fa-solid {{ 'fa-floppy-disk' if edit_message else 'fa-paper-plane' }}"></i>
+                    {{ 'Update Message' if edit_message else 'Send Message' }}
+                </button>
+                {% if edit_message %}
+                <a href="{{ url_for('admin_messages') }}" class="msg-cancel-edit"><i class="fa-solid fa-xmark"></i> Cancel Edit</a>
+                {% endif %}
+            </div>
         </form>
     </div>
-    
     <div class="admin-panel">
-        <div class="admin-panel-head"><h3><i class="fa-solid fa-clock-rotate-left"></i> Sent Messages</h3></div>
-        <div class="admin-notice-list">
+        <div class="admin-panel-head">
+            <h3><i class="fa-solid fa-clock-rotate-left"></i> Sent Messages</h3>
+            <span class="muted" style="font-size:11px;">{{ sent|length }} messages</span>
+        </div>
+        <div class="msg-history">
             {% for m in sent %}
-            <div class="admin-notice-item" style="flex-direction:column; align-items:flex-start;">
-                <div style="width:100%;">
-                    <small class="muted">To: {{ m.to_role or 'Specific' }} • {{ m.created_at[:16] }}</small>
-                    <p style="font-weight:700;color:#0a2340;margin:5px 0;">{{ m.subject }}</p>
-                    <span style="font-size:12px;color:#65758a;">{{ m.body[:150] }}{% if m.body|length > 150 %}...{% endif %}</span>
+            <div class="msg-card">
+                <div class="msg-card-top">
+                    <div class="msg-recipient">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>To:</span>
+                        {% if m.to_user_id %}
+                        <strong>{{ m.to_name or 'Specific User' }}</strong>
+                        <span>({{ m.to_uid or m.recipient_role or 'User' }})</span>
+                        {% elif m.to_role == 'all' %}
+                        <strong>All Users</strong>
+                        {% elif m.to_role %}
+                        <strong>All {{ m.to_role|capitalize }}s</strong>
+                        {% else %}
+                        <strong>Specific Recipient</strong>
+                        {% endif %}
+                    </div>
+                    <span class="msg-date">{{ m.created_at[:16] if m.created_at else '' }}</span>
                 </div>
+                <p class="msg-subject">{{ m.subject }}</p>
+                <p class="msg-body">{{ m.body[:250] }}{% if m.body|length > 250 %}...{% endif %}</p>
+                {% if m.can_edit %}
+                <div class="msg-card-actions">
+                    <a href="{{ url_for('admin_edit_message',msg_id=m.id) }}" class="msg-edit-btn"><i class="fa-solid fa-pen-to-square"></i> Edit Message</a>
+                </div>
+                {% endif %}
             </div>
             {% else %}
-            <p class="empty-row">No messages sent yet.</p>
+            <div class="msg-empty">
+                <i class="fa-regular fa-envelope"></i>
+                <strong>No messages sent yet.</strong>
+                <p>Your sent messages will appear here.</p>
+            </div>
             {% endfor %}
         </div>
     </div>
 </div>
-
 <script>
-    function toggleUserSelect() {
-        const v = document.getElementById('toRole').value;
-        document.getElementById('userSelectWrap').style.display = v === 'specific' ? 'block' : 'none';
+(function(){
+    const roleSelect=document.getElementById('toRole');
+    const userWrap=document.getElementById('userSelectWrap');
+    const recipientSelect=document.getElementById('recipientSelect');
+    const categoryFilter=document.getElementById('recipientRoleFilter');
+    const searchInput=document.getElementById('recipientSearch');
+    const resultText=document.getElementById('recipientResultText');
+    const resultCount=document.getElementById('recipientResultCount');
+    const noMatch=document.getElementById('recipientNoMatch');
+    const form=document.getElementById('adminMessageForm');
+    const submitBtn=document.getElementById('messageSubmitBtn');
+    if(!roleSelect||!userWrap||!recipientSelect)return;
+    const options=Array.from(recipientSelect.querySelectorAll('option')).filter(option=>option.value!=='');
+    function filterRecipients(){
+        const category=categoryFilter.value;
+        const search=searchInput.value.trim().toLowerCase();
+        let count=0;
+        options.forEach(function(option){
+            const role=option.dataset.role||'';
+            const searchable=option.dataset.search||option.textContent.toLowerCase();
+            const matchesCategory=category==='all'||role===category;
+            const matchesSearch=searchable.includes(search);
+            const visible=matchesCategory&&matchesSearch;
+            option.hidden=!visible;
+            count+=visible?1:0;
+        });
+        if(recipientSelect.selectedOptions.length&&recipientSelect.selectedOptions[0].value&&recipientSelect.selectedOptions[0].hidden){
+            recipientSelect.value='';
+        }
+        resultCount.textContent=count+' users';
+        resultText.textContent=search||category!=='all'?'Filtered recipients':'Available recipients';
+        noMatch.style.display=count===0?'block':'none';
     }
+    function toggleUserSelect(){
+        const specific=roleSelect.value==='specific';
+        userWrap.style.display=specific?'flex':'none';
+        recipientSelect.required=specific;
+        recipientSelect.disabled=!specific;
+        categoryFilter.disabled=!specific;
+        searchInput.disabled=!specific;
+        if(specific)filterRecipients();
+    }
+    roleSelect.addEventListener('change',toggleUserSelect);
+    categoryFilter.addEventListener('change',filterRecipients);
+    searchInput.addEventListener('input',filterRecipients);
+    recipientSelect.addEventListener('change',function(){
+        const selected=recipientSelect.selectedOptions[0];
+        if(selected&&selected.value){
+            categoryFilter.value='all';
+            searchInput.value='';
+            filterRecipients();
+        }
+    });
+    if(form){
+        form.addEventListener('submit',function(event){
+            if(roleSelect.value==='specific'&&!recipientSelect.value){
+                event.preventDefault();
+                alert('Please select a specific recipient before sending the message.');
+                recipientSelect.focus();
+                return;
+            }
+            if(!form.checkValidity()){
+                event.preventDefault();
+                form.reportValidity();
+                return;
+            }
+            if(submitBtn){
+                submitBtn.disabled=true;
+                submitBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Please wait...';
+            }
+        });
+    }
+    filterRecipients();
+    toggleUserSelect();
+})();
 </script>
 {% endblock %}

@@ -4,78 +4,76 @@
 {% block content %}
 <style>
     .qpe {
-        color: #25384d
+        color: #25384d;
+        font-family: 'Inter', -apple-system, sans-serif;
     }
 
+    /* --- HERO SECTION --- */
     .qpe-hero {
         display: flex;
         justify-content: space-between;
         align-items: center;
         gap: 15px;
         flex-wrap: wrap;
-        padding: 22px;
-        margin-bottom: 18px;
-        border-radius: 15px;
-        background: linear-gradient(120deg, #edf6ff, #fff);
-        border: 1px solid #dfeaf3
+        padding: 24px;
+        margin-bottom: 20px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+        border: 1px solid #dbeafe;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
     }
 
     .qpe-hero h2 {
-        font-size: 22px;
-        font-weight: 850;
-        color: #123b60;
+        font-size: 24px;
+        font-weight: 800;
+        color: #1e3a8a;
         margin: 0;
-        overflow-wrap: anywhere
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .qpe-hero p {
-        font-size: 12px;
-        color: #6b7c90;
-        margin: 7px 0 0
+        font-size: 13px;
+        color: #64748b;
+        margin: 8px 0 0;
+        font-weight: 500;
     }
 
+    /* --- BUTTONS --- */
     .qpe-btn {
         border: 0;
-        border-radius: 9px;
-        padding: 10px 14px;
+        border-radius: 10px;
+        padding: 10px 16px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 7px;
-        font-size: 12px;
-        font-weight: 800;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 700;
         text-decoration: none;
-        cursor: pointer
+        cursor: pointer;
+        transition: all 0.2s ease;
     }
 
-    .qpe-blue {
-        background: #12649f;
-        color: #fff
-    }
+    .qpe-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .qpe-btn:active { transform: translateY(0); }
+    .qpe-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-    .qpe-green {
-        background: #168254;
-        color: #fff
-    }
+    .qpe-blue { background: #2563eb; color: #fff; }
+    .qpe-green { background: #10b981; color: #fff; }
+    .qpe-light { background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; }
+    .qpe-red { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .qpe-red:hover { background: #fee2e2; }
 
-    .qpe-light {
-        background: #f1f5f9;
-        color: #42566d;
-        border: 1px solid #e1e8ef
-    }
-
-    .qpe-red {
-        background: #fff0f0;
-        color: #b42318;
-        border: 1px solid #ffdada
-    }
-
+    /* --- PANELS --- */
     .qpe-panel {
         background: #fff;
-        border: 1px solid #e2eaf1;
-        border-radius: 13px;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
         overflow: hidden;
-        margin-bottom: 18px
+        margin-bottom: 24px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
     }
 
     .qpe-head {
@@ -84,223 +82,233 @@
         justify-content: space-between;
         gap: 10px;
         flex-wrap: wrap;
-        padding: 15px 18px;
-        background: #f8fbfe;
-        border-bottom: 1px solid #e7edf3
+        padding: 16px 20px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
     }
 
     .qpe-head h3 {
-        font-size: 14px;
-        font-weight: 850;
-        color: #123b60;
-        margin: 0
-    }
-
-    .qpe-body {
-        padding: 18px
-    }
-
-    .qpe-bulk {
-        padding: 16px;
-        border: 1px solid #dce8f3;
-        background: #f7fbff;
-        border-radius: 11px;
-        margin-bottom: 17px
-    }
-
-    .qpe-bulk label,
-    .qpe-field label {
-        display: block;
-        font-size: 11px;
+        font-size: 15px;
         font-weight: 800;
-        color: #40566e;
-        margin-bottom: 6px
+        color: #1e293b;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .qpe-body { padding: 20px; }
+
+    /* --- BULK ADD BOX --- */
+    .qpe-bulk {
+        padding: 18px;
+        border: 1px dashed #93c5fd;
+        background: #eff6ff;
+        border-radius: 12px;
+        margin-bottom: 24px;
+    }
+
+    .qpe-bulk label, .qpe-field label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 6px;
     }
 
     .qpe-bulk textarea {
         width: 100%;
-        min-height: 115px;
-        padding: 11px;
-        border: 1px solid #d6e1eb;
+        min-height: 120px;
+        padding: 12px;
+        border: 1px solid #cbd5e1;
         border-radius: 8px;
         resize: vertical;
-        font-size: 13px
+        font-size: 13px;
+        transition: border 0.2s;
     }
 
+    .qpe-bulk textarea:focus, .qpe-field input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    /* --- GRID & INPUTS --- */
     .qpe-grid {
         display: grid;
-        grid-template-columns: 1.1fr 2fr 1.3fr .65fr .65fr;
-        gap: 10px
+        grid-template-columns: 1.2fr 2.5fr 1.5fr .7fr .7fr;
+        gap: 12px;
     }
 
     .qpe-field input {
         width: 100%;
-        min-height: 39px;
-        padding: 8px 9px;
-        border: 1px solid #dce5ee;
-        border-radius: 7px;
-        font-size: 12px;
-        min-width: 0
+        min-height: 40px;
+        padding: 8px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 13px;
+        transition: border 0.2s;
     }
 
-    .qpe-field input:focus,
-    .qpe-bulk textarea:focus {
-        outline: 0;
-        border-color: #75a9ce;
-        box-shadow: 0 0 0 3px #1769aa12
-    }
-
+    /* --- DYNAMIC ROWS --- */
     .qpe-row {
-        padding: 14px;
-        border: 1px solid #e1e8ef;
+        padding: 16px;
+        border: 1px solid #e2e8f0;
+        border-left: 4px solid #3b82f6;
         border-radius: 10px;
-        margin-bottom: 10px;
-        background: #fff
+        margin-bottom: 12px;
+        background: #fff;
+        transition: box-shadow 0.2s;
     }
+    
+    .qpe-row:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 
     .qpe-rowtop {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 10px
+        margin-bottom: 12px;
     }
 
     .qpe-rownum {
-        font-size: 11px;
-        font-weight: 900;
-        color: #1769aa;
-        letter-spacing: .04em
+        font-size: 12px;
+        font-weight: 800;
+        color: #2563eb;
+        letter-spacing: 0.05em;
+        background: #eff6ff;
+        padding: 4px 8px;
+        border-radius: 6px;
     }
 
-    .qpe-count {
-        font-size: 11px;
-        color: #64748b;
-        font-weight: 800
-    }
-
+    /* --- SAVED QUESTIONS --- */
     .qpe-saved {
-        padding: 12px 0;
-        border-bottom: 1px solid #edf1f5;
+        padding: 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        margin-bottom: 12px;
+        background: #fff;
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        gap: 12px
+        gap: 16px;
+        transition: all 0.3s ease;
     }
 
-    .qpe-saved:last-child {
-        border-bottom: 0
-    }
+    .qpe-saved:hover { border-color: #cbd5e1; background: #f8fafc; }
 
     .qpe-saved-text {
-        font-size: 13px;
+        font-size: 14px;
+        line-height: 1.5;
         overflow-wrap: anywhere;
-        min-width: 0
+        min-width: 0;
+        color: #1e293b;
     }
 
-    .qpe-saved-text strong {
-        color: #173b60
-    }
+    .qpe-saved-text strong { color: #2563eb; margin-right: 4px; }
 
     .qpe-meta {
         display: flex;
-        gap: 7px;
+        gap: 8px;
         flex-wrap: wrap;
-        margin-top: 6px
+        margin-top: 8px;
     }
 
     .qpe-meta span {
-        font-size: 10px;
-        padding: 4px 7px;
-        border-radius: 5px;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 6px;
         background: #f1f5f9;
-        color: #64748b
+        color: #475569;
     }
 
     .qpe-option {
-        color: #64748b;
-        font-size: 12px;
-        margin-top: 5px;
-        white-space: pre-wrap
+        color: #475569;
+        font-size: 13px;
+        margin-top: 6px;
+        white-space: pre-wrap;
+        background: #f8fafc;
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
     }
 
+    /* --- FOOTER & TIPS --- */
     .qpe-footer {
+        position: sticky;
+        bottom: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 10px;
+        gap: 15px;
         flex-wrap: wrap;
-        margin-top: 14px
+        margin-top: 24px;
+        padding: 15px 20px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+        z-index: 100;
     }
 
-    .qpe-tip {
-        font-size: 11px;
-        color: #748397;
-        line-height: 1.6
+    .qpe-tip { font-size: 12px; color: #64748b; line-height: 1.5; }
+    .qpe-count { font-size: 12px; font-weight: 700; color: #475569; background: #f1f5f9; padding: 4px 10px; border-radius: 20px; }
+    .qpe-count span { color: #2563eb; }
+
+    @media(max-width: 992px) {
+        .qpe-grid { grid-template-columns: 1fr 1fr; }
     }
-
-    @media(max-width:900px) {
-        .qpe-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr))
-        }
-    }
-
-    @media(max-width:600px) {
-        .qpe-body {
-            padding: 12px
-        }
-
-        .qpe-hero {
-            align-items: flex-start;
-            flex-direction: column
-        }
-
-        .qpe-grid {
-            grid-template-columns: 1fr
-        }
-
-        .qpe-footer .qpe-btn {
-            width: 100%
-        }
-
-        .qpe-saved {
-            align-items: flex-start
-        }
+    @media(max-width: 768px) {
+        .qpe-hero { align-items: flex-start; flex-direction: column; }
+        .qpe-grid { grid-template-columns: 1fr; }
+        .qpe-footer { flex-direction: column; bottom: 10px; }
+        .qpe-footer .qpe-btn { width: 100%; }
+        .qpe-saved { flex-direction: column; }
     }
 </style>
+
 <div class="qpe">
+    <!-- HERO SECTION -->
     <section class="qpe-hero">
         <div>
             <h2><i class="fa-solid fa-file-pen"></i> {{ paper['title'] }}</h2>
-            <p>Class {{ paper['class_name'] }} &nbsp;|&nbsp; {{ paper['subject'] }}
-                &nbsp;|&nbsp; Full marks: {{ paper['max_marks'] }}
-                &nbsp;|&nbsp; Time: {{ paper['time_allowed'] }}
+            <p>
+                Class {{ paper['class_name'] }} &nbsp;|&nbsp; {{ paper['subject'] }}
+                &nbsp;|&nbsp; <strong>Full Marks:</strong> {{ paper['max_marks'] }}
+                &nbsp;|&nbsp; <strong>Time:</strong> {{ paper['time_allowed'] }}
             </p>
         </div>
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <a class="qpe-btn qpe-light" href="{{ url_for('teacher_question_papers') }}">
-                <i class="fa-solid fa-arrow-left"></i> Back to Papers
+                <i class="fa-solid fa-arrow-left"></i> Back
             </a>
-            <a class="qpe-btn qpe-green" href="{{ url_for('print_question_paper', paper_id=paper['id']) }}" target="_blank"
-                rel="noopener">
+            <a class="qpe-btn qpe-green" href="{{ url_for('print_question_paper', paper_id=paper['id']) }}" target="_blank" rel="noopener">
                 <i class="fa-solid fa-print"></i> Preview / Print
             </a>
         </div>
     </section>
 
+    <!-- ADD QUESTIONS FORM -->
     <form method="POST" action="{{ url_for('edit_question_paper', paper_id=paper['id']) }}" id="questionForm">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
         <section class="qpe-panel">
             <div class="qpe-head">
-                <h3><i class="fa-solid fa-layer-group"></i> Add questions</h3>
-                <span class="qpe-count"><span id="rowCount">0</span> unsaved rows</span>
+                <h3><i class="fa-solid fa-layer-group"></i> Add Questions</h3>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span class="qpe-count"><span id="rowCount">0</span> unsaved rows</span>
+                    <span class="qpe-count">Unsaved Marks: <span id="unsavedMarks">0</span></span>
+                </div>
             </div>
             <div class="qpe-body">
+                
+                <!-- BULK ADD -->
                 <div class="qpe-bulk">
-                    <label for="bulkQuestions"><i class="fa-solid fa-paste"></i> Paste multiple questions (one per
-                        line)</label>
-                    <textarea id="bulkQuestions"
-                        placeholder="What is a computer?&#10;Define input device.&#10;Write two examples of output devices."></textarea>
-                    <div class="qpe-grid" style="margin-top:12px">
+                    <label for="bulkQuestions"><i class="fa-solid fa-paste"></i> Paste multiple questions (one per line)</label>
+                    <textarea id="bulkQuestions" placeholder="What is a computer?&#10;Define input device.&#10;Write two examples of output devices."></textarea>
+                    
+                    <div class="qpe-grid" style="margin-top:14px">
                         <div class="qpe-field">
                             <label for="bulkSection">Default section (Optional)</label>
                             <input id="bulkSection" value="A. Answer the following" maxlength="120" placeholder="Leave blank for General">
@@ -318,84 +326,87 @@
                             <input id="bulkLines" type="number" min="0" max="30" value="1">
                         </div>
                         <div class="qpe-field" style="display:flex;align-items:end">
-                            <button type="button" class="qpe-btn qpe-blue" id="generateBulk" style="width:100%">Generate
-                                rows</button>
+                            <button type="button" class="qpe-btn qpe-blue" id="generateBulk" style="width:100%">
+                                <i class="fa-solid fa-bolt"></i> Generate
+                            </button>
                         </div>
                     </div>
-                    <p class="qpe-tip mb-0 mt-2">Each non-empty line becomes a question. Review the generated rows
-                        before saving.</p>
+                    <p class="qpe-tip mt-2 mb-0">Each non-empty line becomes a question. Review the generated rows before saving.</p>
                 </div>
 
+                <!-- MANUAL ADD -->
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-                    <div><strong class="small">Question builder</strong>
+                    <div>
+                        <strong class="text-dark" style="font-size: 14px;">Question Builder</strong>
                         <div class="qpe-tip">Add rows manually or create a batch.</div>
                     </div>
                     <div class="d-flex gap-2 flex-wrap">
-                        <button type="button" class="qpe-btn qpe-light" id="addFive">+ Add 5 rows</button>
-                        <button type="button" class="qpe-btn qpe-blue" id="addOne">+ Add one row</button>
+                        <button type="button" class="qpe-btn qpe-light" id="addFive"><i class="fa-solid fa-plus"></i> Add 5 rows</button>
+                        <button type="button" class="qpe-btn qpe-blue" id="addOne"><i class="fa-solid fa-plus"></i> Add 1 row</button>
                     </div>
                 </div>
 
                 <div id="questionRows" aria-live="polite"></div>
+                
+                <!-- STICKY FOOTER -->
                 <div class="qpe-footer">
-                    <button type="button" class="qpe-btn qpe-light" id="removeEmpty">Remove empty rows</button>
-                    <button type="submit" class="qpe-btn qpe-green" id="saveQuestions"><i
-                            class="fa-solid fa-floppy-disk"></i> Save all questions</button>
+                    <button type="button" class="qpe-btn qpe-light" id="removeEmpty"><i class="fa-solid fa-broom"></i> Remove empty rows</button>
+                    <button type="submit" class="qpe-btn qpe-green" id="saveQuestions"><i class="fa-solid fa-floppy-disk"></i> Save all questions</button>
                 </div>
             </div>
         </section>
     </form>
 
+    <!-- SAVED QUESTIONS LIST -->
     <section class="qpe-panel">
         <div class="qpe-head">
-            <h3><i class="fa-solid fa-list-check"></i> Saved questions</h3>
+            <h3><i class="fa-solid fa-list-check"></i> Saved Questions</h3>
             
-            <!-- 🚀 NEW: BULK DELETE CONTROLS -->
-            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                <label style="font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; color: #42566d;">
-                    <input type="checkbox" id="selectAllSaved" style="width: 16px; height: 16px;"> Select All
+            <!-- BULK DELETE CONTROLS -->
+            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                <label style="font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; color: #475569;">
+                    <input type="checkbox" id="selectAllSaved" style="width: 16px; height: 16px; accent-color: #2563eb;"> Select All
                 </label>
                 <button type="button" class="qpe-btn qpe-red" id="deleteSelectedBtn" disabled style="padding: 6px 12px;">Delete Selected</button>
                 <button type="button" class="qpe-btn qpe-red" id="deleteAllBtn" style="padding: 6px 12px;">Delete All</button>
             </div>
         </div>
         <div class="qpe-body">
-            <div class="d-flex justify-content-end mb-2">
-                <span class="qpe-count">{{ total_questions }} saved &nbsp;|&nbsp; {{ saved_marks }} marks</span>
+            <div class="d-flex justify-content-between mb-3">
+                <span class="qpe-count">Total: {{ total_questions }} Questions</span>
+                <span class="qpe-count">Total Marks: {{ saved_marks }}</span>
             </div>
             
             {% if grouped_questions %}
-            {% for section, qs in grouped_questions.items() %}
-            <h5 class="text-primary fw-bold mt-3 mb-2">{{ section }}</h5>
-            {% for q in qs %}
-            <div class="qpe-saved" id="saved-q-{{ q['id'] }}">
-                <div style="display:flex; gap: 12px; align-items: flex-start; flex: 1;">
-                    <!-- 🚀 NEW: Checkbox for individual question -->
-                    <input type="checkbox" class="saved-q-checkbox" value="{{ q['id'] }}" style="margin-top: 4px; width: 16px; height: 16px; cursor: pointer;">
-                    
-                    <div class="qpe-saved-text">
-                        <strong>{{ loop.index }}.</strong> {{ q['question_text'] }}
-                        {% if q['options'] %}<div class="qpe-option">{{ q['options'] }}</div>{% endif %}
-                        <div class="qpe-meta">
-                            <span>{{ q['marks'] }} mark(s)</span>
-                            <span>{{ q['lines'] }} answer line(s)</span>
+                {% for section, qs in grouped_questions.items() %}
+                <div class="section-group" data-section="{{ section }}">
+                    <h5 class="text-primary fw-bold mt-4 mb-3" style="font-size: 14px; border-left: 4px solid #2563eb; padding-left: 10px;">{{ section }}</h5>
+                    {% for q in qs %}
+                    <div class="qpe-saved" id="saved-q-{{ q['id'] }}">
+                        <div style="display:flex; gap: 14px; align-items: flex-start; flex: 1;">
+                            <input type="checkbox" class="saved-q-checkbox" value="{{ q['id'] }}" style="margin-top: 4px; width: 16px; height: 16px; cursor: pointer; accent-color: #2563eb;">
+                            <div class="qpe-saved-text">
+                                <strong>{{ loop.index }}.</strong> {{ q['question_text'] }}
+                                {% if q['options'] %}<div class="qpe-option">{{ q['options'] }}</div>{% endif %}
+                                <div class="qpe-meta">
+                                    <span><i class="fa-solid fa-star"></i> {{ q['marks'] }} mark(s)</span>
+                                    <span><i class="fa-solid fa-bars"></i> {{ q['lines'] }} line(s)</span>
+                                </div>
+                            </div>
                         </div>
+                        <button type="button" class="qpe-btn qpe-red btn-delete-single" data-id="{{ q['id'] }}" title="Delete Question">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </div>
+                    {% endfor %}
                 </div>
-                
-                <!-- 🚀 UPDATED: AJAX delete button instead of form submission -->
-                <button type="button" class="qpe-btn qpe-red btn-delete-single" data-id="{{ q['id'] }}" aria-label="Delete question">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
-            </div>
-            {% endfor %}
-            {% endfor %}
+                {% endfor %}
             {% else %}
-            <div class="text-center py-5 text-muted" id="noQuestionsMessage">
-                <i class="fa-solid fa-file-circle-question fa-2x mb-3"></i>
-                <h5>No questions saved yet</h5>
-                <p class="small mb-0">Add questions above. After saving, they will appear here and in the print preview.</p>
-            </div>
+                <div class="text-center py-5 text-muted" id="noQuestionsMessage">
+                    <i class="fa-solid fa-file-circle-question fa-3x mb-3" style="color: #cbd5e1;"></i>
+                    <h5>No questions saved yet</h5>
+                    <p class="small mb-0">Add questions above. After saving, they will appear here.</p>
+                </div>
             {% endif %}
         </div>
     </section>
@@ -403,47 +414,70 @@
 
 <script>
     (function () {
-        // ... (Keep the existing question builder code here, up to the form.submit event) ...
+        // 🚀 FIX: Direct Jinja token injection (Bypasses meta tag requirement)
+        const CSRF_TOKEN = "{{ csrf_token() }}";
+        
         const container = document.getElementById('questionRows');
         const rowCount = document.getElementById('rowCount');
+        const unsavedMarksEl = document.getElementById('unsavedMarks');
         const form = document.getElementById('questionForm');
         
+        // --- DYNAMIC COUNTS ---
         function updateCount() {
             const rows = [...container.querySelectorAll('.qpe-row')];
             rowCount.textContent = rows.length;
-            rows.forEach((row, index) => row.querySelector('.qpe-rownum').textContent = `QUESTION ${index + 1}`);
+            
+            let totalMarks = 0;
+            rows.forEach((row, index) => {
+                row.querySelector('.qpe-rownum').textContent = `QUESTION ${index + 1}`;
+                const marks = Number(row.querySelector('[name="marks[]"]').value) || 0;
+                totalMarks += marks;
+            });
+            unsavedMarksEl.textContent = totalMarks;
         }
 
+        // --- ADD ROW ---
         function addRow(data = {}) {
             const row = document.createElement('div');
             row.className = 'qpe-row';
             row.innerHTML = `
-      <div class="qpe-rowtop">
-        <span class="qpe-rownum">QUESTION</span>
-        <button type="button" class="qpe-btn qpe-red" data-remove><i class="fa-solid fa-xmark"></i> Remove</button>
-      </div>
-      <div class="qpe-grid">
-        <div class="qpe-field"><label>Section (Optional)</label><input name="section[]" maxlength="120" placeholder="Leave blank for General"></div>
-        <div class="qpe-field"><label>Question *</label><input name="question[]" maxlength="2000" required placeholder="Enter question text"></div>
-        <div class="qpe-field"><label>Options (optional)</label><input name="options[]" maxlength="2000" placeholder="a) ... , b) ..."></div>
-        <div class="qpe-field"><label>Marks</label><input name="marks[]" type="number" min="1" max="1000" value="1" required></div>
-        <div class="qpe-field"><label>Lines</label><input name="lines[]" type="number" min="0" max="30" value="1" required></div>
-      </div>`;
+                <div class="qpe-rowtop">
+                    <span class="qpe-rownum">QUESTION</span>
+                    <button type="button" class="qpe-btn qpe-red" data-remove style="padding: 4px 10px; font-size: 11px;">
+                        <i class="fa-solid fa-xmark"></i> Remove
+                    </button>
+                </div>
+                <div class="qpe-grid">
+                    <div class="qpe-field"><label>Section (Optional)</label><input name="section[]" maxlength="120" placeholder="Leave blank for General"></div>
+                    <div class="qpe-field"><label>Question *</label><input name="question[]" maxlength="2000" required placeholder="Enter question text"></div>
+                    <div class="qpe-field"><label>Options (optional)</label><input name="options[]" maxlength="2000" placeholder="a) ... , b) ..."></div>
+                    <div class="qpe-field"><label>Marks</label><input name="marks[]" type="number" min="1" max="1000" value="1" required></div>
+                    <div class="qpe-field"><label>Lines</label><input name="lines[]" type="number" min="0" max="30" value="1" required></div>
+                </div>`;
+            
             row.querySelector('[name="section[]"]').value = data.section ?? '';
             row.querySelector('[name="question[]"]').value = data.question ?? '';
             row.querySelector('[name="options[]"]').value = data.options ?? '';
             row.querySelector('[name="marks[]"]').value = data.marks ?? 1;
             row.querySelector('[name="lines[]"]').value = data.lines ?? 1;
+            
+            // Event listener for remove
             row.querySelector('[data-remove]').addEventListener('click', () => { row.remove(); updateCount(); });
+            
+            // Event listener to update marks live
+            row.querySelector('[name="marks[]"]').addEventListener('input', updateCount);
+
             container.appendChild(row);
             updateCount();
         }
 
+        // --- BUTTON EVENTS ---
         document.getElementById('addOne').addEventListener('click', () => addRow());
         document.getElementById('addFive').addEventListener('click', () => {
             for (let i = 0; i < 5; i++) addRow();
         });
         
+        // --- BULK GENERATE ---
         document.getElementById('generateBulk').addEventListener('click', () => {
             const questions = document.getElementById('bulkQuestions').value
                 .split(/\r?\n/).map(value => value.trim()).filter(Boolean);
@@ -458,10 +492,12 @@
             if (questions.length + container.querySelectorAll('.qpe-row').length > 100) {
                 return alert('Save up to 100 questions at a time.');
             }
+            
             questions.forEach(question => addRow({ section, question, options, marks, lines }));
             document.getElementById('bulkQuestions').value = '';
         });
         
+        // --- REMOVE EMPTY ROWS ---
         document.getElementById('removeEmpty').addEventListener('click', () => {
             let removed = 0;
             container.querySelectorAll('.qpe-row').forEach(row => {
@@ -469,12 +505,14 @@
                 if (!question) { row.remove(); removed++; }
             });
             updateCount();
-            alert(`${removed} empty row(s) removed.`);
+            if(removed > 0) alert(`${removed} empty row(s) removed.`);
         });
 
+        // --- FORM SUBMIT VALIDATION ---
         form.addEventListener('submit', event => {
             const rows = [...container.querySelectorAll('.qpe-row')];
             if (!rows.length) { event.preventDefault(); alert('Add at least one question.'); return; }
+            
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
                 const question = row.querySelector('[name="question[]"]').value.trim();
@@ -494,31 +532,29 @@
             button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
         });
         
-        addRow(); // Start with one row
+        // Start with one row
+        addRow();
 
         // ==========================================
-        // 🚀 NEW: AJAX DELETE LOGIC (No Page Reload)
+        // AJAX DELETE LOGIC
         // ==========================================
-        
         const selectAllCheckbox = document.getElementById('selectAllSaved');
-        const checkboxes = document.querySelectorAll('.saved-q-checkbox');
         const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
         const deleteAllBtn = document.getElementById('deleteAllBtn');
         const apiUrl = "{{ url_for('api_delete_questions', paper_id=paper['id']) }}";
 
-        // Function to update Delete Selected button state
+        // UI State Updater
         function updateDeleteBtnState() {
             const checkedCount = document.querySelectorAll('.saved-q-checkbox:checked').length;
-            deleteSelectedBtn.disabled = checkedCount === 0;
-            
-            // Update Select All checkbox state
             const totalCheckboxes = document.querySelectorAll('.saved-q-checkbox').length;
-            if (totalCheckboxes > 0) {
-                selectAllCheckbox.checked = (checkedCount === totalCheckboxes);
+            
+            deleteSelectedBtn.disabled = checkedCount === 0;
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = (totalCheckboxes > 0 && checkedCount === totalCheckboxes);
             }
         }
 
-        // Handle Select All click
+        // Handle Select All
         if (selectAllCheckbox) {
             selectAllCheckbox.addEventListener('change', function() {
                 document.querySelectorAll('.saved-q-checkbox').forEach(cb => {
@@ -528,27 +564,58 @@
             });
         }
 
-        // Handle individual checkbox changes
+        // Handle Individual Checkboxes
         document.querySelectorAll('.saved-q-checkbox').forEach(cb => {
             cb.addEventListener('change', updateDeleteBtnState);
         });
 
-        // Function to send AJAX delete request
+        // AJAX Fetch Helper
         async function sendDeleteRequest(payload) {
             try {
                 const response = await fetch(apiUrl, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name=\"csrf-token\"]')?.content || '' },
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'X-CSRFToken': CSRF_TOKEN // 🚀 FIXED: Direct token injection
+                    },
                     body: JSON.stringify(payload)
                 });
                 const data = await response.json();
                 return data.success;
             } catch (err) {
+                console.error("Delete API Error:", err);
                 return false;
             }
         }
 
-        // Handle Single Delete Button Click
+        // 🚀 NEW HELPER: Remove empty sections and handle Empty State UI
+        function cleanupEmptySections() {
+            // Remove empty section groups
+            document.querySelectorAll('.section-group').forEach(group => {
+                if (group.querySelectorAll('.qpe-saved').length === 0) {
+                    group.remove();
+                }
+            });
+
+            // Re-index visible questions
+            let qIndex = 1;
+            document.querySelectorAll('.qpe-saved-text strong').forEach(el => {
+                // Replace the number before the dot
+                el.textContent = qIndex + '.';
+                qIndex++;
+            });
+
+            // Show "No questions" message if list is empty
+            const totalSaved = document.querySelectorAll('.qpe-saved').length;
+            const noQMsg = document.getElementById('noQuestionsMessage');
+            if (totalSaved === 0 && noQMsg) {
+                noQMsg.style.display = 'block';
+            } else if (noQMsg) {
+                noQMsg.style.display = 'none';
+            }
+        }
+
+        // Handle Single Delete
         document.querySelectorAll('.btn-delete-single').forEach(btn => {
             btn.addEventListener('click', async function() {
                 const qId = this.getAttribute('data-id');
@@ -557,13 +624,15 @@
                 const success = await sendDeleteRequest({ question_ids: [qId] });
                 
                 if (success) {
-                    // Remove element from DOM smoothly without reloading
                     const row = document.getElementById(`saved-q-${qId}`);
                     if (row) {
                         row.style.opacity = '0';
                         row.style.transform = 'translateX(20px)';
-                        row.style.transition = 'all 0.3s';
-                        setTimeout(() => { row.remove(); updateDeleteBtnState(); }, 300);
+                        setTimeout(() => { 
+                            row.remove(); 
+                            updateDeleteBtnState(); 
+                            cleanupEmptySections();
+                        }, 300);
                     }
                 } else {
                     alert('Error deleting question. Please try again.');
@@ -572,7 +641,7 @@
             });
         });
 
-        // Handle Bulk Delete Click
+        // Handle Bulk Delete
         if (deleteSelectedBtn) {
             deleteSelectedBtn.addEventListener('click', async function() {
                 const selectedIds = Array.from(document.querySelectorAll('.saved-q-checkbox:checked')).map(cb => cb.value);
@@ -593,6 +662,7 @@
                     });
                     setTimeout(() => { 
                         updateDeleteBtnState(); 
+                        cleanupEmptySections();
                         this.innerHTML = 'Delete Selected';
                     }, 350);
                 } else {
@@ -603,7 +673,7 @@
             });
         }
 
-        // Handle Delete All Click
+        // Handle Delete All
         if (deleteAllBtn) {
             deleteAllBtn.addEventListener('click', async function() {
                 if (!confirm('Are you sure you want to delete ALL questions from this paper? This cannot be undone.')) return;
@@ -619,9 +689,9 @@
                         setTimeout(() => row.remove(), 300);
                     });
                     setTimeout(() => {
-                        const noQMsg = document.getElementById('noQuestionsMessage');
-                        if (noQMsg) noQMsg.style.display = 'block';
+                        cleanupEmptySections();
                         this.innerHTML = 'Delete All';
+                        this.disabled = false;
                     }, 350);
                 } else {
                     alert('Error deleting questions.');

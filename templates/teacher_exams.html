@@ -1,51 +1,606 @@
-{% extends "teacher_base.html" %}
-{% block title %}My Exams{% endblock %}
-{% block page_title %}Examinations{% endblock %}
-{% block content %}
-<div class="admin-panel">
-    <div class="admin-panel-head">
-        <h3><i class="fa-solid fa-pen-to-square"></i> Active Examinations</h3>
-    </div>
 
-    {% if exam_info %}
-        {% for item in exam_info %}
-        <div class="admin-notice-item" style="padding:15px; margin-bottom:10px; display:block;">
-            <div style="margin-bottom:10px;">
-                <h4 style="margin:0 0 5px;">{{ item.exam.title }}</h4>
-                {% if item.exam.notice_text %}
-                <p class="muted" style="font-size:13px; margin:0;">{{ item.exam.notice_text }}</p>
-                {% endif %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>Examinations | Teacher Portal</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        :root {
+            --te-navy: #102d4d;
+            --te-blue: #21649b;
+            --te-red: #c91f3b;
+            --te-green: #168254;
+            --te-amber: #b7791f;
+            --te-bg: #f3f6fb;
+            --te-text: #172d46;
+            --te-muted: #718198;
+            --te-border: #e3eaf2;
+            --te-shadow: 0 5px 20px rgba(16,45,77,.06);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--te-text);
+            background: var(--te-bg);
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .te-layout {
+            min-height: 100vh;
+        }
+
+        .te-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            min-height: 70px;
+            padding: 12px 28px;
+            background: rgba(255,255,255,.96);
+            border-bottom: 1px solid var(--te-border);
+            box-shadow: 0 3px 12px rgba(16,45,77,.035);
+        }
+
+        .te-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .te-brand img {
+            width: 43px;
+            height: 43px;
+            object-fit: contain;
+        }
+
+        .te-brand strong {
+            display: block;
+            color: var(--te-navy);
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .te-brand small {
+            display: block;
+            margin-top: 3px;
+            color: var(--te-muted);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .7px;
+            text-transform: uppercase;
+        }
+
+        .te-back {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 40px;
+            padding: 9px 14px;
+            border: 1px solid var(--te-border);
+            border-radius: 9px;
+            color: var(--te-navy);
+            background: #fff;
+            font-size: 12px;
+            font-weight: 800;
+            transition: .2s ease;
+        }
+
+        .te-back:hover {
+            color: #fff;
+            background: var(--te-navy);
+            border-color: var(--te-navy);
+        }
+
+        .te-main {
+            width: min(1180px, calc(100% - 40px));
+            margin: 28px auto;
+        }
+
+        .te-heading {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 22px;
+        }
+
+        .te-heading h1 {
+            margin: 0;
+            color: var(--te-navy);
+            font-size: clamp(23px, 3vw, 30px);
+            font-weight: 800;
+            letter-spacing: -.7px;
+        }
+
+        .te-heading p {
+            margin: 7px 0 0;
+            color: var(--te-muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .te-heading-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            flex: 0 0 52px;
+            border-radius: 15px;
+            color: var(--te-blue);
+            background: #eaf3fc;
+            font-size: 21px;
+        }
+
+        .te-info {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            margin-bottom: 22px;
+            border: 1px solid #cfe2f4;
+            border-radius: 12px;
+            color: #205b8b;
+            background: #edf6ff;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .te-info i {
+            margin-top: 2px;
+            font-size: 16px;
+        }
+
+        .te-exam-card {
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid var(--te-border);
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: var(--te-shadow);
+            transition: .2s ease;
+        }
+
+        .te-exam-card:hover {
+            border-color: #cbd9e8;
+            box-shadow: 0 10px 28px rgba(16,45,77,.09);
+            transform: translateY(-2px);
+        }
+
+        .te-exam-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 20px;
+            border-bottom: 1px solid var(--te-border);
+            background: linear-gradient(120deg,#fff,#f7faff);
+        }
+
+        .te-exam-title {
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+            min-width: 0;
+        }
+
+        .te-exam-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 43px;
+            height: 43px;
+            flex: 0 0 43px;
+            border-radius: 12px;
+            color: var(--te-blue);
+            background: #eaf3fc;
+            font-size: 17px;
+        }
+
+        .te-exam-title h2 {
+            margin: 0;
+            color: var(--te-navy);
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .te-exam-title p {
+            margin: 6px 0 0;
+            color: var(--te-muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .te-exam-count {
+            flex: 0 0 auto;
+            padding: 6px 10px;
+            border-radius: 7px;
+            color: var(--te-blue);
+            background: #eaf3fc;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .te-class-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 16px 20px 20px;
+        }
+
+        .te-class-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 13px 14px;
+            border: 1px solid #edf1f6;
+            border-radius: 11px;
+            background: #fbfcfe;
+            transition: .2s ease;
+        }
+
+        .te-class-row:hover {
+            border-color: #cbdcec;
+            background: #f4f8fd;
+        }
+
+        .te-class-info {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            min-width: 0;
+        }
+
+        .te-class-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 37px;
+            height: 37px;
+            flex: 0 0 37px;
+            border-radius: 10px;
+            color: var(--te-blue);
+            background: #eaf3fc;
+        }
+
+        .te-class-name {
+            color: var(--te-navy);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .te-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 5px;
+            padding: 4px 7px;
+            border-radius: 5px;
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .te-status.submitted {
+            color: #168254;
+            background: #e3f5eb;
+        }
+
+        .te-status.progress {
+            color: #a86a00;
+            background: #fff1d6;
+        }
+
+        .te-status.pending {
+            color: #64748b;
+            background: #edf1f6;
+        }
+
+        .te-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 132px;
+            min-height: 39px;
+            padding: 9px 13px;
+            border: 0;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 800;
+            transition: .2s ease;
+        }
+
+        .te-action.enter {
+            background: linear-gradient(110deg,#168254,#0f9b62);
+        }
+
+        .te-action.view {
+            background: linear-gradient(110deg,#21649b,#287bb5);
+        }
+
+        .te-action:hover {
+            color: #fff;
+            filter: brightness(.94);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 13px rgba(16,45,77,.13);
+        }
+
+        .te-empty {
+            padding: 55px 20px;
+            border: 1px dashed #cbd7e5;
+            border-radius: 15px;
+            background: #fff;
+            text-align: center;
+        }
+
+        .te-empty-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 65px;
+            height: 65px;
+            margin: 0 auto 16px;
+            border-radius: 18px;
+            color: var(--te-blue);
+            background: #eaf3fc;
+            font-size: 25px;
+        }
+
+        .te-empty h3 {
+            margin: 0;
+            color: var(--te-navy);
+            font-size: 16px;
+        }
+
+        .te-empty p {
+            max-width: 430px;
+            margin: 8px auto 0;
+            color: var(--te-muted);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .te-footer {
+            padding: 22px 15px;
+            color: var(--te-muted);
+            font-size: 10px;
+            text-align: center;
+        }
+
+        @media (max-width: 650px) {
+            .te-topbar {
+                min-height: 62px;
+                padding: 10px 14px;
+            }
+
+            .te-brand img {
+                width: 37px;
+                height: 37px;
+            }
+
+            .te-brand strong {
+                font-size: 11px;
+            }
+
+            .te-brand small {
+                font-size: 8px;
+            }
+
+            .te-back {
+                width: 40px;
+                min-width: 40px;
+                padding: 0;
+                font-size: 0;
+            }
+
+            .te-back i {
+                font-size: 14px;
+            }
+
+            .te-main {
+                width: calc(100% - 26px);
+                margin: 20px auto;
+            }
+
+            .te-heading {
+                align-items: center;
+            }
+
+            .te-heading p {
+                font-size: 11px;
+            }
+
+            .te-exam-head {
+                padding: 15px;
+            }
+
+            .te-class-list {
+                padding: 12px;
+            }
+
+            .te-class-row {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .te-action {
+                width: 100%;
+            }
+
+            .te-exam-count {
+                font-size: 9px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: .01ms !important;
+                animation-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="te-layout">
+    <header class="te-topbar">
+        <a href="{{ url_for('home') }}" class="te-brand">
+            <img src="{{ url_for('static', filename='images/school_logo.png') }}"
+                 alt="School Logo">
+            <div>
+                <strong>Shantiniketan Shishu Vidya Mandir</strong>
+                <small>Teacher Examination Portal</small>
             </div>
-            <div style="display:flex; flex-direction:column; gap:8px;">
-                {% for s in item.subs %}
-                <div style="display:flex; justify-content:space-between; align-items:center;
-                            padding:10px; background:#f9f9f9; border-radius:6px;">
-                    <div>
-                        <strong>{{ s.class_name }}</strong>
-                        {% if s.status == 'submitted' %}
-                        <span class="status-pill approved">Submitted ✓</span>
-                        {% elif s.status == 'in_progress' %}
-                        <span class="status-pill pending">In Progress</span>
-                        {% else %}
-                        <span class="status-pill pending">Pending</span>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <a href="{{ url_for('teacher_marks_entry', eid=item.exam.id, class=s.class_name) }}"
-                           class="btn-admin-primary"
-                           style="text-decoration:none; padding:8px 15px;
-                                  {% if s.status=='submitted' %}background:#2563eb;{% else %}background:#16a34a;{% endif %}">
-                            <i class="fa-solid fa-{% if s.status=='submitted' %}eye{% else %}pen{% endif %}"></i>
-                            {% if s.status == 'submitted' %}View{% else %}Enter Marks{% endif %}
-                        </a>
-                    </div>
-                </div>
-                {% endfor %}
+        </a>
+        <a href="{{ url_for('user_dashboard') }}" class="te-back">
+            <i class="fa-solid fa-arrow-left"></i>
+            Back to Dashboard
+        </a>
+    </header>
+    <main class="te-main">
+        <section class="te-heading">
+            <div>
+                <h1>Examinations</h1>
+                <p>
+                    Select your assigned class and examination to enter or review student marks.
+                </p>
+            </div>
+            <div class="te-heading-icon">
+                <i class="fa-solid fa-file-pen"></i>
+            </div>
+        </section>
+        <div class="te-info">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+                Select the class assigned to you under an examination.
+                Use <strong>Enter Marks</strong> to record marks and
+                <strong>View</strong> to review an already submitted entry.
             </div>
         </div>
-        {% endfor %}
-    {% else %}
-    <p class="empty-row">No active exams assigned to your classes right now.</p>
-    {% endif %}
+        {% if exam_info %}
+            {% for item in exam_info %}
+            <section class="te-exam-card">
+                <div class="te-exam-head">
+                    <div class="te-exam-title">
+                        <div class="te-exam-icon">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <div>
+                            <h2>{{ item.exam.title }}</h2>
+                            {% if item.exam.notice_text %}
+                            <p>{{ item.exam.notice_text }}</p>
+                            {% else %}
+                            <p>Assigned examination</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <span class="te-exam-count">
+                        {{ item.subs|length }} Class{% if item.subs|length != 1 %}es{% endif %}
+                    </span>
+                </div>
+                <div class="te-class-list">
+                    {% for s in item.subs %}
+                    <div class="te-class-row">
+                        <div class="te-class-info">
+                            <div class="te-class-icon">
+                                <i class="fa-solid fa-school"></i>
+                            </div>
+                            <div>
+                                <div class="te-class-name">
+                                    {{ s.class_name }}
+                                </div>
+                                {% if s.status == 'submitted' %}
+                                <span class="te-status submitted">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    Submitted
+                                </span>
+                                {% elif s.status == 'in_progress' %}
+                                <span class="te-status progress">
+                                    <i class="fa-solid fa-clock"></i>
+                                    In Progress
+                                </span>
+                                {% else %}
+                                <span class="te-status pending">
+                                    <i class="fa-regular fa-circle"></i>
+                                    Pending
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <a href="{{ url_for('teacher_marks_entry',
+                                            eid=item.exam.id,
+                                            **{'class': s.class_name}) }}"
+                           class="te-action {% if s.status == 'submitted' %}view{% else %}enter{% endif %}">
+
+                            {% if s.status == 'submitted' %}
+                                <i class="fa-solid fa-eye"></i>
+                                View Marks
+                            {% else %}
+                                <i class="fa-solid fa-pen-to-square"></i>
+                                Enter Marks
+                            {% endif %}
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endfor %}
+        {% else %}
+            <section class="te-empty">
+                <div class="te-empty-icon">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                </div>
+                <h3>No Active Examinations</h3>
+                <p>
+                    No examinations or assigned classes are currently available.
+                    Please contact the school administrator if you think this is incorrect.
+                </p>
+            </section>
+        {% endif %}
+    </main>
+    <footer class="te-footer">
+        Shantiniketan Shishu Vidya Mandir · Teacher Portal
+    </footer>
 </div>
-{% endblock %}
+
+</body>
+</html>

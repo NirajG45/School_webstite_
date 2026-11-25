@@ -1,113 +1,863 @@
+
 {% extends "teacher_base.html" %}
+
 {% block title %}Marks Entry - {{ exam.title }}{% endblock %}
-{% block page_title %}Marks Entry: {{ class_name }}{% endblock %}
+{% block page_title %}Marks Entry{% endblock %}
+
 {% block content %}
-<div class="admin-panel">
-    <div class="admin-panel-head">
-        <h3><i class="fa-solid fa-table"></i> {{ exam.title }} - {{ class_name }}</h3>
-        <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
-            {% if teacher_classes|length > 1 %}
-            <form method="GET" action="{{ url_for('teacher_marks_entry', eid=exam.id) }}"
-                  style="display:inline;">
-                <select name="class" onchange="this.form.submit()"
-                        style="padding:8px; border-radius:5px; border:1px solid #ddd;">
-                    {% for c in teacher_classes %}
-                    <option value="{{ c }}" {% if c == class_name %}selected{% endif %}>{{ c }}</option>
-                    {% endfor %}
-                </select>
+{% set current_class = class_name or '' %}
+
+<div class="teacher-marks-page">
+
+    <div class="teacher-marks-panel">
+
+        <div class="teacher-marks-header">
+            <div class="teacher-marks-heading">
+                <div class="teacher-marks-heading-icon">
+                    <i class="fa-solid fa-table-list"></i>
+                </div>
+                <div>
+                    <h2>Examination Marks Entry</h2>
+                    <p>Enter, review and submit student examination marks.</p>
+                </div>
+            </div>
+
+            <a href="{{ url_for('teacher_exams') }}" class="teacher-back-button">
+                <i class="fa-solid fa-arrow-left"></i>
+                Back to Examinations
+            </a>
+        </div>
+
+        <div class="teacher-exam-details">
+
+            <div class="teacher-detail-item">
+                <span>Examination</span>
+                <strong>{{ exam.title }}</strong>
+            </div>
+
+            <div class="teacher-detail-item">
+                <span>Selected Class</span>
+                <strong>{{ current_class }}</strong>
+            </div>
+
+            <div class="teacher-detail-item">
+                <span>Students</span>
+                <strong>{{ students|length }}</strong>
+            </div>
+
+            <div class="teacher-detail-item">
+                <span>Subjects</span>
+                <strong>{{ subjects|length }}</strong>
+            </div>
+
+        </div>
+
+        {% if teacher_classes|length > 1 %}
+        <div class="teacher-class-selector">
+            <form method="GET"
+                  action="{{ url_for('teacher_marks_entry', eid=exam.id) }}"
+                  id="teacherClassForm">
+
+                <div class="teacher-class-selector-field">
+                    <label for="teacherClass">Change Assigned Class</label>
+
+                    <select name="class"
+                            id="teacherClass"
+                            required>
+                        {% for c in teacher_classes %}
+                        <option value="{{ c }}"
+                            {% if c == current_class %}selected{% endif %}>
+                            {{ c }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="teacher-load-button">
+                    <i class="fa-solid fa-rotate"></i>
+                    Load Class
+                </button>
             </form>
-            {% endif %}
-            <a href="{{ url_for('teacher_exams') }}" class="btn-admin-secondary"
-               style="text-decoration:none; padding:8px 15px; background:#eee;
-                      border-radius:5px; color:#333;">Back</a>
         </div>
-    </div>
+        {% endif %}
 
-    {% if submission and submission.status == 'submitted' %}
-    <div style="background:#dcfce7; border:1px solid #16a34a; padding:12px;
-                border-radius:6px; margin-bottom:15px; color:#166534;">
-        <i class="fa-solid fa-check-circle"></i>
-        <strong>Submitted to admin</strong> on {{ submission.submitted_at }}.
-        Edits are visible to admin immediately.
-    </div>
-    {% endif %}
+        {% if submission and submission.status == 'submitted' %}
+        <div class="teacher-submission-notice">
+            <i class="fa-solid fa-circle-check"></i>
+            <div>
+                <strong>Marks submitted to administration</strong>
+                <p>
+                    {% if submission.submitted_at %}
+                    Last submitted on {{ submission.submitted_at }}.
+                    {% else %}
+                    This class has already been submitted.
+                    {% endif %}
+                    You can still update marks if corrections are required.
+                </p>
+            </div>
+        </div>
 
-    {% if students and subjects %}
-    <form method="POST" action="{{ url_for('teacher_marks_entry', eid=exam.id, class=class_name) }}">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div style="overflow-x:auto; padding-bottom:90px;">
-            <table class="admin-table"
-                   style="width:100%; border-collapse:collapse; text-align:left; white-space:nowrap;">
-                <thead style="position:sticky; top:0; background:#f1f5f9; z-index:10;">
-                    <tr>
-                        <th style="padding:12px; border:1px solid #cbd5e1; width:200px;">Student</th>
-                        {% for sub in subjects %}
-                        <th style="padding:12px; border:1px solid #cbd5e1; text-align:center;">
-                            {{ sub.subject_name }}<br><small class="muted">Max: {{ sub.max_marks }}</small>
-                        </th>
+        {% elif submission and submission.status == 'in_progress' %}
+        <div class="teacher-draft-notice">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <div>
+                <strong>Draft saved</strong>
+                <p>Your saved marks are available for further editing.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if students and subjects %}
+
+        <form method="POST"
+              action="{{ url_for('teacher_marks_entry',
+                                  eid=exam.id,
+                                  **{'class': current_class}) }}"
+              id="teacherMarksForm">
+
+            <input type="hidden"
+                   name="csrf_token"
+                   value="{{ csrf_token() }}">
+
+            <input type="hidden"
+                   name="class"
+                   value="{{ current_class }}">
+
+            <div class="teacher-marks-instructions">
+                <div>
+                    <i class="fa-solid fa-circle-info"></i>
+                    Enter marks between zero and the maximum marks shown
+                    for each subject.
+                </div>
+                <span>Blank fields clear previously saved marks.</span>
+            </div>
+
+            <div class="teacher-marks-table-container">
+                <table class="teacher-marks-table">
+
+                    <thead>
+                        <tr>
+                            <th class="teacher-student-column">
+                                Student Information
+                            </th>
+
+                            {% for sub in subjects %}
+                            <th class="teacher-subject-column">
+                                <span>{{ sub.subject_name }}</span>
+                                <small>Maximum: {{ sub.max_marks }}</small>
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for s in students %}
+                        <tr>
+                            <td class="teacher-student-cell">
+                                <strong>{{ s.name }}</strong>
+                                <small>
+                                    Roll No:
+                                    {{ s.roll_no or s.admission_no or '-' }}
+                                </small>
+                            </td>
+
+                            {% for sub in subjects %}
+                            {% set mark_key = s.id|string ~ '_' ~ sub.id|string %}
+
+                            <td class="teacher-mark-cell">
+                                <input
+                                    type="number"
+                                    step="0.5"
+                                    min="0"
+                                    max="{{ sub.max_marks }}"
+                                    name="mark_{{ s.id }}_{{ sub.id }}"
+                                    value="{{ existing_marks.get(mark_key, '') }}"
+                                    class="teacher-mark-input"
+                                    data-max="{{ sub.max_marks }}"
+                                    inputmode="decimal"
+                                    placeholder="—"
+                                    aria-label="{{ s.name }} - {{ sub.subject_name }}"
+                                >
+                                <small class="teacher-mobile-max">
+                                    / {{ sub.max_marks }}
+                                </small>
+                            </td>
+                            {% endfor %}
+                        </tr>
                         {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for s in students %}
-                    <tr>
-                        <td style="padding:8px 12px; border:1px solid #cbd5e1; background:#f8fafc;">
-                            <strong style="font-size:15px;">{{ s.name }}</strong><br>
-                            <small class="muted">Roll: {{ s.roll_no or s.admission_no or '-' }}</small>
-                        </td>
-                        {% for sub in subjects %}
-                        <td style="padding:4px; border:1px solid #cbd5e1; text-align:center;">
-                            <input type="number" step="0.5" min="0" max="{{ sub.max_marks }}"
-                                   name="mark_{{ s.id }}_{{ sub.id }}"
-                                   value="{{ existing_marks.get(s.id|string + '_' + sub.id|string, '') }}"
-                                   class="mark-input" placeholder="-"
-                                   style="width:70px; padding:8px; text-align:center; font-size:16px;
-                                          border:2px solid #e2e8f0; border-radius:6px;">
-                        </td>
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </tbody>
+
+                </table>
+            </div>
+
+            <div class="teacher-marks-footer">
+
+                <div class="teacher-marks-footer-info">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    Review all marks before submitting them to administration.
+                </div>
+
+                <div class="teacher-marks-footer-actions">
+
+                    <button type="submit"
+                            name="action"
+                            value="draft"
+                            class="teacher-draft-button"
+                            formnovalidate>
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Save Draft
+                    </button>
+
+                    <button type="submit"
+                            name="action"
+                            value="submit"
+                            class="teacher-submit-button"
+                            id="teacherSubmitButton">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        Submit to Admin
+                    </button>
+
+                </div>
+            </div>
+
+        </form>
+
+        {% elif not students %}
+        <div class="teacher-empty-state">
+            <i class="fa-solid fa-user-graduate"></i>
+            <h3>No Students Found</h3>
+            <p>
+                No students are currently assigned to {{ current_class }}.
+                Please contact the school administrator.
+            </p>
         </div>
 
-        <div style="position:fixed; bottom:20px; right:20px; background:white; padding:15px;
-                    border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.2); z-index:100;
-                    display:flex; gap:10px;">
-            <button type="submit" name="action" value="draft"
-                    class="btn-admin-secondary"
-                    style="padding:15px 20px; background:#f59e0b; color:#fff;">
-                <i class="fa-solid fa-save"></i> Save Draft
-            </button>
-            <button type="submit" name="action" value="submit"
-                    class="btn-admin-primary"
-                    style="padding:15px 30px; background:#16a34a;"
-                    onclick="return confirm('Submit marks to admin?');">
-                <i class="fa-solid fa-paper-plane"></i> Submit to Admin
-            </button>
+        {% else %}
+        <div class="teacher-empty-state">
+            <i class="fa-solid fa-book-open"></i>
+            <h3>No Examination Subjects Found</h3>
+            <p>
+                No subjects have been assigned to this examination
+                for {{ current_class }}.
+            </p>
         </div>
-    </form>
-    {% else %}
-    <p class="empty-row">No students or subjects found for {{ class_name }}.</p>
-    {% endif %}
+        {% endif %}
+
+    </div>
 </div>
 
 <style>
-.mark-input:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
+.teacher-marks-page {
+    width: 100%;
+    min-width: 0;
+    padding-bottom: 30px;
+}
+
+.teacher-marks-panel {
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+}
+
+.teacher-marks-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 20px;
+    border-bottom: 1px solid #e8edf3;
+}
+
+.teacher-marks-heading {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.teacher-marks-heading-icon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    color: #1d4ed8;
+    background: #dbeafe;
+    border-radius: 12px;
+    font-size: 20px;
+}
+
+.teacher-marks-heading h2 {
+    margin: 0;
+    color: #10243e;
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.teacher-marks-heading p {
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.teacher-back-button,
+.teacher-load-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 9px 14px;
+    border: 1px solid #dbe3ec;
+    border-radius: 8px;
+    color: #334155;
+    background: #f8fafc;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.teacher-back-button:hover,
+.teacher-load-button:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+
+.teacher-exam-details {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    padding: 16px 20px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e8edf3;
+}
+
+.teacher-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    padding: 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+}
+
+.teacher-detail-item span {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.teacher-detail-item strong {
+    color: #0f172a;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.teacher-class-selector {
+    padding: 15px 20px;
+    border-bottom: 1px solid #e8edf3;
+}
+
+.teacher-class-selector form {
+    display: flex;
+    align-items: end;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.teacher-class-selector-field {
+    width: min(100%, 300px);
+}
+
+.teacher-class-selector-field label {
+    display: block;
+    margin-bottom: 6px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.teacher-class-selector-field select {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.teacher-load-button {
+    color: #fff;
+    background: #174b7a;
+    border-color: #174b7a;
+}
+
+.teacher-load-button:hover {
+    color: #fff;
+    background: #10395e;
+}
+
+.teacher-submission-notice,
+.teacher-draft-notice {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin: 16px 20px;
+    padding: 13px 15px;
+    border: 1px solid;
+    border-radius: 9px;
+}
+
+.teacher-submission-notice {
+    color: #166534;
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.teacher-draft-notice {
+    color: #92400e;
+    background: #fffbeb;
+    border-color: #fde68a;
+}
+
+.teacher-submission-notice > i,
+.teacher-draft-notice > i {
+    margin-top: 2px;
+    font-size: 18px;
+}
+
+.teacher-submission-notice strong,
+.teacher-draft-notice strong {
+    font-size: 13px;
+}
+
+.teacher-submission-notice p,
+.teacher-draft-notice p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.teacher-marks-instructions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 13px 20px;
+    color: #334155;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 12px;
+}
+
+.teacher-marks-instructions i {
+    margin-right: 5px;
+    color: #2563eb;
+}
+
+.teacher-marks-instructions span {
+    color: #64748b;
+}
+
+.teacher-marks-table-container {
+    width: 100%;
+    overflow: auto;
+    max-height: calc(100vh - 390px);
+}
+
+.teacher-marks-table {
+    width: 100%;
+    min-width: max-content;
+    border-collapse: separate;
+    border-spacing: 0;
+    white-space: nowrap;
+}
+
+.teacher-marks-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    padding: 13px 12px;
+    color: #334155;
+    background: #edf3f9;
+    border-bottom: 1px solid #cbd5e1;
+    text-align: center;
+    font-size: 12px;
+}
+
+.teacher-student-column {
+    position: sticky;
+    left: 0;
+    z-index: 5 !important;
+    min-width: 210px;
+    text-align: left !important;
+    background: #e6eef7 !important;
+}
+
+.teacher-subject-column {
+    min-width: 125px;
+}
+
+.teacher-subject-column span,
+.teacher-subject-column small {
+    display: block;
+}
+
+.teacher-subject-column small {
+    margin-top: 5px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.teacher-student-cell {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    min-width: 210px;
+    padding: 10px 13px;
+    background: #fff;
+    border-bottom: 1px solid #e8edf3;
+    border-right: 1px solid #e8edf3;
+    white-space: normal;
+}
+
+.teacher-student-cell strong {
+    display: block;
+    color: #0f172a;
+    font-size: 13px;
+}
+
+.teacher-student-cell small {
+    display: block;
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 11px;
+}
+
+.teacher-mark-cell {
+    padding: 7px;
+    text-align: center;
+    border-bottom: 1px solid #e8edf3;
+}
+
+.teacher-mark-input {
+    width: 78px;
+    padding: 9px 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #fff;
+    color: #0f172a;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
     outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.teacher-mark-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,.13);
+}
+
+.teacher-mark-input.invalid {
+    border-color: #dc2626;
+    background: #fef2f2;
+}
+
+.teacher-mobile-max {
+    display: none;
+    color: #64748b;
+    font-size: 10px;
+}
+
+.teacher-marks-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 8;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 15px 20px;
+    background: rgba(255,255,255,.97);
+    border-top: 1px solid #e2e8f0;
+    box-shadow: 0 -5px 18px rgba(15,23,42,.06);
+}
+
+.teacher-marks-footer-info {
+    color: #64748b;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.teacher-marks-footer-info i {
+    margin-right: 5px;
+}
+
+.teacher-marks-footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.teacher-draft-button,
+.teacher-submit-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 43px;
+    padding: 10px 17px;
+    border: 0;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.teacher-draft-button {
+    background: #d97706;
+}
+
+.teacher-draft-button:hover {
+    background: #b45309;
+}
+
+.teacher-submit-button {
+    background: #15803d;
+}
+
+.teacher-submit-button:hover {
+    background: #166534;
+}
+
+.teacher-empty-state {
+    padding: 45px 20px;
+    text-align: center;
+}
+
+.teacher-empty-state > i {
+    color: #94a3b8;
+    font-size: 35px;
+}
+
+.teacher-empty-state h3 {
+    margin: 12px 0 7px;
+    color: #1e293b;
+}
+
+.teacher-empty-state p {
+    max-width: 480px;
+    margin: 0 auto;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+@media (max-width: 800px) {
+    .teacher-exam-details {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .teacher-marks-table-container {
+        max-height: none;
+    }
+
+    .teacher-marks-footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .teacher-marks-footer-actions {
+        width: 100%;
+    }
+
+    .teacher-draft-button,
+    .teacher-submit-button {
+        flex: 1;
+    }
+}
+
+@media (max-width: 520px) {
+    .teacher-marks-header {
+        padding: 15px;
+    }
+
+    .teacher-marks-header,
+    .teacher-marks-heading {
+        align-items: flex-start;
+    }
+
+    .teacher-marks-header {
+        flex-direction: column;
+    }
+
+    .teacher-back-button {
+        width: 100%;
+    }
+
+    .teacher-exam-details {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .teacher-detail-item {
+        padding: 10px;
+    }
+
+    .teacher-detail-item strong {
+        font-size: 12px;
+    }
+
+    .teacher-class-selector {
+        padding: 13px;
+    }
+
+    .teacher-class-selector form {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .teacher-class-selector-field {
+        width: 100%;
+    }
+
+    .teacher-load-button {
+        width: 100%;
+    }
+
+    .teacher-marks-instructions {
+        padding: 12px;
+    }
+
+    .teacher-student-column,
+    .teacher-student-cell {
+        min-width: 155px;
+    }
+
+    .teacher-subject-column {
+        min-width: 105px;
+    }
+
+    .teacher-mark-input {
+        width: 62px;
+        padding: 8px 3px;
+    }
+
+    .teacher-mobile-max {
+        display: block;
+    }
+
+    .teacher-marks-footer {
+        padding: 12px;
+    }
+
+    .teacher-marks-footer-actions {
+        flex-direction: column;
+    }
+
+    .teacher-draft-button,
+    .teacher-submit-button {
+        width: 100%;
+        flex: auto;
+    }
 }
 </style>
 
 <script>
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && e.target.classList.contains('mark-input')) {
-        e.preventDefault();
-        const inputs = Array.from(document.querySelectorAll('.mark-input'));
-        const i = inputs.indexOf(e.target);
-        if (i > -1 && i + 1 < inputs.length) inputs[i + 1].focus();
+document.addEventListener('DOMContentLoaded', function () {
+    const classSelect = document.getElementById('teacherClass');
+    const classForm = document.getElementById('teacherClassForm');
+
+    if (classSelect && classForm) {
+        classSelect.addEventListener('change', function () {
+            classForm.submit();
+        });
     }
+
+    const form = document.getElementById('teacherMarksForm');
+    if (!form) return;
+
+    const inputs = Array.from(
+        form.querySelectorAll('.teacher-mark-input')
+    );
+
+    function validateMark(input) {
+        const value = input.value.trim();
+        const max = Number(input.dataset.max);
+        const number = Number(value);
+
+        const invalid = value !== '' &&
+            (!Number.isFinite(number) ||
+             number < 0 ||
+             number > max);
+
+        input.classList.toggle('invalid', invalid);
+        input.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+
+        return !invalid;
+    }
+
+    inputs.forEach(function (input, index) {
+        input.addEventListener('input', function () {
+            validateMark(input);
+        });
+
+        input.addEventListener('blur', function () {
+            validateMark(input);
+        });
+
+        input.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+
+                if (inputs[index + 1]) {
+                    inputs[index + 1].focus();
+                    inputs[index + 1].select();
+                }
+            }
+        });
+    });
+
+    form.addEventListener('submit', function (event) {
+        const submitter = event.submitter;
+        const action = submitter ? submitter.value : 'draft';
+
+        let firstInvalid = null;
+
+        inputs.forEach(function (input) {
+            if (!validateMark(input) && !firstInvalid) {
+                firstInvalid = input;
+            }
+        });
+
+        if (firstInvalid) {
+            event.preventDefault();
+            firstInvalid.focus();
+            alert('Please enter marks between 0 and the maximum marks.');
+            return;
+        }
+
+        if (action === 'submit') {
+            const confirmed = window.confirm(
+                'Are you sure you want to submit marks to the administration?'
+            );
+
+            if (!confirmed) {
+                event.preventDefault();
+            }
+        }
+    });
 });
 </script>
 {% endblock %}

@@ -1,0 +1,722 @@
+
+{% extends "admin_base.html" %}
+
+{% block title %}Marks Entry - {{ class_name or 'Select Class' }}{% endblock %}
+{% block page_title %}Bulk Marks Entry{% endblock %}
+
+{% block content %}
+{% set current_class = class_name or '' %}
+{% set current_exam_id = exam_id or '' %}
+{% set current_exam_type = exam.title if exam else '' %}
+
+<div class="marks-page">
+    <div class="admin-panel marks-panel">
+
+        <div class="admin-panel-head marks-panel-header">
+            <div>
+                <h3><i class="fa-solid fa-table-list"></i> Bulk Marks Entry</h3>
+                <p class="marks-subtitle">
+                    Select a class and examination to load the marks table.
+                </p>
+            </div>
+
+            <a href="{{ url_for('admin_reports_dashboard',
+                                **{'class': current_class,
+                                   'exam_id': current_exam_id}) }}"
+               class="btn-admin-secondary marks-back-link">
+                <i class="fa-solid fa-arrow-left"></i> Back to Reports
+            </a>
+        </div>
+
+        <div class="marks-selection-panel">
+            <form method="GET"
+                  action="{{ url_for('admin_bulk_marks_entry') }}"
+                  id="marksSelectionForm"
+                  class="marks-selection-form">
+
+                <div class="marks-selection-field">
+                    <label for="marksClass">Select Class</label>
+                    <select name="class" id="marksClass" required>
+                        <option value="">-- Select Class --</option>
+                        {% for c in class_list %}
+                        <option value="{{ c }}"
+                            {% if current_class == c %}selected{% endif %}>
+                            {{ c }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="marks-selection-field">
+                    <label for="marksExam">Select Examination</label>
+                    <select name="exam_id" id="marksExam" required>
+                        <option value="">-- Select Examination --</option>
+                        {% for e in all_exams %}
+                        <option value="{{ e.id }}"
+                            {% if current_exam_id|string == e.id|string %}selected{% endif %}>
+                            {{ e.title }}{% if e.status %} ({{ e.status }}){% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="marks-selection-button">
+                    <button type="submit" class="btn-admin-primary">
+                        <i class="fa-solid fa-rotate"></i> Load Marks
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        {% if current_class and current_exam_id and exam %}
+
+            {% if students and subjects %}
+
+            <div class="marks-toolbar">
+                <div class="marks-stat">
+                    <span class="marks-stat-label">Class</span>
+                    <strong>{{ current_class }}</strong>
+                </div>
+
+                <div class="marks-stat">
+                    <span class="marks-stat-label">Examination</span>
+                    <strong>{{ current_exam_type }}</strong>
+                </div>
+
+                <div class="marks-stat">
+                    <span class="marks-stat-label">Students</span>
+                    <strong>{{ students|length }}</strong>
+                </div>
+
+                <div class="marks-stat">
+                    <span class="marks-stat-label">Subjects</span>
+                    <strong>{{ subjects|length }}</strong>
+                </div>
+            </div>
+
+            <form method="POST"
+                  action="{{ url_for('admin_bulk_marks_entry',
+                                    **{'class': current_class,
+                                       'exam_id': current_exam_id}) }}"
+                  id="bulkMarksForm">
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="class_name" value="{{ current_class }}">
+                <input type="hidden" name="exam_id" value="{{ current_exam_id }}">
+
+                <div class="marks-table-wrap">
+                    <table class="admin-table marks-table">
+                        <thead>
+                            <tr>
+                                <th class="marks-student-heading">Student</th>
+
+                                {% for sub in subjects %}
+                                <th class="marks-subject-heading">
+                                    <span>{{ sub.subject_name }}</span>
+                                    <small>Maximum: {{ sub.max_marks }}</small>
+                                </th>
+                                {% endfor %}
+
+                                <th class="marks-action-heading">Report</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for s in students %}
+                            <tr>
+                                <td class="marks-student-cell">
+                                    <strong>{{ s.name }}</strong>
+                                    <small>
+                                        Roll: {{ s.roll_no or s.admission_no or '-' }}
+                                        <span class="marks-dot">•</span>
+                                        Section: {{ s.section or s.child_section or '-' }}
+                                    </small>
+                                </td>
+
+                                {% for sub in subjects %}
+                                    {% set mark_key = s.id|string ~ '_' ~ sub.id|string %}
+                                <td class="marks-input-cell">
+                                    <input
+                                        type="number"
+                                        step="0.5"
+                                        min="0"
+                                        max="{{ sub.max_marks }}"
+                                        name="mark_{{ s.id }}_{{ sub.id }}"
+                                        value="{{ existing_marks.get(mark_key, '') }}"
+                                        class="mark-input"
+                                        inputmode="decimal"
+                                        placeholder="—"
+                                        aria-label="Marks for {{ s.name }} in {{ sub.subject_name }}"
+                                        data-max="{{ sub.max_marks }}"
+                                    >
+                                    <small class="marks-max-mobile">
+                                        / {{ sub.max_marks }}
+                                    </small>
+                                </td>
+                                {% endfor %}
+
+                                <td class="marks-action-cell">
+                                    <a href="{{ url_for('print_report_card',
+                                                        student_id=s.id,
+                                                        exam_type=current_exam_type) }}"
+                                       target="_blank"
+                                       rel="noopener"
+                                       class="btn-admin-secondary marks-print-button">
+                                        <i class="fa-solid fa-print"></i>
+                                        <span>Print</span>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="marks-footer">
+                    <div class="marks-footer-note">
+                        <i class="fa-solid fa-circle-info"></i>
+                        Empty fields will clear the previously saved marks
+                        for that student and subject.
+                    </div>
+
+                    <button type="submit"
+                            class="btn-admin-primary marks-save-button"
+                            id="saveMarksButton">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Save All Marks
+                    </button>
+                </div>
+            </form>
+
+            {% else %}
+            <div class="marks-notice marks-notice-warning">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>
+                    <strong>No students or examination subjects found</strong>
+                    <p>
+                        Check that students are assigned to this class and
+                        subjects have been added to this examination.
+                    </p>
+                    <a href="{{ url_for('admin_reports_dashboard',
+                                        **{'class': current_class,
+                                           'exam_id': current_exam_id}) }}"
+                       class="btn-admin-secondary marks-select-link">
+                        Return to Reports Dashboard
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+        {% elif current_class and current_exam_id and not exam %}
+            <div class="marks-notice marks-notice-warning">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>
+                    <strong>Examination not found</strong>
+                    <p>Please select a valid examination.</p>
+                </div>
+            </div>
+
+        {% else %}
+            <div class="marks-notice marks-notice-info">
+                <i class="fa-solid fa-circle-info"></i>
+                <div>
+                    <strong>Select Class and Examination</strong>
+                    <p>
+                        Choose the required class and examination above,
+                        then click Load Marks.
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<style>
+.marks-page {
+    width: 100%;
+    min-width: 0;
+    padding-bottom: 24px;
+}
+
+.marks-panel {
+    overflow: hidden;
+}
+
+.marks-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.marks-panel-header h3 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.marks-subtitle {
+    margin: 6px 0 0;
+    color: var(--text-muted, #64748b);
+    font-size: 13px;
+}
+
+.marks-back-link {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.marks-selection-panel {
+    padding: 18px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.marks-selection-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(180px, 1fr)) auto;
+    align-items: end;
+    gap: 14px;
+}
+
+.marks-selection-field {
+    min-width: 0;
+}
+
+.marks-selection-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.marks-selection-field select {
+    width: 100%;
+    min-height: 42px;
+}
+
+.marks-selection-button button {
+    min-height: 42px;
+    white-space: nowrap;
+}
+
+.marks-toolbar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(120px, 1fr));
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #fff;
+}
+
+.marks-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.marks-stat-label {
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-weight: 700;
+}
+
+.marks-stat strong {
+    color: #0f172a;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.marks-dot {
+    margin: 0 5px;
+    color: #94a3b8;
+}
+
+.marks-table-wrap {
+    width: 100%;
+    overflow: auto;
+    max-height: calc(100vh - 390px);
+    min-height: 180px;
+}
+
+.marks-table {
+    width: 100%;
+    min-width: max-content;
+    border-collapse: separate;
+    border-spacing: 0;
+    white-space: nowrap;
+}
+
+.marks-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    padding: 13px 12px;
+    background: #f1f5f9;
+    color: #334155;
+    border-bottom: 1px solid #cbd5e1;
+    text-align: center;
+    font-size: 12px;
+}
+
+.marks-table thead th:first-child {
+    text-align: left;
+}
+
+.marks-student-heading,
+.marks-student-cell {
+    position: sticky;
+    left: 0;
+    z-index: 4;
+    min-width: 210px;
+    max-width: 260px;
+}
+
+.marks-student-heading {
+    background: #eaf0f7 !important;
+}
+
+.marks-student-cell {
+    background: #f8fafc;
+    border-right: 1px solid #e2e8f0;
+    padding: 10px 12px;
+    white-space: normal;
+}
+
+.marks-student-cell strong {
+    display: block;
+    color: #0f172a;
+    font-size: 13px;
+}
+
+.marks-student-cell small {
+    display: block;
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 11px;
+}
+
+.marks-subject-heading {
+    min-width: 120px;
+}
+
+.marks-subject-heading span,
+.marks-subject-heading small {
+    display: block;
+}
+
+.marks-subject-heading small {
+    margin-top: 4px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.marks-input-cell {
+    padding: 7px 9px;
+    text-align: center;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.mark-input {
+    width: 78px;
+    max-width: 100%;
+    padding: 9px 7px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.mark-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+}
+
+.mark-input.invalid {
+    border-color: #dc2626;
+    background: #fef2f2;
+}
+
+.marks-max-mobile {
+    display: none;
+    color: #64748b;
+    font-size: 10px;
+}
+
+.marks-action-heading,
+.marks-action-cell {
+    min-width: 95px;
+    text-align: center;
+}
+
+.marks-action-cell {
+    padding: 7px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.marks-print-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 10px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.marks-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    background: rgba(255,255,255,.97);
+    border-top: 1px solid #e2e8f0;
+    box-shadow: 0 -5px 18px rgba(15, 23, 42, .06);
+}
+
+.marks-footer-note {
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.marks-footer-note i {
+    margin-right: 5px;
+}
+
+.marks-save-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 12px 22px;
+    white-space: nowrap;
+}
+
+.marks-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin: 20px;
+    padding: 18px;
+    border: 1px solid;
+    border-radius: 10px;
+}
+
+.marks-notice > i {
+    margin-top: 2px;
+    font-size: 20px;
+}
+
+.marks-notice p {
+    margin: 5px 0 12px;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.marks-notice-info {
+    color: #1d4ed8;
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+.marks-notice-warning {
+    color: #92400e;
+    background: #fffbeb;
+    border-color: #fde68a;
+}
+
+.marks-select-link {
+    display: inline-flex;
+    text-decoration: none;
+    padding: 9px 13px;
+}
+
+@media (max-width: 800px) {
+    .marks-selection-form {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .marks-selection-button {
+        grid-column: 1 / -1;
+    }
+
+    .marks-selection-button button {
+        width: 100%;
+    }
+
+    .marks-toolbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 13px;
+    }
+
+    .marks-table-wrap {
+        max-height: none;
+    }
+
+    .marks-footer {
+        position: sticky;
+        bottom: 0;
+        align-items: stretch;
+        flex-direction: column;
+        padding: 12px;
+    }
+
+    .marks-save-button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 520px) {
+    .marks-panel-header {
+        align-items: flex-start;
+    }
+
+    .marks-back-link {
+        margin-left: 0;
+    }
+
+    .marks-selection-form {
+        grid-template-columns: 1fr;
+    }
+
+    .marks-selection-button {
+        grid-column: auto;
+    }
+
+    .marks-student-heading,
+    .marks-student-cell {
+        min-width: 165px;
+        max-width: 185px;
+    }
+
+    .marks-subject-heading {
+        min-width: 105px;
+    }
+
+    .mark-input {
+        width: 64px;
+        padding: 8px 4px;
+    }
+
+    .marks-print-button span {
+        display: none;
+    }
+
+    .marks-action-heading,
+    .marks-action-cell {
+        min-width: 55px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const selectionForm = document.getElementById('marksSelectionForm');
+
+    if (selectionForm) {
+        const classSelect = document.getElementById('marksClass');
+        const examSelect = document.getElementById('marksExam');
+
+        [classSelect, examSelect].forEach(function (select) {
+            if (!select) return;
+
+            select.addEventListener('change', function () {
+                if (classSelect.value && examSelect.value) {
+                    selectionForm.submit();
+                }
+            });
+        });
+    }
+
+    const form = document.getElementById('bulkMarksForm');
+    if (!form) return;
+
+    const inputs = Array.from(form.querySelectorAll('.mark-input'));
+    const saveButton = document.getElementById('saveMarksButton');
+
+    function validateInput(input) {
+        const value = input.value.trim();
+        const max = Number(input.dataset.max);
+        const numericValue = Number(value);
+
+        const invalid = value !== '' &&
+            (!Number.isFinite(numericValue) ||
+             numericValue < 0 ||
+             numericValue > max);
+
+        input.classList.toggle('invalid', invalid);
+        input.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+
+        return !invalid;
+    }
+
+    inputs.forEach(function (input, index) {
+        input.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+
+                if (inputs[index + 1]) {
+                    inputs[index + 1].focus();
+                    inputs[index + 1].select();
+                } else if (saveButton) {
+                    saveButton.focus();
+                }
+            }
+        });
+
+        input.addEventListener('input', function () {
+            validateInput(input);
+        });
+
+        input.addEventListener('blur', function () {
+            validateInput(input);
+        });
+    });
+
+    form.addEventListener('submit', function (event) {
+        let invalidInput = null;
+
+        for (const input of inputs) {
+            if (!validateInput(input)) {
+                invalidInput = input;
+                break;
+            }
+        }
+
+        if (invalidInput) {
+            event.preventDefault();
+            invalidInput.focus();
+            alert('Please enter marks between 0 and the maximum marks.');
+            return;
+        }
+
+        if (!window.confirm(
+            'Save marks for all students in this class and examination?'
+        )) {
+            event.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

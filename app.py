@@ -168,6 +168,8 @@ ROLE_FIELDS = {
     'student': STUDENT_FIELDS,
 }
 
+
+
 # =========================================
 # 2. DATABASE HELPERS
 # =========================================
@@ -178,6 +180,17 @@ def get_db():
         g.db.execute('PRAGMA foreign_keys = ON')
         g.db.execute('PRAGMA busy_timeout = 15000')
     return g.db
+
+def begin_write_transaction(db):
+    """Safely start an explicit write transaction.
+
+    If an implicit transaction is already open on this connection, commit it
+    first so that BEGIN IMMEDIATE never raises
+    'cannot start a transaction within a transaction'.
+    """
+    if db.in_transaction:
+        db.commit()
+    db.execute('BEGIN IMMEDIATE')
 
 @app.teardown_appcontext
 def close_db(_error=None):
@@ -291,6 +304,11 @@ def init_db():
             exam_type TEXT NOT NULL, subject TEXT NOT NULL, 
             marks_obtained REAL NOT NULL, total_marks REAL NOT NULL DEFAULT 100,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
+
+        # Migration: exam_marks.exam_id (used by exam delete / bulk marks / reports)
+        _em_cols = {row[1] for row in db.execute("PRAGMA table_info(exam_marks)").fetchall()}
+        if 'exam_id' not in _em_cols:
+            db.execute("ALTER TABLE exam_marks ADD COLUMN exam_id INTEGER")
 
         db.execute('''CREATE TABLE IF NOT EXISTS fee_payments (
             id INTEGER PRIMARY KEY AUTOINCREMENT, student_id INTEGER NOT NULL,
@@ -7054,45 +7072,58 @@ def api_update_question(q_id):
         app.logger.error(f"Update question error: {e}")
         return jsonify({'success': False, 'error': 'Server error'}), 500
 
+
 # ---------- REPORTS DASHBOARD ----------
+# Displays class and examination selection with marks and report actions.
 @app.route('/admin/reports-dashboard')
 @admin_required
 def admin_reports_dashboard():
     db = get_db()
-    selected_class = request.args.get('class', '').strip()
+
+    selected_class = (request.args.get('class') or '').strip()
     selected_exam_id = request.args.get('exam_id', type=int)
 
-    # Saari standard + dynamic classes ki list
+    # Load all available standard and dynamic student classes.
     class_list = get_all_classes(db)
 
-    subjects = []
-    if selected_class:
-        # Auto-seed missing common subjects for the selected class
-        ensure_common_subjects(db, selected_class)
+    # Reject a class value that is not present in the available class list.
+    if selected_class and selected_class not in class_list:
+        flash('Selected class is not available.', 'error')
+        selected_class = ''
 
-        subjects = db.execute(
-            'SELECT * FROM subjects WHERE class_name = ? ORDER BY display_order, id',
-            (selected_class,)).fetchall()
+    # Load all examinations for the selection dropdown.
+    all_exams = db.execute(
+        'SELECT * FROM exams ORDER BY id DESC'
+    ).fetchall()
 
-    all_exams = db.execute('SELECT * FROM exams ORDER BY id DESC').fetchall()
-    if not selected_exam_id and all_exams:
+    # Select the latest examination only when no examination was requested.
+    if selected_exam_id is None and all_exams:
         selected_exam_id = all_exams[0]['id']
 
+    # Load the selected examination.
     selected_exam = None
-    if selected_exam_id:
-        selected_exam = db.execute(
-            'SELECT * FROM exams WHERE id = ?', (selected_exam_id,)).fetchone()
 
-    return render_template('admin_reports_dashboard.html',
-                           class_list=class_list,
-                           selected_class=selected_class,
-                           subjects=subjects,
-                           all_exams=all_exams,
-                           selected_exam=selected_exam,
-                           selected_exam_id=selected_exam_id,
-                           active_page='reports_dashboard')
-    
-    
+    if selected_exam_id is not None:
+        selected_exam = db.execute(
+            'SELECT * FROM exams WHERE id = ?',
+            (selected_exam_id,)
+        ).fetchone()
+
+        # Clear an invalid examination selection.
+        if not selected_exam:
+            flash('Selected examination was not found.', 'error')
+            selected_exam_id = None
+
+    return render_template(
+        'admin_reports_dashboard.html',
+        class_list=class_list,
+        selected_class=selected_class,
+        all_exams=all_exams,
+        selected_exam=selected_exam,
+        selected_exam_id=selected_exam_id,
+        active_page='reports_dashboard'
+    )
+
 
 # NEW: ADMIN VIEW SUBMITTED EXAM FORMS
 @app.route('/admin/exam-forms')
@@ -7116,97 +7147,336 @@ def admin_exam_forms():
     return render_template('admin_exam_forms.html', forms=parsed_forms, active_page='exam_forms')
 
 
+
 # ---------- BULK MARKS ENTRY (admin) ----------
+# Loads class examination marks and saves validated marks for all students.
 @app.route('/admin/bulk-marks-entry', methods=['GET', 'POST'])
 @admin_required
 def admin_bulk_marks_entry():
     db = get_db()
-    class_name = (request.args.get('class') or request.form.get('class_name') or '').strip()
-    exam_id = request.args.get('exam_id', type=int) or request.form.get('exam_id', type=int)
 
-    if request.method == 'POST':
-        exam = db.execute('SELECT * FROM exams WHERE id = ?', (exam_id,)).fetchone()
+    # Read class and examination selection from the request.
+    class_name = (
+        request.args.get('class')
+        or request.form.get('class_name')
+        or ''
+    ).strip()
+
+    exam_id = (
+        request.args.get('exam_id', type=int)
+        or request.form.get('exam_id', type=int)
+    )
+
+    # Load available classes and examinations for the selection controls.
+    class_list = get_all_classes(db)
+
+    all_exams = db.execute(
+        'SELECT * FROM exams ORDER BY id DESC'
+    ).fetchall()
+
+    # Validate the selected class.
+    if class_name and class_name not in class_list:
+        flash('Selected class is not available.', 'error')
+        return redirect(url_for('admin_bulk_marks_entry'))
+
+    # Validate the selected examination.
+    exam = None
+
+    if exam_id:
+        exam = db.execute(
+            'SELECT * FROM exams WHERE id = ?',
+            (exam_id,)
+        ).fetchone()
+
         if not exam:
-            flash('Exam not found.', 'error')
-            return redirect(url_for('admin_reports_dashboard'))
+            flash('Selected examination was not found.', 'error')
+            return redirect(url_for('admin_bulk_marks_entry'))
 
+    # Save marks for all students in the selected class and examination.
+    if request.method == 'POST':
+
+        if not class_name or not exam_id or not exam:
+            flash('Please select a valid class and examination.', 'error')
+            return redirect(url_for('admin_bulk_marks_entry'))
+
+        # Load students belonging to the selected class.
         students = db.execute(
-            "SELECT * FROM users WHERE role='student' "
-            "AND (class_name = ? OR child_class = ?) ORDER BY name",
-            (class_name, class_name)).fetchall()
+            """
+            SELECT *
+            FROM users
+            WHERE role = 'student'
+              AND (class_name = ? OR child_class = ?)
+            ORDER BY name
+            """,
+            (class_name, class_name)
+        ).fetchall()
+
+        # Load only the subjects assigned to this examination and class.
         subjects = db.execute(
-            '''SELECT s.id, s.class_name, s.subject_name, es.max_marks, s.display_order
-               FROM exam_subjects es JOIN subjects s ON s.id = es.subject_id
-               WHERE es.exam_id = ? AND es.class_name = ?
-               ORDER BY s.display_order, s.id''', (exam_id, class_name)).fetchall()
+            """
+            SELECT
+                s.id,
+                s.class_name,
+                s.subject_name,
+                es.max_marks,
+                s.display_order
+            FROM exam_subjects es
+            JOIN subjects s ON s.id = es.subject_id
+            WHERE es.exam_id = ?
+              AND es.class_name = ?
+            ORDER BY s.display_order, s.id
+            """,
+            (exam_id, class_name)
+        ).fetchall()
 
-        for s in students:
-            for sub in subjects:
-                key = f"mark_{s['id']}_{sub['id']}"
-                val = request.form.get(key, '').strip()
-                existing = db.execute(
-                    'SELECT id FROM exam_marks WHERE student_id=? AND subject=? AND exam_id=?',
-                    (s['id'], sub['subject_name'], exam_id)).fetchone()
+        if not students:
+            flash('No students were found in the selected class.', 'error')
+            return redirect(url_for(
+                'admin_bulk_marks_entry',
+                **{'class': class_name, 'exam_id': exam_id}
+            ))
 
-                if val == '':
-                    if existing:
-                        db.execute('DELETE FROM exam_marks WHERE id=?', (existing['id'],))
-                else:
+        if not subjects:
+            flash(
+                'No subjects are assigned to this examination for the selected class.',
+                'error'
+            )
+            return redirect(url_for(
+                'admin_bulk_marks_entry',
+                **{'class': class_name, 'exam_id': exam_id}
+            ))
+
+        try:
+            # Validate every submitted mark before committing any changes.
+            validated_marks = []
+
+            for student in students:
+                for subject in subjects:
+                    field_name = f"mark_{student['id']}_{subject['id']}"
+                    raw_value = (request.form.get(field_name) or '').strip()
+
+                    if raw_value == '':
+                        validated_marks.append({
+                            'student_id': student['id'],
+                            'subject_name': subject['subject_name'],
+                            'max_marks': subject['max_marks'],
+                            'marks': None
+                        })
+                        continue
+
                     try:
-                        m = float(val)
+                        obtained_marks = float(raw_value)
+                        maximum_marks = float(subject['max_marks'])
                     except (TypeError, ValueError):
-                        db.rollback()
-                        flash(f"Invalid marks entered for {s['name']} - {sub['subject_name']}.", 'error')
-                        return redirect(url_for('teacher_marks_entry', eid=eid, **{'class': class_name}))
-                    if not math.isfinite(m) or m < 0 or m > float(sub['max_marks']):
-                        db.rollback()
-                        flash(f"Marks for {s['name']} - {sub['subject_name']} must be between 0 and {sub['max_marks']}.", 'error')
-                        return redirect(url_for('teacher_marks_entry', eid=eid, **{'class': class_name}))
+                        raise ValueError(
+                            f"Invalid marks entered for {student['name']} - "
+                            f"{subject['subject_name']}."
+                        )
+
+                    if (
+                        not math.isfinite(obtained_marks)
+                        or not math.isfinite(maximum_marks)
+                        or obtained_marks < 0
+                        or obtained_marks > maximum_marks
+                    ):
+                        raise ValueError(
+                            f"Marks for {student['name']} - "
+                            f"{subject['subject_name']} must be between "
+                            f"0 and {subject['max_marks']}."
+                        )
+
+                    validated_marks.append({
+                        'student_id': student['id'],
+                        'subject_name': subject['subject_name'],
+                        'max_marks': subject['max_marks'],
+                        'marks': obtained_marks
+                    })
+
+            # Apply all validated marks inside the same database transaction.
+            for item in validated_marks:
+                existing = db.execute(
+                    """
+                    SELECT id
+                    FROM exam_marks
+                    WHERE student_id = ?
+                      AND subject = ?
+                      AND exam_id = ?
+                    """,
+                    (
+                        item['student_id'],
+                        item['subject_name'],
+                        exam_id
+                    )
+                ).fetchone()
+
+                # An empty field clears the previously saved mark.
+                if item['marks'] is None:
                     if existing:
-                        db.execute('UPDATE exam_marks SET marks_obtained=?, total_marks=? WHERE id=?',
-                                   (m, sub['max_marks'], existing['id']))
-                    else:
-                        db.execute('''INSERT INTO exam_marks
-                            (student_id, exam_type, subject, marks_obtained, total_marks, exam_id)
-                            VALUES (?, ?, ?, ?, ?, ?)''',
-                                   (s['id'], exam['title'], sub['subject_name'],
-                                    m, sub['max_marks'], exam_id))
+                        db.execute(
+                            'DELETE FROM exam_marks WHERE id = ?',
+                            (existing['id'],)
+                        )
+                    continue
 
-        db.execute('''INSERT OR IGNORE INTO exam_submissions (exam_id, class_name, status)
-                     VALUES (?, ?, 'in_progress')''', (exam_id, class_name))
-        db.execute('''UPDATE exam_submissions SET status='in_progress', teacher_id=?
-                     WHERE exam_id=? AND class_name=?''',
-                   (session['user_id'], exam_id, class_name))
-        db.commit()
-        flash('Marks saved successfully.', 'success')
-        return redirect(url_for('admin_bulk_marks_entry', **{'class': class_name, 'exam_id': exam_id}))
+                if existing:
+                    db.execute(
+                        """
+                        UPDATE exam_marks
+                        SET marks_obtained = ?,
+                            total_marks = ?
+                        WHERE id = ?
+                        """,
+                        (
+                            item['marks'],
+                            item['max_marks'],
+                            existing['id']
+                        )
+                    )
+                else:
+                    db.execute(
+                        """
+                        INSERT INTO exam_marks
+                            (
+                                student_id,
+                                exam_type,
+                                subject,
+                                marks_obtained,
+                                total_marks,
+                                exam_id
+                            )
+                        VALUES (?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            item['student_id'],
+                            exam['title'],
+                            item['subject_name'],
+                            item['marks'],
+                            item['max_marks'],
+                            exam_id
+                        )
+                    )
 
-    exam = db.execute('SELECT * FROM exams WHERE id = ?', (exam_id,)).fetchone() if exam_id else None
-    students = db.execute(
-        "SELECT * FROM users WHERE role='student' "
-        "AND (class_name = ? OR child_class = ?) ORDER BY name",
-        (class_name, class_name)).fetchall() if class_name else []
-    subjects = db.execute(
-        '''SELECT s.id, s.class_name, s.subject_name, es.max_marks, s.display_order
-           FROM exam_subjects es JOIN subjects s ON s.id = es.subject_id
-           WHERE es.exam_id = ? AND es.class_name = ?
-           ORDER BY s.display_order, s.id''', (exam_id, class_name)).fetchall() if exam_id and class_name else []
+            # Keep the examination submission record in progress.
+            db.execute(
+                """
+                INSERT OR IGNORE INTO exam_submissions
+                    (exam_id, class_name, status)
+                VALUES (?, ?, 'in_progress')
+                """,
+                (exam_id, class_name)
+            )
 
+            db.execute(
+                """
+                UPDATE exam_submissions
+                SET status = 'in_progress',
+                    teacher_id = ?
+                WHERE exam_id = ?
+                  AND class_name = ?
+                """,
+                (session.get('user_id'), exam_id, class_name)
+            )
+
+            db.commit()
+
+            flash('Marks saved successfully.', 'success')
+
+        except ValueError as error:
+            db.rollback()
+            flash(str(error), 'error')
+
+        except Exception:
+            db.rollback()
+            app.logger.exception(
+                'Bulk marks entry failed for class %s and examination %s',
+                class_name,
+                exam_id
+            )
+            flash(
+                'An unexpected error occurred while saving marks. '
+                'No changes were saved.',
+                'error'
+            )
+
+        return redirect(url_for(
+            'admin_bulk_marks_entry',
+            **{'class': class_name, 'exam_id': exam_id}
+        ))
+
+    # Load students for the selected class.
+    students = []
+
+    if class_name:
+        students = db.execute(
+            """
+            SELECT *
+            FROM users
+            WHERE role = 'student'
+              AND (class_name = ? OR child_class = ?)
+            ORDER BY name
+            """,
+            (class_name, class_name)
+        ).fetchall()
+
+    # Load examination subjects for the selected class.
+    subjects = []
+
+    if exam_id and class_name:
+        subjects = db.execute(
+            """
+            SELECT
+                s.id,
+                s.class_name,
+                s.subject_name,
+                es.max_marks,
+                s.display_order
+            FROM exam_subjects es
+            JOIN subjects s ON s.id = es.subject_id
+            WHERE es.exam_id = ?
+              AND es.class_name = ?
+            ORDER BY s.display_order, s.id
+            """,
+            (exam_id, class_name)
+        ).fetchall()
+
+    # Load previously saved marks for the selected examination.
     existing_marks = {}
+
     if exam_id and students and subjects:
-        marks = db.execute('SELECT * FROM exam_marks WHERE exam_id = ?', (exam_id,)).fetchall()
-        sub_by_name = {s['subject_name']: s for s in subjects}
-        for m in marks:
-            if m['subject'] in sub_by_name:
-                existing_marks[f"{m['student_id']}_{sub_by_name[m['subject']]['id']}"] = m['marks_obtained']
+        marks = db.execute(
+            """
+            SELECT student_id, subject, marks_obtained
+            FROM exam_marks
+            WHERE exam_id = ?
+            """,
+            (exam_id,)
+        ).fetchall()
 
-    return render_template('admin_bulk_marks_entry.html',
-                           class_name=class_name, exam=exam, exam_id=exam_id,
-                           exam_type=exam['title'] if exam else '',
-                           students=students, subjects=subjects,
-                           existing_marks=existing_marks,
-                           active_page='reports_dashboard')
+        subject_id_by_name = {
+            subject['subject_name']: subject['id']
+            for subject in subjects
+        }
 
+        for mark in marks:
+            subject_id = subject_id_by_name.get(mark['subject'])
+
+            if subject_id is not None:
+                mark_key = f"{mark['student_id']}_{subject_id}"
+                existing_marks[mark_key] = mark['marks_obtained']
+
+    return render_template(
+        'admin_bulk_marks_entry.html',
+        class_list=class_list,
+        all_exams=all_exams,
+        class_name=class_name,
+        exam=exam,
+        exam_id=exam_id,
+        exam_type=exam['title'] if exam else '',
+        students=students,
+        subjects=subjects,
+        existing_marks=existing_marks,
+        active_page='reports_dashboard'
+    )
 
 # ---------- GENERATE REPORTS (individual preview) ----------
 @app.route('/admin/generate-reports')
@@ -7345,116 +7615,407 @@ def teacher_exams():
     return render_template('teacher_exams.html', user=user, exam_info=exam_info)
 
 
+
+# ---------- TEACHER MARKS ENTRY ----------
+# Allows teachers to save drafts and submit validated marks only for assigned classes.
 @app.route('/teacher/exams/<int:eid>/marks', methods=['GET', 'POST'])
 @login_required
 def teacher_marks_entry(eid):
+
+    # Verify the logged-in user and teacher role.
     user = get_user_by_id(session['user_id'])
+
     if not user or user['role'] != 'teacher':
-        flash('Access denied.', 'error')
+        flash('Access denied. Teacher privileges are required.', 'error')
         return redirect(url_for('user_dashboard'))
 
     db = get_db()
-    exam = db.execute('SELECT * FROM exams WHERE id=?', (eid,)).fetchone()
+
+    # Load the requested examination.
+    exam = db.execute(
+        'SELECT * FROM exams WHERE id = ?',
+        (eid,)
+    ).fetchone()
+
     if not exam:
-        flash('Exam not found.', 'error')
+        flash('Examination not found.', 'error')
         return redirect(url_for('teacher_exams'))
 
-    raw = user['classes_assigned'] or ''
-    teacher_classes = [c.strip() for c in raw.split(',') if c.strip()]
-
-    class_name = (request.args.get('class') or request.form.get('class') or '').strip()
-    if not class_name or class_name not in teacher_classes:
-        flash('Aap is class ke liye assigned nahi hain.', 'error')
+    # Teachers can enter marks only for published examinations.
+    if exam['status'] != 'published':
+        flash('Marks entry is available only for published examinations.', 'error')
         return redirect(url_for('teacher_exams'))
 
+    # Load classes assigned to the logged-in teacher.
+    raw_classes = user['classes_assigned'] or ''
+
+    teacher_classes = [
+        class_name.strip()
+        for class_name in raw_classes.split(',')
+        if class_name.strip()
+    ]
+
+    if not teacher_classes:
+        flash('No classes are assigned to your teacher account.', 'error')
+        return redirect(url_for('teacher_exams'))
+
+    # Read the selected class from GET or POST.
+    class_name = (
+        request.args.get('class')
+        or request.form.get('class')
+        or ''
+    ).strip()
+
+    # Use the first assigned class only when no class was selected.
+    if not class_name:
+        class_name = teacher_classes[0]
+
+    # Prevent access to classes not assigned to this teacher.
+    if class_name not in teacher_classes:
+        flash('You are not assigned to the selected class.', 'error')
+        return redirect(url_for('teacher_exams'))
+
+    # Save marks for the selected class.
     if request.method == 'POST':
+
+        # Load students belonging to the selected class.
         students = db.execute(
-            "SELECT * FROM users WHERE role='student' "
-            "AND (class_name = ? OR child_class = ?) ORDER BY name",
-            (class_name, class_name)).fetchall()
+            """
+            SELECT *
+            FROM users
+            WHERE role = 'student'
+              AND (class_name = ? OR child_class = ?)
+            ORDER BY name
+            """,
+            (class_name, class_name)
+        ).fetchall()
+
+        # Load subjects assigned to this examination and class.
         subjects = db.execute(
-            '''SELECT s.id, s.class_name, s.subject_name, es.max_marks, s.display_order
-               FROM exam_subjects es JOIN subjects s ON s.id = es.subject_id
-               WHERE es.exam_id = ? AND es.class_name = ?
-               ORDER BY s.display_order, s.id''', (eid, class_name)).fetchall()
+            """
+            SELECT
+                s.id,
+                s.class_name,
+                s.subject_name,
+                es.max_marks,
+                s.display_order
+            FROM exam_subjects es
+            JOIN subjects s ON s.id = es.subject_id
+            WHERE es.exam_id = ?
+              AND es.class_name = ?
+            ORDER BY s.display_order, s.id
+            """,
+            (eid, class_name)
+        ).fetchall()
 
-        for s in students:
-            for sub in subjects:
-                key = f"mark_{s['id']}_{sub['id']}"
-                val = request.form.get(key, '').strip()
-                existing = db.execute(
-                    'SELECT id FROM exam_marks WHERE student_id=? AND subject=? AND exam_id=?',
-                    (s['id'], sub['subject_name'], eid)).fetchone()
+        # Verify that the selected class has students and examination subjects.
+        if not students:
+            flash('No students were found in the selected class.', 'error')
+            return redirect(url_for(
+                'teacher_marks_entry',
+                eid=eid,
+                **{'class': class_name}
+            ))
 
-                if val == '':
-                    if existing:
-                        db.execute('DELETE FROM exam_marks WHERE id=?', (existing['id'],))
-                else:
-                    try:
-                        m = float(val)
-                    except ValueError:
-                        continue
-                    if existing:
-                        db.execute('UPDATE exam_marks SET marks_obtained=?, total_marks=? WHERE id=?',
-                                   (m, sub['max_marks'], existing['id']))
-                    else:
-                        db.execute('''INSERT INTO exam_marks
-                            (student_id, exam_type, subject, marks_obtained, total_marks, exam_id)
-                            VALUES (?, ?, ?, ?, ?, ?)''',
-                                   (s['id'], exam['title'], sub['subject_name'],
-                                    m, sub['max_marks'], eid))
+        if not subjects:
+            flash(
+                'No subjects are assigned to this examination for the selected class.',
+                'error'
+            )
+            return redirect(url_for(
+                'teacher_marks_entry',
+                eid=eid,
+                **{'class': class_name}
+            ))
 
+        # Validate the requested submission action.
         action = (request.form.get('action') or 'draft').strip().lower()
+
         if action not in {'draft', 'submit'}:
-            db.rollback()
             flash('Invalid marks submission action.', 'error')
-            return redirect(url_for('teacher_marks_entry', eid=eid, **{'class': class_name}))
-        new_status = 'submitted' if action == 'submit' else 'in_progress'
-        db.execute('''INSERT OR IGNORE INTO exam_submissions
-                     (exam_id, class_name, teacher_id, status)
-                     VALUES (?, ?, ?, ?)''', (eid, class_name, user['id'], new_status))
-        db.execute('''UPDATE exam_submissions SET status=?, teacher_id=?
-                     WHERE exam_id=? AND class_name=?''',
-                   (new_status, user['id'], eid, class_name))
-        if action == 'submit':
-            db.execute("UPDATE exam_submissions SET submitted_at=? WHERE exam_id=? AND class_name=?",
-                       (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), eid, class_name))
-        db.commit()
+            return redirect(url_for(
+                'teacher_marks_entry',
+                eid=eid,
+                **{'class': class_name}
+            ))
 
-        flash('Marks submitted to admin!' if action == 'submit' else 'Draft saved.',
-              'success')
-        if action == 'submit':
-            return redirect(url_for('teacher_exams'))
-        return redirect(url_for('teacher_marks_entry', eid=eid, **{'class': class_name}))
+        try:
+            # Validate every mark before applying database changes.
+            validated_marks = []
 
+            for student in students:
+                for subject in subjects:
+
+                    field_name = (
+                        f"mark_{student['id']}_{subject['id']}"
+                    )
+
+                    raw_value = (
+                        request.form.get(field_name) or ''
+                    ).strip()
+
+                    if raw_value == '':
+                        validated_marks.append({
+                            'student_id': student['id'],
+                            'subject_name': subject['subject_name'],
+                            'max_marks': subject['max_marks'],
+                            'marks': None
+                        })
+                        continue
+
+                    try:
+                        obtained_marks = float(raw_value)
+                        maximum_marks = float(subject['max_marks'])
+                    except (TypeError, ValueError):
+                        raise ValueError(
+                            f"Invalid marks for {student['name']} - "
+                            f"{subject['subject_name']}."
+                        )
+
+                    if (
+                        not math.isfinite(obtained_marks)
+                        or not math.isfinite(maximum_marks)
+                        or obtained_marks < 0
+                        or obtained_marks > maximum_marks
+                    ):
+                        raise ValueError(
+                            f"Marks for {student['name']} - "
+                            f"{subject['subject_name']} must be between "
+                            f"0 and {subject['max_marks']}."
+                        )
+
+                    validated_marks.append({
+                        'student_id': student['id'],
+                        'subject_name': subject['subject_name'],
+                        'max_marks': subject['max_marks'],
+                        'marks': obtained_marks
+                    })
+
+            # Apply all validated marks in the current database transaction.
+            for item in validated_marks:
+
+                existing = db.execute(
+                    """
+                    SELECT id
+                    FROM exam_marks
+                    WHERE student_id = ?
+                      AND subject = ?
+                      AND exam_id = ?
+                    """,
+                    (
+                        item['student_id'],
+                        item['subject_name'],
+                        eid
+                    )
+                ).fetchone()
+
+                # Clear an existing mark when the teacher leaves the field empty.
+                if item['marks'] is None:
+                    if existing:
+                        db.execute(
+                            'DELETE FROM exam_marks WHERE id = ?',
+                            (existing['id'],)
+                        )
+                    continue
+
+                # Update an existing mark.
+                if existing:
+                    db.execute(
+                        """
+                        UPDATE exam_marks
+                        SET marks_obtained = ?,
+                            total_marks = ?
+                        WHERE id = ?
+                        """,
+                        (
+                            item['marks'],
+                            item['max_marks'],
+                            existing['id']
+                        )
+                    )
+
+                # Insert a new mark when no previous record exists.
+                else:
+                    db.execute(
+                        """
+                        INSERT INTO exam_marks
+                            (
+                                student_id,
+                                exam_type,
+                                subject,
+                                marks_obtained,
+                                total_marks,
+                                exam_id
+                            )
+                        VALUES (?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            item['student_id'],
+                            exam['title'],
+                            item['subject_name'],
+                            item['marks'],
+                            item['max_marks'],
+                            eid
+                        )
+                    )
+
+            # Set the submission status according to the selected action.
+            new_status = (
+                'submitted'
+                if action == 'submit'
+                else 'in_progress'
+            )
+
+            # Create the class submission record if it does not exist.
+            db.execute(
+                """
+                INSERT OR IGNORE INTO exam_submissions
+                    (exam_id, class_name, teacher_id, status)
+                VALUES (?, ?, ?, ?)
+                """,
+                (eid, class_name, user['id'], new_status)
+            )
+
+            # Update the current submission record.
+            db.execute(
+                """
+                UPDATE exam_submissions
+                SET status = ?,
+                    teacher_id = ?
+                WHERE exam_id = ?
+                  AND class_name = ?
+                """,
+                (new_status, user['id'], eid, class_name)
+            )
+
+            # Record the submission timestamp only when submitting to admin.
+            if action == 'submit':
+                db.execute(
+                    """
+                    UPDATE exam_submissions
+                    SET submitted_at = ?
+                    WHERE exam_id = ?
+                      AND class_name = ?
+                    """,
+                    (
+                        datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                        eid,
+                        class_name
+                    )
+                )
+
+            db.commit()
+
+            if action == 'submit':
+                flash('Marks submitted to administration successfully.', 'success')
+            else:
+                flash('Marks draft saved successfully.', 'success')
+
+        except ValueError as error:
+            db.rollback()
+            flash(str(error), 'error')
+
+        except Exception:
+            db.rollback()
+
+            app.logger.exception(
+                'Teacher marks entry failed. Teacher ID: %s, Exam ID: %s, Class: %s',
+                user['id'],
+                eid,
+                class_name
+            )
+
+            flash(
+                'An unexpected error occurred while saving marks. '
+                'No changes were saved.',
+                'error'
+            )
+
+        # Return to the same examination and assigned class.
+        return redirect(url_for(
+            'teacher_marks_entry',
+            eid=eid,
+            **{'class': class_name}
+        ))
+
+    # Load students for the selected class.
     students = db.execute(
-        "SELECT * FROM users WHERE role='student' "
-        "AND (class_name = ? OR child_class = ?) ORDER BY name",
-        (class_name, class_name)).fetchall()
+        """
+        SELECT *
+        FROM users
+        WHERE role = 'student'
+          AND (class_name = ? OR child_class = ?)
+        ORDER BY name
+        """,
+        (class_name, class_name)
+    ).fetchall()
+
+    # Load examination subjects for the selected class.
     subjects = db.execute(
-        '''SELECT s.id, s.class_name, s.subject_name, es.max_marks, s.display_order
-           FROM exam_subjects es JOIN subjects s ON s.id = es.subject_id
-           WHERE es.exam_id = ? AND es.class_name = ?
-           ORDER BY s.display_order, s.id''', (eid, class_name)).fetchall()
-    marks = db.execute('SELECT * FROM exam_marks WHERE exam_id=?', (eid,)).fetchall()
+        """
+        SELECT
+            s.id,
+            s.class_name,
+            s.subject_name,
+            es.max_marks,
+            s.display_order
+        FROM exam_subjects es
+        JOIN subjects s ON s.id = es.subject_id
+        WHERE es.exam_id = ?
+          AND es.class_name = ?
+        ORDER BY s.display_order, s.id
+        """,
+        (eid, class_name)
+    ).fetchall()
 
-    sub_by_name = {s['subject_name']: s for s in subjects}
+    # Load existing marks for the selected examination.
+    marks = db.execute(
+        """
+        SELECT student_id, subject, marks_obtained
+        FROM exam_marks
+        WHERE exam_id = ?
+        """,
+        (eid,)
+    ).fetchall()
+
+    # Map subject names to subject IDs for the template.
+    subject_id_by_name = {
+        subject['subject_name']: subject['id']
+        for subject in subjects
+    }
+
     existing_marks = {}
-    for m in marks:
-        if m['subject'] in sub_by_name:
-            existing_marks[f"{m['student_id']}_{sub_by_name[m['subject']]['id']}"] = m['marks_obtained']
 
+    for mark in marks:
+        subject_id = subject_id_by_name.get(mark['subject'])
+
+        if subject_id is not None:
+            mark_key = f"{mark['student_id']}_{subject_id}"
+            existing_marks[mark_key] = mark['marks_obtained']
+
+    # Load the current class submission status.
     submission = db.execute(
-        'SELECT * FROM exam_submissions WHERE exam_id=? AND class_name=?',
-        (eid, class_name)).fetchone()
+        """
+        SELECT *
+        FROM exam_submissions
+        WHERE exam_id = ?
+          AND class_name = ?
+        """,
+        (eid, class_name)
+    ).fetchone()
 
-    return render_template('teacher_marks_entry.html',
-                           user=user, exam=exam, class_name=class_name,
-                           students=students, subjects=subjects,
-                           existing_marks=existing_marks,
-                           submission=submission,
-                           teacher_classes=teacher_classes)
-    
+    return render_template(
+        'teacher_marks_entry.html',
+        user=user,
+        exam=exam,
+        class_name=class_name,
+        students=students,
+        subjects=subjects,
+        existing_marks=existing_marks,
+        submission=submission,
+        teacher_classes=teacher_classes
+    )
+
 
 # --- --- --- checking the question paper creation --- --- ---
 @app.route('/admin/question-papers/create', methods=['GET', 'POST'])

@@ -2348,6 +2348,83 @@
                 transition-duration: .01ms !important;
             }
         }
+
+        /* LAYOUT REFINEMENT */
+        .admin-body { min-height: 100vh; overflow-x: hidden; }
+        .admin-sidebar {
+            display: flex; flex-direction: column; height: 100vh; height: 100dvh;
+            overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+            scrollbar-gutter: stable; z-index: 1500;
+        }
+        .admin-sidebar-head {
+            flex: 0 0 auto; min-height: 72px; padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+        .admin-logo { min-width: 0; display: flex; align-items: center; gap: 11px; text-decoration: none; }
+        .admin-logo .school_logo { width: 42px; height: 42px; object-fit: contain; flex: 0 0 42px; }
+        .admin-logo .brand-text { min-width: 0; }
+        .admin-nav { flex: 1 0 auto; min-height: 0; padding: 8px 10px 16px; }
+        .admin-nav-group-label { padding: 17px 12px 7px; letter-spacing: .09em; }
+        .admin-nav-link {
+            min-height: 42px; margin: 2px 0; padding: 10px 12px;
+            border-radius: 9px; text-decoration: none; line-height: 1.25;
+        }
+        .admin-nav-link > i { flex: 0 0 19px; width: 19px; text-align: center; }
+        .admin-nav-link .nav-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+        .admin-sidebar-foot { position: sticky; flex: 0 0 auto; margin-top: auto; }
+        .admin-sidebar-foot .logout-form { margin: 0; }
+        .admin-sidebar-foot .logout-form button {
+            width: 100%; border: 0; background: transparent; font: inherit;
+            text-align: left; cursor: pointer;
+        }
+        .admin-main { min-width: 0; min-height: 100vh; }
+        .admin-topbar {
+            position: sticky; top: 0; z-index: 1100; min-height: 76px;
+            padding: 12px clamp(14px, 2.2vw, 30px); background: rgba(255,255,255,.96);
+            border-bottom: 1px solid #e7edf4; box-shadow: 0 3px 14px rgba(15,40,70,.045);
+            backdrop-filter: blur(12px);
+        }
+        .admin-page-title { min-width: 0; line-height: 1.2; overflow-wrap: anywhere; }
+        .admin-user-info { margin-left: auto; flex: 0 0 auto; }
+        .admin-user-profile { flex: 0 0 auto; }
+        .admin-user-btn { max-width: 260px; overflow: visible; }
+        .admin-user-btn-info { max-width: 150px; opacity: 1; pointer-events: auto; }
+        .admin-user-btn .admin-user-chevron { flex: 0 0 auto; transition: transform var(--sn-transition); }
+        .admin-user-profile.dropdown-open .admin-user-chevron { transform: rotate(180deg); }
+        .admin-search { min-width: 160px; }
+        .admin-content { min-width: 0; padding: clamp(16px, 2.2vw, 30px); }
+        .admin-nav-link:focus-visible, .admin-sidebar-foot-link:focus-visible,
+        .admin-qstat:focus-visible { outline: 2px solid #ffd447; outline-offset: 2px; }
+        .admin-backdrop[hidden] { display: none !important; }
+        @media (max-width: 1100px) {
+            .admin-search { max-width: 300px; margin: 0 6px; }
+        }
+        @media (max-width: 900px) {
+            .admin-topbar { min-height: 66px; gap: 10px; padding: 10px 14px; }
+            .admin-page-title { flex: 1 1 auto; font-size: clamp(18px, 3vw, 23px); }
+            .admin-search { display: none; }
+            .admin-user-btn { max-width: 46px; padding: 4px; }
+            .admin-user-btn-info, .admin-user-btn .admin-user-chevron { display: none; }
+            .admin-sidebar { height: 100dvh; max-height: 100dvh; }
+        }
+        @media (max-width: 520px) {
+            .admin-topbar { gap: 8px; padding: 9px 10px; }
+            .admin-page-title { font-size: 17px; }
+            .admin-user-info { gap: 6px; }
+            .admin-topbar-icon { width: 38px; height: 38px; }
+            .admin-notif-dropdown {
+                position: fixed; top: 66px; right: 10px; left: 10px;
+                width: auto; max-width: none;
+            }
+            .admin-content { padding: 14px 11px 24px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .admin-sidebar *, .admin-topbar *, .admin-backdrop {
+                scroll-behavior: auto !important; animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important; transition-duration: .01ms !important;
+            }
+        }
+
     </style>
 
 </head>
@@ -2361,7 +2438,7 @@
        ============================================================ #}
     {% set role       = (session.get('user_role') or '').lower() %}
     {% set is_admin   = role in ['administrator', 'admin'] %}
-    {% set is_teacher = role in ['teacher', 'faculty'] %}
+    {% set is_teacher = role == 'teacher' %}
     {% set is_student = role in ['student'] %}
     {% set is_parent  = role in ['parent', 'guardian'] %}
 
@@ -2477,78 +2554,61 @@
             {# ---------------- ACADEMICS ---------------- #}
             {% if is_admin or is_teacher %}
             <div class="admin-nav-group-label">Academics</div>
-            <a href="{{ url_for('admin_attendance') }}"
-                class="admin-nav-link {% if active_page == 'attendance' %}active{% endif %}" data-label="Attendance">
+            {% if is_admin %}
+            <a href="{{ url_for('admin_attendance') }}" class="admin-nav-link {% if active_page == 'attendance' %}active{% endif %}" data-label="Attendance">
                 <i class="fa-solid fa-clipboard-check"></i><span class="nav-label">Attendance</span>
             </a>
-            <!-- Examinations -->
-            <a href="{{ url_for('admin_exams_list') }}"
-                class="admin-nav-link {% if active_page == 'exams' %}active{% endif %}" data-label="Examinations">
+            <a href="{{ url_for('admin_exams_list') }}" class="admin-nav-link {% if active_page == 'exams' %}active{% endif %}" data-label="Examinations">
                 <i class="fa-solid fa-file-pen"></i><span class="nav-label">Examinations</span>
-                {% if is_admin and pending_exam_submissions and pending_exam_submissions > 0 %}
-                <span class="nav-badge danger">{{ pending_exam_submissions }}</span>
-                {% endif %}
+                {% if pending_exam_submissions and pending_exam_submissions > 0 %}<span class="nav-badge danger">{{ pending_exam_submissions }}</span>{% endif %}
             </a>
-            <!-- Question Papers -->
-            <a href="{{ url_for('teacher_question_papers') }}"
-                class="admin-nav-link {% if active_page == 'question_papers' %}active{% endif %}"
-                data-label="Question Papers">
-                <i class="fa-solid fa-file-signature"></i><span class="nav-label">Question Papers</span>
-                {% if total_question_papers and total_question_papers > 0 %}
-                <span class="nav-badge">{{ total_question_papers }}</span>
-                {% endif %}
+            <a href="{{ url_for('admin_bulk_marks_entry') }}" class="admin-nav-link {% if active_page in ['enter_marks', 'bulk_marks'] %}active{% endif %}" data-label="Marks Entry">
+                <i class="fa-solid fa-file-import"></i><span class="nav-label">Marks Entry &amp; Bulk Upload</span>
             </a>
-            <a href="{{ url_for('admin_enter_marks') }}"
-                class="admin-nav-link {% if active_page == 'enter_marks' %}active{% endif %}" data-label="Enter Marks">
-                <i class="fa-solid fa-pen-to-square"></i><span class="nav-label">Enter Marks</span>
-            </a>
-            <a href="{{ url_for('admin_bulk_marks') }}"
-                class="admin-nav-link {% if active_page == 'bulk_marks' %}active{% endif %}" data-label="Bulk Marks">
-                <i class="fa-solid fa-file-import"></i><span class="nav-label">Bulk Marks</span>
-            </a>
-            <a href="{{ url_for('admin_homework') }}"
-                class="admin-nav-link {% if active_page == 'homework' %}active{% endif %}" data-label="Homework">
-                <i class="fa-solid fa-book-open"></i><span class="nav-label">Homework</span>
-                {% if total_homework and total_homework > 0 %}
-                <span class="nav-badge">{{ total_homework }}</span>
-                {% endif %}
-            </a>
-            <a href="{{ url_for('admin_study_materials') }}"
-                class="admin-nav-link {% if active_page == 'study_materials' %}active{% endif %}"
-                data-label="Study Materials">
-                <i class="fa-solid fa-folder-open"></i><span class="nav-label">Study Materials</span>
-            </a>
-            <a href="{{ url_for('admin_reports') }}"
-                class="admin-nav-link {% if active_page == 'reports' %}active{% endif %}" data-label="Reports">
-                <i class="fa-solid fa-chart-pie"></i><span class="nav-label">Reports</span>
-            </a>
-            {% endif %}
-
-            {# Admin-only academic extras #}
-            {% if is_admin %}
-            <a href="{{ url_for('admin_reports_dashboard') }}"
-                class="admin-nav-link {% if active_page == 'reports_dashboard' %}active{% endif %}"
-                data-label="Reports Dashboard">
+            <a href="{{ url_for('admin_reports_dashboard') }}" class="admin-nav-link {% if active_page in ['reports', 'reports_dashboard'] %}active{% endif %}" data-label="Reports Dashboard">
                 <i class="fa-solid fa-chart-line"></i><span class="nav-label">Reports Dashboard</span>
             </a>
-            <a href="{{ url_for('admin_generate_reports') }}"
-                class="admin-nav-link {% if active_page == 'generate_reports' %}active{% endif %}"
-                data-label="Generate Reports">
+            <a href="{{ url_for('admin_generate_reports') }}" class="admin-nav-link {% if active_page == 'generate_reports' %}active{% endif %}" data-label="Generate Reports">
                 <i class="fa-solid fa-file-invoice"></i><span class="nav-label">Generate Reports</span>
             </a>
-            <a href="{{ url_for('admin_leaves') }}"
-                class="admin-nav-link {% if active_page == 'leaves' %}active{% endif %}" data-label="Leave Requests">
-                <i class="fa-solid fa-calendar-minus"></i><span class="nav-label">Leave Requests</span>
-                {% if pending_leaves and pending_leaves > 0 %}
-                <span class="nav-badge danger">{{ pending_leaves }}</span>
-                {% endif %}
+            {% else %}
+            <a href="{{ url_for('teacher_attendance') }}" class="admin-nav-link {% if active_page == 'attendance' %}active{% endif %}" data-label="Attendance">
+                <i class="fa-solid fa-clipboard-check"></i><span class="nav-label">Attendance</span>
             </a>
-            <a href="{{ url_for('admin_fees') }}" class="admin-nav-link {% if active_page == 'fees' %}active{% endif %}"
-                data-label="Fee Payments">
+            <a href="{{ url_for('teacher_exams') }}" class="admin-nav-link {% if active_page in ['exams', 'teacher_exams'] %}active{% endif %}" data-label="Examinations">
+                <i class="fa-solid fa-file-pen"></i><span class="nav-label">Examinations</span>
+            </a>
+            {% endif %}
+            <a href="{{ url_for('teacher_question_papers') }}" class="admin-nav-link {% if active_page == 'question_papers' %}active{% endif %}" data-label="Question Papers">
+                <i class="fa-solid fa-file-signature"></i><span class="nav-label">Question Papers</span>
+                {% if is_admin and total_question_papers and total_question_papers > 0 %}<span class="nav-badge">{{ total_question_papers }}</span>{% endif %}
+            </a>
+            {% if is_admin %}
+            <a href="{{ url_for('admin_homework') }}" class="admin-nav-link {% if active_page == 'homework' %}active{% endif %}" data-label="Homework">
+                <i class="fa-solid fa-book-open"></i><span class="nav-label">Homework</span>
+                {% if total_homework and total_homework > 0 %}<span class="nav-badge">{{ total_homework }}</span>{% endif %}
+            </a>
+            <a href="{{ url_for('admin_study_materials') }}" class="admin-nav-link {% if active_page == 'study_materials' %}active{% endif %}" data-label="Study Materials">
+                <i class="fa-solid fa-folder-open"></i><span class="nav-label">Study Materials</span>
+            </a>
+            {% else %}
+            <a href="{{ url_for('teacher_homework') }}" class="admin-nav-link {% if active_page == 'homework' %}active{% endif %}" data-label="Homework">
+                <i class="fa-solid fa-book-open"></i><span class="nav-label">Homework</span>
+            </a>
+            <a href="{{ url_for('study_materials_page') }}" class="admin-nav-link {% if active_page == 'study_materials' %}active{% endif %}" data-label="Study Materials">
+                <i class="fa-solid fa-folder-open"></i><span class="nav-label">Study Materials</span>
+            </a>
+            {% endif %}
+            {% endif %}
+
+            {% if is_admin %}
+            <a href="{{ url_for('admin_leaves') }}" class="admin-nav-link {% if active_page == 'leaves' %}active{% endif %}" data-label="Leave Requests">
+                <i class="fa-solid fa-calendar-minus"></i><span class="nav-label">Leave Requests</span>
+                {% if pending_leaves and pending_leaves > 0 %}<span class="nav-badge danger">{{ pending_leaves }}</span>{% endif %}
+            </a>
+            <a href="{{ url_for('admin_fees') }}" class="admin-nav-link {% if active_page == 'fees' %}active{% endif %}" data-label="Fee Payments">
                 <i class="fa-solid fa-indian-rupee-sign"></i><span class="nav-label">Fee Payments</span>
-                {% if pending_fees and pending_fees > 0 %}
-                <span class="nav-badge danger">{{ pending_fees }}</span>
-                {% endif %}
+                {% if pending_fees and pending_fees > 0 %}<span class="nav-badge danger">{{ pending_fees }}</span>{% endif %}
             </a>
             {% endif %}
 

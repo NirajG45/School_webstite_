@@ -3,11 +3,41 @@
 {% block page_title %}Question Paper Preview{% endblock %}
 {% block content %}
 <style>
-.qp-toolbar{max-width:900px;margin:0 auto 15px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#fffbeb;border:1px solid #fde68a;border-radius:9px;padding:11px 15px}
-.qp-print-note{font-size:12px;color:#92400e;margin:0;line-height:1.5}
+/* ============================================================
+   QUESTION PAPER PREVIEW + PRINT CONTROLS
+   - Portrait is the default page orientation.
+   - Question columns are independently selectable: 1 or 2.
+   - Landscape can print one or two copies per physical sheet.
+   ============================================================ */
+.qp-toolbar{max-width:1100px;margin:0 auto 16px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:13px 16px}
+.qp-toolbar-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.qp-control{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:750;color:#1f2937}
+.qp-control select{padding:8px 10px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;color:#111827;font:inherit;min-width:132px}
+.qp-control select:disabled{background:#f1f5f9;color:#94a3b8;cursor:not-allowed}
+.qp-print-note{font-size:12px;color:#92400e;margin:0 0 9px;line-height:1.5;max-width:780px}
+.qp-control-hint{font-size:11px;color:#64748b;font-weight:500}
 .qp-print-btn{border:0;border-radius:8px;padding:11px 18px;background:#0f766e;color:#fff;font-weight:800;cursor:pointer;white-space:nowrap}
-.qp-sheet{width:297mm;min-height:210mm;margin:0 auto 25px;padding:9mm 12mm;background:#fff;color:#000;box-shadow:0 4px 24px #00000012;font-family:"Times New Roman",Times,serif;font-size:11pt;line-height:1.35;box-sizing:border-box}
-.qp-sheet.qp-portrait-preview{width:210mm;min-height:297mm}
+.qp-print-btn:hover{background:#115e59}
+.qp-print-stage{width:100%;display:flex;flex-direction:column;align-items:center;gap:18px}
+.qp-sheet{width:210mm;min-height:297mm;margin:0 auto;background:#fff;color:#000;box-shadow:0 4px 24px #00000012;padding:10mm 12mm;box-sizing:border-box;font-family:"Times New Roman",Times,serif;font-size:11pt;line-height:1.35}
+.qp-sheet.qp-landscape-preview{width:297mm;min-height:210mm;padding:9mm 10mm}
+.qp-print-stage.qp-two-up{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:4mm;width:min(100%,297mm);margin:0 auto}
+.qp-print-stage.qp-two-up .qp-sheet{width:100%;min-width:0;min-height:190mm;padding:5mm 5.5mm;font-size:8.4pt;line-height:1.23;box-shadow:0 3px 16px #00000012}
+.qp-print-stage.qp-two-up .qp-school{font-size:11.5pt}
+.qp-print-stage.qp-two-up .qp-place{font-size:7.5pt;margin-bottom:3px}
+.qp-print-stage.qp-two-up .qp-exam{font-size:9pt}
+.qp-print-stage.qp-two-up .qp-logo-cell{width:42px}
+.qp-print-stage.qp-two-up .qp-logo{width:35px;height:35px}
+.qp-print-stage.qp-two-up .qp-meta-row,.qp-print-stage.qp-two-up .qp-student-row{font-size:7.8pt;gap:4px}
+.qp-print-stage.qp-two-up .qp-instruction{font-size:8.5pt}
+.qp-print-stage.qp-two-up .qp-subinstruction{font-size:6.8pt;margin-bottom:7px}
+.qp-print-stage.qp-two-up .qp-question{gap:3px;margin-bottom:6px}
+.qp-print-stage.qp-two-up .qp-q-num{flex-basis:16px}
+.qp-print-stage.qp-two-up .qp-q-marks{font-size:7.5pt}
+.qp-print-stage.qp-two-up .qp-options-grid,.qp-print-stage.qp-two-up .qp-match-table{font-size:7.5pt}
+.qp-print-stage.qp-two-up .qp-answer-line{height:12px}
+.qp-sheet-copy{display:none}
+.qp-print-stage.qp-two-up .qp-sheet-copy{display:block}
 .qp-header{margin-bottom:5px;break-inside:avoid;page-break-inside:avoid}
 .qp-header-table{width:100%;border-collapse:collapse;table-layout:fixed}
 .qp-logo-cell{width:75px;text-align:center;vertical-align:middle}
@@ -21,10 +51,11 @@
 .qp-student-row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:6px 0 13px;font-size:10.5pt;padding:0 4px}
 .qp-instruction{text-align:center;font-weight:bold;font-size:11.5pt;margin:8px 0 2px;text-transform:uppercase}
 .qp-subinstruction{text-align:center;font-size:9pt;font-style:italic;margin:0 0 13px}
-.qp-columns{column-count:1;column-gap:0;column-fill:auto;width:100%}
-.qp-columns.single-column,.qp-columns.two-column{column-count:1}
+/* Column selection applies only to the question body, not the school header. */
+.qp-columns{column-count:1;column-gap:0;column-fill:balance;width:100%}
+.qp-columns.qp-double-column{column-count:2;column-gap:10mm;column-rule:0}
 .qp-section{width:100%;margin:0 0 13px;break-inside:auto;page-break-inside:auto}
-.qp-section-heading{display:flex;justify-content:space-between;gap:8px;font-weight:bold;font-size:10.5pt;margin:0 0 7px;padding-bottom:3px;border-bottom:1px solid #777;break-after:avoid}
+.qp-section-heading{display:flex;justify-content:space-between;gap:8px;font-weight:bold;font-size:10.5pt;margin:0 0 7px;padding-bottom:3px;border-bottom:1px solid #777;break-after:avoid;page-break-after:avoid}
 .qp-question{display:flex;align-items:flex-start;gap:5px;margin:0 0 10px;break-inside:avoid;page-break-inside:avoid}
 .qp-q-num{font-weight:bold;flex:0 0 21px}
 .qp-q-content{flex:1;min-width:0}
@@ -34,150 +65,254 @@
 .qp-options-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 9px;margin-top:5px;font-size:10pt}
 .qp-option-item{display:flex;gap:5px;align-items:flex-start;min-width:0;overflow-wrap:anywhere}
 .qp-option-label{font-weight:bold;flex:none}
-.qp-match-table{width:100%;border-collapse:collapse;margin:6px 0;font-size:10pt;break-inside:avoid}
+.qp-match-table{width:100%;border-collapse:collapse;margin:6px 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
 .qp-match-table th,.qp-match-table td{border:1px solid #555;padding:4px 6px;text-align:left;vertical-align:top}
 .qp-match-table th{font-weight:bold}
 .qp-answer-line{border-bottom:1px dotted #888;height:17px;margin-top:3px;width:100%}
 .qp-empty{text-align:center;padding:35px;border:1px dashed #aaa}
-@media screen and (max-width:1150px){.qp-sheet,.qp-sheet.qp-portrait-preview{width:100%;min-height:0;padding:20px;overflow:hidden}.qp-meta-row,.qp-student-row{font-size:10pt}.qp-school{white-space:normal}}
+@media screen and (max-width:1150px){
+    .qp-sheet,.qp-sheet.qp-landscape-preview{width:100%;min-height:0;padding:20px;overflow:hidden}
+    .qp-print-stage.qp-two-up{width:100%;gap:10px}
+    .qp-print-stage.qp-two-up .qp-sheet{padding:12px;font-size:8pt}
+    .qp-meta-row,.qp-student-row{font-size:10pt}
+    .qp-school{white-space:normal}
+}
+@media screen and (max-width:650px){
+    .qp-print-stage.qp-two-up{grid-template-columns:1fr}
+    .qp-print-stage.qp-two-up .qp-sheet{font-size:10pt}
+}
 @media print{
+    @page{size:A4 portrait;margin:10mm 12mm}
     html,body{margin:0!important;padding:0!important;background:#fff!important;color:#000!important}
     .admin-sidebar,.admin-backdrop,.admin-topbar,.admin-menu-toggle,.admin-search,.admin-user-info,.admin-topbar-notif,.admin-notif-dropdown,.admin-user-profile,.admin-user-dropdown,.admin-my-dash-btn,.admin-sidebar-foot,.flash-stack,.qp-toolbar,.no-print,script{display:none!important;visibility:hidden!important}
     .admin-main,body.admin-sidebar-collapsed .admin-main,.admin-content{margin:0!important;padding:0!important;width:100%!important;max-width:none!important;background:#fff!important}
-    .qp-sheet,.qp-sheet.qp-portrait-preview{width:100%!important;min-height:0!important;height:auto!important;margin:0!important;padding:0!important;box-shadow:none!important;max-width:none!important}
+    .qp-print-stage{display:block!important;width:100%!important;margin:0!important;padding:0!important;gap:0!important}
+    .qp-sheet,.qp-sheet.qp-landscape-preview{display:block!important;width:100%!important;min-height:0!important;height:auto!important;margin:0!important;padding:0!important;box-shadow:none!important;max-width:none!important;break-after:auto;page-break-after:auto}
+    .qp-sheet-copy{display:none!important}
+    .qp-two-up .qp-sheet{display:block!important;width:100%!important;min-width:0!important;min-height:0!important;height:auto!important;margin:0!important;padding:4mm 4.5mm!important;box-shadow:none!important;font-size:8pt!important;line-height:1.2!important;break-inside:avoid!important;page-break-inside:avoid!important}
+    .qp-two-up{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;column-gap:2mm!important;align-items:start!important}
+    .qp-two-up .qp-sheet-copy{display:block!important}
+    .qp-two-up .qp-school{font-size:11pt!important}
+    .qp-two-up .qp-place{font-size:7pt!important}
+    .qp-two-up .qp-exam{font-size:8.5pt!important}
+    .qp-two-up .qp-logo-cell{width:38px!important}
+    .qp-two-up .qp-logo{width:32px!important;height:32px!important}
+    .qp-two-up .qp-meta-row,.qp-two-up .qp-student-row{font-size:7pt!important}
+    .qp-two-up .qp-instruction{font-size:8pt!important}
+    .qp-two-up .qp-subinstruction{font-size:6.5pt!important;margin-bottom:6px!important}
+    .qp-two-up .qp-q-num{flex-basis:15px!important}
+    .qp-two-up .qp-q-marks{font-size:7pt!important}
+    .qp-two-up .qp-options-grid,.qp-two-up .qp-match-table{font-size:7pt!important}
     .qp-header,.qp-header-table,.qp-header-text,.qp-school,.qp-place,.qp-exam,.qp-logo-cell,.qp-logo{visibility:visible!important}
     .qp-header-table{display:table!important;width:100%!important}.qp-header-table tr{display:table-row!important}
     .qp-logo-cell,.qp-header-text{display:table-cell!important;vertical-align:middle!important}
-    .qp-school{font-size:17pt!important}.qp-exam{font-size:13.5pt!important}.qp-logo-cell{width:75px!important}.qp-logo{width:62px!important;height:62px!important}
-    .qp-columns,.qp-columns.single-column,.qp-columns.two-column{display:block!important;width:100%!important;column-count:1!important;column-width:auto!important;column-gap:0!important;column-fill:auto!important}
+    .qp-columns{display:block!important;width:100%!important;column-count:1!important;column-width:auto!important;column-gap:0!important;column-fill:auto!important}
+    .qp-columns.qp-double-column{column-count:2!important;column-width:auto!important;column-gap:7mm!important;column-fill:balance!important}
     .qp-section{width:100%!important;break-inside:auto!important;page-break-inside:auto!important}
     .qp-question,.qp-match-table{break-inside:avoid!important;page-break-inside:avoid!important}
     *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 }
 </style>
-<style id="qp-dynamic-page-style">@page{size:A4 landscape;margin:9mm 10mm}</style>
+<style id="qp-dynamic-page-style">@page{size:A4 portrait;margin:10mm 12mm}</style>
 
 <div class="qp-toolbar no-print">
-    <div>
-        <p class="qp-print-note"><strong>Print layout:</strong> Landscape default hai. Questions ek hi full-width column mein aayenge; side-by-side do question blocks nahi banenge.</p>
-        <label for="qp-orientation" style="display:inline-flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;font-weight:700;color:#1f2937">
-            Page orientation:
-            <select id="qp-orientation" onchange="setQpOrientation(this.value)" style="padding:7px 10px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;font:inherit">
-                <option value="landscape" selected>Landscape (A4)</option>
-                <option value="portrait">Portrait (A4)</option>
-            </select>
-        </label>
+    <div style="min-width:min(100%,680px)">
+        <p class="qp-print-note"><strong>Print settings:</strong> Portrait default hai. Question columns aur Landscape mein ek/double paper per sheet ka option alag-alag control hota hai.</p>
+        <div class="qp-toolbar-controls">
+            <label class="qp-control" for="qp-orientation">Page orientation:
+                <select id="qp-orientation" onchange="setQpOrientation(this.value)">
+                    <option value="portrait" selected>Portrait (A4)</option>
+                    <option value="landscape">Landscape (A4)</option>
+                </select>
+            </label>
+            <label class="qp-control" for="qp-columns">Question columns:
+                <select id="qp-columns" onchange="setQpColumns(this.value)">
+                    <option value="1" selected>Single Column</option>
+                    <option value="2">Double Columns</option>
+                </select>
+            </label>
+            <label class="qp-control" for="qp-pages-per-sheet">Landscape page print:
+                <select id="qp-pages-per-sheet" onchange="setQpPagesPerSheet(this.value)" disabled>
+                    <option value="1" selected>Single Page (1 per sheet)</option>
+                    <option value="2">Double Page (2 copies per sheet)</option>
+                </select>
+            </label>
+        </div>
+        <div class="qp-control-hint" id="qp-pages-hint">Double Page option Landscape orientation mein available hai. Ismein same question paper ek landscape sheet par do copies mein side-by-side print hoga.</div>
     </div>
     <button class="qp-print-btn" type="button" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / Save as PDF</button>
 </div>
 
-<main class="qp-sheet" id="qp-sheet" data-orientation="landscape">
-    <header class="qp-header">
-        <table class="qp-header-table" role="presentation">
-            <tr>
-                <td class="qp-logo-cell"><img class="qp-logo" src="{{ school_logo or url_for('static', filename='images/school_logo.png') }}" alt="School logo"></td>
-                <td class="qp-header-text">
-                    <h1 class="qp-school">{{ school_name or 'RES. SHANTI NIKETAN SHISHU VIDYA MANDIR' }}</h1>
-                    <p class="qp-place">{{ school_address or 'NAVINAGAR (JAMUI)' }}</p>
-                    <p class="qp-exam">{{ paper['title'] }}{% if paper['exam_year'] %} {{ paper['exam_year'] }}{% endif %}</p>
-                </td>
-                <td class="qp-logo-cell"><img class="qp-logo" src="{{ school_logo or url_for('static', filename='images/school_logo.png') }}" alt="School logo"></td>
-            </tr>
-        </table>
-    </header>
+<div class="qp-print-stage" id="qp-print-stage">
+    <main class="qp-sheet" id="qp-sheet" data-orientation="portrait">
+        <header class="qp-header">
+            <table class="qp-header-table" role="presentation">
+                <tr>
+                    <td class="qp-logo-cell"><img class="qp-logo" src="{{ school_logo or url_for('static', filename='images/school_logo.png') }}" alt="School logo"></td>
+                    <td class="qp-header-text">
+                        <h1 class="qp-school">{{ school_name or 'RES. SHANTI NIKETAN SHISHU VIDYA MANDIR' }}</h1>
+                        <p class="qp-place">{{ school_address or 'NAVINAGAR (JAMUI)' }}</p>
+                        <p class="qp-exam">{{ paper['title'] }}{% if paper['exam_year'] %} {{ paper['exam_year'] }}{% endif %}</p>
+                    </td>
+                    <td class="qp-logo-cell"><img class="qp-logo" src="{{ school_logo or url_for('static', filename='images/school_logo.png') }}" alt="School logo"></td>
+                </tr>
+            </table>
+        </header>
 
-    <div class="qp-meta-row">
-        <span>CLASS – {{ paper['class_name'] }}</span>
-        <span>SUB – {{ paper['subject'] }}</span>
-        <span>F.M. – {{ paper['max_marks'] }}</span>
-        <span>TIME – {{ paper['time_allowed'] }}</span>
-    </div>
-    <hr class="qp-rule">
-    <div class="qp-student-row">
-        <span>Name: _______________________</span><span>Roll No.: ___________</span><span>Date: ___________</span><span>Section: _______</span>
-    </div>
-    <div class="qp-instruction">ANSWER ALL THE QUESTIONS</div>
-    <div class="qp-subinstruction">TEACHER IS REQUESTED TO EXPLAIN THE QUESTION TO THE STUDENTS</div>
-
-    {% if grouped_questions %}
-        {% set ns = namespace(count=0) %}
-        {% for section, qs in grouped_questions.items() %}
-            {% for q in qs %}{% set ns.count = ns.count + 1 %}{% endfor %}
-        {% endfor %}
-        <div class="qp-columns {{ 'two-column' if ns.count >= 6 else 'single-column' }}">
-            {% set numbering = namespace(value=0) %}
-            {% for section, qs in grouped_questions.items() %}
-                {% set section_marks = namespace(total=0) %}
-                {% for q in qs %}{% set section_marks.total = section_marks.total + (q['marks']|int) %}{% endfor %}
-                <section class="qp-section">
-                    {% if section and section|string|lower not in ['general','none',''] %}
-                        <div class="qp-section-heading">
-                            <span>{{ section }}</span>
-                            <span>{% if qs|map(attribute='marks')|unique|list|length == 1 %}({{ qs|length }} × {{ qs[0]['marks'] }} = {{ section_marks.total }}){% else %}({{ qs|length }} Qs = {{ section_marks.total }} Marks){% endif %}</span>
-                        </div>
-                    {% endif %}
-                    {% for q in qs %}
-                        {% set numbering.value = numbering.value + 1 %}
-                        <div class="qp-question">
-                            <div class="qp-q-num">{{ numbering.value }}.</div>
-                            <div class="qp-q-content">
-                                <div class="qp-q-top">
-                                    <div class="qp-q-text">{{ q['question_text'] }}</div>
-                                    <span class="qp-q-marks">[{{ q['marks'] }}]</span>
-                                </div>
-
-                                {% if q['question_type'] == 'mcq' and q['options'] %}
-                                    {% set option_list = q['options'].replace('\n', ',').split(',') %}
-                                    <div class="qp-options-grid">
-                                        {% for opt in option_list if opt.strip() %}
-                                            <div class="qp-option-item"><span class="qp-option-label">({{ ['A','B','C','D','E','F','G','H','I','J'][loop.index0] if loop.index0 < 10 else loop.index }}).</span><span>{{ opt.strip() }}</span></div>
-                                        {% endfor %}
-                                    </div>
-                                {% elif q['question_type'] == 'matching' and q['options'] %}
-                                    {% set pairs = q['options'].replace('\n', ',').split(',') %}
-                                    <table class="qp-match-table">
-                                        <thead><tr><th style="width:50%">Column A</th><th>Column B</th></tr></thead>
-                                        <tbody>
-                                        {% for pair in pairs if pair.strip() %}
-                                            {% set pair_parts = pair.split('|', 1) %}
-                                            <tr><td>{{ pair_parts[0].strip() }}</td><td>{{ pair_parts[1].strip() if pair_parts|length > 1 else '' }}</td></tr>
-                                        {% endfor %}
-                                        </tbody>
-                                    </table>
-                                {% elif q['options'] %}
-                                    <div class="qp-q-text">{{ q['options'] }}</div>
-                                {% endif %}
-
-                                {% if q['lines']|int > 0 and q['question_type'] != 'matching' and q['question_type'] != 'mcq' %}
-                                    {% for _ in range(q['lines']|int) %}<div class="qp-answer-line"></div>{% endfor %}
-                                {% endif %}
-                            </div>
-                        </div>
-                    {% endfor %}
-                </section>
-            {% endfor %}
+        <div class="qp-meta-row">
+            <span>CLASS – {{ paper['class_name'] }}</span>
+            <span>SUB – {{ paper['subject'] }}</span>
+            <span>F.M. – {{ paper['max_marks'] }}</span>
+            <span>TIME – {{ paper['time_allowed'] }}</span>
         </div>
-    {% else %}
-        <div class="qp-empty"><h3>No questions have been added yet.</h3></div>
-    {% endif %}
-</main>
+        <hr class="qp-rule">
+        <div class="qp-student-row">
+            <span>Name: _______________________</span><span>Roll No.: ___________</span><span>Date: ___________</span><span>Section: _______</span>
+        </div>
+        <div class="qp-instruction">ANSWER ALL THE QUESTIONS</div>
+        <div class="qp-subinstruction">TEACHER IS REQUESTED TO EXPLAIN THE QUESTION TO THE STUDENTS</div>
+
+        {% if grouped_questions %}
+            <div class="qp-columns qp-single-column" id="qp-question-columns">
+                {% set numbering = namespace(value=0) %}
+                {% for section, qs in grouped_questions.items() %}
+                    {% set section_marks = namespace(total=0) %}
+                    {% for q in qs %}{% set section_marks.total = section_marks.total + (q['marks']|int) %}{% endfor %}
+                    <section class="qp-section">
+                        {% if section and section|string|lower not in ['general','none',''] %}
+                            <div class="qp-section-heading">
+                                <span>{{ section }}</span>
+                                <span>{% if qs|map(attribute='marks')|unique|list|length == 1 %}({{ qs|length }} × {{ qs[0]['marks'] }} = {{ section_marks.total }}){% else %}({{ qs|length }} Qs = {{ section_marks.total }} Marks){% endif %}</span>
+                            </div>
+                        {% endif %}
+                        {% for q in qs %}
+                            {% set numbering.value = numbering.value + 1 %}
+                            <div class="qp-question">
+                                <div class="qp-q-num">{{ numbering.value }}.</div>
+                                <div class="qp-q-content">
+                                    <div class="qp-q-top">
+                                        <div class="qp-q-text">{{ q['question_text'] }}</div>
+                                        <span class="qp-q-marks">[{{ q['marks'] }}]</span>
+                                    </div>
+
+                                    {% if q['question_type'] == 'mcq' and q['options'] %}
+                                        {% set option_list = q['options'].replace('\n', ',').split(',') %}
+                                        <div class="qp-options-grid">
+                                            {% for opt in option_list if opt.strip() %}
+                                                <div class="qp-option-item"><span class="qp-option-label">({{ ['A','B','C','D','E','F','G','H','I','J'][loop.index0] if loop.index0 < 10 else loop.index }}).</span><span>{{ opt.strip() }}</span></div>
+                                            {% endfor %}
+                                        </div>
+                                    {% elif q['question_type'] == 'matching' and q['options'] %}
+                                        {% set pairs = q['options'].replace('\n', ',').split(',') %}
+                                        <table class="qp-match-table">
+                                            <thead><tr><th style="width:50%">Column A</th><th>Column B</th></tr></thead>
+                                            <tbody>
+                                            {% for pair in pairs if pair.strip() %}
+                                                {% set pair_parts = pair.split('|', 1) %}
+                                                <tr><td>{{ pair_parts[0].strip() }}</td><td>{{ pair_parts[1].strip() if pair_parts|length > 1 else '' }}</td></tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    {% elif q['options'] %}
+                                        <div class="qp-q-text">{{ q['options'] }}</div>
+                                    {% endif %}
+
+                                    {% if q['lines']|int > 0 and q['question_type'] != 'matching' and q['question_type'] != 'mcq' %}
+                                        {% for _ in range(q['lines']|int) %}<div class="qp-answer-line"></div>{% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </section>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="qp-empty"><h3>No questions have been added yet.</h3></div>
+        {% endif %}
+    </main>
+    <main class="qp-sheet qp-sheet-copy" id="qp-sheet-copy" aria-hidden="true"></main>
+</div>
+
 <script>
-function setQpOrientation(orientation) {
-    const selected = orientation === 'portrait' ? 'portrait' : 'landscape';
-    const sheet = document.getElementById('qp-sheet');
+(function () {
+    'use strict';
+
+    const orientationSelect = document.getElementById('qp-orientation');
+    const columnsSelect = document.getElementById('qp-columns');
+    const pagesSelect = document.getElementById('qp-pages-per-sheet');
+    const pagesHint = document.getElementById('qp-pages-hint');
+    const stage = document.getElementById('qp-print-stage');
+    const mainSheet = document.getElementById('qp-sheet');
+    const copySheet = document.getElementById('qp-sheet-copy');
     const pageStyle = document.getElementById('qp-dynamic-page-style');
-    if (!sheet || !pageStyle) return;
 
-    sheet.dataset.orientation = selected;
-    sheet.classList.toggle('qp-portrait-preview', selected === 'portrait');
-    pageStyle.textContent = selected === 'portrait'
-        ? '@page { size: A4 portrait; margin: 10mm 12mm; }'
-        : '@page { size: A4 landscape; margin: 9mm 10mm; }';
-}
+    function applyColumns() {
+        const questionArea = document.getElementById('qp-question-columns');
+        if (!questionArea || !columnsSelect) return;
+        const isDouble = columnsSelect.value === '2';
+        questionArea.classList.toggle('qp-double-column', isDouble);
+        questionArea.classList.toggle('qp-single-column', !isDouble);
+    }
 
-document.addEventListener('DOMContentLoaded', function () {
-    const selector = document.getElementById('qp-orientation');
-    if (selector) setQpOrientation(selector.value || 'landscape');
-});
+    function refreshSecondCopy() {
+        if (!mainSheet || !copySheet || !stage || !orientationSelect || !pagesSelect) return;
+        const isTwoUp = orientationSelect.value === 'landscape' && pagesSelect.value === '2';
+        stage.classList.toggle('qp-two-up', isTwoUp);
+        copySheet.innerHTML = isTwoUp ? mainSheet.innerHTML : '';
+        copySheet.setAttribute('aria-hidden', isTwoUp ? 'false' : 'true');
+    }
+
+    window.setQpOrientation = function (orientation) {
+        const selected = orientation === 'landscape' ? 'landscape' : 'portrait';
+        if (orientationSelect) orientationSelect.value = selected;
+        if (mainSheet) {
+            mainSheet.dataset.orientation = selected;
+            mainSheet.classList.toggle('qp-landscape-preview', selected === 'landscape');
+        }
+        if (copySheet) copySheet.classList.toggle('qp-landscape-preview', selected === 'landscape');
+        if (pagesSelect) {
+            pagesSelect.disabled = selected !== 'landscape';
+            if (selected !== 'landscape') pagesSelect.value = '1';
+        }
+        if (pagesHint) {
+            pagesHint.textContent = selected === 'landscape'
+                ? 'Double Page select karne par same question paper ek landscape sheet par do copies mein side-by-side print hoga.'
+                : 'Double Page option sirf Landscape orientation mein available hai.';
+        }
+        if (pageStyle) {
+            pageStyle.textContent = selected === 'portrait'
+                ? '@page { size: A4 portrait; margin: 10mm 12mm; }'
+                : '@page { size: A4 landscape; margin: 7mm 7mm; }';
+        }
+        refreshSecondCopy();
+    };
+
+    window.setQpColumns = function (value) {
+        if (columnsSelect) columnsSelect.value = value === '2' ? '2' : '1';
+        applyColumns();
+        refreshSecondCopy();
+    };
+
+    window.setQpPagesPerSheet = function (value) {
+        if (!pagesSelect) return;
+        if (!orientationSelect || orientationSelect.value !== 'landscape') {
+            pagesSelect.value = '1';
+        } else {
+            pagesSelect.value = value === '2' ? '2' : '1';
+        }
+        refreshSecondCopy();
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (orientationSelect) window.setQpOrientation(orientationSelect.value || 'portrait');
+        applyColumns();
+        refreshSecondCopy();
+    });
+
+    window.addEventListener('beforeprint', function () {
+        applyColumns();
+        refreshSecondCopy();
+    });
+})();
 </script>
 {% endblock %}

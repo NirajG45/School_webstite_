@@ -2,71 +2,251 @@
 <html lang="en">
 <head>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-<meta charset="UTF-8">
-<title>Report Cards — {{ exam.title }}</title>
-<style>
-  @page { size: A4 landscape; margin: 4mm; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Times New Roman', serif; background: #fff; color: #000; }
+    <meta charset="UTF-8">
+    <title>Report Cards — {{ exam.title }}</title>
+    <style>
+        /* Print Settings */
+        @page { 
+            size: A4 landscape; 
+            margin: 4mm; 
+        }
+        
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
+        
+        body { 
+            font-family: 'Times New Roman', serif; 
+            background: #fff; 
+            color: #000; 
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact;
+        }
 
-  .page {
-    width: 289mm; height: 202mm;
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 4mm; page-break-after: always;
-  }
-  .page:last-child { page-break-after: auto; }
+        /* Page Layout (2 Cards per page in Landscape) */
+        .page {
+            width: 289mm; 
+            height: 200mm; 
+            display: grid; 
+            grid-template-columns: 1fr 1fr;
+            gap: 6mm; 
+            page-break-after: always;
+        }
+        .page:last-child { 
+            page-break-after: auto; 
+        }
 
-  .rcard {
-    width: 100%; height: 100%;
-    border: 2.4px solid #000; border-radius: 6px;
-    padding: 4mm 4mm 2.5mm;
-    display: flex; flex-direction: column;
-    font-size: 9.5px; background: #fff; position: relative;
-  }
+        /* Main Card Container */
+        .rcard {
+            width: 100%; 
+            height: 100%;
+            border: 2px solid #000; /* Outer Border */
+            padding: 3mm; 
+            position: relative;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+        }
 
-  .rc-header { display: grid; grid-template-columns: 22mm 1fr 22mm;
-               align-items: center; gap: 2mm; margin-bottom: 1.5mm; }
-  .rc-logo { width: 22mm; height: 22mm; object-fit: contain; }
-  .rc-school { text-align: center; line-height: 1.15; }
-  .rc-school h1 { font-size: 12px; font-weight: 900; letter-spacing: 0.2px; text-transform: uppercase; }
-  .rc-school h2 { font-size: 10.5px; font-weight: 800; margin-top: 1px; }
-  .rc-school .rc-exam { font-size: 9px; font-weight: 700; margin-top: 2px;
-                        text-decoration: underline; text-underline-offset: 2px; }
+        /* Inner Double Border Effect */
+        .rcard::before {
+            content: '';
+            position: absolute;
+            top: 1.5mm; left: 1.5mm; right: 1.5mm; bottom: 1.5mm;
+            border: 1px solid #000; /* Inner Border */
+            border-radius: 4px;
+            pointer-events: none;
+        }
 
-  .rc-badge-row { display: flex; align-items: center; gap: 3mm; margin: 1.5mm 0; }
-  .rc-rule { flex: 1; height: 1.2px; background: #000; }
-  .rc-badge { border: 1.8px solid #000; border-radius: 20px; padding: 0.8mm 6mm;
-              font-size: 11px; font-weight: 900; letter-spacing: 1px;
-              text-transform: uppercase; white-space: nowrap; }
+        /* Inner Content Wrapper (to sit inside the double border) */
+        .rc-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 2mm 2mm 1mm;
+        }
 
-  .rc-info { border: 1.4px solid #000; border-radius: 6px; padding: 2mm 3mm;
-             display: grid; grid-template-columns: 1fr 1fr; gap: 1.2mm 5mm; font-size: 9.5px; }
-  .rc-info .row { display: flex; gap: 2mm; align-items: baseline; }
-  .rc-info .lbl { font-weight: 700; min-width: 15mm; }
-  .rc-info .val { flex: 1; border-bottom: 1.1px dotted #000; padding-bottom: 0.3mm;
-                  font-weight: 600; min-height: 4mm; }
+        /* Header Section */
+        .rc-header { 
+            display: grid; 
+            grid-template-columns: 20mm 1fr 20mm;
+            align-items: center; 
+            gap: 1mm; 
+            margin-bottom: 1mm; 
+        }
+        .rc-logo { 
+            width: 20mm; 
+            height: 20mm; 
+            object-fit: contain; 
+        }
+        .rc-school { 
+            text-align: center; 
+            line-height: 1.2; 
+        }
+        
+        /* School Name Fix: Single Line */
+        .rc-school h1 { 
+            font-size: 13px; 
+            font-weight: 900; 
+            text-transform: uppercase; 
+            letter-spacing: 0.2px;
+            white-space: nowrap; /* यह सुनिश्चित करेगा कि नाम एक ही लाइन में रहे */
+        }
+        
+        /* Location on Next Line */
+        .rc-school h2 { 
+            font-size: 12px; 
+            font-weight: 800; 
+            margin-top: 2px; 
+            text-transform: uppercase;
+        }
+        
+        /* Exam Name Fix: Bada aur Clear */
+        .rc-school .rc-exam { 
+            font-size: 13px; /* फॉन्ट साइज़ बढ़ाया गया */
+            font-weight: 900; 
+            margin-top: 4px; 
+            padding: 1.5px 0;
+            border-top: 1.5px solid #000; /* ऊपर लाइन */
+            border-bottom: 1.5px solid #000; /* नीचे लाइन */
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-  .rc-table { width: 100%; border-collapse: collapse; margin-top: 2mm;
-              font-size: 9.5px; flex: 1; }
-  .rc-table th, .rc-table td { border: 1.1px solid #000; padding: 1mm 2mm; }
-  .rc-table th { background: #f2f2f2; font-weight: 900; text-transform: uppercase;
-                 font-size: 9.5px; text-align: center; }
-  .rc-table td.num { text-align: center; }
-  .rc-table td.subj { text-transform: uppercase; font-weight: 600; }
-  .rc-table tr.total td { background: #f7f7f7; font-weight: 900; font-size: 10px; }
+        /* Badge Row */
+        .rc-badge-row { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            gap: 4mm; 
+            margin: 3mm 0; 
+        }
+        .rc-rule { 
+            flex: 1; 
+            height: 1.5px; 
+            background: #000; 
+        }
+        .rc-badge { 
+            border: 2px solid #000; 
+            border-radius: 20px; 
+            padding: 1mm 8mm;
+            font-size: 12px; 
+            font-weight: 900; 
+            letter-spacing: 1px;
+            text-transform: uppercase; 
+            white-space: nowrap; 
+        }
 
-  .rc-signs { display: flex; justify-content: space-between; align-items: flex-end;
-              margin-top: 3mm; font-size: 9px; font-weight: 700; gap: 4mm; }
-  .rc-signs .line { flex: 1; border-bottom: 1.2px solid #000; height: 5mm; margin-bottom: 1mm; }
+        /* Student Info Section */
+        .rc-info { 
+            border: 1.5px solid #000; 
+            border-radius: 8px; 
+            padding: 3mm 4mm;
+            display: grid; 
+            grid-template-columns: 1.2fr 1fr; 
+            gap: 2mm 6mm; 
+            font-size: 10px;
+            margin-bottom: 3mm;
+        }
+        .rc-info .row { 
+            display: flex; 
+            gap: 2mm; 
+            align-items: baseline; 
+        }
+        .rc-info .lbl { 
+            font-weight: 700; 
+            min-width: 16mm; 
+        }
+        .rc-info .val { 
+            flex: 1; 
+            border-bottom: 1.5px dotted #000; 
+            padding-bottom: 0.5mm;
+            font-weight: 600; 
+            min-height: 4mm; 
+        }
 
-  .rc-tagline { display: flex; align-items: center; gap: 3mm;
-                justify-content: center; margin-top: 2mm; font-size: 8.5px;
-                font-style: italic; font-weight: 700; }
-  .rc-tagline .rule { width: 12mm; height: 1.1px; background: #000; }
+        /* Marks Table */
+        .rc-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 10px; 
+            flex: 1; 
+        }
+        .rc-table th, .rc-table td { 
+            border: 1.5px solid #000; 
+            padding: 1.5mm 2mm; 
+        }
+        .rc-table th { 
+            background: #f2f2f2; 
+            font-weight: 900; 
+            text-transform: uppercase;
+            font-size: 11px; 
+            text-align: center; 
+        }
+        .rc-table td.num { 
+            text-align: center; 
+            font-weight: 600;
+        }
+        .rc-table td.subj { 
+            text-transform: uppercase; 
+            font-weight: 600; 
+            text-align: left;
+        }
+        .rc-table tr.total td { 
+            background: #f2f2f2; 
+            font-weight: 900; 
+            font-size: 11px;
+        }
 
-  .rc-custom-msg { text-align: center; font-size: 8px; font-style: italic;
-                   margin-top: 1mm; color: #222; }
-</style>
+        /* Signatures Section */
+        .rc-signs { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-end;
+            margin-top: 4mm; 
+            font-size: 10px; 
+            font-weight: 700; 
+        }
+        .rc-signs .sign-box {
+            display: flex;
+            align-items: flex-end;
+            gap: 2mm;
+        }
+        .rc-signs .line { 
+            width: 35mm; 
+            border-bottom: 1.5px solid #000; 
+            height: 5mm; 
+        }
+        .rc-signs .divider {
+            width: 1.5px; 
+            height: 12mm; 
+            background: #000; 
+            margin-bottom: 2mm;
+        }
+
+        /* Footer Tagline */
+        .rc-tagline { 
+            display: flex; 
+            align-items: center; 
+            gap: 4mm;
+            justify-content: center; 
+            margin-top: auto; 
+            padding-top: 3mm;
+            font-size: 9px;
+            font-style: italic; 
+            font-weight: 700; 
+        }
+        .rc-tagline .rule { 
+            width: 20mm; 
+            height: 1px; 
+            background: #000; 
+        }
+    </style>
 </head>
 <body>
 
@@ -79,76 +259,86 @@
   {% set pct = (total_obtained / total_max * 100)|round(2) if total_max else 0 %}
 
   <div class="rcard">
-    <div class="rc-header">
-      <img src="{{ url_for('static', filename='images/school_logo.png') }}" class="rc-logo" alt="logo">
-      <div class="rc-school">
-        <h1>RES. SHANTI NIKETAN SHISHU VIDYA MANDIR</h1>
-        <h2>NAVINAGAR ( JAMUI )</h2>
-        <div class="rc-exam">{{ exam.title|upper }}</div>
+    <div class="rc-content">
+      
+      <!-- Header -->
+      <div class="rc-header">
+        <img src="{{ url_for('static', filename='images/school_logo.png') }}" class="rc-logo" alt="logo">
+        <div class="rc-school">
+          <h1>RES. SHANTI NIKETAN SHISHU VIDYA MANDIR</h1>
+          <h2>NAVINAGAR ( JAMUI )</h2>
+          <div class="rc-exam">{{ exam.title|upper }}</div>
+        </div>
+        <img src="{{ url_for('static', filename='images/school_logo.png') }}" class="rc-logo" alt="logo">
       </div>
-      <img src="{{ url_for('static', filename='images/school_logo.png') }}" class="rc-logo" alt="logo">
+
+      <!-- Progress Report Badge -->
+      <div class="rc-badge-row">
+        <div class="rc-rule"></div>
+        <div class="rc-badge">Progress Report</div>
+        <div class="rc-rule"></div>
+      </div>
+
+      <!-- Student Info Box -->
+      <div class="rc-info">
+        <div class="row"><span class="lbl">Name</span> <span class="lbl" style="min-width:auto;">:</span> <span class="val">{{ s.name }}</span></div>
+        <div class="row"><span class="lbl">Class</span> <span class="lbl" style="min-width:auto;">:</span>
+          <span class="val">{{ s.class_name or s.child_class or class_name }}</span></div>
+        <div class="row"><span class="lbl">Roll No.</span> <span class="lbl" style="min-width:auto;">:</span>
+          <span class="val">{{ s.roll_no or s.admission_no or '—' }}</span></div>
+        <div class="row"><span class="lbl">Sec.</span> <span class="lbl" style="min-width:auto;">:</span>
+          <span class="val">{{ s.section or s.child_section or '—' }}</span></div>
+      </div>
+
+      <!-- Marks Table -->
+      <table class="rc-table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th style="width:25mm;">Max Marks</th>
+            <th style="width:30mm;">{{ exam.term_label or '2nd TERM' }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sub in subjects %}
+          <tr>
+            <td class="subj">{{ sub.subject_name }}</td>
+            <td class="num">{{ sub.max_marks|int }}</td>
+            <td class="num">{{ marks.get(sub.subject_name, '') }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="total">
+            <td class="subj" style="text-align:center;">Total</td>
+            <td class="num">{{ total_max|int }}</td>
+            <td class="num">{{ total_obtained|round(1) if total_obtained else '' }}</td>
+          </tr>
+          <tr class="total">
+            <td class="subj" style="text-align:center;">Percentage</td>
+            <td class="num">100%</td>
+            <td class="num">{{ pct }}%</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Signatures -->
+      <div class="rc-signs">
+        <div class="sign-box">
+            Principal's Sign: <div class="line"></div>
+        </div>
+        <div class="divider"></div>
+        <div class="sign-box">
+            Teacher's Sign: <div class="line"></div>
+        </div>
+      </div>
+
+      <!-- Footer Tagline -->
+      <div class="rc-tagline">
+        <span class="rule"></span>
+        <span>Learn &nbsp;•&nbsp; Grow &nbsp;•&nbsp; Build a Better Future</span>
+        <span class="rule"></span>
+      </div>
+
     </div>
-
-    <div class="rc-badge-row">
-      <div class="rc-rule"></div>
-      <div class="rc-badge">Progress Report</div>
-      <div class="rc-rule"></div>
-    </div>
-
-    <div class="rc-info">
-      <div class="row"><span class="lbl">Name</span><span class="val">{{ s.name }}</span></div>
-      <div class="row"><span class="lbl">Class</span>
-        <span class="val">{{ s.class_name or s.child_class or class_name }}</span></div>
-      <div class="row"><span class="lbl">Roll No.</span>
-        <span class="val">{{ s.roll_no or s.admission_no or '—' }}</span></div>
-      <div class="row"><span class="lbl">Sec.</span>
-        <span class="val">{{ s.section or s.child_section or '—' }}</span></div>
-    </div>
-
-    <table class="rc-table">
-      <thead>
-        <tr>
-          <th>Subject</th>
-          <th style="width:22mm;">Max Marks</th>
-          <th style="width:26mm;">{{ exam.term_label or '2nd TERM' }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for sub in subjects %}
-        <tr>
-          <td class="subj">{{ sub.subject_name }}</td>
-          <td class="num">{{ sub.max_marks|int }}</td>
-          <td class="num">{{ marks.get(sub.subject_name, '') }}</td>
-        </tr>
-        {% endfor %}
-        <tr class="total">
-          <td>Total</td>
-          <td class="num">{{ total_max|int }}</td>
-          <td class="num">{{ total_obtained|round(1) if total_obtained else '' }}</td>
-        </tr>
-        <tr class="total">
-          <td>Percentage</td>
-          <td class="num">100%</td>
-          <td class="num">{{ pct }}%</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="rc-signs">
-      <div style="flex:1;"><div class="line"></div>Principal's Sign</div>
-      <div style="width:1.5px; height:10mm; background:#000;"></div>
-      <div style="flex:1;"><div class="line"></div>Teacher's Sign</div>
-    </div>
-
-    <div class="rc-tagline">
-      <span class="rule"></span>
-      <span>Learn &nbsp;•&nbsp; Grow &nbsp;•&nbsp; Build a Better Future</span>
-      <span class="rule"></span>
-    </div>
-
-    {% if exam.custom_message %}
-    <div class="rc-custom-msg">{{ exam.custom_message }}</div>
-    {% endif %}
   </div>
   {% endfor %}
   {% if pair|length == 1 %}<div></div>{% endif %}
@@ -156,7 +346,7 @@
 {% endfor %}
 
 <script>
-  window.addEventListener('load', () => setTimeout(() => window.print(), 400));
+  window.addEventListener('load', () => setTimeout(() => window.print(), 500));
 </script>
 </body>
 </html>

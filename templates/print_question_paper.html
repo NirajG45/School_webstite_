@@ -6,7 +6,8 @@
 .qp-toolbar{max-width:900px;margin:0 auto 15px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#fffbeb;border:1px solid #fde68a;border-radius:9px;padding:11px 15px}
 .qp-print-note{font-size:12px;color:#92400e;margin:0;line-height:1.5}
 .qp-print-btn{border:0;border-radius:8px;padding:11px 18px;background:#0f766e;color:#fff;font-weight:800;cursor:pointer;white-space:nowrap}
-.qp-sheet{width:210mm;min-height:297mm;margin:0 auto 25px;padding:12mm 14mm;background:#fff;color:#000;box-shadow:0 4px 24px #00000012;font-family:"Times New Roman",Times,serif;font-size:11pt;line-height:1.35;box-sizing:border-box}
+.qp-sheet{width:297mm;min-height:210mm;margin:0 auto 25px;padding:9mm 12mm;background:#fff;color:#000;box-shadow:0 4px 24px #00000012;font-family:"Times New Roman",Times,serif;font-size:11pt;line-height:1.35;box-sizing:border-box}
+.qp-sheet.qp-portrait-preview{width:210mm;min-height:297mm}
 .qp-header{margin-bottom:5px;break-inside:avoid;page-break-inside:avoid}
 .qp-header-table{width:100%;border-collapse:collapse;table-layout:fixed}
 .qp-logo-cell{width:75px;text-align:center;vertical-align:middle}
@@ -20,9 +21,9 @@
 .qp-student-row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:6px 0 13px;font-size:10.5pt;padding:0 4px}
 .qp-instruction{text-align:center;font-weight:bold;font-size:11.5pt;margin:8px 0 2px;text-transform:uppercase}
 .qp-subinstruction{text-align:center;font-size:9pt;font-style:italic;margin:0 0 13px}
-.qp-columns{column-count:2;column-gap:25px;column-fill:balance}
-.qp-columns.single-column{column-count:1}
-.qp-section{margin:0 0 13px;break-inside:avoid-column;page-break-inside:avoid}
+.qp-columns{column-count:1;column-gap:0;column-fill:auto;width:100%}
+.qp-columns.single-column,.qp-columns.two-column{column-count:1}
+.qp-section{width:100%;margin:0 0 13px;break-inside:auto;page-break-inside:auto}
 .qp-section-heading{display:flex;justify-content:space-between;gap:8px;font-weight:bold;font-size:10.5pt;margin:0 0 7px;padding-bottom:3px;border-bottom:1px solid #777;break-after:avoid}
 .qp-question{display:flex;align-items:flex-start;gap:5px;margin:0 0 10px;break-inside:avoid;page-break-inside:avoid}
 .qp-q-num{font-weight:bold;flex:0 0 21px}
@@ -38,31 +39,39 @@
 .qp-match-table th{font-weight:bold}
 .qp-answer-line{border-bottom:1px dotted #888;height:17px;margin-top:3px;width:100%}
 .qp-empty{text-align:center;padding:35px;border:1px dashed #aaa}
-@media screen and (max-width:900px){.qp-sheet{width:100%;min-height:0;padding:20px;overflow:hidden}.qp-columns{column-count:1}.qp-meta-row,.qp-student-row{font-size:10pt}.qp-school{white-space:normal}}
+@media screen and (max-width:1150px){.qp-sheet,.qp-sheet.qp-portrait-preview{width:100%;min-height:0;padding:20px;overflow:hidden}.qp-meta-row,.qp-student-row{font-size:10pt}.qp-school{white-space:normal}}
 @media print{
-    @page{size:A4 portrait;margin:10mm 12mm}
     html,body{margin:0!important;padding:0!important;background:#fff!important;color:#000!important}
     .admin-sidebar,.admin-backdrop,.admin-topbar,.admin-menu-toggle,.admin-search,.admin-user-info,.admin-topbar-notif,.admin-notif-dropdown,.admin-user-profile,.admin-user-dropdown,.admin-my-dash-btn,.admin-sidebar-foot,.flash-stack,.qp-toolbar,.no-print,script{display:none!important;visibility:hidden!important}
-    .admin-main,body.admin-sidebar-collapsed .admin-main,.admin-content{margin:0!important;padding:0!important;width:100%!important;background:#fff!important}
-    .qp-sheet{width:100%!important;min-height:auto!important;margin:0!important;padding:0!important;box-shadow:none!important}
+    .admin-main,body.admin-sidebar-collapsed .admin-main,.admin-content{margin:0!important;padding:0!important;width:100%!important;max-width:none!important;background:#fff!important}
+    .qp-sheet,.qp-sheet.qp-portrait-preview{width:100%!important;min-height:0!important;height:auto!important;margin:0!important;padding:0!important;box-shadow:none!important;max-width:none!important}
     .qp-header,.qp-header-table,.qp-header-text,.qp-school,.qp-place,.qp-exam,.qp-logo-cell,.qp-logo{visibility:visible!important}
     .qp-header-table{display:table!important;width:100%!important}.qp-header-table tr{display:table-row!important}
     .qp-logo-cell,.qp-header-text{display:table-cell!important;vertical-align:middle!important}
     .qp-school{font-size:17pt!important}.qp-exam{font-size:13.5pt!important}.qp-logo-cell{width:75px!important}.qp-logo{width:62px!important;height:62px!important}
-    .qp-columns{column-gap:22px;column-fill:balance}
-    .qp-columns.single-column{column-count:1!important}
-    .qp-columns.two-column{column-count:2!important}
-    .qp-section,.qp-question,.qp-match-table{break-inside:avoid;page-break-inside:avoid}
+    .qp-columns,.qp-columns.single-column,.qp-columns.two-column{display:block!important;width:100%!important;column-count:1!important;column-width:auto!important;column-gap:0!important;column-fill:auto!important}
+    .qp-section{width:100%!important;break-inside:auto!important;page-break-inside:auto!important}
+    .qp-question,.qp-match-table{break-inside:avoid!important;page-break-inside:avoid!important}
     *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 }
 </style>
+<style id="qp-dynamic-page-style">@page{size:A4 landscape;margin:9mm 10mm}</style>
 
 <div class="qp-toolbar no-print">
-    <p class="qp-print-note"><strong>Print tip:</strong> PDF mein browser ka URL/date hide karne ke liye Print dialog mein “Headers and footers” uncheck karein. Questions kam hon to layout automatically single column rahega.</p>
+    <div>
+        <p class="qp-print-note"><strong>Print layout:</strong> Landscape default hai. Questions ek hi full-width column mein aayenge; side-by-side do question blocks nahi banenge.</p>
+        <label for="qp-orientation" style="display:inline-flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;font-weight:700;color:#1f2937">
+            Page orientation:
+            <select id="qp-orientation" onchange="setQpOrientation(this.value)" style="padding:7px 10px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;font:inherit">
+                <option value="landscape" selected>Landscape (A4)</option>
+                <option value="portrait">Portrait (A4)</option>
+            </select>
+        </label>
+    </div>
     <button class="qp-print-btn" type="button" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / Save as PDF</button>
 </div>
 
-<main class="qp-sheet">
+<main class="qp-sheet" id="qp-sheet" data-orientation="landscape">
     <header class="qp-header">
         <table class="qp-header-table" role="presentation">
             <tr>
@@ -152,4 +161,23 @@
         <div class="qp-empty"><h3>No questions have been added yet.</h3></div>
     {% endif %}
 </main>
+<script>
+function setQpOrientation(orientation) {
+    const selected = orientation === 'portrait' ? 'portrait' : 'landscape';
+    const sheet = document.getElementById('qp-sheet');
+    const pageStyle = document.getElementById('qp-dynamic-page-style');
+    if (!sheet || !pageStyle) return;
+
+    sheet.dataset.orientation = selected;
+    sheet.classList.toggle('qp-portrait-preview', selected === 'portrait');
+    pageStyle.textContent = selected === 'portrait'
+        ? '@page { size: A4 portrait; margin: 10mm 12mm; }'
+        : '@page { size: A4 landscape; margin: 9mm 10mm; }';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const selector = document.getElementById('qp-orientation');
+    if (selector) setQpOrientation(selector.value || 'landscape');
+});
+</script>
 {% endblock %}

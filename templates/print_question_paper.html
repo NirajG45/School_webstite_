@@ -26,7 +26,7 @@
 
 /* Two complete copies on one landscape sheet */
 .qp-print-stage.qp-two-up{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:3mm;width:min(100%,297mm);margin:0 auto}
-.qp-print-stage.qp-two-up .qp-sheet{width:100%;min-width:0;min-height:196mm;padding:5mm 5mm;font-size:8.2pt;line-height:1.2;box-shadow:0 3px 16px #00000012;overflow:hidden}
+.qp-print-stage.qp-two-up .qp-sheet{width:100%;min-width:0;min-height:196mm;padding:4mm 4mm;font-size:9.4pt;line-height:1.22;box-shadow:0 3px 16px #00000012;overflow:visible}
 .qp-sheet-copy{display:none}
 .qp-print-stage.qp-two-up .qp-sheet-copy{display:block}
 
@@ -44,13 +44,13 @@
 
 /* Two-up mode keeps the same header structure but scales it proportionally. */
 .qp-print-stage.qp-two-up .qp-header{margin-bottom:3px}
-.qp-print-stage.qp-two-up .qp-header-table col.qp-logo-col{width:13mm}
-.qp-print-stage.qp-two-up .qp-logo-cell{width:13mm}
-.qp-print-stage.qp-two-up .qp-logo{width:11.5mm;height:11.5mm;max-width:100%}
+.qp-print-stage.qp-two-up .qp-header-table col.qp-logo-col{width:15mm}
+.qp-print-stage.qp-two-up .qp-logo-cell{width:15mm}
+.qp-print-stage.qp-two-up .qp-logo{width:13mm;height:13mm;max-width:100%}
 .qp-print-stage.qp-two-up .qp-header-text{padding:0 1mm}
-.qp-print-stage.qp-two-up .qp-school{font-size:9.3pt;line-height:1.05;letter-spacing:0;margin-bottom:2px}
-.qp-print-stage.qp-two-up .qp-place{font-size:6.8pt;line-height:1.05;margin-bottom:2px}
-.qp-print-stage.qp-two-up .qp-exam{font-size:7.7pt;line-height:1.08}
+.qp-print-stage.qp-two-up .qp-school{font-size:10.2pt;line-height:1.05;letter-spacing:0;margin-bottom:2px}
+.qp-print-stage.qp-two-up .qp-place{font-size:8pt;line-height:1.05;margin-bottom:2px}
+.qp-print-stage.qp-two-up .qp-exam{font-size:8.8pt;line-height:1.08}
 
 /* Fixed-width metadata rows prevent header items wrapping unpredictably. */
 .qp-meta-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;align-items:center;gap:2mm;margin:7px 0 4px;padding:0 1mm;font-size:10pt;font-weight:800}
@@ -65,8 +65,8 @@
 .qp-subinstruction{text-align:center;font-size:8.8pt;font-style:italic;margin:0 0 12px;line-height:1.2}
 
 /* Question columns apply only to the question body, never to the header. */
-.qp-columns{width:100%;column-count:1;column-gap:0;column-fill:balance;column-rule:0;}
-.qp-columns.qp-double-column{column-count:2;column-gap:8mm;column-rule:0.25mm solid #d1d5db;}
+.qp-columns{width:100%;column-count:1;column-gap:0;column-fill:auto;column-rule:0;}
+.qp-columns.qp-double-column{column-count:2;column-gap:8mm;column-rule:0.25mm solid #d1d5db;column-fill:auto;height:270mm;}
 .qp-section{width:100%;margin:0 0 10px;break-inside:auto;page-break-inside:auto}
 .qp-section-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;font-weight:800;font-size:10.2pt;margin:0 0 7px;padding-bottom:3px;border-bottom:1px solid #777;break-after:avoid;page-break-after:avoid}
 .qp-section-heading span:last-child{white-space:nowrap;text-align:right}
@@ -86,16 +86,16 @@
 .qp-empty{text-align:center;padding:35px;border:1px dashed #aaa}
 
 /* Two-up paper keeps the header and question content readable. */
-.qp-print-stage.qp-two-up .qp-meta-row{font-size:6.7pt;gap:1mm;margin:4px 0 3px}
+.qp-print-stage.qp-two-up .qp-meta-row{font-size:8pt;gap:1mm;margin:4px 0 3px}
 .qp-print-stage.qp-two-up .qp-rule{margin:3px 0}
-.qp-print-stage.qp-two-up .qp-student-row{font-size:6.5pt;gap:1mm;margin:4px 0 7px;grid-template-columns:1.25fr 1fr 1fr .8fr}
-.qp-print-stage.qp-two-up .qp-instruction{font-size:7.8pt;margin:5px 0 2px}
-.qp-print-stage.qp-two-up .qp-subinstruction{font-size:6.2pt;margin-bottom:7px}
-.qp-print-stage.qp-two-up .qp-section-heading{font-size:7.6pt;margin-bottom:4px}
+.qp-print-stage.qp-two-up .qp-student-row{font-size:7.8pt;gap:1mm;margin:4px 0 7px;grid-template-columns:1.25fr 1fr 1fr .8fr}
+.qp-print-stage.qp-two-up .qp-instruction{font-size:9.5pt;margin:5px 0 2px}
+.qp-print-stage.qp-two-up .qp-subinstruction{font-size:7.4pt;margin-bottom:7px}
+.qp-print-stage.qp-two-up .qp-section-heading{font-size:9pt;margin-bottom:4px}
 .qp-print-stage.qp-two-up .qp-question{gap:3px;margin-bottom:5px}
 .qp-print-stage.qp-two-up .qp-q-num{flex-basis:14px}
-.qp-print-stage.qp-two-up .qp-q-marks{font-size:6.8pt}
-.qp-print-stage.qp-two-up .qp-options-grid,.qp-print-stage.qp-two-up .qp-match-table{font-size:6.8pt}
+.qp-print-stage.qp-two-up .qp-q-marks{font-size:8.6pt}
+.qp-print-stage.qp-two-up .qp-options-grid,.qp-print-stage.qp-two-up .qp-match-table{font-size:8.8pt}
 .qp-print-stage.qp-two-up .qp-match-table th,.qp-print-stage.qp-two-up .qp-match-table td{padding:2px 3px}
 .qp-print-stage.qp-two-up .qp-answer-line{height:11px}
 .qp-print-stage.qp-two-up .qp-columns{column-count:1!important;column-width:auto!important;column-gap:0!important;column-rule:0!important}
@@ -133,7 +133,7 @@
 
     /* Print two-up using two independent, complete question papers. */
     .qp-print-stage.qp-two-up{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;column-gap:3mm!important;row-gap:0!important;align-items:start!important;width:100%!important;margin:0!important;padding:0!important}
-    .qp-two-up .qp-sheet{display:block!important;width:100%!important;min-width:0!important;min-height:196mm!important;height:auto!important;margin:0!important;padding:4mm 4mm!important;box-shadow:none!important;font-size:8pt!important;line-height:1.18!important;overflow:hidden!important;break-inside:avoid!important;page-break-inside:avoid!important}
+    .qp-two-up .qp-sheet{display:block!important;width:100%!important;min-width:0!important;min-height:196mm!important;height:auto!important;margin:0!important;padding:4mm 4mm!important;box-shadow:none!important;font-size:9.4pt!important;line-height:1.22!important;overflow:visible!important;break-inside:avoid!important;page-break-inside:avoid!important}
     .qp-two-up .qp-sheet-copy{display:block!important}
 
     /* Header sizing is explicit in print; no table auto-shrinking. */
@@ -160,35 +160,36 @@
 
     /* Every question stays intact and numbering remains continuous. */
     .qp-columns{display:block!important;width:100%!important;column-count:1!important;column-width:auto!important;column-gap:0!important;column-rule:0!important;column-fill:balance!important}
-    .qp-columns.qp-double-column{display:block!important;column-count:2!important;column-width:auto!important;column-gap:8mm!important;column-rule:0.25mm solid #d1d5db!important;column-fill:balance!important}
+    .qp-columns.qp-double-column{display:block!important;column-count:2!important;column-width:auto!important;column-gap:8mm!important;column-rule:0.25mm solid #d1d5db!important;column-fill:auto!important;height:270mm!important}
     .qp-section{width:100%!important;break-inside:auto!important;page-break-inside:auto!important}
+    .qp-sheet.qp-landscape-preview .qp-columns.qp-double-column{height:190mm!important}
+
     .qp-section-heading{break-after:avoid!important;page-break-after:avoid!important}
     .qp-question,.qp-match-table,.qp-options-grid{break-inside:avoid!important;page-break-inside:avoid!important;-webkit-column-break-inside:avoid!important}
 
-    /* Header in two-up remains centered and logos remain clearly visible. */
+    /* Two-up copies use real half-page layout, not transform/scale.
+       Keep question text comfortably readable and compact only the spacing. */
     .qp-two-up .qp-header{margin-bottom:2px!important}
-    .qp-two-up .qp-header-table col.qp-logo-col{width:13mm!important}
-    .qp-two-up .qp-logo-cell{width:13mm!important}
-    .qp-two-up .qp-logo{width:11.5mm!important;height:11.5mm!important;max-width:100%!important}
+    .qp-two-up .qp-header-table col.qp-logo-col{width:15mm!important}
+    .qp-two-up .qp-logo-cell{width:15mm!important}
+    .qp-two-up .qp-logo{width:13mm!important;height:13mm!important;max-width:100%!important}
     .qp-two-up .qp-header-text{padding:0 1mm!important}
-    .qp-two-up .qp-school{font-size:9.3pt!important;line-height:1.05!important;white-space:nowrap!important;margin-bottom:1.5px!important}
-    .qp-two-up .qp-place{font-size:6.8pt!important;line-height:1.05!important;margin-bottom:1.5px!important}
-    .qp-two-up .qp-exam{font-size:7.7pt!important;line-height:1.08!important}
-    .qp-two-up .qp-meta-row{font-size:6.7pt!important;gap:1mm!important;margin:3px 0 2px!important}
+    .qp-two-up .qp-school{font-size:10.2pt!important;line-height:1.05!important;white-space:normal!important;margin-bottom:1.5px!important}
+    .qp-two-up .qp-place{font-size:8pt!important;line-height:1.05!important;margin-bottom:1.5px!important}
+    .qp-two-up .qp-exam{font-size:8.8pt!important;line-height:1.08!important}
+    .qp-two-up .qp-meta-row{font-size:8pt!important;gap:1mm!important;margin:3px 0 2px!important}
     .qp-two-up .qp-rule{margin:2px 0!important}
-    .qp-two-up .qp-student-row{font-size:6.5pt!important;gap:1mm!important;margin:3px 0 6px!important}
-    .qp-two-up .qp-instruction{font-size:7.8pt!important;margin:4px 0 1px!important}
-    .qp-two-up .qp-subinstruction{font-size:6.2pt!important;margin-bottom:5px!important}
-    .qp-two-up .qp-section-heading{font-size:7.6pt!important;margin-bottom:3px!important}
+    .qp-two-up .qp-student-row{font-size:7.8pt!important;gap:1mm!important;margin:3px 0 6px!important;grid-template-columns:1.25fr 1fr 1fr .8fr!important}
+    .qp-two-up .qp-instruction{font-size:9.5pt!important;margin:4px 0 1px!important}
+    .qp-two-up .qp-subinstruction{font-size:7.4pt!important;margin-bottom:5px!important}
+    .qp-two-up .qp-section-heading{font-size:9pt!important;margin-bottom:3px!important}
     .qp-two-up .qp-question{gap:3px!important;margin-bottom:4px!important}
-    .qp-two-up .qp-q-num{flex-basis:14px!important}
-    .qp-two-up .qp-q-marks{font-size:6.8pt!important}
-    .qp-two-up .qp-options-grid,.qp-two-up .qp-match-table{font-size:6.8pt!important}
+    .qp-two-up .qp-q-num{flex-basis:16px!important}
+    .qp-two-up .qp-q-marks{font-size:8.6pt!important}
+    .qp-two-up .qp-options-grid,.qp-two-up .qp-match-table{font-size:8.8pt!important}
     .qp-two-up .qp-match-table th,.qp-two-up .qp-match-table td{padding:2px 3px!important}
     .qp-two-up .qp-answer-line{height:10px!important}
-    /* Each half of a double-copy sheet is one complete, sequential question paper. */
-    .qp-two-up .qp-columns,.qp-two-up .qp-columns.qp-double-column{column-count:1!important;column-width:auto!important;column-gap:0!important;column-rule:0!important}
-
+    .qp-two-up .qp-columns,.qp-two-up .qp-columns.qp-double-column{column-count:1!important;column-width:auto!important;column-gap:0!important;column-rule:0!important;height:auto!important}
     *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 }
 </style>

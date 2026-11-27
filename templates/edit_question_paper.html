@@ -56,6 +56,51 @@
 .qpe-empty{text-align:center;padding:45px 15px;color:var(--q-muted)}
 @media(max-width:900px){.qpe-row-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.qpe-row-grid .question-field{grid-column:1/-1}.qpe-row-grid .qpe-options-panel{grid-column:1/-1}}
 @media(max-width:620px){.qpe-hero{padding:17px}.qpe-hero h1{font-size:18px}.qpe-panel-body{padding:13px}.span-6,.span-4,.span-3,.span-2{grid-column:span 12}.qpe-row-grid{grid-template-columns:1fr}.qpe-row-grid .question-field,.qpe-row-grid .qpe-options-panel{grid-column:1}.qpe-sticky{position:static;flex-direction:column;align-items:stretch}.qpe-sticky .qpe-btn{width:100%}.saved-q-card{flex-wrap:wrap}.saved-q-actions{margin-left:auto}.mcq-preview,.match-list{grid-template-columns:1fr}.qpe-modal-grid{grid-template-columns:1fr}.qpe-modal-grid .full{grid-column:1}}
+
+/* Professional question-builder redesign */
+.qpe-wrapper{max-width:1380px}
+.qpe-hero{background:linear-gradient(120deg,#fff 0%,#f4f7ff 100%);border-left-width:6px}
+.qpe-hero h1{letter-spacing:-.45px}
+.qpe-panel{border-radius:17px;box-shadow:0 8px 28px #1720330a}
+.qpe-panel-head{padding:18px 22px}
+.qpe-panel-body{padding:22px}
+.builder-head{padding:13px 15px;background:#f8faff;border:1px solid #e4eaf5;border-radius:12px}
+.qpe-row{position:relative;padding:18px;border-radius:15px;border:1px solid #dce4f0;box-shadow:0 3px 12px #17203308;transition:border-color .18s,box-shadow .18s}
+.qpe-row:focus-within{border-color:#9bb7f3;box-shadow:0 0 0 3px #2457d60d}
+.qpe-row-top{gap:12px;align-items:center;flex-wrap:wrap}
+.qpe-row-badge{letter-spacing:.45px}
+.qpe-row-grid{grid-template-columns:150px minmax(220px,2fr) minmax(150px,1fr) 100px 115px}
+.qpe-row .qpe-field label{font-size:10px;letter-spacing:.55px}
+.qpe-row .qpe-field textarea{min-height:74px;line-height:1.5}
+.qpe-row .qpe-field input,.qpe-row .qpe-field select,.qpe-row .qpe-field textarea{border-radius:10px}
+.qpe-row .qpe-field input[type=number]{font-weight:700}
+.answer-line-control{display:flex;align-items:center;gap:6px}
+.answer-line-control input{max-width:62px;text-align:center}
+.answer-line-control button{width:30px;height:34px;border:1px solid #d7dfeb;background:#f8fafc;border-radius:8px;font-weight:900;cursor:pointer}
+.editor-launchers{grid-column:1/-1;display:flex;gap:9px;flex-wrap:wrap;padding:13px;background:#f7f9fd;border:1px solid #e6ebf3;border-radius:12px}
+.editor-launchers .qpe-btn{padding:9px 13px}
+.editor-panel{grid-column:1/-1;background:#fbfcff;border:1px solid #dce5f4;border-radius:13px;padding:15px;margin-top:2px}
+.editor-panel[hidden]{display:none!important}
+.editor-panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.editor-panel-head strong{font-size:13px}
+.editor-tools{display:flex;gap:7px;flex-wrap:wrap}
+.option-list,.pair-list{display:grid;gap:8px}
+.option-item{display:grid;grid-template-columns:32px minmax(0,1fr) 36px;gap:8px;align-items:center}
+.option-letter{height:34px;display:grid;place-items:center;background:#eaf0ff;color:#244db4;border-radius:8px;font-size:12px;font-weight:900}
+.option-item input,.pair-item input{width:100%;min-width:0;border:1px solid #d7dfeb;border-radius:9px;padding:9px 10px;font:inherit;font-size:13px;box-sizing:border-box}
+.pair-item{display:grid;grid-template-columns:30px minmax(0,1fr) 24px minmax(0,1fr) 36px;gap:7px;align-items:center}
+.pair-index{font-size:11px;font-weight:900;color:#64748b;text-align:center}
+.pair-arrow{text-align:center;color:#8a97aa;font-weight:900}
+.editor-help{font-size:11px;color:#64748b;margin-top:9px;line-height:1.5}
+.editor-empty{padding:13px;text-align:center;border:1px dashed #cbd5e1;border-radius:9px;color:#64748b;font-size:12px}
+.qpe-btn-small{padding:7px 10px;font-size:11px;border-radius:7px}
+.qpe-sticky{border-radius:14px}
+.qpe-stats{line-height:1.7}
+.saved-q-card{border-radius:13px}
+.qpe-tag{letter-spacing:.1px}
+@media(max-width:900px){.qpe-row-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.qpe-row-grid .question-field{grid-column:1/-1}.qpe-row-grid .editor-launchers,.qpe-row-grid .editor-panel{grid-column:1/-1}}
+@media(max-width:620px){.qpe-panel-body{padding:13px}.qpe-row{padding:13px}.qpe-row-grid{grid-template-columns:1fr}.qpe-row-grid .question-field,.qpe-row-grid .editor-launchers,.qpe-row-grid .editor-panel{grid-column:1}.pair-item{grid-template-columns:22px minmax(0,1fr) 14px minmax(0,1fr) 32px}.editor-panel{padding:11px}}
+
 </style>
 
 <div class="qpe-wrapper">
@@ -86,7 +131,7 @@
                 </div>
             </div>
             <div class="qpe-panel-body">
-                <div class="qpe-note"><strong>Section name optional hai.</strong> Agar question ko kisi section (jaise “A. Choose the correct answer”) mein rakhna hai tabhi section name bharein. Blank chhodne par question bina section heading ke rahega. MCQ options aur Matching pairs ke liye neeche alag editor milega.</div>
+                <div class="qpe-note"><strong>Section name optional hai.</strong> Agar question ko kisi section (jaise “A. Choose the correct answer”) mein rakhna hai tabhi section name bharein. Blank chhodne par question bina section heading ke rahega. Answer lines default 0 hain. MCQ aur Matching ke liye dedicated editors use karein; har question ka content alag customize kar sakte hain.</div>
 
                 <div class="bulk-area">
                     <h4><i class="fa-solid fa-wand-magic-sparkles"></i> Smart Bulk Add</h4>
@@ -119,10 +164,10 @@
                 </div>
 
                 <div class="builder-head">
-                    <h4>Manual Question Builder</h4>
+                    <h4>Question Builder · Individual question cards</h4>
                     <div class="inline-actions">
-                        <button type="button" class="qpe-btn qpe-outline" id="addOne"><i class="fa-solid fa-plus"></i> Add 1</button>
-                        <button type="button" class="qpe-btn qpe-outline" id="addFive"><i class="fa-solid fa-layer-group"></i> Add 5</button>
+                        <button type="button" class="qpe-btn qpe-outline" id="addOne"><i class="fa-solid fa-plus"></i> Add question</button>
+                        <button type="button" class="qpe-btn qpe-outline" id="addFive"><i class="fa-solid fa-layer-group"></i> Add 5 questions</button>
                     </div>
                 </div>
                 <div id="questionRows"></div>
@@ -222,7 +267,7 @@
                     </div>
                 </div>
                 <div><label for="edit_marks">Marks</label><input type="number" id="edit_marks" min="1" max="1000"></div>
-                <div><label for="edit_lines">Answer lines</label><input type="number" id="edit_lines" min="0" max="30"></div>
+                <div><label for="edit_lines">Answer lines (0 = none)</label><input type="number" id="edit_lines" min="0" max="30"></div>
             </div>
         </div>
         <div class="qpe-modal-foot"><button type="button" class="qpe-btn qpe-outline" id="closeModalCancel">Cancel</button><button type="button" class="qpe-btn qpe-primary" id="saveEditBtn"><i class="fa-solid fa-check"></i> Save changes</button></div>
@@ -262,54 +307,92 @@
         $('unsavedMarks').textContent=total;
         $('marksFooter').textContent=total;
     }
-    function renderMatchRows(target,pairs=[]){
-        target.innerHTML='';
-        const source=pairs.length?pairs:[{left:'',right:''}];
-        source.forEach(pair=>{
-            const line=document.createElement('div');
-            line.className='match-builder';
-            line.innerHTML='<input type="text" class="match-left" maxlength="500" placeholder="Column A item"><input type="text" class="match-right" maxlength="500" placeholder="Column B item"><button type="button" class="qpe-btn qpe-danger match-remove" title="Remove pair"><i class="fa-solid fa-xmark"></i></button>';
-            line.querySelector('.match-left').value=pair.left||'';
-            line.querySelector('.match-right').value=pair.right||'';
-            line.querySelector('.match-remove').addEventListener('click',()=>{line.remove();if(!target.children.length)renderMatchRows(target);});
-            target.appendChild(line);
+    function makeOptionRow(target,value=''){
+        const item=document.createElement('div');
+        item.className='option-item';
+        item.innerHTML='<span class="option-letter"></span><input type="text" maxlength="500" placeholder="Enter option text"><button type="button" class="qpe-icon-btn delete" title="Remove option"><i class="fa-solid fa-trash"></i></button>';
+        item.querySelector('input').value=value;
+        item.querySelector('button').addEventListener('click',()=>{item.remove();renumberOptions(target);});
+        target.appendChild(item);
+        renumberOptions(target);
+    }
+    function renumberOptions(target){
+        [...target.querySelectorAll('.option-item')].forEach((item,i)=>{
+            item.querySelector('.option-letter').textContent=letters[i]||String(i+1);
         });
     }
-    function serializeMatchRows(target){
-        return [...target.querySelectorAll('.match-builder')].map(line=>{
-            const left=line.querySelector('.match-left').value.trim();
-            const right=line.querySelector('.match-right').value.trim();
-            return left||right ? left+'|'+right : '';
-        }).filter(Boolean).join(', ');
+    function optionValues(target){
+        return [...target.querySelectorAll('.option-item input')].map(x=>x.value.trim()).filter(Boolean);
     }
-    function setTypePanels(row,type,existing=''){
-        const mcq=row.querySelector('.mcq-editor');
-        const matching=row.querySelector('.matching-editor');
-        mcq.hidden=type!=='mcq'; matching.hidden=type!=='matching';
-        if(type==='mcq') row.querySelector('.mcq-options').value=splitOptions(existing).join('\n');
-        if(type==='matching') renderMatchRows(row.querySelector('.match-rows'),splitPairs(existing));
+    function makePairRow(target,pair={}){
+        const item=document.createElement('div');
+        item.className='pair-item';
+        item.innerHTML='<span class="pair-index"></span><input class="pair-left" maxlength="500" placeholder="Column A item"><span class="pair-arrow">↔</span><input class="pair-right" maxlength="500" placeholder="Column B item"><button type="button" class="qpe-icon-btn delete" title="Remove pair"><i class="fa-solid fa-trash"></i></button>';
+        item.querySelector('.pair-left').value=pair.left||'';
+        item.querySelector('.pair-right').value=pair.right||'';
+        item.querySelector('button').addEventListener('click',()=>{item.remove();renumberPairs(target);});
+        target.appendChild(item);
+        renumberPairs(target);
+    }
+    function renumberPairs(target){
+        [...target.querySelectorAll('.pair-item')].forEach((item,i)=>item.querySelector('.pair-index').textContent=String(i+1)+'.');
+    }
+    function pairValues(target){
+        return [...target.querySelectorAll('.pair-item')].map(item=>({
+            left:item.querySelector('.pair-left').value.trim(),
+            right:item.querySelector('.pair-right').value.trim()
+        })).filter(p=>p.left||p.right);
     }
     function syncOptions(row){
         const type=row.querySelector('[name="type[]"]').value;
         let value='';
-        if(type==='mcq') value=splitOptions(row.querySelector('.mcq-options').value).join(', ');
-        if(type==='matching') value=serializeMatchRows(row.querySelector('.match-rows'));
+        if(type==='mcq') value=optionValues(row.querySelector('.option-list')).join(', ');
+        if(type==='matching') value=pairValues(row.querySelector('.pair-list')).map(p=>p.left+'|'+p.right).join(', ');
         row.querySelector('[name="options[]"]').value=value;
     }
+    function showQuestionEditor(row,type){
+        const mcq=row.querySelector('.mcq-editor');
+        const matching=row.querySelector('.matching-editor');
+        mcq.hidden=type!=='mcq';
+        matching.hidden=type!=='matching';
+        row.querySelector('.editor-launchers').hidden=type==='normal';
+        row.querySelector('.editor-panel').hidden=type==='normal';
+        row.querySelector('.mcq-editor').hidden=type!=='mcq';
+        row.querySelector('.matching-editor').hidden=type!=='matching';
+        row.querySelector('.open-mcq').classList.toggle('qpe-primary',type==='mcq');
+        row.querySelector('.open-matching').classList.toggle('qpe-primary',type==='matching');
+    }
     function addRow(data={}){
-        const row=document.createElement('div');
+        const row=document.createElement('article');
         row.className='qpe-row';
         row.innerHTML=`
-            <div class="qpe-row-top"><span class="qpe-row-badge">QUESTION</span><button type="button" class="qpe-btn qpe-danger" data-remove><i class="fa-solid fa-xmark"></i> Remove</button></div>
+            <div class="qpe-row-top">
+                <span class="qpe-row-badge">QUESTION</span>
+                <div class="inline-actions">
+                    <span class="qpe-tag">Configure question</span>
+                    <button type="button" class="qpe-btn qpe-danger qpe-btn-small" data-remove><i class="fa-solid fa-trash"></i> Remove</button>
+                </div>
+            </div>
             <div class="qpe-row-grid">
-                <div class="qpe-field"><label>Type</label><select name="type[]"><option value="normal">Normal</option><option value="mcq">MCQ</option><option value="matching">Matching</option></select></div>
-                <div class="qpe-field question-field"><label>Question text *</label><textarea name="question[]" maxlength="2000" rows="2" placeholder="Enter question here..." required></textarea></div>
+                <div class="qpe-field"><label>Question type</label><select name="type[]"><option value="normal">Subjective</option><option value="mcq">MCQ</option><option value="matching">Matching</option></select></div>
+                <div class="qpe-field question-field"><label>Question / Instruction *</label><textarea name="question[]" maxlength="2000" rows="2" placeholder="Type your question here..." required></textarea></div>
                 <div class="qpe-field"><label>Section (optional)</label><input name="section[]" maxlength="150" placeholder="e.g. Section A"></div>
                 <div class="qpe-field"><label>Marks</label><input name="marks[]" type="number" min="1" max="1000" value="1" required></div>
-                <div class="qpe-field"><label>Lines</label><input name="lines[]" type="number" min="0" max="30" value="1" required></div>
-                <div class="qpe-options-panel" hidden>
-                    <div class="qpe-field mcq-editor" hidden><label>MCQ options (one per line)</label><textarea class="mcq-options" rows="3" placeholder="Option A&#10;Option B&#10;Option C&#10;Option D"></textarea><div class="qpe-subhint">Options ko alag lines mein likhein; print par A, B, C... labels automatic aayenge.</div></div>
-                    <div class="matching-editor" hidden><label>Matching pairs</label><div class="match-rows"></div><button type="button" class="qpe-btn qpe-outline add-match"><i class="fa-solid fa-plus"></i> Add pair</button><div class="qpe-subhint">Column A aur Column B ke matching items ko alag-alag enter karein.</div></div>
+                <div class="qpe-field"><label>Answer lines</label><div class="answer-line-control"><button type="button" data-line-minus aria-label="Decrease lines">−</button><input name="lines[]" type="number" min="0" max="30" value="0" required><button type="button" data-line-plus aria-label="Increase lines">+</button></div><div class="qpe-subhint">Default: no answer lines</div></div>
+                <div class="editor-launchers" hidden>
+                    <button type="button" class="qpe-btn qpe-outline open-mcq"><i class="fa-solid fa-list-ol"></i> MCQ Options Editor</button>
+                    <button type="button" class="qpe-btn qpe-outline open-matching"><i class="fa-solid fa-table"></i> Matching Editor</button>
+                    <span class="qpe-subhint">Choose an editor to add and customize its content.</span>
+                </div>
+                <div class="editor-panel" hidden>
+                    <div class="mcq-editor" hidden>
+                        <div class="editor-panel-head"><strong><i class="fa-solid fa-list-ol"></i> Multiple-choice options</strong><div class="editor-tools"><button type="button" class="qpe-btn qpe-outline qpe-btn-small add-option"><i class="fa-solid fa-plus"></i> Add option</button><button type="button" class="qpe-btn qpe-outline qpe-btn-small auto-options"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto set A–D</button></div></div>
+                        <div class="option-list"></div><div class="editor-help">Add, edit or remove options. Auto set creates four editable option fields; it does not invent answer content.</div>
+                    </div>
+                    <div class="matching-editor" hidden>
+                        <div class="editor-panel-head"><strong><i class="fa-solid fa-table"></i> Match the following</strong><div class="editor-tools"><button type="button" class="qpe-btn qpe-outline qpe-btn-small add-pair"><i class="fa-solid fa-plus"></i> Add pair</button><button type="button" class="qpe-btn qpe-outline qpe-btn-small auto-pairs"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto set 4 pairs</button></div></div>
+                        <div class="pair-list"></div><div class="editor-help">Enter Column A and Column B separately. Auto set creates four editable matching rows.</div>
+                    </div>
                 </div>
                 <input type="hidden" name="options[]" value="">
             </div>`;
@@ -318,23 +401,38 @@
         row.querySelector('[name="question[]"]').value=data.question||'';
         row.querySelector('[name="section[]"]').value=data.section||'';
         row.querySelector('[name="marks[]"]').value=data.marks??1;
-        row.querySelector('[name="lines[]"]').value=data.lines??1;
-        setTypePanels(row,type.value,data.options||'');
-        function refresh(){
-            const selected=type.value;
-            const panel=row.querySelector('.qpe-options-panel');
-            panel.hidden=selected==='normal';
-            row.querySelector('.mcq-editor').hidden=selected!=='mcq';
-            row.querySelector('.matching-editor').hidden=selected!=='matching';
-            syncOptions(row);
+        row.querySelector('[name="lines[]"]').value=data.lines??0;
+
+        const optionList=row.querySelector('.option-list');
+        const pairList=row.querySelector('.pair-list');
+        if(type.value==='mcq'){
+            const opts=splitOptions(data.options||'');
+            (opts.length?opts:['','','','']).forEach(v=>makeOptionRow(optionList,v));
+        } else if(type.value==='matching'){
+            const pairs=splitPairs(data.options||'');
+            (pairs.length?pairs:[{left:'',right:''}]).forEach(p=>makePairRow(pairList,p));
         }
-        type.addEventListener('change',()=>{setTypePanels(row,type.value,'');refresh();});
-        row.querySelector('.mcq-options').addEventListener('input',()=>syncOptions(row));
-        row.querySelector('.add-match').addEventListener('click',()=>{const target=row.querySelector('.match-rows');const current=serializeMatchRows(target);renderMatchRows(target,[...splitPairs(current),{left:'',right:''}]);});
-        row.querySelector('.match-rows').addEventListener('input',()=>syncOptions(row));
+
+        type.addEventListener('change',()=>{
+            if(type.value==='mcq'&&!optionList.children.length) ['', '', '', ''].forEach(v=>makeOptionRow(optionList,v));
+            if(type.value==='matching'&&!pairList.children.length) for(let i=0;i<4;i++)makePairRow(pairList);
+            showQuestionEditor(row,type.value);
+            syncOptions(row);
+        });
+        row.querySelector('.open-mcq').addEventListener('click',()=>{type.value='mcq';if(!optionList.children.length)for(let i=0;i<4;i++)makeOptionRow(optionList);showQuestionEditor(row,'mcq');syncOptions(row);});
+        row.querySelector('.open-matching').addEventListener('click',()=>{type.value='matching';if(!pairList.children.length)for(let i=0;i<4;i++)makePairRow(pairList);showQuestionEditor(row,'matching');syncOptions(row);});
+        row.querySelector('.add-option').addEventListener('click',()=>{makeOptionRow(optionList);syncOptions(row);});
+        row.querySelector('.auto-options').addEventListener('click',()=>{optionList.innerHTML='';['','','',''].forEach(v=>makeOptionRow(optionList,v));syncOptions(row);});
+        row.querySelector('.add-pair').addEventListener('click',()=>{makePairRow(pairList);syncOptions(row);});
+        row.querySelector('.auto-pairs').addEventListener('click',()=>{pairList.innerHTML='';for(let i=0;i<4;i++)makePairRow(pairList);syncOptions(row);});
+        row.addEventListener('input',e=>{if(e.target.closest('.option-list,.pair-list'))syncOptions(row);});
+        row.addEventListener('click',e=>{if(e.target.closest('.option-item button,.pair-item button'))syncOptions(row);});
+        row.querySelector('[data-line-minus]').addEventListener('click',()=>{const el=row.querySelector('[name="lines[]"]');el.value=Math.max(0,(Number(el.value)||0)-1);});
+        row.querySelector('[data-line-plus]').addEventListener('click',()=>{const el=row.querySelector('[name="lines[]"]');el.value=Math.min(30,(Number(el.value)||0)+1);});
         row.querySelector('[name="marks[]"]').addEventListener('input',updateCount);
         row.querySelector('[data-remove]').addEventListener('click',()=>{row.remove();updateCount();});
-        refresh();
+        showQuestionEditor(row,type.value);
+        syncOptions(row);
         container.appendChild(row);
         updateCount();
         return row;
@@ -354,7 +452,7 @@
         const section=$('bulkSection').value.trim();
         const marks=Math.max(1,Number($('bulkMarks').value)||1);
         const options=$('bulkOptions').value.trim();
-        questions.forEach(question=>addRow({type,section,question,options,marks,lines:type==='normal'?1:0}));
+        questions.forEach(question=>addRow({type,section,question,options,marks,lines:0}));
         $('bulkQuestions').value='';
     });
     $('removeEmpty').addEventListener('click',()=>{
@@ -375,16 +473,41 @@
             }
             const type=row.querySelector('[name="type[]"]').value;
             syncOptions(row);
-            if(type==='mcq'&&!row.querySelector('[name="options[]"]').value.trim()){
-                event.preventDefault();alert('Please add at least one MCQ option for Question '+(i+1)+'.');return;
+            if(type==='mcq'&&optionValues(row.querySelector('.option-list')).length<2){
+                event.preventDefault();alert('Please add at least two MCQ options for Question '+(i+1)+'.');return;
             }
-            if(type==='matching'&&!row.querySelector('[name="options[]"]').value.trim()){
+            if(type==='matching'&&!pairValues(row.querySelector('.pair-list')).length){
                 event.preventDefault();alert('Please add at least one matching pair for Question '+(i+1)+'.');return;
             }
         }
         const btn=$('saveQuestions');btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
     });
     addRow();
+
+    // Compatibility helpers used by the existing saved-question edit modal.
+    function renderMatchRows(target,pairs=[]){
+        target.innerHTML='';
+        const source=pairs.length?pairs:[{left:'',right:''}];
+        source.forEach(pair=>{
+            const line=document.createElement('div');
+            line.className='match-builder';
+            line.innerHTML='<input type="text" class="match-left" maxlength="500" placeholder="Column A item"><input type="text" class="match-right" maxlength="500" placeholder="Column B item"><button type="button" class="qpe-btn qpe-danger match-remove" title="Remove pair"><i class="fa-solid fa-xmark"></i></button>';
+            line.querySelector('.match-left').value=pair.left||'';
+            line.querySelector('.match-right').value=pair.right||'';
+            line.querySelector('.match-remove').addEventListener('click',()=>{
+                line.remove();
+                if(!target.children.length)renderMatchRows(target);
+            });
+            target.appendChild(line);
+        });
+    }
+    function serializeMatchRows(target){
+        return [...target.querySelectorAll('.match-builder')].map(line=>{
+            const left=line.querySelector('.match-left').value.trim();
+            const right=line.querySelector('.match-right').value.trim();
+            return left||right ? left+'|'+right : '';
+        }).filter(Boolean).join(', ');
+    }
 
     // Saved question selection and delete APIs
     const apiUrl={{ url_for('api_delete_questions',paper_id=paper['id'])|tojson }};

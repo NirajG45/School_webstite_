@@ -4,1545 +4,646 @@
 
 {% block content %}
 <style>
-    /* ============================================================
-       ADMIN DASHBOARD — TWO COLUMN LAYOUT (IMAGE STYLE)
-       ============================================================ */
-    .dash-layout {
-        display: grid;
-        grid-template-columns: 1fr 340px;
-        gap: 20px;
-        align-items: start;
-    }
-
-    .dash-main {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .dash-side {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    /* Welcome */
-    .dash-welcome {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 20px;
-        flex-wrap: wrap;
-    }
-
-    .dash-welcome h1 {
-        font-family: 'Playfair Display', Georgia, serif;
-        font-size: 28px;
-        font-weight: 800;
-        color: var(--navy);
-        margin: 0 0 6px;
-        letter-spacing: -0.5px;
-        line-height: 1.15;
-    }
-
-    .dash-welcome p {
-        font-size: 13px;
-        color: var(--muted);
-        margin: 0;
-        line-height: 1.5;
-        max-width: 560px;
-    }
-
-    .dash-welcome-actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .btn-soft {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 16px;
-        background: #fff;
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--navy);
-        text-decoration: none;
-        transition: all 0.2s ease;
-        cursor: pointer;
-        font-family: inherit;
-        white-space: nowrap;
-    }
-
-    .btn-soft:hover {
-        background: var(--paper);
-        border-color: #cdd6e0;
-        transform: translateY(-1px);
-    }
-
-    .btn-solid {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 16px;
-        background: var(--navy);
-        border: 1px solid var(--navy);
-        border-radius: 10px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #fff;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        cursor: pointer;
-        font-family: inherit;
-        white-space: nowrap;
-    }
-
-    .btn-solid:hover {
-        background: #061f39;
-        transform: translateY(-1px);
-        box-shadow: 0 8px 18px rgba(9, 47, 88, 0.15);
-        color: #fff;
-    }
-
-    /* Stat cards */
-    .stat-row {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 14px;
-    }
-
-    .stat-tile {
-        background: #fff;
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 18px;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.25s ease;
-    }
-
-    .stat-tile::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-    }
-
-    .stat-tile.stat-blue::before {
-        background: #1768a7;
-    }
-
-    .stat-tile.stat-green::before {
-        background: #168254;
-    }
-
-    .stat-tile.stat-purple::before {
-        background: #7439b2;
-    }
-
-    .stat-tile.stat-amber::before {
-        background: #a86a00;
-    }
-
-    .stat-tile:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 24px rgba(9, 47, 88, 0.06);
-        border-color: #d5dee8;
-    }
-
-    .stat-tile-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 10px;
-    }
-
-    .stat-tile-icon {
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 15px;
-        flex: 0 0 38px;
-    }
-
-    .stat-tile-icon.blue {
-        background: #e1f1ff;
-        color: #1768a7;
-    }
-
-    .stat-tile-icon.green {
-        background: #e3f5eb;
-        color: #168254;
-    }
-
-    .stat-tile-icon.purple {
-        background: #f0e7ff;
-        color: #7439b2;
-    }
-
-    .stat-tile-icon.amber {
-        background: #fff1d6;
-        color: #a86a00;
-    }
-
-    .stat-tile-label {
-        font-size: 11px;
-        font-weight: 700;
-        color: var(--muted);
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        margin-bottom: 6px;
-    }
-
-    .stat-tile-value {
-        font-size: 28px;
-        font-weight: 800;
-        color: var(--navy);
-        line-height: 1;
-        font-family: 'DM Sans', sans-serif;
-    }
-
-    .stat-tile-sub {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 11px;
-        color: var(--muted);
-        margin-top: 8px;
-        font-weight: 500;
-    }
-
-    .stat-tile-sub i {
-        font-size: 10px;
-    }
-
-    /* Panels */
-    .charts-row {
-        display: grid;
-        grid-template-columns: 1.4fr 1fr;
-        gap: 16px;
-    }
-
-    .dash-panel {
-        background: #fff;
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .dash-panel-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 16px 20px;
-        border-bottom: 1px solid var(--line);
-        gap: 12px;
-    }
-
-    .dash-panel-title {
-        font-size: 14px;
-        font-weight: 800;
-        color: var(--navy);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        letter-spacing: -0.2px;
-    }
-
-    .dash-panel-title i {
-        color: var(--red);
-        font-size: 12px;
-    }
-
-    .dash-panel-link {
-        font-size: 11.5px;
-        font-weight: 700;
-        color: var(--red);
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-    }
-
-    .dash-panel-link:hover {
-        gap: 9px;
-        color: #b9102c;
-    }
-
-    .dash-panel-body {
-        padding: 18px 20px;
-        flex: 1;
-    }
-
-    /* Bar chart */
-    .bar-chart {
-        display: flex;
-        align-items: flex-end;
-        gap: 10px;
-        height: 160px;
-        padding: 8px 0 0;
-    }
-
-    .bar-group {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        height: 100%;
-    }
-
-    .bar-wrap {
-        display: flex;
-        align-items: flex-end;
-        gap: 3px;
-        height: 100%;
-        width: 100%;
-        justify-content: center;
-    }
-
-    .bar {
-        width: 10px;
-        border-radius: 3px 3px 0 0;
-        transition: height 0.4s ease;
-        min-height: 4px;
-    }
-
-    .bar-navy {
-        background: var(--navy);
-    }
-
-    .bar-red {
-        background: var(--red);
-    }
-
-    .bar-group span {
-        font-size: 10px;
-        font-weight: 700;
-        color: var(--muted);
-    }
-
-    .chart-legend {
-        display: flex;
-        gap: 16px;
-        justify-content: center;
-        margin-top: 14px;
-    }
-
-    .chart-legend-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 11px;
-        font-weight: 600;
-        color: var(--muted);
-    }
-
-    .chart-legend-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 2px;
-    }
-
-    /* Donut */
-    .donut-wrap {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        padding: 4px 0;
-    }
-
-    .donut {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        position: relative;
-        box-shadow: 0 4px 16px rgba(9, 47, 88, 0.08);
-    }
-
-    .donut::before {
-        content: '';
-        position: absolute;
-        inset: 18px;
-        background: #fff;
-        border-radius: 50%;
-    }
-
-    .donut-center {
-        position: relative;
-        z-index: 1;
-        text-align: center;
-    }
-
-    .donut-center strong {
-        display: block;
-        font-size: 20px;
-        font-weight: 800;
-        color: var(--navy);
-        line-height: 1;
-    }
-
-    .donut-center small {
-        display: block;
-        font-size: 9px;
-        color: var(--muted);
-        font-weight: 700;
-        margin-top: 2px;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-    }
-
-    .donut-legend {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        flex: 1;
-    }
-
-    .donut-legend-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 11.5px;
-    }
-
-    .donut-legend-dot {
-        width: 9px;
-        height: 9px;
-        border-radius: 3px;
-        flex-shrink: 0;
-    }
-
-    .donut-legend-item span {
-        flex: 1;
-        color: var(--muted);
-        font-weight: 600;
-    }
-
-    .donut-legend-item strong {
-        color: var(--navy);
-        font-weight: 800;
-        font-size: 12px;
-    }
-
-    /* Bottom row */
-    .bottom-row {
-        display: grid;
-        grid-template-columns: 1.6fr 1fr;
-        gap: 16px;
-    }
-
-    /* Tables */
-    .dash-table-wrap {
-        overflow-x: auto;
-    }
-
-    .dash-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 12.5px;
-    }
-
-    .dash-table thead {
-        background: #fafcfd;
-    }
-
-    .dash-table th {
-        text-align: left;
-        padding: 10px 16px;
-        font-size: 10px;
-        font-weight: 800;
-        color: var(--muted);
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        border-bottom: 1px solid var(--line);
-        white-space: nowrap;
-    }
-
-    .dash-table td {
-        padding: 11px 16px;
-        color: var(--navy);
-        border-bottom: 1px solid #f1f5f9;
-        vertical-align: middle;
-    }
-
-    .dash-table tr:last-child td {
-        border-bottom: 0;
-    }
-
-    .dash-table tr:hover {
-        background: #fafcfd;
-    }
-
-    .dash-table .user-cell {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .user-avatar-mini {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--red), #b9102c);
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        font-size: 10px;
-        flex: 0 0 28px;
-        letter-spacing: 0.5px;
-        border: 1.5px solid var(--yellow);
-    }
-
-    .user-cell-text strong {
-        display: block;
-        font-size: 12px;
-        font-weight: 700;
-        color: var(--navy);
-        line-height: 1.3;
-    }
-
-    .user-cell-text small {
-        display: block;
-        font-size: 10px;
-        color: var(--muted);
-        margin-top: 1px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 150px;
-        white-space: nowrap;
-    }
-
-    .role-pill,
-    .status-pill {
-        display: inline-block;
-        font-size: 9px;
-        font-weight: 800;
-        padding: 2px 7px;
-        border-radius: 4px;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        white-space: nowrap;
-    }
-
-    .role-pill.role-admin {
-        background: #e3f5eb;
-        color: #168254;
-    }
-
-    .role-pill.role-teacher {
-        background: #e1f1ff;
-        color: #1768a7;
-    }
-
-    .role-pill.role-parent {
-        background: #f0e7ff;
-        color: #7439b2;
-    }
-
-    .role-pill.role-student {
-        background: #fff1d6;
-        color: #a86a00;
-    }
-
-    .status-pill.pending {
-        background: #fff1d6;
-        color: #a86a00;
-    }
-
-    .status-pill.approved {
-        background: #e3f5eb;
-        color: #168254;
-    }
-
-    .status-pill.rejected {
-        background: #ffeaee;
-        color: var(--red);
-    }
-
-    .status-pill.active {
-        background: #e3f5eb;
-        color: #168254;
-    }
-
-    .status-pill.inactive {
-        background: #f1f5f9;
-        color: #65758a;
-    }
-
-    .uid-cell {
-        color: var(--muted);
-        font-family: 'Courier New', monospace;
-        font-size: 11px;
-        font-weight: 600;
-    }
-
-    .empty-state-cell {
-        text-align: center;
-        padding: 30px 16px !important;
-        color: var(--muted);
-        font-size: 12px;
-        font-style: italic;
-    }
-
-    .table-action-link {
-        font-size: 11px;
-        font-weight: 700;
-        color: var(--red);
-        text-decoration: none;
-        margin-right: 8px;
-    }
-
-    .table-action-link:hover {
-        text-decoration: underline;
-    }
-
-    /* Events */
-    .event-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .event-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 8px;
-        border-radius: 10px;
-        background: var(--paper);
-        transition: all 0.2s;
-    }
-
-    .event-item:hover {
-        background: #f0f7ff;
-    }
-
-    .event-date {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 44px;
-        height: 44px;
-        border-radius: 9px;
-        background: var(--navy);
-        color: #fff;
-        flex: 0 0 44px;
-    }
-
-    .event-date strong {
-        font-size: 16px;
-        font-weight: 800;
-        line-height: 1;
-    }
-
-    .event-date small {
-        font-size: 8px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        opacity: 0.85;
-    }
-
-    .event-info strong {
-        display: block;
-        font-size: 12.5px;
-        font-weight: 700;
-        color: var(--navy);
-        margin-bottom: 2px;
-    }
-
-    .event-info small {
-        display: block;
-        font-size: 10.5px;
-        color: var(--muted);
-    }
-
-    .empty-events {
-        padding: 20px;
-        text-align: center;
-        color: var(--muted);
-        font-size: 12px;
-        font-style: italic;
-    }
-
-    /* Sidebar notifications */
-    .notif-list-compact {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .notif-item-compact {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 8px;
-        border-radius: 9px;
-        transition: background 0.2s;
-        text-decoration: none;
-    }
-
-    .notif-item-compact:hover {
-        background: #f0f7ff;
-    }
-
-    .notif-icon {
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 8px;
-        font-size: 12px;
-        flex: 0 0 32px;
-    }
-
-    .notif-icon.amber {
-        background: #fff1d6;
-        color: #a86a00;
-    }
-
-    .notif-icon.green {
-        background: #e3f5eb;
-        color: #168254;
-    }
-
-    .notif-icon.blue {
-        background: #e1f1ff;
-        color: #1768a7;
-    }
-
-    .notif-icon.red {
-        background: #ffeaee;
-        color: var(--red);
-    }
-
-    .notif-icon.purple {
-        background: #f0e7ff;
-        color: #7439b2;
-    }
-
-    .notif-body-compact {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .notif-body-compact strong {
-        display: block;
-        font-size: 11.5px;
-        font-weight: 700;
-        color: var(--navy);
-        margin-bottom: 1px;
-    }
-
-    .notif-body-compact small {
-        display: block;
-        font-size: 10px;
-        color: var(--muted);
-        line-height: 1.3;
-    }
-
-    .notif-badge-count {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 20px;
-        height: 20px;
-        padding: 0 6px;
-        border-radius: 10px;
-        background: var(--red);
-        color: #fff;
-        font-size: 10px;
-        font-weight: 800;
-    }
-
-    .notif-badge-count.zero {
-        background: #cbd5e1;
-        color: #475569;
-    }
-
-    /* Quick actions side */
-    .qa-grid-side {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-    }
-
-    .qa-tile-side {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        padding: 12px 8px;
-        background: var(--paper);
-        border-radius: 10px;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        border: 1px solid transparent;
-        text-align: center;
-    }
-
-    .qa-tile-side:hover {
-        background: #fff;
-        border-color: var(--line);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 14px rgba(9, 47, 88, 0.06);
-    }
-
-    .qa-tile-side .qa-tile-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13px;
-        flex: 0 0 32px;
-    }
-
-    .qa-tile-side span {
-        font-size: 10.5px;
-        font-weight: 700;
-        color: var(--navy);
-        line-height: 1.2;
-    }
-
-    /* Financial summary */
-    .fin-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 6px 0;
-        font-size: 12px;
-    }
-
-    .fin-row span {
-        color: var(--muted);
-        font-weight: 600;
-    }
-
-    .fin-row strong {
-        color: var(--navy);
-        font-weight: 800;
-    }
-
-    .fin-progress {
-        height: 6px;
-        background: #eef2f7;
-        border-radius: 4px;
-        margin-top: 10px;
-        overflow: hidden;
-    }
-
-    .fin-progress-bar {
-        height: 100%;
-        background: #168254;
-        border-radius: 4px;
-        transition: width 0.4s ease;
-    }
-
-    .fin-progress-label {
-        display: block;
-        font-size: 10px;
-        color: var(--muted);
-        margin-top: 4px;
-        font-weight: 600;
-    }
-
-    /* Useful links */
-    .useful-links-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-    }
-
-    .useful-link {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        padding: 12px 8px;
-        background: var(--paper);
-        border-radius: 10px;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        text-align: center;
-    }
-
-    .useful-link:hover {
-        background: #fff;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 14px rgba(9, 47, 88, 0.06);
-    }
-
-    .useful-link i {
-        font-size: 16px;
-        color: var(--navy);
-    }
-
-    .useful-link span {
-        font-size: 10.5px;
-        font-weight: 700;
-        color: var(--navy);
-    }
-
-    /* Responsive */
-    @media (max-width: 1200px) {
-        .dash-layout {
-            grid-template-columns: 1fr;
-        }
-
-        .dash-side {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-    }
-
-    @media (max-width: 900px) {
-        .stat-row {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .charts-row {
-            grid-template-columns: 1fr;
-        }
-
-        .bottom-row {
-            grid-template-columns: 1fr;
-        }
-
-        .dash-side {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @media (max-width: 640px) {
-        .dash-welcome {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .dash-welcome-actions {
-            width: 100%;
-        }
-
-        .dash-welcome-actions .btn-soft,
-        .dash-welcome-actions .btn-solid {
-            flex: 1;
-            justify-content: center;
-        }
-
-        .stat-row {
-            grid-template-columns: 1fr;
-        }
-
-        .dash-welcome h1 {
-            font-size: 24px;
-        }
-
-        .stat-tile-value {
-            font-size: 24px;
-        }
-
-        .donut-wrap {
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-
-        .donut-legend {
-            width: 100%;
-            max-width: 220px;
-        }
-    }
-
-    /* ============================================================
-   MY PROFILE PHOTO CARD
+/* ============================================================
+   ADMIN DASHBOARD — PROFESSIONAL RESPONSIVE EDITION
+   Design system aligned with admin_base.html
    ============================================================ */
-    .admin-profile-avatar-wrap {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 14px;
-    }
+.admin-dashboard-page {
+    --dash-maroon: #7b263b;
+    --dash-maroon-dark: #571b2c;
+    --dash-charcoal: #28262c;
+    --dash-grey: #69717d;
+    --dash-grey-light: #f1f2f5;
+    --dash-white: #fff;
+    --dash-blue: #2d5f91;
+    --dash-blue-dark: #21486f;
+    --dash-yellow: #e3bf5c;
+    --dash-line: #e2e4e9;
+    --dash-ink: #282a31;
+    --dash-muted: #737b87;
+    --dash-shadow: 0 5px 20px rgba(35,31,36,.055);
+    --dash-shadow-hover: 0 13px 30px rgba(35,31,36,.10);
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    color: var(--dash-ink);
+}
+.admin-dashboard-page *,
+.admin-dashboard-page *::before,
+.admin-dashboard-page *::after { box-sizing: border-box; }
+.admin-dashboard-page a { -webkit-tap-highlight-color: transparent; }
+.admin-dashboard-page :is(a,button):focus-visible {
+    outline: 3px solid rgba(227,191,92,.75);
+    outline-offset: 3px;
+}
 
-    .admin-profile-avatar {
-        width: 88px;
-        height: 88px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--red), #b9102c);
-        color: #fff;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        font-size: 26px;
-        letter-spacing: 1px;
-        border: 3px solid var(--yellow);
-        box-shadow: 0 6px 20px rgba(9, 47, 88, 0.15);
-        overflow: hidden;
-    }
+/* Main layout */
+.dash-layout {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(285px,330px);
+    gap: 20px;
+    align-items: start;
+    width: 100%;
+    min-width: 0;
+}
+.dash-main, .dash-side { display:flex; flex-direction:column; gap:20px; min-width:0; }
+.dash-side { gap:16px; }
+.dash-main > *, .dash-side > * { min-width:0; }
 
-    .admin-profile-avatar.has-photo {
-        padding: 0;
-    }
+/* Welcome / page heading */
+.dash-welcome {
+    position:relative;
+    isolation:isolate;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:22px;
+    min-height:145px;
+    padding:25px 28px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:18px;
+    color:#fff;
+    background:
+        radial-gradient(circle at 90% 15%, rgba(227,191,92,.16), transparent 25%),
+        linear-gradient(112deg,#28262c 0%,#49303a 54%,#2d5f91 100%);
+    box-shadow:0 13px 30px rgba(40,38,44,.13);
+}
+.dash-welcome::after {
+    content:"";
+    position:absolute;
+    z-index:-1;
+    width:230px;
+    height:230px;
+    right:18%;
+    top:-145px;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:50%;
+    box-shadow:0 0 0 22px rgba(255,255,255,.025),0 0 0 46px rgba(255,255,255,.02);
+}
+.dash-welcome-copy { min-width:0; }
+.dash-eyebrow {
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    margin-bottom:10px;
+    color:#f0d78e;
+    font-size:9px;
+    font-weight:900;
+    letter-spacing:1.45px;
+    text-transform:uppercase;
+}
+.dash-eyebrow i { font-size:10px; }
+.dash-welcome h1 {
+    margin:0 0 7px;
+    color:#fff;
+    font-family:'Playfair Display',Georgia,serif;
+    font-size:clamp(25px,2.3vw,32px);
+    font-weight:800;
+    letter-spacing:-.5px;
+    line-height:1.13;
+}
+.dash-welcome p { max-width:570px; margin:0; color:rgba(255,255,255,.76); font-size:12.5px; line-height:1.65; }
+.dash-welcome-actions { display:flex; flex:0 0 auto; flex-wrap:wrap; gap:9px; }
+.btn-soft,.btn-solid {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    min-height:42px;
+    padding:10px 15px;
+    border:1px solid transparent;
+    border-radius:10px;
+    font-family:inherit;
+    font-size:11.5px;
+    font-weight:800;
+    text-decoration:none;
+    white-space:nowrap;
+    transition:transform .18s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.btn-soft { color:#fff; background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.23); backdrop-filter:blur(8px); }
+.btn-soft:hover { color:#fff; background:rgba(255,255,255,.17); border-color:rgba(255,255,255,.42); transform:translateY(-1px); }
+.btn-solid { color:#29252b; background:var(--dash-yellow); border-color:var(--dash-yellow); box-shadow:0 5px 13px rgba(0,0,0,.12); }
+.btn-solid:hover { color:#29252b; background:#f0d27d; border-color:#f0d27d; transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.16); }
 
-    .admin-profile-avatar.has-photo img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        border-radius: 50%;
-    }
+/* Stats */
+.stat-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:13px; }
+.stat-tile {
+    position:relative;
+    min-width:0;
+    padding:16px 17px 15px;
+    overflow:hidden;
+    border:1px solid var(--dash-line);
+    border-radius:15px;
+    background:#fff;
+    box-shadow:var(--dash-shadow);
+    transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.stat-tile::before { content:""; position:absolute; inset:0 0 auto; height:3px; background:var(--dash-blue); }
+.stat-tile.stat-green::before { background:#397b68; }
+.stat-tile.stat-purple::before { background:var(--dash-maroon); }
+.stat-tile.stat-amber::before { background:var(--dash-yellow); }
+.stat-tile:hover { transform:translateY(-2px); box-shadow:var(--dash-shadow-hover); border-color:#d3d8e0; }
+.stat-tile-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:13px; }
+.stat-tile-icon { display:grid; place-items:center; width:39px; height:39px; flex:0 0 39px; border-radius:11px; font-size:15px; }
+.stat-tile-icon.blue { color:var(--dash-blue); background:#eaf1f8; }
+.stat-tile-icon.green { color:#397b68; background:#eaf3ef; }
+.stat-tile-icon.purple { color:var(--dash-maroon); background:#f7eaf0; }
+.stat-tile-icon.amber { color:#8f7029; background:#fbf4df; }
+.stat-tile-label { margin-bottom:6px; color:var(--dash-muted); font-size:9.5px; font-weight:900; letter-spacing:.8px; text-transform:uppercase; }
+.stat-tile-value { color:var(--dash-charcoal); font-family:'DM Sans',sans-serif; font-size:clamp(23px,2vw,29px); font-weight:900; letter-spacing:-.7px; line-height:1.05; overflow-wrap:anywhere; }
+.stat-tile-sub { display:flex; align-items:center; gap:6px; margin-top:8px; color:#858b95; font-size:10px; font-weight:600; }
+.stat-tile-sub i { font-size:8px; }
 
-    .admin-profile-actions {
-        display: flex;
-        gap: 8px;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
+/* Panels and section headers */
+.charts-row { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(280px,1fr); gap:15px; }
+.dash-panel {
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+    overflow:hidden;
+    border:1px solid var(--dash-line);
+    border-radius:15px;
+    background:#fff;
+    box-shadow:var(--dash-shadow);
+}
+.dash-panel-header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    min-height:55px;
+    padding:13px 17px;
+    border-bottom:1px solid #eceef2;
+    background:linear-gradient(180deg,#fff,#fafbfc);
+}
+.dash-panel-title { display:flex; align-items:center; gap:9px; min-width:0; margin:0; color:var(--dash-charcoal); font-size:12.5px; font-weight:900; letter-spacing:-.1px; line-height:1.35; }
+.dash-panel-title i { width:16px; flex:0 0 16px; color:var(--dash-maroon); font-size:12px; text-align:center; }
+.dash-panel-link { display:inline-flex; align-items:center; gap:6px; flex:0 0 auto; color:var(--dash-maroon); font-size:10.5px; font-weight:900; text-decoration:none; white-space:nowrap; transition:gap .18s ease,color .18s ease; }
+.dash-panel-link:hover { gap:9px; color:var(--dash-blue); }
+.dash-panel-body { flex:1; min-width:0; padding:16px 17px; }
 
-    .admin-photo-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 14px;
-        border: 1px solid var(--line);
-        background: #fff;
-        border-radius: 8px;
-        font-size: 11.5px;
-        font-weight: 700;
-        color: var(--navy);
-        cursor: pointer;
-        transition: all 0.2s ease;
-        font-family: inherit;
-        white-space: nowrap;
-    }
+/* Admission trend */
+.bar-chart { display:flex; align-items:flex-end; gap:clamp(5px,1vw,11px); width:100%; height:158px; padding:9px 3px 0; }
+.bar-group { display:flex; flex:1 1 0; flex-direction:column; align-items:center; justify-content:flex-end; gap:7px; min-width:0; height:100%; }
+.bar-wrap { display:flex; align-items:flex-end; justify-content:center; gap:3px; width:100%; height:100%; min-height:0; border-bottom:1px solid #e9ebef; }
+.bar { width:clamp(6px,1vw,11px); min-height:4px; border-radius:4px 4px 0 0; transition:height .35s ease; }
+.bar-navy { background:linear-gradient(180deg,#477ca8,var(--dash-blue)); }
+.bar-red { background:linear-gradient(180deg,#a65b70,var(--dash-maroon)); }
+.bar-group span { max-width:100%; overflow:hidden; color:#838a95; font-size:9px; font-weight:800; text-overflow:ellipsis; white-space:nowrap; }
+.chart-legend { display:flex; flex-wrap:wrap; justify-content:center; gap:10px 17px; margin-top:17px; }
+.chart-legend-item { display:flex; align-items:center; gap:6px; color:#747c87; font-size:9.5px; font-weight:700; }
+.chart-legend-dot { width:8px; height:8px; flex:0 0 8px; border-radius:3px; }
 
-    .admin-photo-btn:hover {
-        background: var(--paper);
-        border-color: #b0c4d8;
-        transform: translateY(-1px);
-    }
+/* Fee collection donut */
+.donut-wrap { display:flex; align-items:center; justify-content:center; gap:clamp(13px,2vw,22px); min-height:160px; padding:3px 0; }
+.donut { position:relative; display:flex; flex:0 0 118px; align-items:center; justify-content:center; width:118px; height:118px; border:1px solid rgba(40,38,44,.04); border-radius:50%; box-shadow:0 4px 15px rgba(40,38,44,.08); }
+.donut::before { position:absolute; inset:17px; border-radius:50%; background:#fff; content:""; }
+.donut-center { position:relative; z-index:1; text-align:center; }
+.donut-center strong { display:block; color:var(--dash-charcoal); font-size:20px; font-weight:900; letter-spacing:-.5px; line-height:1; }
+.donut-center small { display:block; margin-top:4px; color:#858b95; font-size:8px; font-weight:900; letter-spacing:.7px; text-transform:uppercase; }
+.donut-legend { display:flex; flex:1; flex-direction:column; gap:11px; min-width:0; }
+.donut-legend-item { display:flex; align-items:center; gap:8px; min-width:0; font-size:10.5px; }
+.donut-legend-dot { width:9px; height:9px; flex:0 0 9px; border-radius:3px; }
+.donut-legend-item span:not(.donut-legend-dot) { flex:1; min-width:0; color:#79818c; font-weight:700; }
+.donut-legend-item strong { color:var(--dash-charcoal); font-size:11px; font-weight:900; }
 
-    .admin-photo-btn.danger {
-        background: #ffeaee;
-        color: var(--red);
-        border-color: #f8c9d2;
-    }
+/* Recent students and upcoming events */
+.bottom-row { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(260px,1fr); gap:15px; }
+.dash-table-wrap { width:100%; min-width:0; overflow-x:auto; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; }
+.dash-table { width:100%; min-width:565px; border-collapse:collapse; font-size:11.5px; }
+.dash-table thead { background:#f5f6f8; }
+.dash-table th { padding:11px 13px; border-bottom:1px solid #e7e9ed; color:#737b86; font-size:9px; font-weight:900; letter-spacing:.7px; text-align:left; text-transform:uppercase; white-space:nowrap; }
+.dash-table td { padding:11px 13px; border-bottom:1px solid #eff0f3; color:#48505b; vertical-align:middle; }
+.dash-table tbody tr:last-child td { border-bottom:0; }
+.dash-table tbody tr:hover { background:#faf7f8; }
+.dash-table .user-cell { display:flex; align-items:center; gap:8px; min-width:0; }
+.user-avatar-mini { display:grid; place-items:center; width:30px; height:30px; flex:0 0 30px; border:1.5px solid var(--dash-yellow); border-radius:50%; color:#fff; background:linear-gradient(135deg,var(--dash-maroon),var(--dash-charcoal)); font-size:9px; font-weight:900; letter-spacing:.2px; }
+.user-cell-text { min-width:0; }
+.user-cell-text strong { display:block; overflow:hidden; color:var(--dash-charcoal); font-size:11px; font-weight:900; line-height:1.3; text-overflow:ellipsis; white-space:nowrap; }
+.user-cell-text small { display:block; max-width:150px; margin-top:2px; overflow:hidden; color:#838a95; font-size:9px; text-overflow:ellipsis; white-space:nowrap; }
+.role-pill,.status-pill { display:inline-flex; align-items:center; padding:4px 7px; border-radius:6px; font-size:8px; font-weight:900; letter-spacing:.4px; text-transform:uppercase; white-space:nowrap; }
+.role-pill.role-admin,.role-pill.role-administrator { color:#725719; background:#fbf4df; }
+.role-pill.role-teacher { color:var(--dash-blue); background:#eaf1f8; }
+.role-pill.role-parent { color:var(--dash-maroon); background:#f7eaf0; }
+.role-pill.role-student { color:#526b7d; background:#edf1f4; }
+.status-pill.active { color:#326b59; background:#eaf3ef; }
+.status-pill.inactive { color:#707782; background:#eff0f3; }
+.uid-cell { color:#838a95 !important; font-family:'Courier New',monospace; font-size:9.5px; font-weight:700; white-space:nowrap; }
+.table-action-link { display:inline-flex; align-items:center; gap:4px; color:var(--dash-maroon); font-size:10px; font-weight:900; text-decoration:none; white-space:nowrap; }
+.table-action-link:hover { color:var(--dash-blue); text-decoration:underline; }
+.empty-state-cell { padding:28px 15px !important; color:#8b929c !important; font-size:11px; font-style:normal; text-align:center; }
+.empty-state-cell a { color:var(--dash-maroon); font-weight:900; text-decoration:none; }
 
-    .admin-photo-btn.danger:hover {
-        background: #ffd9e0;
-    }
+.event-list { display:flex; flex-direction:column; gap:9px; }
+.event-item { display:flex; align-items:center; gap:11px; min-width:0; padding:9px; border:1px solid transparent; border-radius:11px; background:#f6f7f9; transition:background .18s ease,border-color .18s ease,transform .18s ease; }
+.event-item:hover { transform:translateX(2px); border-color:#eadde1; background:#fbf6f7; }
+.event-date { display:flex; flex:0 0 43px; flex-direction:column; align-items:center; justify-content:center; width:43px; height:45px; border:1px solid rgba(227,191,92,.28); border-radius:10px; color:#fff; background:linear-gradient(145deg,var(--dash-charcoal),var(--dash-blue)); }
+.event-date strong { font-size:15px; font-weight:900; line-height:1; }
+.event-date small { margin-top:4px; color:#f0d78e; font-size:8px; font-weight:900; letter-spacing:.6px; text-transform:uppercase; }
+.event-info { min-width:0; }
+.event-info strong { display:block; overflow:hidden; margin-bottom:3px; color:var(--dash-charcoal); font-size:11px; font-weight:900; text-overflow:ellipsis; white-space:nowrap; }
+.event-info small { display:block; overflow:hidden; color:#7c8490; font-size:9.5px; line-height:1.4; text-overflow:ellipsis; }
+.empty-events { padding:22px 14px; color:#89909a; font-size:11px; text-align:center; }
+
+/* Notifications */
+.notif-list-compact { display:flex; flex-direction:column; gap:5px; }
+.notif-item-compact { display:flex; align-items:center; gap:9px; min-width:0; padding:9px 8px; border:1px solid transparent; border-radius:10px; text-decoration:none; transition:background .18s ease,border-color .18s ease; }
+.notif-item-compact:hover { border-color:#e8e3e5; background:#fbf7f8; }
+.notif-icon { display:grid; place-items:center; width:34px; height:34px; flex:0 0 34px; border-radius:10px; font-size:12px; }
+.notif-icon.amber { color:#8f7029; background:#fbf4df; }
+.notif-icon.green { color:#397b68; background:#eaf3ef; }
+.notif-icon.blue { color:var(--dash-blue); background:#eaf1f8; }
+.notif-icon.red { color:var(--dash-maroon); background:#f7eaf0; }
+.notif-icon.purple { color:#596779; background:#edf0f4; }
+.notif-body-compact { flex:1; min-width:0; }
+.notif-body-compact strong { display:block; overflow:hidden; margin-bottom:2px; color:var(--dash-charcoal); font-size:10.5px; font-weight:900; text-overflow:ellipsis; white-space:nowrap; }
+.notif-body-compact small { display:block; color:#808792; font-size:9px; line-height:1.4; }
+.notif-badge-count { display:inline-flex; align-items:center; justify-content:center; min-width:21px; height:21px; flex:0 0 auto; padding:0 6px; border-radius:20px; color:#fff; background:var(--dash-maroon); font-size:9px; font-weight:900; }
+.notif-badge-count.zero { color:#707782; background:#eceef1; }
+
+/* Quick actions and useful links */
+.qa-grid-side,.useful-links-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.qa-tile-side,.useful-link { display:flex; min-width:0; flex-direction:column; align-items:center; justify-content:center; gap:7px; min-height:77px; padding:11px 8px; border:1px solid #eceef2; border-radius:11px; background:#f7f8fa; text-align:center; text-decoration:none; transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease; }
+.qa-tile-side:hover,.useful-link:hover { transform:translateY(-2px); border-color:#e4d3d9; background:#fff; box-shadow:0 6px 15px rgba(40,38,44,.07); }
+.qa-tile-side .qa-tile-icon { display:grid; place-items:center; width:34px; height:34px; flex:0 0 34px; border-radius:10px; font-size:13px; }
+.qa-tile-icon.blue { color:var(--dash-blue); background:#eaf1f8; }
+.qa-tile-icon.green { color:#397b68; background:#eaf3ef; }
+.qa-tile-icon.purple { color:var(--dash-maroon); background:#f7eaf0; }
+.qa-tile-icon.red { color:var(--dash-maroon); background:#f7eaf0; }
+.qa-tile-side span,.useful-link span { max-width:100%; overflow-wrap:anywhere; color:#454b55; font-size:9.5px; font-weight:900; line-height:1.3; }
+.useful-link { min-height:70px; }
+.useful-link i { color:var(--dash-blue); font-size:16px; }
+
+/* Finance summary */
+.fin-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:7px 0; font-size:10.5px; }
+.fin-row span { color:#7c8490; font-weight:700; }
+.fin-row strong { color:var(--dash-charcoal); font-size:11px; font-weight:900; text-align:right; }
+.fin-row strong.collected { color:#397b68; }
+.fin-row strong.pending { color:var(--dash-maroon); }
+.fin-progress { height:7px; margin-top:10px; overflow:hidden; border-radius:10px; background:#eceef2; }
+.fin-progress-bar { height:100%; border-radius:10px; background:linear-gradient(90deg,var(--dash-blue),#6e94b7); transition:width .4s ease; }
+.fin-progress-label { display:block; margin-top:6px; color:#7b838e; font-size:9px; font-weight:800; }
+
+/* Profile card */
+.admin-profile-avatar-wrap { display:flex; justify-content:center; margin:3px 0 13px; }
+.admin-profile-avatar { display:inline-flex; align-items:center; justify-content:center; width:84px; height:84px; overflow:hidden; border:3px solid var(--dash-yellow); border-radius:50%; color:#fff; background:linear-gradient(135deg,var(--dash-maroon),var(--dash-charcoal)); box-shadow:0 6px 18px rgba(40,38,44,.14); font-size:24px; font-weight:900; letter-spacing:.5px; }
+.admin-profile-avatar.has-photo { padding:0; }
+.admin-profile-avatar.has-photo img { display:block; width:100%; height:100%; border-radius:50%; object-fit:cover; }
+.admin-profile-name { display:block; margin-bottom:5px; color:var(--dash-charcoal); font-size:13px; font-weight:900; overflow-wrap:anywhere; }
+.admin-profile-meta { margin-bottom:14px; color:#7d8490; font-size:9.5px; font-weight:700; line-height:1.7; overflow-wrap:anywhere; }
+.admin-profile-role { display:inline-flex; margin:4px 0 0 5px; padding:3px 8px; border-radius:5px; color:#302a30; background:var(--dash-yellow); font-size:8px; font-weight:900; letter-spacing:.5px; text-transform:uppercase; }
+.admin-profile-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:7px; }
+.admin-photo-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:35px; padding:8px 12px; border:1px solid #e2e4e9; border-radius:8px; color:#4d535d; background:#fff; font-family:inherit; font-size:10px; font-weight:800; cursor:pointer; transition:background .18s ease,border-color .18s ease,transform .18s ease; }
+.admin-photo-btn:hover { transform:translateY(-1px); border-color:#cbd4df; background:#f7f8fa; }
+.admin-photo-btn.danger { border-color:#efd7dd; color:var(--dash-maroon); background:#fbf0f3; }
+.admin-photo-btn.danger:hover { border-color:#d9aab7; background:#f7e5ea; }
+
+/* Tablet */
+@media (max-width:1240px) {
+    .dash-layout { grid-template-columns:minmax(0,1fr); }
+    .dash-side { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:15px; }
+    .dash-side > .dash-panel:nth-child(1) { grid-column:1/-1; }
+}
+@media (max-width:960px) {
+    .charts-row { grid-template-columns:minmax(0,1fr); }
+    .bottom-row { grid-template-columns:minmax(0,1fr); }
+    .stat-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .dash-side { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .dash-side > .dash-panel:nth-child(1) { grid-column:auto; }
+}
+@media (max-width:680px) {
+    .admin-dashboard-page { width:100%; max-width:100%; }
+    .dash-layout,.dash-main,.dash-side { width:100%; min-width:0; }
+    .dash-main,.dash-side { gap:13px; }
+    .dash-layout { gap:13px; }
+    .dash-welcome { min-height:0; flex-direction:column; align-items:stretch; gap:17px; padding:20px 17px; border-radius:15px; }
+    .dash-welcome h1 { font-size:24px; }
+    .dash-welcome p { font-size:11px; }
+    .dash-welcome-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:100%; }
+    .dash-welcome-actions .btn-soft,.dash-welcome-actions .btn-solid { min-width:0; padding:10px 8px; font-size:10px; }
+    .stat-row { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+    .stat-tile { padding:13px 12px; border-radius:13px; }
+    .stat-tile-top { margin-bottom:10px; }
+    .stat-tile-icon { width:34px; height:34px; flex-basis:34px; font-size:13px; }
+    .stat-tile-value { font-size:23px; }
+    .stat-tile-label { font-size:8.5px; }
+    .stat-tile-sub { font-size:8.5px; }
+    .dash-panel { border-radius:13px; }
+    .dash-panel-header { min-height:51px; padding:12px 13px; }
+    .dash-panel-title { font-size:11px; }
+    .dash-panel-link { font-size:9px; }
+    .dash-panel-body { padding:13px; }
+    .charts-row,.bottom-row { gap:13px; }
+    .dash-table-wrap { overflow:visible; padding:10px; background:#f5f6f8; }
+    .dash-table { display:block; width:100%; min-width:0; }
+    .dash-table thead { display:none; }
+    .dash-table tbody { display:flex; flex-direction:column; gap:9px; }
+    .dash-table tbody tr { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 12px; padding:11px 12px; border:1px solid #e5e7eb; border-radius:11px; background:#fff; box-shadow:0 2px 7px rgba(40,38,44,.035); }
+    .dash-table tbody tr:hover { background:#fff; }
+    .dash-table td { display:flex; align-items:center; justify-content:space-between; gap:7px; min-width:0; padding:8px 0; border-bottom:1px solid #f0f1f3; font-size:9px; }
+    .dash-table td::before { content:attr(data-label); flex:0 0 auto; color:#89909a; font-size:7px; font-weight:900; letter-spacing:.45px; text-transform:uppercase; }
+    .dash-table td[data-label="Name"] { grid-column:1/-1; justify-content:flex-start; padding-top:0; }
+    .dash-table td[data-label="Name"]::before { display:none; }
+    .dash-table td[data-label="Action"] { grid-column:1/-1; justify-content:flex-end; border-bottom:0; padding-bottom:0; }
+    .dash-table td[data-label="Action"]::before { margin-right:auto; }
+    .dash-table td[data-label="S.No"] { display:none; }
+    .dash-table .user-cell { min-width:0; }
+    .user-cell-text small { max-width:calc(100vw - 145px); }
+    .dash-table tr > td[colspan] { grid-column:1/-1; display:block; text-align:center; }
+    .dash-table tr > td[colspan]::before { display:none; }
+    .donut-wrap { gap:18px; min-height:0; }
+    .donut { flex-basis:106px; width:106px; height:106px; }
+    .donut::before { inset:15px; }
+    .donut-center strong { font-size:18px; }
+    .donut-legend { gap:8px; }
+    .donut-legend-item { font-size:9px; }
+    .chart-legend { gap:8px 13px; }
+    .chart-legend-item { font-size:8.5px; }
+    .bar-chart { height:135px; }
+    .dash-side { display:flex; flex-direction:column; gap:13px; }
+    .qa-grid-side,.useful-links-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:380px) {
+    .dash-welcome { padding:17px 14px; }
+    .dash-welcome-actions { grid-template-columns:minmax(0,1fr); }
+    .dash-welcome-actions .btn-soft,.dash-welcome-actions .btn-solid { width:100%; }
+    .stat-tile { padding:11px 9px; }
+    .stat-tile-value { font-size:20px; }
+    .stat-tile-label { letter-spacing:.45px; }
+    .dash-panel-header { align-items:flex-start; }
+    .dash-panel-title { font-size:10px; }
+    .donut-wrap { flex-direction:column; }
+    .donut-legend { width:100%; max-width:225px; }
+    .dash-table tbody tr { grid-template-columns:minmax(0,1fr); }
+    .dash-table td[data-label="Name"],.dash-table td[data-label="Action"] { grid-column:auto; }
+    .user-cell-text small { max-width:calc(100vw - 100px); }
+}
+@media (prefers-reduced-motion:reduce) {
+    .admin-dashboard-page *, .admin-dashboard-page *::before, .admin-dashboard-page *::after { scroll-behavior:auto !important; animation-duration:.01ms !important; transition-duration:.01ms !important; }
+}
 </style>
 
-<!-- ============================================================
-     DASHBOARD LAYOUT
-     ============================================================ -->
-<div class="dash-layout">
+<div class="admin-dashboard-page">
+    <div class="dash-layout">
+        <!-- Main dashboard column -->
+        <main class="dash-main" aria-label="Admin dashboard overview">
+            <section class="dash-welcome" aria-labelledby="dashWelcomeTitle">
+                <div class="dash-welcome-copy">
+                    <div class="dash-eyebrow"><i class="fa-solid fa-school"></i> School administration</div>
+                    <h1 id="dashWelcomeTitle">Dashboard</h1>
+                    <p>Welcome back, {{ session['user_name'].split()[0] }}! Here's what's happening at your school today.</p>
+                </div>
+                <div class="dash-welcome-actions">
+                    <a href="{{ url_for('admin_create_user') }}" class="btn-soft"><i class="fa-solid fa-user-plus"></i> Add user</a>
+                    <a href="{{ url_for('home') }}" class="btn-solid"><i class="fa-solid fa-arrow-up-right-from-square"></i> View website</a>
+                </div>
+            </section>
 
-    <!-- ==================== MAIN COLUMN ==================== -->
-    <div class="dash-main">
+            <!-- Live statistics from the existing dashboard route -->
+            <section class="stat-row" aria-label="School statistics">
+                <article class="stat-tile stat-blue">
+                    <div class="stat-tile-top"><div class="stat-tile-icon blue"><i class="fa-solid fa-user-graduate"></i></div></div>
+                    <div class="stat-tile-label">Total Students</div>
+                    <div class="stat-tile-value">{{ stats.total_students or '0' }}</div>
+                    <div class="stat-tile-sub"><i class="fa-solid fa-circle" style="color:#2d5f91;"></i> Active enrollment</div>
+                </article>
+                <article class="stat-tile stat-green">
+                    <div class="stat-tile-top"><div class="stat-tile-icon green"><i class="fa-solid fa-chalkboard-user"></i></div></div>
+                    <div class="stat-tile-label">Total Teachers</div>
+                    <div class="stat-tile-value">{{ stats.total_teachers or '0' }}</div>
+                    <div class="stat-tile-sub"><i class="fa-solid fa-circle" style="color:#397b68;"></i> All departments</div>
+                </article>
+                <article class="stat-tile stat-purple">
+                    <div class="stat-tile-top"><div class="stat-tile-icon purple"><i class="fa-solid fa-users"></i></div></div>
+                    <div class="stat-tile-label">Total Parents</div>
+                    <div class="stat-tile-value">{{ stats.total_parents or '0' }}</div>
+                    <div class="stat-tile-sub"><i class="fa-solid fa-circle" style="color:#7b263b;"></i> Registered accounts</div>
+                </article>
+                <article class="stat-tile stat-amber">
+                    <div class="stat-tile-top"><div class="stat-tile-icon amber"><i class="fa-solid fa-school"></i></div></div>
+                    <div class="stat-tile-label">Total Classes</div>
+                    <div class="stat-tile-value">{{ stats.total_classes or '0' }}</div>
+                    <div class="stat-tile-sub"><i class="fa-solid fa-circle" style="color:#b28b35;"></i> Pre-Nursery – 8th</div>
+                </article>
+            </section>
 
-        <!-- Welcome -->
-        <div class="dash-welcome">
-            <div>
-                <h1>Dashboard</h1>
-                <p>Welcome back, {{ session['user_name'].split()[0] }}! Here's what's happening at your school today.
-                </p>
-            </div>
-            <div class="dash-welcome-actions">
-                <a href="{{ url_for('admin_create_user') }}" class="btn-soft">
-                    <i class="fa-solid fa-user-plus"></i> Add user
-                </a>
-                <a href="{{ url_for('home') }}" class="btn-solid">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> View website
-                </a>
-            </div>
-        </div>
-
-        <!-- Stat cards — real numbers from backend -->
-        <div class="stat-row">
-            <div class="stat-tile stat-blue">
-                <div class="stat-tile-top">
-                    <div class="stat-tile-icon blue"><i class="fa-solid fa-user-graduate"></i></div>
-                </div>
-                <div class="stat-tile-label">Total Students</div>
-                <div class="stat-tile-value">{{ stats.total_students or '0' }}</div>
-                <div class="stat-tile-sub">
-                    <i class="fa-solid fa-circle" style="color:#1768a7;"></i>
-                    Active enrollment
-                </div>
-            </div>
-
-            <div class="stat-tile stat-green">
-                <div class="stat-tile-top">
-                    <div class="stat-tile-icon green"><i class="fa-solid fa-chalkboard-user"></i></div>
-                </div>
-                <div class="stat-tile-label">Total Teachers</div>
-                <div class="stat-tile-value">{{ stats.total_teachers or '0' }}</div>
-                <div class="stat-tile-sub">
-                    <i class="fa-solid fa-circle" style="color:#168254;"></i>
-                    All departments
-                </div>
-            </div>
-
-            <div class="stat-tile stat-purple">
-                <div class="stat-tile-top">
-                    <div class="stat-tile-icon purple"><i class="fa-solid fa-users"></i></div>
-                </div>
-                <div class="stat-tile-label">Total Parents</div>
-                <div class="stat-tile-value">{{ stats.total_parents or '0' }}</div>
-                <div class="stat-tile-sub">
-                    <i class="fa-solid fa-circle" style="color:#7439b2;"></i>
-                    Registered accounts
-                </div>
-            </div>
-
-            <div class="stat-tile stat-amber">
-                <div class="stat-tile-top">
-                    <div class="stat-tile-icon amber"><i class="fa-solid fa-school"></i></div>
-                </div>
-                <div class="stat-tile-label">Total Classes</div>
-                <div class="stat-tile-value">{{ stats.total_classes or '0' }}</div>
-                <div class="stat-tile-sub">
-                    <i class="fa-solid fa-circle" style="color:#a86a00;"></i>
-                    Pre-Nursery – 8th
-                </div>
-            </div>
-        </div>
-
-        <!-- Charts -->
-        <div class="charts-row">
-            <!-- Bar chart — driven by admission_trend from backend -->
-            <div class="dash-panel">
-                <div class="dash-panel-header">
-                    <h3 class="dash-panel-title"><i class="fa-solid fa-chart-column"></i> Student admission trend</h3>
-                    <a href="{{ url_for('admin_users', role='student') }}" class="dash-panel-link">
-                        View all <i class="fa-solid fa-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="dash-panel-body">
-                    <div class="bar-chart">
-                        {% for item in admission_trend %}
-                        {% set h = ((item.count / max_trend) * 100)|round|int if max_trend else 0 %}
-                        <div class="bar-group" title="{{ item.label }}: {{ item.count }} new admissions">
-                            <div class="bar-wrap">
-                                <div class="bar bar-navy" style="height: {{ h }}%;"></div>
-                                <div class="bar bar-red" style="height: {{ (h * 0.6)|round|int }}%;"></div>
-                            </div>
-                            <span>{{ item.label }}</span>
-                        </div>
-                        {% else %}
-                        <div class="empty-state-cell" style="width:100%;">No admission data yet.</div>
-                        {% endfor %}
+            <!-- Charts -->
+            <section class="charts-row" aria-label="Admissions and fee analytics">
+                <article class="dash-panel">
+                    <div class="dash-panel-header">
+                        <h2 class="dash-panel-title"><i class="fa-solid fa-chart-column"></i> Student admission trend</h2>
+                        <a href="{{ url_for('admin_users', role='student') }}" class="dash-panel-link">View all <i class="fa-solid fa-arrow-right"></i></a>
                     </div>
-                    <div class="chart-legend">
-                        <div class="chart-legend-item"><span class="chart-legend-dot"
-                                style="background:var(--navy);"></span> New admissions</div>
-                        <div class="chart-legend-item"><span class="chart-legend-dot"
-                                style="background:var(--red);"></span> Re-enrollments</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Donut — real percentages from stats -->
-            <div class="dash-panel">
-                <div class="dash-panel-header">
-                    <h3 class="dash-panel-title"><i class="fa-solid fa-chart-pie"></i> Fee collection status</h3>
-                </div>
-                <div class="dash-panel-body">
-                    {% set paid = stats.paid_pct or 0 %}
-                    {% set partial = stats.partial_pct or 0 %}
-                    {% set pending = stats.pending_pct or 0 %}
-                    {% set paid_end = paid * 3.6 %}
-                    {% set partial_end = (paid + partial) * 3.6 %}
-                    <div class="donut-wrap">
-                        <div class="donut" style="background: conic-gradient(
-                            #168254 0deg {{ paid_end }}deg,
-                            #a86a00 {{ paid_end }}deg {{ partial_end }}deg,
-                            var(--red) {{ partial_end }}deg 360deg
-                        );">
-                            <div class="donut-center">
-                                <strong>{{ paid }}%</strong>
-                                <small>Paid</small>
-                            </div>
-                        </div>
-                        <div class="donut-legend">
-                            <div class="donut-legend-item">
-                                <span class="donut-legend-dot" style="background:#168254;"></span>
-                                <span>Paid</span>
-                                <strong>{{ paid }}%</strong>
-                            </div>
-                            <div class="donut-legend-item">
-                                <span class="donut-legend-dot" style="background:#a86a00;"></span>
-                                <span>Partial</span>
-                                <strong>{{ partial }}%</strong>
-                            </div>
-                            <div class="donut-legend-item">
-                                <span class="donut-legend-dot" style="background:var(--red);"></span>
-                                <span>Pending</span>
-                                <strong>{{ pending }}%</strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent students + Events -->
-        <div class="bottom-row">
-            <!-- Recent students — from recent_students -->
-            <div class="dash-panel">
-                <div class="dash-panel-header">
-                    <h3 class="dash-panel-title"><i class="fa-solid fa-user-graduate"></i> Recent students</h3>
-                    <a href="{{ url_for('admin_users', role='student') }}" class="dash-panel-link">View all <i
-                            class="fa-solid fa-arrow-right"></i></a>
-                </div>
-                <div class="dash-table-wrap">
-                    <table class="dash-table">
-                        <thead>
-                            <tr>
-                                <th>S.No</th>
-                                <th>Name</th>
-                                <th>Role</th>
-                                <th>Unique ID</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for u in recent_students %}
-                            <tr>
-                                <td>{{ loop.index }}</td>
-                                <td>
-                                    <div class="user-cell">
-                                        <div class="user-avatar-mini">
-                                            {{ u.name.split()[0][0]|upper }}{{ u.name.split()[-1][0]|upper if
-                                            u.name.split()|length > 1 else '' }}
-                                        </div>
-                                        <div class="user-cell-text">
-                                            <strong>{{ u.name }}</strong>
-                                            <small>{{ u.email or '—' }}</small>
-                                        </div>
+                    <div class="dash-panel-body">
+                        <div class="bar-chart" role="img" aria-label="Student admission trend chart">
+                            {% for item in admission_trend %}
+                                {% set h = ((item.count / max_trend) * 100)|round|int if max_trend else 0 %}
+                                <div class="bar-group" title="{{ item.label }}: {{ item.count }} new admissions">
+                                    <div class="bar-wrap">
+                                        <div class="bar bar-navy" style="height:{{ h }}%;"></div>
+                                        <div class="bar bar-red" style="height:{{ (h * 0.6)|round|int }}%;"></div>
                                     </div>
-                                </td>
-                                <td><span class="role-pill role-{{ u.role }}">{{ u.role|capitalize }}</span></td>
-                                <td class="uid-cell">{{ u.unique_id or '—' }}</td>
-                                <td>
-                                    {% if u.is_active %}
-                                    <span class="status-pill active">Active</span>
-                                    {% else %}
-                                    <span class="status-pill inactive">Inactive</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <a href="{{ url_for('admin_users', role='student', q=u.unique_id) }}"
-                                        class="table-action-link">View</a>
-                                </td>
-                            </tr>
+                                    <span>{{ item.label }}</span>
+                                </div>
                             {% else %}
-                            <tr>
-                                <td colspan="6" class="empty-state-cell">No students yet. <a
-                                        href="{{ url_for('admin_create_user') }}"
-                                        style="color:var(--red); font-weight:700;">Add one</a>.</td>
-                            </tr>
+                                <div class="empty-state-cell" style="width:100%;">No admission data yet.</div>
                             {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                        </div>
+                        <div class="chart-legend" aria-label="Chart legend">
+                            <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#2d5f91;"></span> New admissions</div>
+                            <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#7b263b;"></span> Re-enrollments</div>
+                        </div>
+                    </div>
+                </article>
 
-            <!-- Events — from upcoming_events -->
-            <div class="dash-panel">
+                <article class="dash-panel">
+                    <div class="dash-panel-header"><h2 class="dash-panel-title"><i class="fa-solid fa-chart-pie"></i> Fee collection status</h2></div>
+                    <div class="dash-panel-body">
+                        {% set paid = stats.paid_pct or 0 %}
+                        {% set partial = stats.partial_pct or 0 %}
+                        {% set pending = stats.pending_pct or 0 %}
+                        {% set paid_end = paid * 3.6 %}
+                        {% set partial_end = (paid + partial) * 3.6 %}
+                        <div class="donut-wrap">
+                            <div class="donut" style="background:conic-gradient(#397b68 0deg {{ paid_end }}deg,#b28b35 {{ paid_end }}deg {{ partial_end }}deg,#7b263b {{ partial_end }}deg 360deg);" role="img" aria-label="Fees paid {{ paid }} percent, partial {{ partial }} percent, pending {{ pending }} percent">
+                                <div class="donut-center"><strong>{{ paid }}%</strong><small>Paid</small></div>
+                            </div>
+                            <div class="donut-legend">
+                                <div class="donut-legend-item"><span class="donut-legend-dot" style="background:#397b68;"></span><span>Paid</span><strong>{{ paid }}%</strong></div>
+                                <div class="donut-legend-item"><span class="donut-legend-dot" style="background:#b28b35;"></span><span>Partial</span><strong>{{ partial }}%</strong></div>
+                                <div class="donut-legend-item"><span class="donut-legend-dot" style="background:#7b263b;"></span><span>Pending</span><strong>{{ pending }}%</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <!-- Recent students and events -->
+            <section class="bottom-row" aria-label="Recent students and upcoming events">
+                <article class="dash-panel">
+                    <div class="dash-panel-header">
+                        <h2 class="dash-panel-title"><i class="fa-solid fa-user-graduate"></i> Recent students</h2>
+                        <a href="{{ url_for('admin_users', role='student') }}" class="dash-panel-link">View all <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                    <div class="dash-table-wrap">
+                        <table class="dash-table">
+                            <thead><tr><th>S.No</th><th>Name</th><th>Role</th><th>Unique ID</th><th>Status</th><th>Action</th></tr></thead>
+                            <tbody>
+                                {% for u in recent_students %}
+                                <tr>
+                                    <td data-label="S.No">{{ loop.index }}</td>
+                                    <td data-label="Name">
+                                        <div class="user-cell">
+                                            <div class="user-avatar-mini">{{ u.name.split()[0][0]|upper }}{{ u.name.split()[-1][0]|upper if u.name.split()|length > 1 else '' }}</div>
+                                            <div class="user-cell-text"><strong>{{ u.name }}</strong><small>{{ u.email or '—' }}</small></div>
+                                        </div>
+                                    </td>
+                                    <td data-label="Role"><span class="role-pill role-{{ u.role }}">{{ u.role|capitalize }}</span></td>
+                                    <td data-label="Unique ID" class="uid-cell">{{ u.unique_id or '—' }}</td>
+                                    <td data-label="Status">
+                                        {% if u.is_active %}<span class="status-pill active">Active</span>{% else %}<span class="status-pill inactive">Inactive</span>{% endif %}
+                                    </td>
+                                    <td data-label="Action"><a href="{{ url_for('admin_users', role='student', q=u.unique_id) }}" class="table-action-link">View <i class="fa-solid fa-arrow-right"></i></a></td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="6" class="empty-state-cell">No students yet. <a href="{{ url_for('admin_create_user') }}">Add one</a>.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+
+                <article class="dash-panel">
+                    <div class="dash-panel-header">
+                        <h2 class="dash-panel-title"><i class="fa-regular fa-calendar-days"></i> Events &amp; calendar</h2>
+                        <a href="{{ url_for('admin_events') }}" class="dash-panel-link">View calendar <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                    <div class="dash-panel-body">
+                        <div class="event-list">
+                            {% for e in upcoming_events %}
+                            <div class="event-item">
+                                <div class="event-date"><strong>{{ e.event_date[8:10] }}</strong><small>{{ e.event_date|month_abbr }}</small></div>
+                                <div class="event-info"><strong>{{ e.title }}</strong><small>{{ e.event_time or 'All day' }}{% if e.location %} · {{ e.location }}{% endif %}</small></div>
+                            </div>
+                            {% else %}
+                            <div class="empty-events"><i class="fa-regular fa-calendar-xmark" style="font-size:23px;display:block;margin-bottom:7px;color:#c5c9d0;"></i>No upcoming events.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </article>
+            </section>
+        </main>
+
+        <!-- Right-side admin tools -->
+        <aside class="dash-side" aria-label="Admin tools and summaries">
+            <section class="dash-panel">
+                <div class="dash-panel-header"><h2 class="dash-panel-title"><i class="fa-solid fa-id-card"></i> My Profile</h2></div>
+                <div class="dash-panel-body" style="text-align:center;">
+                    <div class="admin-profile-avatar-wrap">
+                        {% if session.get('photo_url') %}
+                        <div class="admin-profile-avatar has-photo"><img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}"></div>
+                        {% else %}
+                        <div class="admin-profile-avatar">{{ session['user_name'].split()[0][0]|upper }}{{ session['user_name'].split()[-1][0]|upper if session['user_name'].split()|length > 1 else '' }}</div>
+                        {% endif %}
+                    </div>
+                    <strong class="admin-profile-name">{{ session['user_name'] }}</strong>
+                    <div class="admin-profile-meta"><i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}<br><span class="admin-profile-role">Administrator</span></div>
+                    <div class="admin-profile-actions">
+                        <button type="button" class="admin-photo-btn" onclick="document.getElementById('adminDashPhotoInput').click();"><i class="fa-solid fa-camera"></i> Change</button>
+                        {% if session.get('photo_url') %}
+                        <button type="button" class="admin-photo-btn danger" onclick="if(confirm('Remove profile photo?')) document.getElementById('adminDashRemoveForm').submit();"><i class="fa-solid fa-trash"></i> Remove</button>
+                        {% endif %}
+                    </div>
+                    <form id="adminDashPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}" enctype="multipart/form-data" style="display:none;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="file" id="adminDashPhotoInput" name="photo" accept="image/*" onchange="document.getElementById('adminDashPhotoForm').submit();">
+                    </form>
+                    {% if session.get('photo_url') %}
+                    <form id="adminDashRemoveForm" method="POST" action="{{ url_for('remove_profile_photo') }}" style="display:none;"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></form>
+                    {% endif %}
+                </div>
+            </section>
+
+            <section class="dash-panel">
                 <div class="dash-panel-header">
-                    <h3 class="dash-panel-title"><i class="fa-regular fa-calendar-days"></i> Events &amp; calendar</h3>
-                    <a href="{{ url_for('admin_events') }}" class="dash-panel-link">View calendar <i
-                            class="fa-solid fa-arrow-right"></i></a>
+                    <h2 class="dash-panel-title"><i class="fa-regular fa-bell"></i> Notifications &amp; alerts</h2>
+                    <a href="{{ url_for('messages_inbox') }}" class="dash-panel-link">Inbox <i class="fa-solid fa-arrow-right"></i></a>
                 </div>
                 <div class="dash-panel-body">
-                    <div class="event-list">
-                        {% for e in upcoming_events %}
-                        <div class="event-item">
-                            <div class="event-date">
-                                <strong>{{ e.event_date[8:10] }}</strong>
-                                <small>{{ e.event_date|month_abbr }}</small>
-                            </div>
-                            <div class="event-info">
-                                <strong>{{ e.title }}</strong>
-                                <small>{{ e.event_time or 'All day' }}{% if e.location %} · {{ e.location }}{% endif
-                                    %}</small>
-                            </div>
-                        </div>
-                        {% else %}
-                        <div class="empty-events">
-                            <i class="fa-regular fa-calendar-xmark"
-                                style="font-size:24px; display:block; margin-bottom:6px; color:#cbd5e1;"></i>
-                            No upcoming events.
-                        </div>
-                        {% endfor %}
+                    <div class="notif-list-compact">
+                        <a href="{{ url_for('admin_fees') }}" class="notif-item-compact">
+                            <div class="notif-icon green"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                            <div class="notif-body-compact"><strong>Fee payments</strong><small>{{ pending_fees or 0 }} pending verification</small></div>
+                            <span class="notif-badge-count {% if not pending_fees %}zero{% endif %}">{{ pending_fees or 0 }}</span>
+                        </a>
+                        <a href="{{ url_for('admin_leaves') }}" class="notif-item-compact">
+                            <div class="notif-icon amber"><i class="fa-solid fa-calendar-minus"></i></div>
+                            <div class="notif-body-compact"><strong>Leave requests</strong><small>{{ pending_leaves or 0 }} awaiting approval</small></div>
+                            <span class="notif-badge-count {% if not pending_leaves %}zero{% endif %}">{{ pending_leaves or 0 }}</span>
+                        </a>
+                        <a href="{{ url_for('admin_homework') }}" class="notif-item-compact">
+                            <div class="notif-icon purple"><i class="fa-solid fa-book-open"></i></div>
+                            <div class="notif-body-compact"><strong>Homework assignments</strong><small>{{ total_homework or 0 }} total assigned</small></div>
+                            <span class="notif-badge-count {% if not total_homework %}zero{% endif %}">{{ total_homework or 0 }}</span>
+                        </a>
+                        <a href="{{ url_for('admin_enquiries') }}" class="notif-item-compact">
+                            <div class="notif-icon blue"><i class="fa-solid fa-envelope"></i></div>
+                            <div class="notif-body-compact"><strong>Enquiries received</strong><small>{{ stats.total_enquiries or 0 }} admission &amp; contact</small></div>
+                            <span class="notif-badge-count {% if not stats.total_enquiries %}zero{% endif %}">{{ stats.total_enquiries or 0 }}</span>
+                        </a>
+                        {% if recent_leaves %}
+                        <a href="{{ url_for('admin_leaves') }}" class="notif-item-compact">
+                            <div class="notif-icon red"><i class="fa-solid fa-comment-dots"></i></div>
+                            <div class="notif-body-compact"><strong>{{ recent_leaves[0].user_name }}</strong><small>Recently requested {{ recent_leaves[0].leave_type }}</small></div>
+                            <i class="fa-solid fa-chevron-right" style="color:#a1a6af;font-size:9px;"></i>
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
-            </div>
-        </div>
+            </section>
 
-    </div>
-
-    <!-- ==================== SIDEBAR COLUMN ==================== -->
-    <div class="dash-side">
-
-        <!-- NEW: MY PROFILE PHOTO CARD -->
-        <div class="dash-panel">
-            <div class="dash-panel-header">
-                <h3 class="dash-panel-title"><i class="fa-solid fa-id-card"></i> My Profile</h3>
-            </div>
-            <div class="dash-panel-body" style="text-align:center;">
-                <div class="admin-profile-avatar-wrap">
-                    {% if session.get('photo_url') %}
-                    <div class="admin-profile-avatar has-photo">
-                        <img src="{{ session['photo_url'] }}" alt="{{ session['user_name'] }}">
+            <section class="dash-panel">
+                <div class="dash-panel-header"><h2 class="dash-panel-title"><i class="fa-solid fa-bolt"></i> Quick actions</h2></div>
+                <div class="dash-panel-body">
+                    <div class="qa-grid-side">
+                        <a href="{{ url_for('admin_create_user') }}?role=student" class="qa-tile-side"><div class="qa-tile-icon blue"><i class="fa-solid fa-user-plus"></i></div><span>Add Student</span></a>
+                        <a href="{{ url_for('admin_create_user') }}?role=teacher" class="qa-tile-side"><div class="qa-tile-icon green"><i class="fa-solid fa-chalkboard-user"></i></div><span>Add Teacher</span></a>
+                        <a href="{{ url_for('admin_create_user') }}?role=parent" class="qa-tile-side"><div class="qa-tile-icon purple"><i class="fa-solid fa-users"></i></div><span>Add Parent</span></a>
+                        <a href="{{ url_for('admin_homework') }}" class="qa-tile-side"><div class="qa-tile-icon purple"><i class="fa-solid fa-book-open"></i></div><span>Assign Homework</span></a>
+                        <a href="{{ url_for('admin_notices') }}" class="qa-tile-side"><div class="qa-tile-icon red"><i class="fa-solid fa-bullhorn"></i></div><span>Send Notice</span></a>
+                        <a href="{{ url_for('admin_fees') }}" class="qa-tile-side"><div class="qa-tile-icon green"><i class="fa-solid fa-indian-rupee-sign"></i></div><span>Fee Collection</span></a>
+                        <a href="{{ url_for('messages_inbox') }}" class="qa-tile-side"><div class="qa-tile-icon blue"><i class="fa-solid fa-inbox"></i></div><span>Inbox</span></a>
+                        <a href="{{ url_for('messages_compose') }}" class="qa-tile-side"><div class="qa-tile-icon red"><i class="fa-solid fa-pen"></i></div><span>Compose Message</span></a>
                     </div>
-                    {% else %}
-                    <div class="admin-profile-avatar">
-                        {{ session['user_name'].split()[0][0] | upper }}{{ session['user_name'].split()[-1][0] | upper
-                        if session['user_name'].split()|length > 1 else '' }}
+                </div>
+            </section>
+
+            <section class="dash-panel">
+                <div class="dash-panel-header"><h2 class="dash-panel-title"><i class="fa-solid fa-chart-simple"></i> Financial summary</h2><span class="dash-panel-link">All time</span></div>
+                <div class="dash-panel-body">
+                    <div class="fin-row"><span>Expected fees</span><strong>₹{{ '{:,.0f}'.format(stats.expected_fees) }}</strong></div>
+                    <div class="fin-row"><span>Collected fees</span><strong class="collected">₹{{ '{:,.0f}'.format(stats.collected_fees) }}</strong></div>
+                    <div class="fin-row"><span>Pending fees</span><strong class="pending">₹{{ '{:,.0f}'.format(stats.pending_amount) }}</strong></div>
+                    <div class="fin-progress"><div class="fin-progress-bar" style="width:{{ stats.collected_pct }}%;"></div></div>
+                    <small class="fin-progress-label">{{ stats.collected_pct }}% collected</small>
+                </div>
+            </section>
+
+            <section class="dash-panel">
+                <div class="dash-panel-header"><h2 class="dash-panel-title"><i class="fa-solid fa-link"></i> Useful links</h2></div>
+                <div class="dash-panel-body">
+                    <div class="useful-links-grid">
+                        <a href="{{ url_for('home') }}" target="_blank" rel="noopener" class="useful-link"><i class="fa-solid fa-globe"></i><span>Website</span></a>
+                        <a href="{{ url_for('admin_users', role='student') }}" class="useful-link"><i class="fa-solid fa-user-graduate"></i><span>Students</span></a>
+                        <a href="{{ url_for('admin_users', role='teacher') }}" class="useful-link"><i class="fa-solid fa-chalkboard-user"></i><span>Teachers</span></a>
+                        <a href="{{ url_for('admin_users', role='parent') }}" class="useful-link"><i class="fa-solid fa-users"></i><span>Parents</span></a>
+                        <a href="{{ url_for('messages_inbox') }}" class="useful-link"><i class="fa-solid fa-inbox"></i><span>Inbox</span></a>
+                        <a href="{{ url_for('admin_messages') }}" class="useful-link"><i class="fa-solid fa-paper-plane"></i><span>Broadcast</span></a>
                     </div>
-                    {% endif %}
                 </div>
-                <strong style="display:block; font-size:14px; color:var(--navy); font-weight:800; margin-bottom:4px;">
-                    {{ session['user_name'] }}
-                </strong>
-                <div style="font-size:11.5px; color:var(--muted); font-weight:600; margin-bottom:16px;">
-                    <i class="fa-solid fa-id-badge"></i> {{ session.get('unique_id', 'N/A') }}
-                    <span
-                        style="display:inline-block; margin-left:6px; background:var(--yellow); color:#0a2340; padding:2px 8px; border-radius:4px; font-size:9px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase;">Administrator</span>
-                </div>
-                <div class="admin-profile-actions">
-                    <button type="button" class="admin-photo-btn"
-                        onclick="document.getElementById('adminDashPhotoInput').click();">
-                        <i class="fa-solid fa-camera"></i> Change
-                    </button>
-                    {% if session.get('photo_url') %}
-                    <button type="button" class="admin-photo-btn danger"
-                        onclick="if(confirm('Remove profile photo?')) document.getElementById('adminDashRemoveForm').submit();">
-                        <i class="fa-solid fa-trash"></i> Remove
-                    </button>
-                    {% endif %}
-                </div>
-                <form id="adminDashPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
-                    enctype="multipart/form-data" style="display:none;">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="file" id="adminDashPhotoInput" name="photo" accept="image/*"
-                        onchange="document.getElementById('adminDashPhotoForm').submit();">
-                </form>
-                {% if session.get('photo_url') %}
-                <form id="adminDashRemoveForm" method="POST" action="{{ url_for('remove_profile_photo') }}"
-                    style="display:none;">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></form>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Notifications — real counts -->
-        <div class="dash-panel">
-            <div class="dash-panel-header">
-                <h3 class="dash-panel-title"><i class="fa-regular fa-bell"></i> Notifications &amp; alerts</h3>
-                <!-- FIXED: "View all" now opens the real inbox, not the send tool -->
-                <a href="{{ url_for('messages_inbox') }}" class="dash-panel-link">
-                    Inbox <i class="fa-solid fa-arrow-right"></i>
-                </a>
-            </div>
-            <div class="dash-panel-body">
-                <div class="notif-list-compact">
-                    <!-- Fee payments -->
-                    <a href="{{ url_for('admin_fees') }}" class="notif-item-compact">
-                        <div class="notif-icon green"><i class="fa-solid fa-indian-rupee-sign"></i></div>
-                        <div class="notif-body-compact">
-                            <strong>Fee payments</strong>
-                            <small>{{ pending_fees or 0 }} pending verification</small>
-                        </div>
-                        <span class="notif-badge-count {% if not pending_fees %}zero{% endif %}">{{ pending_fees or 0
-                            }}</span>
-                    </a>
-
-                    <!-- Leave requests -->
-                    <a href="{{ url_for('admin_leaves') }}" class="notif-item-compact">
-                        <div class="notif-icon amber"><i class="fa-solid fa-calendar-minus"></i></div>
-                        <div class="notif-body-compact">
-                            <strong>Leave requests</strong>
-                            <small>{{ pending_leaves or 0 }} awaiting approval</small>
-                        </div>
-                        <span class="notif-badge-count {% if not pending_leaves %}zero{% endif %}">{{ pending_leaves or
-                            0 }}</span>
-                    </a>
-
-                    <!-- Homework -->
-                    <a href="{{ url_for('admin_homework') }}" class="notif-item-compact">
-                        <div class="notif-icon purple"><i class="fa-solid fa-book-open"></i></div>
-                        <div class="notif-body-compact">
-                            <strong>Homework assignments</strong>
-                            <small>{{ total_homework or 0 }} total assigned</small>
-                        </div>
-                        <span class="notif-badge-count {% if not total_homework %}zero{% endif %}">{{ total_homework or
-                            0 }}</span>
-                    </a>
-
-                    <!-- Enquiries -->
-                    <a href="{{ url_for('admin_enquiries') }}" class="notif-item-compact">
-                        <div class="notif-icon blue"><i class="fa-solid fa-envelope"></i></div>
-                        <div class="notif-body-compact">
-                            <strong>Enquiries received</strong>
-                            <small>{{ stats.total_enquiries or 0 }} admission &amp; contact</small>
-                        </div>
-                        <span class="notif-badge-count {% if not stats.total_enquiries %}zero{% endif %}">{{
-                            stats.total_enquiries or 0 }}</span>
-                    </a>
-
-                    <!-- Recent leaves list -->
-                    {% if recent_leaves %}
-                    <a href="{{ url_for('admin_leaves') }}" class="notif-item-compact">
-                        <div class="notif-icon red"><i class="fa-solid fa-comment-dots"></i></div>
-                        <div class="notif-body-compact">
-                            <strong>{{ recent_leaves[0].user_name }}</strong>
-                            <small>Recently requested {{ recent_leaves[0].leave_type }}</small>
-                        </div>
-                        <i class="fa-solid fa-chevron-right" style="color:#b1c2d4; font-size:10px;"></i>
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Actions — real links -->
-        <div class="dash-panel">
-            <div class="dash-panel-header">
-                <h3 class="dash-panel-title"><i class="fa-solid fa-bolt"></i> Quick actions</h3>
-            </div>
-            <div class="dash-panel-body">
-                <div class="qa-grid-side">
-                    <a href="{{ url_for('admin_create_user') }}?role=student" class="qa-tile-side">
-                        <div class="qa-tile-icon blue"><i class="fa-solid fa-user-plus"></i></div>
-                        <span>Add Student</span>
-                    </a>
-                    <a href="{{ url_for('admin_create_user') }}?role=teacher" class="qa-tile-side">
-                        <div class="qa-tile-icon green"><i class="fa-solid fa-chalkboard-user"></i></div>
-                        <span>Add Teacher</span>
-                    </a>
-                    <a href="{{ url_for('admin_create_user') }}?role=parent" class="qa-tile-side">
-                        <div class="qa-tile-icon purple"><i class="fa-solid fa-users"></i></div>
-                        <span>Add Parent</span>
-                    </a>
-                    <a href="{{ url_for('admin_homework') }}" class="qa-tile-side">
-                        <div class="qa-tile-icon purple"><i class="fa-solid fa-book-open"></i></div>
-                        <span>Assign Homework</span>
-                    </a>
-                    <a href="{{ url_for('admin_notices') }}" class="qa-tile-side">
-                        <div class="qa-tile-icon red"><i class="fa-solid fa-bullhorn"></i></div>
-                        <span>Send Notice</span>
-                    </a>
-                    <a href="{{ url_for('admin_fees') }}" class="qa-tile-side">
-                        <div class="qa-tile-icon green"><i class="fa-solid fa-indian-rupee-sign"></i></div>
-                        <span>Fee Collection</span>
-                    </a>
-                    <!-- NEW: Inbox quick action -->
-                    <a href="{{ url_for('messages_inbox') }}" class="qa-tile-side">
-                        <div class="qa-tile-icon blue"><i class="fa-solid fa-inbox"></i></div>
-                        <span>Inbox</span>
-                    </a>
-                    <!-- NEW: Compose Message quick action -->
-                    <a href="{{ url_for('messages_compose') }}" class="qa-tile-side">
-                        <div class="qa-tile-icon red"><i class="fa-solid fa-pen"></i></div>
-                        <span>Compose Message</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Financial Summary — real numbers -->
-        <div class="dash-panel">
-            <div class="dash-panel-header">
-                <h3 class="dash-panel-title"><i class="fa-solid fa-chart-simple"></i> Financial summary</h3>
-                <span class="dash-panel-link">All time</span>
-            </div>
-            <div class="dash-panel-body">
-                <div class="fin-row">
-                    <span>Expected fees</span>
-                    <strong>₹{{ '{:,.0f}'.format(stats.expected_fees) }}</strong>
-                </div>
-                <div class="fin-row">
-                    <span>Collected fees</span>
-                    <strong style="color:#168254;">₹{{ '{:,.0f}'.format(stats.collected_fees) }}</strong>
-                </div>
-                <div class="fin-row">
-                    <span>Pending fees</span>
-                    <strong style="color:var(--red);">₹{{ '{:,.0f}'.format(stats.pending_amount) }}</strong>
-                </div>
-                <div class="fin-progress">
-                    <div class="fin-progress-bar" style="width:{{ stats.collected_pct }}%;"></div>
-                </div>
-                <small class="fin-progress-label">{{ stats.collected_pct }}% collected</small>
-            </div>
-        </div>
-
-        <!-- Useful Links -->
-        <div class="dash-panel">
-            <div class="dash-panel-header">
-                <h3 class="dash-panel-title"><i class="fa-solid fa-link"></i> Useful links</h3>
-            </div>
-            <div class="dash-panel-body">
-                <div class="useful-links-grid">
-                    <a href="{{ url_for('home') }}" target="_blank" rel="noopener" class="useful-link">
-                        <i class="fa-solid fa-globe"></i>
-                        <span>Website</span>
-                    </a>
-                    <a href="{{ url_for('admin_users', role='student') }}" class="useful-link">
-                        <i class="fa-solid fa-user-graduate"></i>
-                        <span>Students</span>
-                    </a>
-                    <a href="{{ url_for('admin_users', role='teacher') }}" class="useful-link">
-                        <i class="fa-solid fa-chalkboard-user"></i>
-                        <span>Teachers</span>
-                    </a>
-                    <a href="{{ url_for('admin_users', role='parent') }}" class="useful-link">
-                        <i class="fa-solid fa-users"></i>
-                        <span>Parents</span>
-                    </a>
-                    <!-- NEW: Inbox useful link -->
-                    <a href="{{ url_for('messages_inbox') }}" class="useful-link">
-                        <i class="fa-solid fa-inbox"></i>
-                        <span>Inbox</span>
-                    </a>
-                    <!-- NEW: Broadcast useful link -->
-                    <a href="{{ url_for('admin_messages') }}" class="useful-link">
-                        <i class="fa-solid fa-paper-plane"></i>
-                        <span>Broadcast</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-
+            </section>
+        </aside>
     </div>
 </div>
 {% endblock %}

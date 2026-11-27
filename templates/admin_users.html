@@ -4,1047 +4,1529 @@
 
 {% block content %}
 
+{#
+    USER MANAGEMENT PAGE
+    Backend contract preserved:
+    - admin_users(role=...)
+    - admin_change_role(user_id=...)
+    - admin_edit_profile(user_id=...)
+    - admin_toggle_user(user_id=...)
+    - admin_reset_password(user_id=...)
+    - admin_delete_user(user_id=...)
+    - Existing photo update/remove URLs and multipart field name "photo"
+    - Existing form fields, CSRF tokens and Jinja variables
+#}
+
+{% set class_options = namespace(values=[]) %}
+{% for candidate in users %}
+    {% set candidate_class = candidate.class_name|default(candidate.student_class|default(candidate.assigned_class|default(candidate.standard|default(candidate.grade|default(candidate.child_class|default(candidate['class']|default(''))))))) %}
+    {% set candidate_class = candidate_class|string|trim %}
+    {% if candidate_class and candidate_class not in class_options.values %}
+        {% set class_options.values = class_options.values + [candidate_class] %}
+    {% endif %}
+{% endfor %}
+
 <style>
 /* ============================================================
-   USER MANAGEMENT — PREMIUM & RESPONSIVE
+   USER MANAGEMENT — RESPONSIVE ADMIN DESIGN SYSTEM
+   Palette aligned with admin_base: maroon / charcoal / grey / white / blue / yellow
    ============================================================ */
-
-/* ---------- Stats row ---------- */
-.user-stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    gap: 14px;
-    margin-bottom: 22px;
-}
-.user-stat-card {
-    background: #fff;
-    border: 1px solid var(--line, #e4eaf1);
-    border-radius: 14px;
-    padding: 16px 18px;
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    transition: transform .25s, box-shadow .25s;
-}
-.user-stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 26px rgba(9,47,88,.09);
-}
-.user-stat-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 12px;
-    display: grid;
-    place-items: center;
-    font-size: 17px;
-    flex-shrink: 0;
-}
-.user-stat-icon.total    { background: #e0f2fe; color: #0284c7; }
-.user-stat-icon.active   { background: #dcfce7; color: #16a34a; }
-.user-stat-icon.inactive { background: #fee2e2; color: #dc2626; }
-.user-stat-icon.admins   { background: #fef3c7; color: #d97706; }
-.user-stat-meta strong {
-    display: block;
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--navy, #092f58);
-    line-height: 1.1;
-}
-.user-stat-meta small {
-    font-size: 10.5px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
-    color: var(--muted, #65758a);
-}
-
-/* ============================================================
-   TOOLBAR (search + filter tabs)
-   ============================================================ */
-.user-toolbar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--line, #e4eaf1);
-    background: #fafcff;
-}
-
-.user-search {
-    position: relative;
-    flex: 1 1 260px;
-    max-width: 340px;
+.user-management-page {
+    --um-maroon: #7b263b;
+    --um-maroon-dark: #571b2c;
+    --um-charcoal: #28262c;
+    --um-grey: #69717d;
+    --um-grey-light: #f1f2f5;
+    --um-blue: #2d5f91;
+    --um-blue-dark: #21486f;
+    --um-yellow: #e3bf5c;
+    --um-white: #fff;
+    --um-line: #e2e4e9;
+    --um-text: #292b32;
+    --um-muted: #737b87;
+    --um-radius: 15px;
+    --um-shadow: 0 6px 22px rgba(35,31,36,.055);
+    color: var(--um-text);
+    width: 100%;
     min-width: 0;
 }
-.user-search input {
-    width: 100%;
-    padding: 9px 14px 9px 38px;
-    border: 1px solid var(--line, #e4eaf1);
-    border-radius: 10px;
-    font-family: inherit;
-    font-size: 13px;
-    background: #fff;
-    color: var(--navy, #092f58);
-    transition: all .2s;
-}
-.user-search input:focus {
-    outline: none;
-    border-color: var(--blue, #124d82);
-    box-shadow: 0 0 0 3px rgba(18,77,130,.12);
-}
-.user-search i {
-    position: absolute;
-    left: 13px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted, #65758a);
-    font-size: 13px;
-    pointer-events: none;
-}
+.user-management-page *,
+.user-management-page *::before,
+.user-management-page *::after { box-sizing: border-box; }
+.user-management-page button,
+.user-management-page input,
+.user-management-page select { font: inherit; }
+.user-management-page button { cursor: pointer; }
 
-.user-filter-tabs {
+/* ---------- Page introduction ---------- */
+.user-page-intro {
     display: flex;
-    gap: 6px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    margin-left: auto;
-    padding-bottom: 2px;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 0 18px;
 }
-.user-filter-tabs::-webkit-scrollbar { display: none; }
-.user-filter-tabs .filter-tab {
-    flex-shrink: 0;
-}
-
-/* ============================================================
-   TABLE (desktop) — sticky header, clean rows
-   ============================================================ */
-.admin-table-wrap {
-    overflow-x: auto;
-    border-radius: 0 0 14px 14px;
-    -webkit-overflow-scrolling: touch;
-}
-.admin-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12.5px;
-    min-width: 900px;
-}
-.admin-table thead th {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: #fafcfd;
-    text-align: left;
-    padding: 11px 16px;
-    font-size: 10px;
-    font-weight: 800;
-    color: var(--muted, #65758a);
-    text-transform: uppercase;
-    letter-spacing: 0.55px;
-    border-bottom: 1px solid var(--line, #e4eaf1);
-    white-space: nowrap;
-}
-.admin-table tbody td {
-    padding: 12px 16px;
-    border-bottom: 1px solid #f1f5f9;
-    color: var(--navy, #092f58);
-    vertical-align: middle;
-}
-.admin-table tbody tr:last-child td { border-bottom: none; }
-.admin-table tbody tr { transition: background .18s; }
-.admin-table tbody tr:hover { background: #f8fafc; }
-
-/* User cell */
-.user-cell {
+.user-page-intro-copy { min-width: 0; }
+.user-page-intro h2 {
     display: flex;
     align-items: center;
     gap: 10px;
-    min-width: 0;
+    margin: 0 0 5px;
+    color: var(--um-charcoal);
+    font-size: clamp(17px, 2vw, 21px);
+    font-weight: 850;
+    letter-spacing: -.35px;
 }
-.user-cell-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--navy, #092f58), var(--blue, #124d82));
-    color: #fff;
+.user-page-intro h2 i {
     display: grid;
     place-items: center;
-    font-size: 12.5px;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    border-radius: 11px;
+    color: var(--um-maroon);
+    background: #f7eaf0;
+    font-size: 15px;
+}
+.user-page-intro p {
+    margin: 0;
+    color: var(--um-muted);
+    font-size: 12px;
+    line-height: 1.55;
+}
+.user-page-context {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 11px;
+    border: 1px solid #eadde1;
+    border-radius: 999px;
+    color: var(--um-maroon);
+    background: #fffafb;
+    font-size: 10px;
     font-weight: 800;
-    flex-shrink: 0;
-    letter-spacing: 0.5px;
+    letter-spacing: .45px;
+    text-transform: uppercase;
+    white-space: nowrap;
 }
-.user-cell-avatar.has-photo {
-    padding: 0;
-    overflow: hidden;
+.user-page-context i { color: var(--um-yellow); }
+
+/* ---------- Stats ---------- */
+.user-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 13px;
+    margin: 0 0 19px;
 }
-.user-cell-avatar.has-photo img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-    display: block;
-}
-.user-cell-meta {
+.user-stat-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 13px;
     min-width: 0;
-    flex: 1;
+    padding: 16px 17px;
+    overflow: hidden;
+    border: 1px solid var(--um-line);
+    border-radius: var(--um-radius);
+    background: var(--um-white);
+    box-shadow: var(--um-shadow);
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
+.user-stat-card::after {
+    content: "";
+    position: absolute;
+    right: -22px;
+    bottom: -30px;
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .035;
+    pointer-events: none;
+}
+.user-stat-card:hover {
+    transform: translateY(-2px);
+    border-color: #d4d8df;
+    box-shadow: 0 11px 28px rgba(35,31,36,.09);
+}
+.user-stat-icon {
+    display: grid;
+    place-items: center;
+    width: 45px;
+    height: 45px;
+    flex: 0 0 45px;
+    border-radius: 12px;
+    font-size: 16px;
+}
+.user-stat-icon.total { color: var(--um-blue); background: #eaf1f8; }
+.user-stat-icon.active { color: #24714f; background: #e8f4ed; }
+.user-stat-icon.inactive { color: var(--um-maroon); background: #f7eaf0; }
+.user-stat-icon.admins { color: #8a6a1f; background: #fbf4df; }
+.user-stat-meta { min-width: 0; }
+.user-stat-meta strong {
+    display: block;
+    color: var(--um-charcoal);
+    font-size: clamp(19px, 2vw, 23px);
+    font-weight: 850;
+    line-height: 1.12;
+    font-variant-numeric: tabular-nums;
+}
+.user-stat-meta small {
+    display: block;
+    margin-top: 4px;
+    color: var(--um-muted);
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+}
+
+/* ---------- Main users panel ---------- */
+.user-management-panel {
+    min-width: 0;
+    overflow: visible;
+    border: 1px solid var(--um-line);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: var(--um-shadow);
+}
+.user-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 17px 19px;
+    border-bottom: 1px solid #eceef2;
+}
+.user-panel-heading { min-width: 0; }
+.user-panel-heading h3 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0;
+    color: var(--um-charcoal);
+    font-size: 14px;
+    font-weight: 850;
+}
+.user-panel-heading h3 i { color: var(--um-maroon); }
+.user-panel-heading p {
+    margin: 4px 0 0 25px;
+    color: var(--um-muted);
+    font-size: 10.5px;
+}
+.user-total-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid #e7d9de;
+    border-radius: 999px;
+    color: var(--um-maroon);
+    background: #fcf7f8;
+    font-size: 10px;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+/* ---------- Toolbar ---------- */
+.user-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    flex-wrap: wrap;
+    padding: 13px 17px;
+    border-bottom: 1px solid var(--um-line);
+    background: #fafbfc;
+}
+.user-search {
+    position: relative;
+    flex: 1 1 230px;
+    max-width: 350px;
+    min-width: 160px;
+}
+.user-search input {
+    width: 100%;
+    height: 40px;
+    padding: 9px 13px 9px 37px;
+    border: 1px solid #dfe2e8;
+    border-radius: 10px;
+    outline: none;
+    color: var(--um-text);
+    background: #fff;
+    font-size: 12px;
+    transition: border-color .18s, box-shadow .18s;
+}
+.user-search input:focus {
+    border-color: #91aec9;
+    box-shadow: 0 0 0 3px rgba(45,95,145,.10);
+}
+.user-search input::placeholder { color: #9299a4; }
+.user-search > i {
+    position: absolute;
+    top: 50%;
+    left: 13px;
+    transform: translateY(-50%);
+    color: #87909c;
+    font-size: 12px;
+    pointer-events: none;
+}
+.user-filter-tabs {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    max-width: 100%;
+    margin-left: auto;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 2px 1px 4px;
+}
+.user-filter-tabs::-webkit-scrollbar { display: none; }
+.user-filter-tabs .filter-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 33px;
+    flex: 0 0 auto;
+    padding: 7px 11px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: #68717d;
+    background: transparent;
+    text-decoration: none;
+    font-size: 10.5px;
+    font-weight: 800;
+    white-space: nowrap;
+    transition: .18s ease;
+}
+.user-filter-tabs .filter-tab:hover {
+    color: var(--um-maroon);
+    background: #f7eef1;
+}
+.user-filter-tabs .filter-tab.active {
+    color: #fff;
+    border-color: var(--um-maroon);
+    background: var(--um-maroon);
+    box-shadow: 0 4px 10px rgba(123,38,59,.14);
+}
+.user-filter-tabs .filter-tab.active:hover { color: #fff; }
+.user-filter-tabs .filter-tab span { margin-left: 2px; }
+
+/* Filter menu button and dropdown */
+.user-filter-menu-wrap { position: relative; flex: 0 0 auto; }
+.user-filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 9px 13px;
+    border: 1px solid #d8dce3;
+    border-radius: 10px;
+    color: var(--um-charcoal);
+    background: #fff;
+    font-size: 11px;
+    font-weight: 850;
+    transition: .18s ease;
+}
+.user-filter-toggle i:first-child { color: var(--um-maroon); }
+.user-filter-toggle:hover,
+.user-filter-toggle[aria-expanded="true"] {
+    border-color: #cdaeb8;
+    color: var(--um-maroon);
+    background: #fffafb;
+    box-shadow: 0 0 0 3px rgba(123,38,59,.06);
+}
+.user-filter-toggle .filter-chevron { color: #8a929d; font-size: 9px; transition: transform .18s; }
+.user-filter-toggle[aria-expanded="true"] .filter-chevron { transform: rotate(180deg); }
+.user-filter-active-count {
+    display: none;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 99px;
+    color: #302a30;
+    background: var(--um-yellow);
+    font-size: 9px;
+    font-weight: 900;
+    line-height: 18px;
+}
+.user-filter-active-count.visible { display: inline-block; }
+.user-filter-dropdown {
+    position: absolute;
+    top: calc(100% + 9px);
+    right: 0;
+    z-index: 100;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: min(440px, calc(100vw - 32px));
+    padding: 16px;
+    border: 1px solid #e0e2e7;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 18px 46px rgba(35,31,36,.16);
+}
+.user-filter-dropdown[hidden] { display: none !important; }
+.user-filter-dropdown-head {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eceef2;
+}
+.user-filter-dropdown-head strong {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--um-charcoal);
+    font-size: 12px;
+    font-weight: 850;
+}
+.user-filter-dropdown-head strong i { color: var(--um-maroon); }
+.user-filter-dropdown-head small { color: var(--um-muted); font-size: 10px; }
+.user-filter-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.user-filter-field label {
+    color: #5e6672;
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+.user-filter-field select {
+    width: 100%;
+    min-width: 0;
+    height: 39px;
+    padding: 8px 30px 8px 10px;
+    border: 1px solid #dfe2e8;
+    border-radius: 9px;
+    outline: none;
+    color: var(--um-text);
+    background: #fafbfc;
+    font-size: 11px;
+    font-weight: 700;
+}
+.user-filter-field select:focus {
+    border-color: #91aec9;
+    box-shadow: 0 0 0 3px rgba(45,95,145,.09);
+}
+.user-filter-dropdown-foot {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eceef2;
+}
+.user-filter-results { color: var(--um-muted); font-size: 10px; font-weight: 700; }
+.user-filter-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 33px;
+    padding: 7px 10px;
+    border: 1px solid #eadde1;
+    border-radius: 8px;
+    color: var(--um-maroon);
+    background: #fffafb;
+    font-size: 10px;
+    font-weight: 850;
+}
+.user-filter-reset:hover { color: #fff; border-color: var(--um-maroon); background: var(--um-maroon); }
+
+/* ---------- Table ---------- */
+.user-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 0 0 15px 15px;
+    -webkit-overflow-scrolling: touch;
+}
+.user-table {
+    width: 100%;
+    min-width: 1030px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 12px;
+}
+.user-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 12px 14px;
+    border-bottom: 1px solid #e5e7eb;
+    color: #68717d;
+    background: #f4f5f7;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .075em;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.user-table tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #eff0f3;
+    color: #454b55;
+    vertical-align: middle;
+}
+.user-table tbody tr { transition: background .16s ease; }
+.user-table tbody tr:hover { background: #fbf7f8; }
+.user-table tbody tr:last-child td { border-bottom: 0; }
+.user-id-text {
+    color: var(--um-maroon);
+    font-size: 11px;
+    font-weight: 850;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+.user-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.user-cell-avatar {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    overflow: hidden;
+    border: 2px solid #f0e2e6;
+    border-radius: 50%;
+    color: #fff;
+    background: linear-gradient(135deg, var(--um-charcoal), var(--um-maroon));
+    font-size: 12px;
+    font-weight: 850;
+    letter-spacing: .35px;
+}
+.user-cell-avatar.has-photo { padding: 0; }
+.user-cell-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.user-cell-meta { min-width: 0; flex: 1; }
 .user-cell-meta strong {
     display: block;
-    font-size: 13px;
-    color: var(--navy, #092f58);
-    font-weight: 700;
-    line-height: 1.25;
-    white-space: nowrap;
+    max-width: 195px;
     overflow: hidden;
+    color: var(--um-charcoal);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.3;
     text-overflow: ellipsis;
-    max-width: 200px;
+    white-space: nowrap;
 }
 .user-cell-meta small {
     display: block;
-    font-size: 11.5px;
-    color: var(--muted, #65758a);
-    line-height: 1.3;
-    white-space: nowrap;
+    max-width: 195px;
+    margin-top: 2px;
     overflow: hidden;
+    color: var(--um-muted);
+    font-size: 10.5px;
+    line-height: 1.3;
     text-overflow: ellipsis;
-    max-width: 200px;
+    white-space: nowrap;
 }
+.user-contact { color: #626b77; font-size: 11px; white-space: nowrap; }
+.user-contact i { margin-right: 5px; color: #9aa1ab; font-size: 10px; }
+.user-class-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    max-width: 150px;
+    padding: 5px 9px;
+    overflow: hidden;
+    border: 1px solid #dce6ef;
+    border-radius: 999px;
+    color: var(--um-blue-dark);
+    background: #edf3f9;
+    font-size: 9.5px;
+    font-weight: 850;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.user-class-pill i { color: var(--um-yellow); font-size: 9px; }
+.user-no-class { color: #a0a5ae; font-size: 11px; }
 
-/* Role select (unified pill-styled dropdown) */
+/* Role select */
 .role-select {
+    max-width: 140px;
+    min-height: 30px;
     appearance: none;
     -webkit-appearance: none;
-    padding: 5px 24px 5px 10px;
-    border-radius: 999px;
-    font-family: inherit;
-    font-size: 10.5px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    padding: 6px 25px 6px 10px;
     border: 1px solid transparent;
-    cursor: pointer;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='currentColor' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+    border-radius: 999px;
+    outline: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%2369717d' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 8px center;
-    transition: all .2s;
+    cursor: pointer;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+    transition: .18s ease;
 }
-.role-select:hover { filter: brightness(0.96); }
-.role-select:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(18,77,130,.15);
-}
-.role-select.admin   { background-color: #fef3c7; color: #b45309; }
-.role-select.teacher { background-color: #dbeafe; color: #1e40af; }
-.role-select.parent  { background-color: #fce7f3; color: #9d174d; }
-.role-select.student { background-color: #e0e7ff; color: #4338ca; }
-.role-select.administrator { background-color: #fef3c7; color: #92400e; border-color: #f0b429; }
+.role-select:hover { filter: brightness(.97); }
+.role-select:focus { box-shadow: 0 0 0 3px rgba(45,95,145,.13); }
+.role-select.admin, .role-select.administrator { color: #765a18; background-color: #fbf4df; border-color: #eee0b8; }
+.role-select.teacher { color: var(--um-blue-dark); background-color: #eaf1f8; border-color: #d5e3ef; }
+.role-select.parent { color: var(--um-maroon); background-color: #f7eaf0; border-color: #edd7df; }
+.role-select.student { color: #4b5665; background-color: #f0f1f4; border-color: #e3e5e9; }
 
-/* Status pills */
+/* Status and action buttons */
 .user-status-pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 10px;
+    padding: 5px 9px;
     border-radius: 999px;
-    font-size: 10.5px;
-    font-weight: 800;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .055em;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
     white-space: nowrap;
 }
-.user-status-pill.active   { background: #dcfce7; color: #15803d; }
-.user-status-pill.inactive { background: #fee2e2; color: #b91c1c; }
-.user-status-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: currentColor;
-}
-.user-status-pill.active .user-status-dot {
-    animation: pulseDot 1.9s infinite;
-}
-@keyframes pulseDot {
-    0%   { box-shadow: 0 0 0 0 rgba(22,163,74,.55); }
-    70%  { box-shadow: 0 0 0 6px rgba(22,163,74,0); }
-    100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); }
-}
-
-/* ---------- Action buttons ---------- */
-.action-btn-group {
-    display: flex;
-    gap: 5px;
-    flex-wrap: nowrap;
-    align-items: center;
-}
-.btn-icon-edit,
-.btn-icon-approve,
-.btn-icon-danger {
-    width: 34px;
-    height: 34px;
-    border-radius: 9px;
-    border: none;
+.user-status-pill.active { color: #286847; background: #e9f4ed; }
+.user-status-pill.inactive { color: var(--um-maroon); background: #f7eaf0; }
+.user-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.user-status-pill.active .user-status-dot { box-shadow: 0 0 0 3px rgba(40,104,71,.10); }
+.action-btn-group { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.user-icon-action {
     display: grid;
     place-items: center;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all .2s cubic-bezier(.2,.7,.3,1);
+    width: 32px;
+    height: 32px;
     padding: 0;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    font-size: 11px;
+    transition: transform .16s ease, background .16s ease, box-shadow .16s ease;
 }
-.btn-icon-edit {
-    background: #e0f2fe;
-    color: #0284c7;
+.user-icon-action:hover { transform: translateY(-1px); }
+.user-icon-action.edit { color: var(--um-blue); background: #eaf1f8; border-color: #dce7f1; }
+.user-icon-action.edit:hover { color: #fff; background: var(--um-blue); box-shadow: 0 5px 12px rgba(45,95,145,.2); }
+.user-icon-action.neutral { color: #555f6c; background: #f0f1f4; border-color: #e5e6ea; }
+.user-icon-action.neutral:hover { color: #fff; background: var(--um-charcoal); }
+.user-icon-action.danger { color: var(--um-maroon); background: #f7eaf0; border-color: #edd7df; }
+.user-icon-action.danger:hover { color: #fff; background: var(--um-maroon); box-shadow: 0 5px 12px rgba(123,38,59,.2); }
+.user-you-label { color: #8b929c; font-size: 10px; font-weight: 800; }
+.user-empty-row { padding: 34px 18px !important; color: var(--um-muted) !important; text-align: center; }
+.user-empty-row i { display: block; margin-bottom: 9px; color: #aab0b9; font-size: 22px; }
+.user-results-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 17px;
+    border-top: 1px solid #eff0f3;
+    color: var(--um-muted);
+    background: #fcfcfd;
+    font-size: 10px;
 }
-.btn-icon-edit:hover {
-    background: #0284c7;
-    color: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(2,132,199,.32);
-}
-.btn-icon-approve {
-    background: #f1f5f9;
-    color: #475569;
-}
-.btn-icon-approve:hover {
-    background: var(--navy, #092f58);
-    color: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(9,47,88,.25);
-}
-.btn-icon-danger {
-    background: #fee2e2;
-    color: #dc2626;
-}
-.btn-icon-danger:hover {
-    background: #dc2626;
-    color: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(220,38,38,.32);
-}
+.user-results-bar strong { color: var(--um-charcoal); font-weight: 850; }
 
-/* ============================================================
-   RESPONSIVE — MOBILE CARD VIEW (<768px)
-   ============================================================ */
-@media (max-width: 768px) {
-    /* Stats: 2×2 compact */
-    .user-stats-row {
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 16px;
-    }
-    .user-stat-card {
-        padding: 12px 14px;
-        gap: 10px;
-    }
-    .user-stat-icon {
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
-        font-size: 14px;
-    }
-    .user-stat-meta strong { font-size: 18px; }
-    .user-stat-meta small { font-size: 9.5px; }
-
-    /* Toolbar stacked */
-    .user-toolbar {
-        padding: 12px 14px;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-    .user-search {
-        flex: 1;
-        max-width: 100%;
-    }
-    .user-filter-tabs {
-        margin-left: 0;
-        justify-content: flex-start;
-    }
-
-    /* TABLE → CARDS */
-    .admin-table-wrap {
-        overflow: visible;
-        border-radius: 0;
-        background: transparent;
-        padding: 12px;
-    }
-    .admin-table {
-        min-width: 0;
-        font-size: 13px;
-    }
-    .admin-table thead {
-        display: none;
-    }
-    .admin-table tbody tr {
-        display: block;
-        background: #fff;
-        border: 1px solid var(--line, #e4eaf1);
-        border-radius: 12px;
-        padding: 14px;
-        margin-bottom: 10px;
-        box-shadow: 0 2px 8px rgba(9,47,88,.04);
-        transition: box-shadow .2s;
-    }
-    .admin-table tbody tr:hover {
-        background: #fff;
-        box-shadow: 0 6px 18px rgba(9,47,88,.10);
-    }
-    .admin-table tbody td {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 8px 0;
-        border-bottom: 1px dashed #f1f5f9;
-    }
-    .admin-table tbody td:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-    }
-    .admin-table tbody td:first-child {
-        padding-top: 0;
-    }
-    /* Label from data-label */
-    .admin-table tbody td::before {
-        content: attr(data-label);
-        flex-shrink: 0;
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--muted, #65758a);
-        padding-top: 4px;
-        min-width: 70px;
-    }
-    /* User cell spans full width */
-    .admin-table tbody td[data-label="User"] {
-        flex-direction: row;
-        justify-content: flex-start;
-        border-bottom: 1px solid #f1f5f9;
-        padding: 0 0 12px;
-        margin-bottom: 6px;
-    }
-    .admin-table tbody td[data-label="User"]::before {
-        display: none;
-    }
-    .user-cell-meta strong,
-    .user-cell-meta small {
-        max-width: 100%;
-        font-size: 13.5px;
-    }
-    .user-cell-avatar {
-        width: 44px;
-        height: 44px;
-        font-size: 14px;
-    }
-    /* Action buttons row */
-    .admin-table tbody td[data-label="Actions"] {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-        padding-top: 12px;
-        border-top: 1px solid #f1f5f9;
-    }
-    .admin-table tbody td[data-label="Actions"]::before {
-        display: none;
-    }
-    .action-btn-group {
-        justify-content: flex-end;
-        gap: 6px;
-    }
-    .btn-icon-edit,
-    .btn-icon-approve,
-    .btn-icon-danger {
-        width: 40px;
-        height: 40px;
-        font-size: 13px;
-        border-radius: 10px;
-    }
-    /* Wider role select */
-    .role-select {
-        padding: 6px 26px 6px 12px;
-        font-size: 11px;
-    }
-    /* Empty rows */
-    .admin-table tbody tr td.empty-row,
-    .admin-table tbody tr#searchEmptyRow td {
-        display: block;
-        text-align: center;
-        padding: 30px 16px;
-        border: none;
-    }
-}
-
-/* ============================================================
-   EDIT USER MODAL
-   ============================================================ */
+/* ---------- Edit modal ---------- */
 .user-modal {
     position: fixed;
     inset: 0;
-    background: rgba(5, 24, 44, 0.62);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
+    z-index: 6000;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 6000;
     padding: 20px;
+    background: rgba(24,22,27,.62);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
     opacity: 0;
     visibility: hidden;
-    transition: opacity .3s ease, visibility .3s ease;
+    transition: opacity .24s ease, visibility .24s ease;
 }
-.user-modal.active {
-    opacity: 1;
-    visibility: visible;
-}
+.user-modal.active { opacity: 1; visibility: visible; }
 .user-modal-box {
-    background: #fff;
+    display: flex;
+    flex-direction: column;
     width: 100%;
     max-width: 620px;
     max-height: calc(92vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-    border-radius: 18px;
-    display: flex;
-    flex-direction: column;
     overflow: hidden;
-    box-shadow: 0 30px 70px rgba(0,0,0,.32);
-    transform: translateY(22px) scale(.96);
-    transition: transform .3s cubic-bezier(.2,.75,.3,1);
+    border: 1px solid rgba(255,255,255,.55);
+    border-radius: 17px;
+    background: #fff;
+    box-shadow: 0 30px 70px rgba(0,0,0,.30);
+    transform: translateY(18px) scale(.985);
+    transition: transform .24s ease;
 }
-.user-modal.active .user-modal-box {
-    transform: translateY(0) scale(1);
-}
+.user-modal.active .user-modal-box { transform: translateY(0) scale(1); }
 .user-modal-head {
-    padding: 18px 22px;
-    background: linear-gradient(135deg, #f8fafc 0%, #eef4fb 100%);
-    border-bottom: 1px solid var(--line, #e4eaf1);
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    flex-shrink: 0;
+    justify-content: space-between;
+    gap: 12px;
+    flex: 0 0 auto;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--um-line);
+    background: linear-gradient(120deg, #f8f3f5, #eef3f8);
 }
 .user-modal-head h3 {
-    margin: 0;
-    font-size: 16px;
-    color: var(--navy, #092f58);
-    font-weight: 800;
     display: flex;
     align-items: center;
     gap: 9px;
+    margin: 0;
+    color: var(--um-charcoal);
+    font-size: 15px;
+    font-weight: 850;
 }
-.user-modal-head h3 i { color: var(--blue, #124d82); }
+.user-modal-head h3 i { color: var(--um-maroon); }
 .user-modal-close {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    border: none;
-    background: transparent;
-    color: var(--muted, #65758a);
-    font-size: 16px;
-    cursor: pointer;
     display: grid;
     place-items: center;
-    transition: all .22s;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 9px;
+    color: #737b87;
+    background: transparent;
+    font-size: 15px;
+    transition: .18s ease;
 }
-.user-modal-close:hover {
-    background: #fee2e2;
-    color: var(--red, #d71938);
-    transform: rotate(90deg);
-}
+.user-modal-close:hover { color: #fff; background: var(--um-maroon); }
 .user-modal-body {
-    padding: 22px;
-    overflow-y: auto;
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
     gap: 14px;
-    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
 .user-modal-section-title {
-    font-size: 11px;
-    font-weight: 800;
+    margin: 3px 0 4px;
+    padding-bottom: 7px;
+    border-bottom: 1px dashed #e3e5e9;
+    color: var(--um-muted);
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .11em;
     text-transform: uppercase;
-    letter-spacing: 0.10em;
-    color: var(--muted, #65758a);
-    margin: 4px 0 6px;
-    padding-bottom: 6px;
-    border-bottom: 1px dashed var(--line, #e4eaf1);
 }
 .user-modal-body label {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    font-size: 12.5px;
-    font-weight: 700;
-    color: var(--navy, #092f58);
+    min-width: 0;
+    color: #505865;
+    font-size: 11px;
+    font-weight: 800;
 }
 .user-modal-body input,
 .user-modal-body select {
-    padding: 10px 13px;
-    border: 1px solid var(--line, #e4eaf1);
-    border-radius: 10px;
-    font-family: inherit;
-    font-size: 13.5px;
-    color: var(--navy, #092f58);
-    background: #f8fafc;
-    transition: all .2s;
+    width: 100%;
+    min-width: 0;
     min-height: 42px;
+    padding: 9px 12px;
+    border: 1px solid #dfe2e8;
+    border-radius: 9px;
+    outline: none;
+    color: var(--um-charcoal);
+    background: #fafbfc;
+    font-size: 12px;
+    transition: border-color .18s, box-shadow .18s, background .18s;
 }
 .user-modal-body input:focus,
 .user-modal-body select:focus {
-    outline: none;
+    border-color: #91aec9;
     background: #fff;
-    border-color: var(--blue, #124d82);
-    box-shadow: 0 0 0 3px rgba(18,77,130,.12);
+    box-shadow: 0 0 0 3px rgba(45,95,145,.10);
 }
-.user-modal-body input[readonly] {
-    background: #eef4fb;
-    color: var(--muted, #65758a);
-    cursor: not-allowed;
-}
-.user-modal-row-2col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
+.user-modal-body input[readonly] { color: #838a94; background: #f0f1f4; cursor: not-allowed; }
+.user-modal-row-2col { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
 .user-modal-foot {
-    padding: 16px 22px;
-    background: #f8fafc;
-    border-top: 1px solid var(--line, #e4eaf1);
     display: flex;
+    align-items: center;
     justify-content: flex-end;
-    gap: 10px;
-    flex-shrink: 0;
+    gap: 9px;
+    flex: 0 0 auto;
+    padding: 14px 20px;
+    border-top: 1px solid var(--um-line);
+    background: #fafbfc;
 }
-.user-modal-btn-cancel {
-    padding: 10px 18px;
-    background: #fff;
-    border: 1px solid var(--line, #e4eaf1);
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 700;
-    font-family: inherit;
-    color: var(--muted, #65758a);
-    cursor: pointer;
-    transition: all .2s;
-    min-height: 42px;
-}
-.user-modal-btn-cancel:hover {
-    background: #f1f5f9;
-    color: var(--navy, #092f58);
-}
+.user-modal-btn-cancel,
 .user-modal-btn-save {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    padding: 10px 20px;
-    background: linear-gradient(135deg, var(--blue, #124d82), #1a5fa0);
-    border: none;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 700;
-    font-family: inherit;
+    min-height: 40px;
+    padding: 9px 16px;
+    border-radius: 9px;
+    font-size: 11px;
+    font-weight: 850;
+    transition: .18s ease;
+}
+.user-modal-btn-cancel { border: 1px solid #dfe2e8; color: #66707d; background: #fff; }
+.user-modal-btn-cancel:hover { color: var(--um-charcoal); background: #f0f1f4; }
+.user-modal-btn-save {
+    border: 1px solid var(--um-blue);
     color: #fff;
-    cursor: pointer;
-    transition: all .22s;
-    box-shadow: 0 6px 16px rgba(18,77,130,.24);
-    min-height: 42px;
+    background: linear-gradient(135deg, var(--um-blue), var(--um-blue-dark));
+    box-shadow: 0 5px 12px rgba(45,95,145,.17);
 }
-.user-modal-btn-save:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 22px rgba(18,77,130,.34);
-}
+.user-modal-btn-save:hover { transform: translateY(-1px); box-shadow: 0 8px 16px rgba(45,95,145,.22); }
 
-/* Photo block */
+/* Profile photo editor inside the edit modal remains fully functional. */
 .user-photo-block {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 14px;
-    background: linear-gradient(135deg, #f8fafc, #eef4fb);
-    border: 1px solid var(--line, #e4eaf1);
-    border-radius: 12px;
-    margin-bottom: 6px;
+    gap: 13px;
     flex-wrap: wrap;
+    padding: 13px;
+    border: 1px solid #e2e4e9;
+    border-radius: 12px;
+    background: linear-gradient(120deg, #faf6f7, #f2f6fa);
 }
 .user-photo-preview {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--navy, #092f58), var(--blue, #124d82));
-    color: #fff;
     display: grid;
     place-items: center;
-    font-size: 20px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    flex-shrink: 0;
+    width: 62px;
+    height: 62px;
+    flex: 0 0 62px;
     overflow: hidden;
     border: 3px solid #fff;
-    box-shadow: 0 4px 14px rgba(9,47,88,.14);
+    border-radius: 50%;
+    color: #fff;
+    background: linear-gradient(135deg, var(--um-charcoal), var(--um-maroon));
+    box-shadow: 0 3px 12px rgba(35,31,36,.12);
+    font-size: 19px;
+    font-weight: 850;
 }
 .user-photo-preview.has-photo { padding: 0; }
-.user-photo-preview.has-photo img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-    display: block;
-}
-.user-photo-meta {
-    flex: 1;
-    min-width: 0;
-}
-.user-photo-meta strong {
-    display: block;
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--navy, #092f58);
-    margin-bottom: 2px;
-}
-.user-photo-meta small {
-    display: block;
-    font-size: 11px;
-    color: var(--muted, #65758a);
-    line-height: 1.3;
-}
-.user-photo-btns {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-}
+.user-photo-preview img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.user-photo-meta { flex: 1 1 130px; min-width: 0; }
+.user-photo-meta strong { display: block; margin-bottom: 3px; color: var(--um-charcoal); font-size: 11px; font-weight: 850; }
+.user-photo-meta small { display: block; color: var(--um-muted); font-size: 9.5px; line-height: 1.4; }
+.user-photo-btns { display: flex; flex-wrap: wrap; gap: 6px; }
 .user-photo-change-btn,
 .user-photo-remove-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
-    padding: 8px 13px;
+    min-height: 33px;
+    padding: 7px 10px;
+    border: 1px solid #dfe2e8;
     border-radius: 8px;
-    border: 1px solid var(--line, #e4eaf1);
+    color: var(--um-blue);
     background: #fff;
-    font-family: inherit;
-    font-size: 11.5px;
-    font-weight: 700;
-    color: var(--navy, #092f58);
-    cursor: pointer;
-    transition: all .2s ease;
+    font-size: 10px;
+    font-weight: 850;
     white-space: nowrap;
-    min-height: 34px;
 }
-.user-photo-change-btn:hover {
-    background: #f1f5f9;
-    border-color: #b0c4d8;
-    transform: translateY(-1px);
+.user-photo-change-btn:hover { border-color: #b8cbdc; background: #edf3f9; }
+.user-photo-remove-btn { color: var(--um-maroon); border-color: #ecd6dd; background: #fff8fa; }
+.user-photo-remove-btn:hover { color: #fff; border-color: var(--um-maroon); background: var(--um-maroon); }
+
+/* ---------- Responsive adjustments ---------- */
+@media (max-width: 1120px) {
+    .user-filter-tabs { order: 3; width: 100%; margin-left: 0; }
+    .user-search { max-width: none; }
+    .user-filter-menu-wrap { margin-left: auto; }
 }
-.user-photo-change-btn i { color: var(--blue, #124d82); }
-.user-photo-remove-btn {
-    background: #ffeaee;
-    color: var(--red, #d71938);
-    border-color: #f8c9d2;
+@media (max-width: 820px) {
+    .user-stats-row { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+    .user-panel-head { padding: 14px 15px; }
+    .user-toolbar { padding: 12px 14px; }
+    .user-search { flex-basis: 100%; max-width: 100%; }
+    .user-filter-menu-wrap { margin-left: auto; }
+    .user-filter-tabs { order: 0; width: auto; flex: 1 1 100%; }
+    .user-table-wrap { overflow: visible; padding: 11px; background: #f4f5f7; }
+    .user-table { min-width: 0; border-collapse: separate; border-spacing: 0; }
+    .user-table thead { display: none; }
+    .user-table tbody { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+    .user-table tbody tr[data-search] {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        padding: 13px;
+        border: 1px solid #e3e5e9;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(35,31,36,.035);
+    }
+    .user-table tbody tr[data-search]:hover { background: #fff; box-shadow: 0 7px 17px rgba(35,31,36,.075); }
+    .user-table tbody td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 9px;
+        padding: 7px 0;
+        border-bottom: 1px dashed #eceef1;
+        font-size: 11px;
+    }
+    .user-table tbody td:last-child { border-bottom: 0; padding-bottom: 0; }
+    .user-table tbody td::before {
+        content: attr(data-label);
+        flex: 0 0 auto;
+        color: #858c96;
+        font-size: 8px;
+        font-weight: 900;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+    }
+    .user-table tbody td[data-label="User"] {
+        display: block;
+        padding: 0 0 10px;
+        margin-bottom: 1px;
+        border-bottom: 1px solid #eceef1;
+    }
+    .user-table tbody td[data-label="User"]::before,
+    .user-table tbody td[data-label="Actions"]::before { display: none; }
+    .user-cell-meta strong, .user-cell-meta small { max-width: 100%; }
+    .user-cell-avatar { width: 42px; height: 42px; flex-basis: 42px; }
+    .user-table tbody td[data-label="Actions"] { display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding-top: 10px; border-top: 1px solid #eceef1; }
+    .action-btn-group { justify-content: flex-end; }
+    .user-icon-action { width: 36px; height: 36px; }
+    .user-empty-row { display: block !important; grid-column: 1 / -1; }
 }
-.user-photo-remove-btn i { color: var(--red, #d71938); }
-.user-photo-remove-btn:hover {
-    background: #ffd9e0;
-    transform: translateY(-1px);
+@media (max-width: 560px) {
+    .user-page-intro { margin-bottom: 14px; }
+    .user-page-context { display: none; }
+    .user-stats-row { gap: 8px; margin-bottom: 14px; }
+    .user-stat-card { gap: 9px; padding: 11px; border-radius: 12px; }
+    .user-stat-icon { width: 36px; height: 36px; flex-basis: 36px; border-radius: 10px; font-size: 13px; }
+    .user-stat-meta strong { font-size: 18px; }
+    .user-stat-meta small { font-size: 8px; letter-spacing: .06em; }
+    .user-filter-dropdown { grid-template-columns: 1fr; right: 0; width: min(360px, calc(100vw - 28px)); }
+    .user-filter-dropdown-head, .user-filter-dropdown-foot { grid-column: 1; }
+    .user-filter-tabs { gap: 3px; }
+    .user-filter-tabs .filter-tab { min-height: 31px; padding: 6px 9px; font-size: 9.5px; }
+    .user-table tbody { grid-template-columns: 1fr; gap: 9px; }
+    .user-table-wrap { padding: 9px; }
+    .user-table tbody tr[data-search] { padding: 12px; }
+    .user-results-bar { padding: 9px 12px; }
+    .user-modal { padding: 0; align-items: stretch; }
+    .user-modal-box { max-width: none; max-height: 100vh; height: 100%; border-radius: 0; transform: translateY(16px); }
+    .user-modal.active .user-modal-box { transform: translateY(0); }
+    .user-modal-head { padding: calc(13px + env(safe-area-inset-top, 0px)) 16px 13px; }
+    .user-modal-body { padding: 15px; }
+    .user-modal-row-2col { grid-template-columns: 1fr; gap: 12px; }
+    .user-modal-foot { flex-direction: column-reverse; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); }
+    .user-modal-foot button { width: 100%; }
+    .user-photo-btns { width: 100%; }
+    .user-photo-btns button { flex: 1; }
 }
+@media (max-width: 360px) {
+    .user-stat-card { padding: 9px; }
+    .user-stat-icon { width: 31px; height: 31px; flex-basis: 31px; }
+    .user-stat-meta strong { font-size: 16px; }
+    .user-toolbar { padding-inline: 10px; }
+    .user-panel-head { padding-inline: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .user-management-page *, .user-management-page *::before, .user-management-page *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}
+
 
 /* ============================================================
-   MODAL — MOBILE FULL-SCREEN
+   RESPONSIVE WIDTH REPAIR — ADMIN BASE + USER TABLE
+   Fixes the parent workspace shrinking on phones and the base
+   .admin-content table min-width rule overriding the card layout.
    ============================================================ */
-@media (max-width: 640px) {
-    .user-modal {
-        padding: 0;
-        align-items: stretch;
-    }
-    .user-modal-box {
-        max-width: 100%;
-        width: 100%;
-        max-height: 100vh;
-        border-radius: 0;
-        transform: translateY(30px);
-    }
-    .user-modal.active .user-modal-box {
-        transform: translateY(0);
-    }
-    .user-modal-head {
-        padding: 14px 18px;
-        padding-top: calc(14px + env(safe-area-inset-top, 0px));
-    }
-    .user-modal-body {
-        padding: 18px;
-    }
-    .user-modal-row-2col {
-        grid-template-columns: 1fr;
-    }
-    .user-modal-foot {
-        padding: 14px 18px;
-        padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
-        flex-direction: column-reverse;
-    }
-    .user-modal-foot button {
-        width: 100%;
-        justify-content: center;
-    }
-    .user-photo-btns { width: 100%; }
-    .user-photo-btns button { flex: 1; justify-content: center; }
+.user-management-page,
+.user-management-page > *,
+.user-management-panel,
+.user-table-wrap {
+    min-width: 0;
+    max-width: 100%;
 }
 
-/* Small device tweaks */
-@media (max-width: 420px) {
-    .user-stats-row { grid-template-columns: 1fr 1fr; }
-    .user-stat-meta strong { font-size: 16px; }
-    .user-stat-meta small { font-size: 9px; letter-spacing: 0.05em; }
-    .user-stat-icon { width: 34px; height: 34px; font-size: 13px; }
+/* Use border-box sizing for the shared admin content canvas too.
+   The base template's width:100% plus horizontal padding otherwise adds
+   extra pixels and creates a horizontal scrollbar on tablet/desktop. */
+body.admin-body { margin: 0 !important; }
+body.admin-body .admin-content { box-sizing: border-box !important; max-width: 100% !important; }
+
+/* Tablet and mobile: the sidebar is an overlay, never a flex/grid
+   column that steals width from the actual page workspace. */
+@media (max-width: 900px) {
+    html,
+    body.admin-body {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+
+    body.admin-body {
+        display: block !important;
+    }
+
+    body.admin-body .admin-sidebar {
+        position: fixed !important;
+        inset: 0 auto 0 0 !important;
+        width: min(300px, 88vw) !important;
+        min-width: min(300px, 88vw) !important;
+        max-width: 88vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        flex: none !important;
+        z-index: 1500 !important;
+    }
+
+    body.admin-body .admin-main {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        flex: none !important;
+        box-sizing: border-box !important;
+    }
+
+    body.admin-body .admin-topbar {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    body.admin-body .admin-content {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        overflow-x: clip;
+    }
+
+    #userManagementPage {
+        display: block;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        margin: 0 auto;
+    }
 }
+
+/* Correct specificity: admin_base uses .admin-content table (0,1,1),
+   which otherwise beats the page's .user-table min-width declaration. */
+@media (max-width: 820px) {
+    body.admin-body .admin-content table.user-table,
+    body.admin-body .admin-content .user-table {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: separate !important;
+        box-sizing: border-box !important;
+    }
+
+    body.admin-body .admin-content .user-table thead {
+        display: none !important;
+    }
+
+    body.admin-body .admin-content .user-table tbody {
+        display: grid !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    body.admin-body .admin-content .user-table tbody tr[data-search] {
+        display: flex !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    body.admin-body .admin-content .user-table tbody td {
+        width: 100%;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow-wrap: anywhere;
+    }
+
+    body.admin-body .admin-content .user-table tbody td[data-label="User"] {
+        width: 100% !important;
+    }
+
+    body.admin-body .admin-content .user-cell,
+    body.admin-body .admin-content .user-cell-meta {
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    body.admin-body .admin-content .user-cell-meta strong,
+    body.admin-body .admin-content .user-cell-meta small {
+        display: block;
+        width: 100%;
+        max-width: 100% !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    body.admin-body .admin-content .user-contact {
+        min-width: 0;
+        max-width: 70%;
+        overflow-wrap: anywhere;
+        text-align: right;
+    }
+}
+
+@media (max-width: 560px) {
+    body.admin-body .admin-content {
+        padding: 13px 10px 24px !important;
+    }
+
+    #userManagementPage { padding: 0; }
+
+    .user-page-intro { width: 100%; }
+    .user-stats-row {
+        width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+    }
+    .user-stat-card {
+        min-width: 0;
+        padding: 10px !important;
+        gap: 8px !important;
+    }
+    .user-stat-icon {
+        width: 32px !important;
+        height: 32px !important;
+        flex-basis: 32px !important;
+    }
+    .user-stat-meta { min-width: 0; }
+    .user-stat-meta strong { font-size: clamp(15px, 5vw, 19px) !important; }
+    .user-stat-meta small { font-size: 8px !important; letter-spacing: .045em !important; }
+
+    .user-management-panel {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+    .user-panel-head { min-width: 0; padding: 13px 12px !important; }
+    .user-panel-heading { min-width: 0; }
+    .user-panel-heading p { margin-left: 0 !important; }
+    .user-total-chip { flex-shrink: 0; font-size: 9px; padding: 5px 7px; }
+
+    .user-toolbar {
+        width: 100%;
+        min-width: 0;
+        padding: 11px !important;
+        gap: 9px !important;
+    }
+    .user-search {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+    .user-search input { width: 100%; min-width: 0; }
+    .user-filter-tabs {
+        order: 0 !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        gap: 3px !important;
+    }
+    .user-filter-tabs .filter-tab { padding-inline: 8px !important; font-size: 9px !important; }
+    .user-filter-menu-wrap { margin-left: auto !important; max-width: 100%; }
+    .user-filter-dropdown {
+        position: fixed !important;
+        top: auto;
+        right: 10px !important;
+        left: 10px !important;
+        bottom: 12px;
+        width: auto !important;
+        max-width: none !important;
+        max-height: min(78dvh, 520px);
+        overflow-y: auto;
+        z-index: 1900 !important;
+        padding: 14px !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+    .user-filter-dropdown-head,
+    .user-filter-dropdown-foot { grid-column: 1 !important; }
+
+    body.admin-body .admin-content .user-table tbody {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 9px !important;
+    }
+    body.admin-body .admin-content .user-table tbody tr[data-search] {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        padding: 11px !important;
+    }
+    body.admin-body .admin-content .user-table tbody td {
+        min-width: 0 !important;
+        padding: 7px 0 !important;
+    }
+    body.admin-body .admin-content .user-table tbody td[data-label="User"] {
+        display: block !important;
+        padding: 0 0 10px !important;
+    }
+    body.admin-body .admin-content .user-table tbody td[data-label="Actions"] {
+        align-items: stretch !important;
+        width: 100% !important;
+    }
+    .action-btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 7px;
+    }
+    .user-icon-action { width: 38px !important; height: 38px !important; }
+    .user-results-bar { width: 100%; flex-wrap: wrap; gap: 5px 10px; }
+}
+
+@media (max-width: 360px) {
+    body.admin-body .admin-content { padding-inline: 8px !important; }
+    .user-stat-card { padding: 8px !important; gap: 6px !important; }
+    .user-stat-icon { width: 29px !important; height: 29px !important; flex-basis: 29px !important; }
+    .user-stat-meta strong { font-size: 15px !important; }
+    .user-panel-head { gap: 6px !important; }
+    .user-total-chip { font-size: 8px !important; }
+    .user-filter-tabs .filter-tab { padding-inline: 6px !important; font-size: 8.5px !important; }
+    .user-contact { font-size: 10px; }
+}
+
 </style>
 
-<!-- ============================================================
-     STATS ROW
-     ============================================================ -->
-<div class="user-stats-row">
-    <div class="user-stat-card">
-        <div class="user-stat-icon total"><i class="fa-solid fa-users"></i></div>
-        <div class="user-stat-meta">
-            <strong>{{ users|length }}</strong>
-            <small>Total Users</small>
+<div class="user-management-page" id="userManagementPage">
+    <!-- Page introduction -->
+    <div class="user-page-intro">
+        <div class="user-page-intro-copy">
+            <h2><i class="fa-solid fa-users-gear" aria-hidden="true"></i> User Management</h2>
+            <p>Manage user accounts, classes, roles and access status from one place.</p>
         </div>
-    </div>
-    <div class="user-stat-card">
-        <div class="user-stat-icon active"><i class="fa-solid fa-user-check"></i></div>
-        <div class="user-stat-meta">
-            <strong>{{ users|selectattr('is_active')|list|length }}</strong>
-            <small>Active</small>
-        </div>
-    </div>
-    <div class="user-stat-card">
-        <div class="user-stat-icon inactive"><i class="fa-solid fa-user-slash"></i></div>
-        <div class="user-stat-meta">
-            <strong>{{ users|rejectattr('is_active')|list|length }}</strong>
-            <small>Inactive</small>
-        </div>
-    </div>
-    <div class="user-stat-card">
-        <div class="user-stat-icon admins"><i class="fa-solid fa-user-shield"></i></div>
-        <div class="user-stat-meta">
-            <strong>{{ (users|selectattr('role', 'equalto', 'admin')|list|length) + (users|selectattr('role', 'equalto', 'administrator')|list|length) }}</strong>
-            <small>Admins</small>
-        </div>
-    </div>
-</div>
-
-<!-- ============================================================
-     MAIN PANEL
-     ============================================================ -->
-<div class="admin-panel">
-    <div class="admin-panel-head" style="padding-bottom: 0; border-bottom: none;">
-        <h3 style="margin-bottom: 14px;"><i class="fa-solid fa-users"></i> All Users ({{ users|length }})</h3>
+        <span class="user-page-context"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Account administration</span>
     </div>
 
-    <div class="user-toolbar">
-        <div class="user-search">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="userSearch" placeholder="Search name, email, ID…" autocomplete="off">
+    <!-- Stats row -->
+    <div class="user-stats-row" aria-label="User statistics">
+        <div class="user-stat-card">
+            <div class="user-stat-icon total"><i class="fa-solid fa-users" aria-hidden="true"></i></div>
+            <div class="user-stat-meta"><strong>{{ users|length }}</strong><small>Total Users</small></div>
         </div>
-
-        <div class="user-filter-tabs">
-            <a href="{{ url_for('admin_users', role='all') }}"     class="filter-tab {% if role_filter=='all' %}active{% endif %}">All</a>
-            <a href="{{ url_for('admin_users', role='admin') }}"   class="filter-tab {% if role_filter=='admin' %}active{% endif %}">Admin</a>
-            <a href="{{ url_for('admin_users', role='administrator') }}" class="filter-tab {% if role_filter=='administrator' %}active{% endif %}">Admin<span style="font-size:8px;">+</span></a>
-            <a href="{{ url_for('admin_users', role='teacher') }}" class="filter-tab {% if role_filter=='teacher' %}active{% endif %}">Teacher</a>
-            <a href="{{ url_for('admin_users', role='parent') }}"  class="filter-tab {% if role_filter=='parent' %}active{% endif %}">Parent</a>
-            <a href="{{ url_for('admin_users', role='student') }}" class="filter-tab {% if role_filter=='student' %}active{% endif %}">Student</a>
+        <div class="user-stat-card">
+            <div class="user-stat-icon active"><i class="fa-solid fa-user-check" aria-hidden="true"></i></div>
+            <div class="user-stat-meta"><strong>{{ users|selectattr('is_active')|list|length }}</strong><small>Active</small></div>
+        </div>
+        <div class="user-stat-card">
+            <div class="user-stat-icon inactive"><i class="fa-solid fa-user-slash" aria-hidden="true"></i></div>
+            <div class="user-stat-meta"><strong>{{ users|rejectattr('is_active')|list|length }}</strong><small>Inactive</small></div>
+        </div>
+        <div class="user-stat-card">
+            <div class="user-stat-icon admins"><i class="fa-solid fa-user-shield" aria-hidden="true"></i></div>
+            <div class="user-stat-meta">
+                <strong>{{ (users|selectattr('role', 'equalto', 'admin')|list|length) + (users|selectattr('role', 'equalto', 'administrator')|list|length) }}</strong>
+                <small>Admins</small>
+            </div>
         </div>
     </div>
 
-    <div class="admin-table-wrap">
-        <table class="admin-table" id="usersTable">
-            <thead>
-                <tr>
-                    <th>Unique ID</th>
-                    <th>User</th>
-                    <th>Contact</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for u in users %}
-                <tr data-search="{{ (u.name ~ ' ' ~ u.email ~ ' ' ~ (u.phone or '') ~ ' ' ~ (u.unique_id or '') ~ ' ' ~ u.role)|lower }}">
+    <!-- Main panel -->
+    <section class="user-management-panel" aria-labelledby="allUsersHeading">
+        <div class="user-panel-head">
+            <div class="user-panel-heading">
+                <h3 id="allUsersHeading"><i class="fa-solid fa-users" aria-hidden="true"></i> All Users</h3>
+                <p>Search, filter and manage user access and account information.</p>
+            </div>
+            <span class="user-total-chip"><i class="fa-solid fa-user-group" aria-hidden="true"></i> {{ users|length }} users</span>
+        </div>
 
-                    <!-- UNIQUE ID -->
-                    <td data-label="ID">
-                        <strong style="color:var(--red, #d71938); font-size:12px;">{{ u.unique_id or '—' }}</strong>
-                    </td>
+        <div class="user-toolbar">
+            <div class="user-search">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="search" id="userSearch" placeholder="Search name, email, phone, ID or class…" autocomplete="off" aria-label="Search users">
+            </div>
 
-                    <!-- USER (avatar + name + email) -->
-                    <td data-label="User">
-                        <div class="user-cell">
-                            <div class="user-cell-avatar {% if u.photo_url %}has-photo{% endif %}">
-                                {% if u.photo_url %}
-                                <img src="{{ u.photo_url }}" alt="{{ u.name }}">
+            <!-- Existing server-side role filters are preserved. -->
+            <nav class="user-filter-tabs" aria-label="Filter users by role">
+                <a href="{{ url_for('admin_users', role='all') }}" class="filter-tab {% if role_filter=='all' %}active{% endif %}">All</a>
+                <a href="{{ url_for('admin_users', role='admin') }}" class="filter-tab {% if role_filter=='admin' %}active{% endif %}">Admin</a>
+                <a href="{{ url_for('admin_users', role='administrator') }}" class="filter-tab {% if role_filter=='administrator' %}active{% endif %}">Admin<span>+</span></a>
+                <a href="{{ url_for('admin_users', role='teacher') }}" class="filter-tab {% if role_filter=='teacher' %}active{% endif %}">Teacher</a>
+                <a href="{{ url_for('admin_users', role='parent') }}" class="filter-tab {% if role_filter=='parent' %}active{% endif %}">Parent</a>
+                <a href="{{ url_for('admin_users', role='student') }}" class="filter-tab {% if role_filter=='student' %}active{% endif %}">Student</a>
+            </nav>
+
+            <!-- New client-side filter dropdown: class, role, status and sorting. -->
+            <div class="user-filter-menu-wrap" id="userFilterMenuWrap">
+                <button type="button" class="user-filter-toggle" id="userFilterToggle"
+                        aria-expanded="false" aria-controls="userFilterDropdown">
+                    <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                    Filters
+                    <span class="user-filter-active-count" id="userFilterActiveCount">0</span>
+                    <i class="fa-solid fa-chevron-down filter-chevron" aria-hidden="true"></i>
+                </button>
+
+                <div class="user-filter-dropdown" id="userFilterDropdown" hidden>
+                    <div class="user-filter-dropdown-head">
+                        <strong><i class="fa-solid fa-filter" aria-hidden="true"></i> Refine user list</strong>
+                        <small>Filters apply instantly</small>
+                    </div>
+
+                    <div class="user-filter-field">
+                        <label for="userClassFilter">Class / Standard</label>
+                        <select id="userClassFilter">
+                            <option value="">All Classes</option>
+                            {% for class_name in class_options.values|sort %}
+                            <option value="{{ class_name|lower|e }}">{{ class_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="user-filter-field">
+                        <label for="userRoleFilter">User Role</label>
+                        <select id="userRoleFilter">
+                            <option value="">All Roles</option>
+                            <option value="admin">Admin</option>
+                            <option value="administrator">Administrator</option>
+                            <option value="teacher">Teacher</option>
+                            <option value="parent">Parent</option>
+                            <option value="student">Student</option>
+                        </select>
+                    </div>
+
+                    <div class="user-filter-field">
+                        <label for="userStatusFilter">Account Status</label>
+                        <select id="userStatusFilter">
+                            <option value="">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="user-filter-field">
+                        <label for="userSortFilter">Sort By</label>
+                        <select id="userSortFilter">
+                            <option value="default">Default Order</option>
+                            <option value="name-asc">Name (A–Z)</option>
+                            <option value="name-desc">Name (Z–A)</option>
+                            <option value="class-asc">Class (A–Z)</option>
+                            <option value="role-asc">Role (A–Z)</option>
+                            <option value="status-asc">Status</option>
+                        </select>
+                    </div>
+
+                    <div class="user-filter-dropdown-foot">
+                        <span class="user-filter-results" id="userFilterResults">Showing {{ users|length }} users</span>
+                        <button type="button" class="user-filter-reset" id="userFilterReset">
+                            <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="user-table-wrap">
+            <table class="user-table" id="usersTable">
+                <thead>
+                    <tr>
+                        <th>Unique ID</th>
+                        <th>User</th>
+                        <th>Contact</th>
+                        <th>Class</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    {% for u in users %}
+                    {% set row_class = u.class_name|default(u.student_class|default(u.assigned_class|default(u.standard|default(u.grade|default(u.child_class|default(u['class']|default(''))))))) %}
+                    {% set row_class = row_class|string|trim %}
+                    <tr data-search="{{ (u.name ~ ' ' ~ u.email ~ ' ' ~ (u.phone or '') ~ ' ' ~ (u.unique_id or '') ~ ' ' ~ u.role ~ ' ' ~ row_class)|lower|e }}"
+                        data-name="{{ u.name|lower|e }}"
+                        data-class="{{ row_class|lower|e }}"
+                        data-role="{{ u.role|lower|e }}"
+                        data-status="{{ 'active' if u.is_active else 'inactive' }}">
+
+                        <!-- UNIQUE ID -->
+                        <td data-label="ID"><strong class="user-id-text">{{ u.unique_id or '—' }}</strong></td>
+
+                        <!-- USER -->
+                        <td data-label="User">
+                            <div class="user-cell">
+                                <div class="user-cell-avatar {% if u.photo_url %}has-photo{% endif %}">
+                                    {% if u.photo_url %}
+                                    <img src="{{ u.photo_url }}" alt="{{ u.name }}" loading="lazy">
+                                    {% else %}
+                                    {{ u.name.split()[0][0]|upper }}{{ u.name.split()[-1][0]|upper if u.name.split()|length > 1 else '' }}
+                                    {% endif %}
+                                </div>
+                                <div class="user-cell-meta">
+                                    <strong title="{{ u.name }}">{{ u.name }}</strong>
+                                    <small title="{{ u.email }}">{{ u.email }}</small>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- CONTACT -->
+                        <td data-label="Phone">
+                            <span class="user-contact"><i class="fa-solid fa-phone" aria-hidden="true"></i>{{ u.phone or '—' }}</span>
+                        </td>
+
+                        <!-- CLASS: supports common existing user data keys without changing the backend. -->
+                        <td data-label="Class">
+                            {% if row_class %}
+                            <span class="user-class-pill"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>{{ row_class }}</span>
+                            {% else %}
+                            <span class="user-no-class">—</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- ROLE UPDATE: original route, method, field name and CSRF token preserved. -->
+                        <td data-label="Role">
+                            <form method="POST" action="{{ url_for('admin_change_role', user_id=u.id) }}" style="margin:0;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <select name="role" class="role-select {{ u.role }}" onchange="this.form.submit()" title="Change role" aria-label="Change role for {{ u.name }}">
+                                    <option value="student" {% if u.role=='student' %}selected{% endif %}>Student</option>
+                                    <option value="parent" {% if u.role=='parent' %}selected{% endif %}>Parent</option>
+                                    <option value="teacher" {% if u.role=='teacher' %}selected{% endif %}>Teacher</option>
+                                    <option value="admin" {% if u.role=='admin' %}selected{% endif %}>Admin</option>
+                                    <option value="administrator" {% if u.role=='administrator' %}selected{% endif %}>Administrator</option>
+                                </select>
+                            </form>
+                        </td>
+
+                        <!-- STATUS -->
+                        <td data-label="Status">
+                            {% if u.is_active %}
+                            <span class="user-status-pill active"><span class="user-status-dot"></span> Active</span>
+                            {% else %}
+                            <span class="user-status-pill inactive"><span class="user-status-dot"></span> Inactive</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- ACTIONS: all existing endpoints retained. -->
+                        <td data-label="Actions">
+                            <div class="action-btn-group">
+                                <button type="button" class="user-icon-action edit"
+                                        title="Edit user details" aria-label="Edit {{ u.name }}"
+                                        data-user-id="{{ u.id }}"
+                                        data-unique-id="{{ u.unique_id or '' }}"
+                                        data-name="{{ u.name }}"
+                                        data-email="{{ u.email }}"
+                                        data-phone="{{ u.phone or '' }}"
+                                        data-role="{{ u.role }}"
+                                        data-child-name="{{ u.child_name or '' }}"
+                                        data-child-class="{{ u.child_class or '' }}"
+                                        data-photo="{{ u.photo_url or '' }}"
+                                        data-edit-url="{{ url_for('admin_edit_profile', user_id=u.id) }}"
+                                        data-photo-url="{{ url_for('admin_users') }}/{{ u.id }}/update-photo"
+                                        data-photo-remove-url="{{ url_for('admin_users') }}/{{ u.id }}/remove-photo"
+                                        onclick="openEditUser(this)">
+                                    <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                                </button>
+
+                                <form method="POST" action="{{ url_for('admin_toggle_user', user_id=u.id) }}" style="display:inline;margin:0;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="user-icon-action neutral" title="Toggle active status" aria-label="Toggle active status for {{ u.name }}">
+                                        <i class="fa-solid fa-power-off" aria-hidden="true"></i>
+                                    </button>
+                                </form>
+
+                                <form method="POST" action="{{ url_for('admin_reset_password', user_id=u.id) }}" style="display:inline;margin:0;" data-confirm="Generate a new unique temporary password for this user?">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="user-icon-action neutral" title="Reset password" aria-label="Reset password for {{ u.name }}">
+                                        <i class="fa-solid fa-key" aria-hidden="true"></i>
+                                    </button>
+                                </form>
+
+                                {% if u.id != session['user_id'] %}
+                                <form method="POST" action="{{ url_for('admin_delete_user', user_id=u.id) }}" style="display:inline;margin:0;" data-confirm="Delete this user permanently?">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="user-icon-action danger" title="Delete user" aria-label="Delete {{ u.name }}">
+                                        <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                                    </button>
+                                </form>
                                 {% else %}
-                                {{ u.name.split()[0][0]|upper }}{{ u.name.split()[-1][0]|upper if u.name.split()|length > 1 else '' }}
+                                <span class="user-you-label">(You)</span>
                                 {% endif %}
                             </div>
-                            <div class="user-cell-meta">
-                                <strong title="{{ u.name }}">{{ u.name }}</strong>
-                                <small title="{{ u.email }}">{{ u.email }}</small>
-                            </div>
-                        </div>
-                    </td>
+                        </td>
+                    </tr>
+                    {% endfor %}
 
-                    <!-- CONTACT -->
-                    <td data-label="Phone">
-                        <span style="font-size:12.5px; color:var(--muted, #65758a); white-space:nowrap;">
-                            <i class="fa-solid fa-phone" style="font-size:10px; color:#94a3b8; margin-right:4px;"></i>
-                            {{ u.phone or '—' }}
-                        </span>
-                    </td>
+                    {% if not users %}
+                    <tr><td colspan="7" class="user-empty-row">
+                        <i class="fa-solid fa-users-slash" aria-hidden="true"></i>
+                        No users found for this filter.
+                    </td></tr>
+                    {% endif %}
 
-                    <!-- ROLE (unified dropdown) -->
-                    <td data-label="Role">
-                        <form method="POST" action="{{ url_for('admin_change_role', user_id=u.id) }}" style="margin:0;">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <select name="role" class="role-select {{ u.role }}" onchange="this.form.submit()" title="Change role">
-                                <option value="student"       {% if u.role=='student' %}selected{% endif %}>Student</option>
-                                <option value="parent"        {% if u.role=='parent' %}selected{% endif %}>Parent</option>
-                                <option value="teacher"       {% if u.role=='teacher' %}selected{% endif %}>Teacher</option>
-                                <option value="admin"         {% if u.role=='admin' %}selected{% endif %}>Admin</option>
-                                <option value="administrator" {% if u.role=='administrator' %}selected{% endif %}>Administrator</option>
-                            </select>
-                        </form>
-                    </td>
+                    <tr id="searchEmptyRow" style="display:none;">
+                        <td colspan="7" class="user-empty-row">
+                            <i class="fa-solid fa-filter-circle-xmark" aria-hidden="true"></i>
+                            No users match the selected search and filters.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-                    <!-- STATUS -->
-                    <td data-label="Status">
-                        {% if u.is_active %}
-                        <span class="user-status-pill active">
-                            <span class="user-status-dot"></span> Active
-                        </span>
-                        {% else %}
-                        <span class="user-status-pill inactive">
-                            <span class="user-status-dot"></span> Inactive
-                        </span>
-                        {% endif %}
-                    </td>
-
-                    <!-- ACTIONS -->
-                    <td data-label="Actions">
-                        <div class="action-btn-group">
-                            <button type="button"
-                                    class="btn-icon-edit"
-                                    title="Edit user details"
-                                    aria-label="Edit {{ u.name }}"
-                                    data-user-id="{{ u.id }}"
-                                    data-unique-id="{{ u.unique_id or '' }}"
-                                    data-name="{{ u.name }}"
-                                    data-email="{{ u.email }}"
-                                    data-phone="{{ u.phone or '' }}"
-                                    data-role="{{ u.role }}"
-                                    data-child-name="{{ u.child_name or '' }}"
-                                    data-child-class="{{ u.child_class or '' }}"
-                                    data-photo="{{ u.photo_url or '' }}"
-                                    data-edit-url="{{ url_for('admin_edit_profile', user_id=u.id) }}"
-                                    data-photo-url="{{ url_for('admin_users') }}/{{ u.id }}/update-photo"
-                                    data-photo-remove-url="{{ url_for('admin_users') }}/{{ u.id }}/remove-photo"
-                                    onclick="openEditUser(this)">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-
-                            <form method="POST" action="{{ url_for('admin_toggle_user', user_id=u.id) }}" style="display:inline; margin:0;">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn-icon-approve" title="Toggle active status">
-                                    <i class="fa-solid fa-power-off"></i>
-                                </button>
-                            </form>
-
-                            <form method="POST" action="{{ url_for('admin_reset_password', user_id=u.id) }}" style="display:inline; margin:0;" data-confirm="Generate a new unique temporary password for this user?">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn-icon-approve" title="Reset password">
-                                    <i class="fa-solid fa-key"></i>
-                                </button>
-                            </form>
-
-                            {% if u.id != session['user_id'] %}
-                            <form method="POST" action="{{ url_for('admin_delete_user', user_id=u.id) }}" style="display:inline; margin:0;" data-confirm="Delete this user permanently?">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn-icon-danger" title="Delete user">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            </form>
-                            {% else %}
-                            <span style="font-size:10px; color:var(--muted, #65758a); font-weight:700; padding:0 4px;">(You)</span>
-                            {% endif %}
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-
-                {% if not users %}
-                <tr><td colspan="6" class="empty-row">
-                    <i class="fa-solid fa-users-slash" style="font-size:22px; opacity:.5; display:block; margin-bottom:8px;"></i>
-                    No users found for this filter.
-                </td></tr>
-                {% endif %}
-
-                <tr id="searchEmptyRow" style="display:none;">
-                    <td colspan="6" class="empty-row">
-                        <i class="fa-solid fa-magnifying-glass" style="font-size:22px; opacity:.5; display:block; margin-bottom:8px;"></i>
-                        No users match your search.
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+        <div class="user-results-bar">
+            <span id="userVisibleSummary">Showing <strong>{{ users|length }}</strong> of <strong>{{ users|length }}</strong> users</span>
+            <span>Use filters to narrow the list.</span>
+        </div>
+    </section>
 </div>
 
-<!-- ============================================================
-     EDIT USER MODAL
-     ============================================================ -->
-<div class="user-modal" id="editUserModal" role="dialog" aria-modal="true" aria-labelledby="editUserTitle">
+<!-- EDIT USER MODAL: original profile photo, account, personal and child fields retained. -->
+<div class="user-modal" id="editUserModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="editUserTitle">
     <div class="user-modal-box">
         <div class="user-modal-head">
-            <h3 id="editUserTitle"><i class="fa-solid fa-user-pen"></i> Edit User Details</h3>
-            <button type="button" class="user-modal-close" id="editUserClose" aria-label="Close">
-                <i class="fa-solid fa-xmark"></i>
+            <h3 id="editUserTitle"><i class="fa-solid fa-user-pen" aria-hidden="true"></i> Edit User Details</h3>
+            <button type="button" class="user-modal-close" id="editUserClose" aria-label="Close edit user dialog">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
             </button>
         </div>
 
         <form id="eu_photo_form" method="POST" enctype="multipart/form-data" style="display:none;">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <input type="file" name="photo" accept="image/*"
-                   onchange="if(this.files.length) this.form.submit();">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="file" name="photo" accept="image/*" onchange="if(this.files.length) this.form.submit();">
         </form>
         <form id="eu_photo_remove_form" method="POST" style="display:none;">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></form>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        </form>
 
         <form method="POST" id="editUserForm" action="">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="user-modal-body">
-
                 <div class="user-photo-block">
                     <div class="user-photo-preview" id="eu_photo_preview">?</div>
                     <div class="user-photo-meta">
                         <strong>Profile Photo</strong>
-                        <small>JPG / PNG / WebP &middot; max 5 MB</small>
+                        <small>JPG / PNG / WebP · max 5 MB</small>
                     </div>
                     <div class="user-photo-btns">
-                        <button type="button" class="user-photo-change-btn"
-                                onclick="document.querySelector('#eu_photo_form input[type=file]').click()">
-                            <i class="fa-solid fa-camera"></i> Change
+                        <button type="button" class="user-photo-change-btn" onclick="document.querySelector('#eu_photo_form input[type=file]').click()">
+                            <i class="fa-solid fa-camera" aria-hidden="true"></i> Change
                         </button>
-                        <button type="button" class="user-photo-remove-btn" id="eu_photo_remove_btn"
-                                onclick="euRemovePhoto()">
-                            <i class="fa-solid fa-trash"></i> Remove
+                        <button type="button" class="user-photo-remove-btn" id="eu_photo_remove_btn" onclick="euRemovePhoto()">
+                            <i class="fa-solid fa-trash" aria-hidden="true"></i> Remove
                         </button>
                     </div>
                 </div>
 
                 <p class="user-modal-section-title">Account Information</p>
-
                 <div class="user-modal-row-2col">
                     <label>Unique ID
                         <input type="text" id="eu_unique" readonly>
@@ -1060,12 +1542,10 @@
                     </label>
                 </div>
 
-                <p class="user-modal-section-title" style="margin-top:6px;">Personal Details</p>
-
+                <p class="user-modal-section-title">Personal Details</p>
                 <label>Full Name
                     <input type="text" name="name" id="eu_name" required minlength="2" maxlength="80" placeholder="Full name">
                 </label>
-
                 <div class="user-modal-row-2col">
                     <label>Email Address
                         <input type="email" name="email" id="eu_email" required placeholder="user@example.com">
@@ -1076,7 +1556,7 @@
                 </div>
 
                 <div id="eu_child_group" style="display:none;">
-                    <p class="user-modal-section-title" style="margin-top:6px;">Child Information</p>
+                    <p class="user-modal-section-title">Child Information</p>
                     <div class="user-modal-row-2col">
                         <label>Child Name
                             <input type="text" name="child_name" id="eu_child_name" maxlength="80" placeholder="Child's full name">
@@ -1086,136 +1566,246 @@
                         </label>
                     </div>
                 </div>
-
             </div>
             <div class="user-modal-foot">
                 <button type="button" class="user-modal-btn-cancel" id="editUserCancel">Cancel</button>
-                <button type="submit" class="user-modal-btn-save">
-                    <i class="fa-solid fa-check"></i> Save Changes
-                </button>
+                <button type="submit" class="user-modal-btn-save"><i class="fa-solid fa-check" aria-hidden="true"></i> Save Changes</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- ============================================================
-     JAVASCRIPT
-     ============================================================ -->
 <script>
 (function () {
     'use strict';
 
-    /* ---------------- Edit Modal ---------------- */
-    const modal      = document.getElementById('editUserModal');
-    const form       = document.getElementById('editUserForm');
-    const closeBtn   = document.getElementById('editUserClose');
-    const cancelBtn  = document.getElementById('editUserCancel');
+    /* ---------------- Filter dropdown ---------------- */
+    const filterWrap = document.getElementById('userFilterMenuWrap');
+    const filterToggle = document.getElementById('userFilterToggle');
+    const filterDropdown = document.getElementById('userFilterDropdown');
+    const classFilter = document.getElementById('userClassFilter');
+    const roleFilter = document.getElementById('userRoleFilter');
+    const statusFilter = document.getElementById('userStatusFilter');
+    const sortFilter = document.getElementById('userSortFilter');
+    const filterReset = document.getElementById('userFilterReset');
+    const filterActiveCount = document.getElementById('userFilterActiveCount');
+    const filterResults = document.getElementById('userFilterResults');
+
+    function setFilterMenu(open) {
+        if (!filterToggle || !filterDropdown) return;
+        filterDropdown.hidden = !open;
+        filterToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    if (filterToggle && filterDropdown) {
+        filterToggle.addEventListener('click', function (event) {
+            event.stopPropagation();
+            setFilterMenu(filterDropdown.hidden);
+        });
+        document.addEventListener('click', function (event) {
+            if (filterWrap && !filterWrap.contains(event.target)) setFilterMenu(false);
+        });
+        filterDropdown.addEventListener('click', function (event) { event.stopPropagation(); });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !filterDropdown.hidden) {
+                setFilterMenu(false);
+                filterToggle.focus();
+            }
+        });
+    }
+
+    /* ---------------- Live search and combined filters ---------------- */
+    const searchInput = document.getElementById('userSearch');
+    const tableBody = document.getElementById('usersTableBody');
+    const searchEmpty = document.getElementById('searchEmptyRow');
+    const rows = Array.from(document.querySelectorAll('#usersTable tbody tr[data-search]'));
+    const visibleSummary = document.getElementById('userVisibleSummary');
+    const totalUsers = rows.length;
+
+    function normalized(value) { return String(value || '').trim().toLowerCase(); }
+
+    function applyFilters() {
+        const query = normalized(searchInput ? searchInput.value : '');
+        const selectedClass = normalized(classFilter ? classFilter.value : '');
+        const selectedRole = normalized(roleFilter ? roleFilter.value : '');
+        const selectedStatus = normalized(statusFilter ? statusFilter.value : '');
+        let visible = 0;
+
+        rows.forEach(function (row) {
+            const matchSearch = !query || normalized(row.dataset.search).includes(query);
+            const matchClass = !selectedClass || normalized(row.dataset.class) === selectedClass;
+            const matchRole = !selectedRole || normalized(row.dataset.role) === selectedRole;
+            const matchStatus = !selectedStatus || normalized(row.dataset.status) === selectedStatus;
+            const show = matchSearch && matchClass && matchRole && matchStatus;
+            row.hidden = !show;
+            if (show) visible += 1;
+        });
+
+        if (searchEmpty) searchEmpty.style.display = (visible === 0 && totalUsers > 0) ? '' : 'none';
+        if (visibleSummary) {
+            visibleSummary.innerHTML = 'Showing <strong>' + visible + '</strong> of <strong>' + totalUsers + '</strong> users';
+        }
+        if (filterResults) filterResults.textContent = 'Showing ' + visible + ' of ' + totalUsers + ' users';
+
+        const activeCount = [selectedClass, selectedRole, selectedStatus].filter(Boolean).length;
+        if (filterActiveCount) {
+            filterActiveCount.textContent = String(activeCount);
+            filterActiveCount.classList.toggle('visible', activeCount > 0);
+        }
+    }
+
+    function sortRows() {
+        if (!tableBody || !sortFilter || sortFilter.value === 'default') return;
+        const mode = sortFilter.value;
+        const getValue = function (row) {
+            if (mode.startsWith('name')) return normalized(row.dataset.name);
+            if (mode.startsWith('class')) return normalized(row.dataset.class);
+            if (mode.startsWith('role')) return normalized(row.dataset.role);
+            if (mode.startsWith('status')) return normalized(row.dataset.status);
+            return '';
+        };
+        const direction = mode.endsWith('desc') ? -1 : 1;
+        const sorted = rows.slice().sort(function (a, b) {
+            return getValue(a).localeCompare(getValue(b), undefined, { numeric: true, sensitivity: 'base' }) * direction;
+        });
+        sorted.forEach(function (row) { tableBody.insertBefore(row, searchEmpty || null); });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    [classFilter, roleFilter, statusFilter].forEach(function (control) {
+        if (control) control.addEventListener('change', applyFilters);
+    });
+    if (sortFilter) sortFilter.addEventListener('change', function () { sortRows(); applyFilters(); });
+
+    if (filterReset) {
+        filterReset.addEventListener('click', function () {
+            if (searchInput) searchInput.value = '';
+            if (classFilter) classFilter.value = '';
+            if (roleFilter) roleFilter.value = '';
+            if (statusFilter) statusFilter.value = '';
+            if (sortFilter) sortFilter.value = 'default';
+            if (tableBody) rows.forEach(function (row) { tableBody.insertBefore(row, searchEmpty || null); });
+            applyFilters();
+            setFilterMenu(false);
+        });
+    }
+
+    /* ---------------- Edit modal ---------------- */
+    const modal = document.getElementById('editUserModal');
+    const form = document.getElementById('editUserForm');
+    const closeBtn = document.getElementById('editUserClose');
+    const cancelBtn = document.getElementById('editUserCancel');
     const roleSelect = document.getElementById('eu_role');
     const childGroup = document.getElementById('eu_child_group');
-
-    if (!modal || !form) return;
+    let lastEditTrigger = null;
 
     function toggleChildFields() {
-        const role = roleSelect.value;
-        const show = (role === 'student' || role === 'parent');
+        if (!roleSelect || !childGroup) return;
+        const show = roleSelect.value === 'student' || roleSelect.value === 'parent';
         childGroup.style.display = show ? '' : 'none';
     }
 
     function initialsOf(name) {
         if (!name) return '?';
-        const parts = name.trim().split(/\s+/);
-        const a = parts[0] ? parts[0][0] : '';
-        const b = parts.length > 1 ? parts[parts.length - 1][0] : '';
-        return (a + b).toUpperCase();
+        const parts = String(name).trim().split(/\s+/);
+        return ((parts[0] ? parts[0][0] : '') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
     }
 
-    window.openEditUser = function (btn) {
-        const d = btn.dataset;
+    function setPhotoPreview(preview, photoUrl, name) {
+        if (!preview) return;
+        preview.replaceChildren();
+        if (photoUrl) {
+            preview.classList.add('has-photo');
+            const image = document.createElement('img');
+            image.src = photoUrl;
+            image.alt = String(name || 'User profile photo');
+            image.loading = 'lazy';
+            preview.appendChild(image);
+        } else {
+            preview.classList.remove('has-photo');
+            preview.textContent = initialsOf(name);
+        }
+    }
 
-        document.getElementById('eu_unique').value       = d.uniqueId || '';
-        document.getElementById('eu_name').value         = d.name || '';
-        document.getElementById('eu_email').value        = d.email || '';
-        document.getElementById('eu_phone').value        = d.phone || '';
-        document.getElementById('eu_role').value         = d.role || 'student';
-        document.getElementById('eu_child_name').value   = d.childName || '';
-        document.getElementById('eu_child_class').value  = d.childClass || '';
+    window.openEditUser = function (button) {
+        if (!modal || !form || !button) return;
+        const data = button.dataset;
+        lastEditTrigger = button;
 
+        document.getElementById('eu_unique').value = data.uniqueId || '';
+        document.getElementById('eu_name').value = data.name || '';
+        document.getElementById('eu_email').value = data.email || '';
+        document.getElementById('eu_phone').value = data.phone || '';
+        document.getElementById('eu_role').value = data.role || 'student';
+        document.getElementById('eu_child_name').value = data.childName || '';
+        document.getElementById('eu_child_class').value = data.childClass || '';
         toggleChildFields();
 
         const preview = document.getElementById('eu_photo_preview');
-        const removeBtn = document.getElementById('eu_photo_remove_btn');
-        if (d.photo) {
-            preview.classList.add('has-photo');
-            preview.innerHTML = '<img src="' + d.photo + '" alt="' + (d.name || '') + '">';
-            removeBtn.style.display = '';
-        } else {
-            preview.classList.remove('has-photo');
-            preview.textContent = initialsOf(d.name);
-            removeBtn.style.display = 'none';
-        }
+        const removeButton = document.getElementById('eu_photo_remove_btn');
+        setPhotoPreview(preview, data.photo || '', data.name || '');
+        if (removeButton) removeButton.style.display = data.photo ? '' : 'none';
 
-        const photoForm       = document.getElementById('eu_photo_form');
+        const photoForm = document.getElementById('eu_photo_form');
         const photoRemoveForm = document.getElementById('eu_photo_remove_form');
-        if (d.photoUrl)       photoForm.action       = d.photoUrl;
-        if (d.photoRemoveUrl) photoRemoveForm.action = d.photoRemoveUrl;
-
-        const fileInput = photoForm.querySelector('input[type=file]');
+        if (photoForm && data.photoUrl) photoForm.action = data.photoUrl;
+        if (photoRemoveForm && data.photoRemoveUrl) photoRemoveForm.action = data.photoRemoveUrl;
+        const fileInput = photoForm ? photoForm.querySelector('input[type="file"]') : null;
         if (fileInput) fileInput.value = '';
 
-        form.action = d.editUrl;
-
+        form.action = data.editUrl || '';
         modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
-
-        setTimeout(() => document.getElementById('eu_name').focus(), 120);
+        window.setTimeout(function () { document.getElementById('eu_name').focus(); }, 100);
     };
 
     window.euRemovePhoto = function () {
         if (!confirm('Remove this user\'s profile photo?')) return;
-        document.getElementById('eu_photo_remove_form').submit();
+        const removeForm = document.getElementById('eu_photo_remove_form');
+        if (removeForm) removeForm.submit();
     };
 
     function closeModal() {
+        if (!modal || !modal.classList.contains('active')) return;
         modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
+        if (lastEditTrigger && document.contains(lastEditTrigger)) lastEditTrigger.focus();
     }
 
-    closeBtn.addEventListener('click', closeModal);
-    cancelBtn.addEventListener('click', closeModal);
-    roleSelect.addEventListener('change', toggleChildFields);
-    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
-    });
-
-    /* ---------------- Live Search ---------------- */
-    const searchInput = document.getElementById('userSearch');
-    const searchEmpty = document.getElementById('searchEmptyRow');
-    const rows = document.querySelectorAll('#usersTable tbody tr[data-search]');
-
-    if (searchInput) {
-        searchInput.addEventListener('input', function () {
-            const q = this.value.toLowerCase().trim();
-            let visible = 0;
-
-            rows.forEach(row => {
-                const match = !q || row.dataset.search.includes(q);
-                row.style.display = match ? '' : 'none';
-                if (match) visible++;
-            });
-
-            if (searchEmpty) {
-                searchEmpty.style.display = (visible === 0 && rows.length > 0) ? '' : 'none';
-            }
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    if (roleSelect) roleSelect.addEventListener('change', toggleChildFields);
+    if (modal) {
+        modal.addEventListener('click', function (event) { if (event.target === modal) closeModal(); });
+        modal.addEventListener('keydown', function (event) {
+            if (event.key !== 'Tab' || !modal.classList.contains('active')) return;
+            const focusable = Array.from(modal.querySelectorAll('button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), a[href]'))
+                .filter(function (element) { return element.offsetParent !== null; });
+            if (!focusable.length) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
         });
     }
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            if (modal && modal.classList.contains('active')) closeModal();
+            else if (filterDropdown && !filterDropdown.hidden) { setFilterMenu(false); filterToggle.focus(); }
+        }
+    });
 
-    /* ---------------- Auto-submit confirm dialogs ---------------- */
-    document.querySelectorAll('form[data-confirm]').forEach(f => {
-        f.addEventListener('submit', function (e) {
-            if (!confirm(this.dataset.confirm)) e.preventDefault();
+    /* ---------------- Existing destructive-action confirmations ---------------- */
+    document.querySelectorAll('form[data-confirm]').forEach(function (confirmForm) {
+        confirmForm.addEventListener('submit', function (event) {
+            if (!confirm(confirmForm.dataset.confirm)) event.preventDefault();
         });
     });
+
+    /* Initial combined filter state. */
+    applyFilters();
 })();
 </script>
 

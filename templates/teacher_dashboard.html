@@ -1810,9 +1810,511 @@
             }
         }
     </style>
+
+    <style id="td-professional-upgrade">
+        /* =========================================================
+           TEACHER PORTAL — PROFESSIONAL UI REFINEMENT
+           This layer intentionally overrides presentation only.
+           Existing routes, form contracts and dashboard sections stay intact.
+        ========================================================= */
+        :root {
+            --td-surface: #ffffff;
+            --td-surface-soft: #f7f9fc;
+            --td-focus: rgba(33, 100, 155, .24);
+            --td-radius-lg: 18px;
+            --td-radius-md: 12px;
+        }
+
+        html { scroll-padding-top: 88px; }
+
+        body.td-body {
+            background:
+                radial-gradient(ellipse at 88% 2%, rgba(204, 224, 244, .48), transparent 28%),
+                #f4f7fb;
+        }
+
+        .td-skip-link {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 3000;
+            padding: 11px 15px;
+            border-radius: 9px;
+            color: #fff;
+            background: var(--td-navy-dark);
+            font-size: 13px;
+            font-weight: 800;
+            text-decoration: none;
+            transform: translateY(-150%);
+            transition: transform .18s ease;
+        }
+        .td-skip-link:focus { transform: translateY(0); }
+
+        .td-sidebar {
+            border-right: 1px solid rgba(255,255,255,.07);
+            box-shadow: 8px 0 32px rgba(7, 27, 48, .10);
+        }
+        .td-sidebar-head { padding: 22px 18px 14px; }
+        .td-logo-img { width: 44px; height: 44px; flex-basis: 44px; }
+        .td-logo-text strong { font-size: 13.5px; letter-spacing: .1px; }
+        .td-user-box { border-radius: 14px; padding: 13px; }
+        .td-nav { gap: 5px; padding-inline: 12px; }
+        .td-nav-label { padding-top: 18px; letter-spacing: 1.25px; }
+        .td-nav-link {
+            min-height: 43px;
+            border-radius: 10px;
+            font-size: 12.5px;
+        }
+        .td-nav-link.active { box-shadow: 0 7px 18px rgba(201,31,59,.22); }
+        .td-sidebar-foot { border-radius: 13px; }
+
+        .td-topbar {
+            height: 70px;
+            padding-inline: clamp(15px, 2.1vw, 30px);
+            box-shadow: 0 4px 18px rgba(16, 45, 77, .035);
+        }
+        .td-search {
+            width: min(520px, 100%);
+            height: 43px;
+            border: 1px solid #e8edf4;
+            background: #f5f7fb;
+        }
+        .td-search input::placeholder { color: #8a98aa; }
+        .td-icon-btn { width: 42px; height: 42px; }
+        .td-up-btn { min-height: 44px; }
+
+        .td-content {
+            width: 100%;
+            max-width: 1840px;
+            margin-inline: auto;
+            gap: 22px;
+            padding: clamp(17px, 2.1vw, 30px);
+        }
+        .td-grid {
+            grid-template-columns: minmax(0, 1fr) minmax(280px, 315px);
+            gap: 22px;
+        }
+        .td-col-main, .td-col-side { gap: 20px; }
+
+        .td-welcome {
+            min-height: 154px;
+            padding: 28px clamp(20px, 2.2vw, 32px);
+            border-radius: 20px;
+            box-shadow: 0 14px 34px rgba(16, 45, 77, .13);
+        }
+        .td-welcome-avatar {
+            width: 72px;
+            height: 72px;
+            flex-basis: 72px;
+        }
+        .td-welcome h1 { letter-spacing: -.55px; }
+        .td-welcome p { max-width: 680px; }
+        .td-welcome-meta { gap: 9px 19px; }
+
+        .td-stat-row { gap: 14px; }
+        .td-stat {
+            min-height: 92px;
+            padding: 16px;
+            border-radius: 16px;
+            box-shadow: 0 5px 18px rgba(16,45,77,.045);
+        }
+        .td-stat-icon { width: 45px; height: 45px; flex-basis: 45px; }
+        .td-stat-text strong { font-size: clamp(17px, 1.55vw, 21px); }
+        .td-stat-text small { letter-spacing: .55px; }
+
+        .td-panel {
+            border-radius: var(--td-radius-lg);
+            box-shadow: 0 6px 22px rgba(16,45,77,.045);
+        }
+        .td-panel-head {
+            min-height: 59px;
+            padding: 15px 19px;
+            background: linear-gradient(180deg, #fff 0%, #fbfcfe 100%);
+        }
+        .td-panel-title { gap: 10px; font-size: 13.5px; }
+        .td-panel-title i { width: 17px; text-align: center; }
+        .td-panel-link { font-size: 11px; }
+        .td-panel-body { padding: 19px; }
+        .td-panel-body.flush {
+            padding: 0;
+            overflow-x: auto;
+            overscroll-behavior-x: contain;
+        }
+
+        .td-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .td-table th {
+            padding: 13px 16px;
+            color: #65778d;
+            background: #f6f8fb;
+            font-size: 9.5px;
+            letter-spacing: .75px;
+        }
+        .td-table td {
+            padding: 13px 16px;
+            font-size: 12px;
+            line-height: 1.5;
+            vertical-align: middle;
+        }
+        .td-table tbody tr:hover { background: #f7faff; }
+        .td-pill { border-radius: 20px; padding: 5px 10px; letter-spacing: .15px; }
+        .td-empty { padding: 30px 16px !important; line-height: 1.6; }
+
+        .td-form { gap: 14px; }
+        .td-form label { gap: 7px; color: #40536a; letter-spacing: .35px; }
+        .td-form input, .td-form select, .td-form textarea {
+            min-height: 44px;
+            padding: 10px 12px;
+            border-color: #dce5ef;
+            border-radius: 10px;
+            background-color: #fff;
+            font-size: 13px;
+        }
+        .td-form textarea { min-height: 92px; }
+        .td-btn-primary {
+            min-height: 44px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        .td-btn-primary:active { transform: translateY(0); }
+
+        .td-notice { padding-block: 13px; }
+        .td-notice-icon { width: 39px; height: 39px; flex-basis: 39px; }
+        .td-notice-body p { font-size: 12.5px; }
+        .td-qa-grid { gap: 10px; }
+        .td-qa-link {
+            min-height: 62px;
+            border-color: #e9eef5;
+            border-radius: 12px;
+            background: #fbfcfe;
+        }
+        .td-qa-link:focus-visible,
+        .td-nav-link:focus-visible,
+        .td-icon-btn:focus-visible,
+        .td-up-btn:focus-visible {
+            outline: 3px solid var(--td-focus);
+            outline-offset: 2px;
+        }
+        .td-event-item { padding: 10px; }
+        .td-profile-avatar { width: 92px; height: 92px; }
+        .td-profile-row { padding-block: 12px; }
+        .td-footer { padding-top: 17px; }
+
+        /* Fixed toast notifications: never participate in page layout. */
+        .td-flash-stack {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 1600;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            width: min(430px, calc(100vw - 32px));
+            max-height: min(70vh, 520px);
+            overflow: visible;
+            pointer-events: none;
+        }
+        .td-flash {
+            position: relative;
+            display: grid;
+            grid-template-columns: 37px minmax(0, 1fr) 28px;
+            align-items: start;
+            gap: 11px;
+            width: 100%;
+            min-height: 72px;
+            padding: 14px 13px;
+            border: 1px solid #dce6ef;
+            border-left: 4px solid #3982b9;
+            border-radius: 14px;
+            color: #29445e;
+            background: rgba(255,255,255,.98);
+            box-shadow: 0 14px 38px rgba(12, 36, 61, .18);
+            font-size: 12px;
+            line-height: 1.5;
+            pointer-events: auto;
+            opacity: 1;
+            transform: translateY(0);
+            animation: tdToastEnter .24s ease-out both;
+            transition: opacity .22s ease, transform .22s ease;
+        }
+        .td-flash.success { border-color: #cce9d8; border-left-color: #168254; }
+        .td-flash.error, .td-flash.danger { border-color: #f4ccd3; border-left-color: #c91f3b; }
+        .td-flash.warning { border-color: #f4e2bd; border-left-color: #b7791f; }
+        .td-flash.info { border-left-color: #21649b; }
+        .td-flash-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            margin-top: 1px;
+            border-radius: 11px;
+            color: #21649b;
+            background: #eaf3fc;
+            font-size: 15px;
+        }
+        .td-flash.success .td-flash-icon { color: #168254; background: #e3f5eb; }
+        .td-flash.error .td-flash-icon,
+        .td-flash.danger .td-flash-icon { color: #c91f3b; background: #ffeaee; }
+        .td-flash.warning .td-flash-icon { color: #a86a00; background: #fff1d6; }
+        .td-flash-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        .td-flash-copy strong { color: #173653; font-size: 12px; font-weight: 800; }
+        .td-flash-copy > span { color: #53677c; overflow-wrap: anywhere; }
+        .td-flash-close {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            border: 0;
+            border-radius: 8px;
+            color: #73849a;
+            background: transparent;
+            font-size: 20px;
+            line-height: 1;
+        }
+        .td-flash-close:hover { color: #173653; background: #f0f4f8; }
+        .td-flash.is-leaving { opacity: 0; transform: translateY(8px); }
+        @keyframes tdToastEnter {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 1200px) {
+            .td-content { padding: 20px; }
+            .td-grid { grid-template-columns: minmax(0, 1fr) 290px; gap: 18px; }
+            .td-stat { padding: 13px; }
+        }
+        @media (max-width: 1024px) {
+            .td-grid { grid-template-columns: minmax(0, 1fr); }
+            .td-col-side { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+            .td-col-side > .td-panel:last-child { grid-column: 1 / -1; }
+        }
+        @media (max-width: 700px) {
+            .td-topbar { height: 62px; }
+            .td-content { padding: 14px; gap: 15px; }
+            .td-grid, .td-col-main, .td-col-side { gap: 15px; }
+            .td-col-side { display: flex; flex-direction: column; }
+            .td-welcome { min-height: 0; padding: 21px 17px; border-radius: 16px; }
+            .td-stat-row { gap: 9px; }
+            .td-stat { min-height: 76px; padding: 10px; }
+            .td-panel { border-radius: 14px; }
+            .td-panel-head { min-height: 53px; padding: 13px 14px; }
+            .td-panel-body { padding: 14px; }
+            .td-panel-body.flush { padding: 0; }
+            .td-table { min-width: 360px; }
+            .td-flash-stack {
+                right: 12px;
+                bottom: 14px;
+                width: calc(100vw - 24px);
+                max-height: 55vh;
+            }
+            .td-flash { grid-template-columns: 34px minmax(0, 1fr) 27px; gap: 9px; padding: 12px; }
+            .td-flash-icon { width: 33px; height: 33px; }
+        }
+        @media (max-width: 420px) {
+            .td-search { max-width: 150px; }
+            .td-actions { gap: 5px; }
+            .td-content { padding: 12px; }
+            .td-welcome { gap: 12px; }
+            .td-welcome-avatar { width: 52px; height: 52px; flex-basis: 52px; font-size: 16px; }
+            .td-welcome h1 { font-size: 19px; }
+            .td-stat { gap: 8px; }
+            .td-stat-icon { width: 34px; height: 34px; flex-basis: 34px; }
+            .td-flash-stack { right: 10px; bottom: 10px; width: calc(100vw - 20px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .td-flash { animation: none; transition: none; }
+        }
+    </style>
+
+    <style id="td-theme-and-activity-upgrade">
+        /* Unified teacher portal palette: maroon, charcoal, grey, white, blue and muted yellow. */
+        :root {
+            --td-navy: #29252b;
+            --td-navy-dark: #18171b;
+            --td-blue: #285b8d;
+            --td-blue-light: #eaf1f8;
+            --td-red: #7c2d43;
+            --td-gold: #e4c15b;
+            --td-green: #285b8d;
+            --td-purple: #566579;
+            --td-amber: #b28b35;
+            --td-bg: #f1f2f5;
+            --td-white: #ffffff;
+            --td-text: #292b31;
+            --td-muted: #727782;
+            --td-border: #dfe2e8;
+            --td-shadow: 0 5px 20px rgba(35, 31, 36, .055);
+            --td-shadow-hover: 0 12px 28px rgba(35, 31, 36, .11);
+            --td-maroon: #7c2d43;
+            --td-charcoal: #29252b;
+            --td-slate: #646b78;
+            --td-blue-strong: #285b8d;
+            --td-yellow: #e4c15b;
+        }
+
+        body.td-body {
+            color: var(--td-text);
+            background: radial-gradient(circle at 92% 0%, rgba(40, 91, 141, .07), transparent 28%), #f1f2f5;
+        }
+        .td-sidebar {
+            background: linear-gradient(180deg, #29252b 0%, #201d23 55%, #17161a 100%);
+            border-right-color: rgba(255,255,255,.07);
+        }
+        .td-logo-text small { color: #e4c15b; }
+        .td-user-box {
+            border-color: rgba(228,193,91,.25);
+            background: linear-gradient(135deg, rgba(124,45,67,.27), rgba(255,255,255,.035));
+        }
+        .td-user-box::before { background: linear-gradient(#e4c15b, #7c2d43); }
+        .td-user-avatar, .td-up-avatar {
+            background: linear-gradient(135deg, #7c2d43, #542032);
+            border-color: #e4c15b;
+        }
+        .td-role-badge, .td-up-role-tag, .td-notif-tag {
+            color: #29252b;
+            background: #e4c15b;
+        }
+        .td-nav-link.active {
+            color: #fff;
+            background: linear-gradient(115deg, #7c2d43, #652339);
+            border-color: rgba(255,255,255,.08);
+            box-shadow: 0 7px 18px rgba(84, 25, 45, .24);
+        }
+        .td-nav-link:hover i, .td-nav-link.active i { color: #e4c15b; }
+        .td-sidebar-foot { background: rgba(255,255,255,.035); border-color: rgba(255,255,255,.09); }
+        .td-sidebar-foot i { color: #e4c15b; }
+
+        .td-topbar {
+            background: rgba(255,255,255,.96);
+            border-bottom-color: #dfe2e8;
+            box-shadow: 0 4px 18px rgba(35,31,36,.035);
+        }
+        .td-search { background: #f3f4f6; border-color: #e1e3e8; }
+        .td-search:focus-within { border-color: #9bb6d0; box-shadow: 0 0 0 4px rgba(40,91,141,.09); }
+        .td-icon-btn { color: #3a414c; border-color: #e0e3e8; }
+        .td-icon-btn:hover { color: #285b8d; background: #edf3f9; border-color: #b9cbdc; }
+
+        .td-welcome {
+            background: radial-gradient(circle at 93% 18%, rgba(228,193,91,.13), transparent 25%),
+                        linear-gradient(112deg, #29252b 0%, #49303b 55%, #285b8d 100%);
+            box-shadow: 0 13px 30px rgba(41,37,43,.14);
+        }
+        .td-welcome-avatar { background: linear-gradient(135deg, #7c2d43, #542032); border-color: #e4c15b; }
+        .td-welcome-meta i { color: #e4c15b; }
+
+        .td-stat, .td-panel { border-color: #e0e3e8; background: #fff; }
+        .td-stat-icon.green, .td-stat-icon.purple { color: #285b8d; background: #eaf1f8; }
+        .td-stat-icon.amber { color: #8e6d22; background: #fbf4df; }
+        .td-stat-icon.red { color: #7c2d43; background: #f7eaf0; }
+        .td-panel-head { background: linear-gradient(180deg, #fff, #f8f9fb); }
+        .td-panel-title { color: #29252b; }
+        .td-panel-title i, .td-panel-link { color: #7c2d43; }
+        .td-table th { color: #69717d; background: #f1f3f6; }
+        .td-table td { color: #30333a; }
+        .td-table tbody tr:hover { background: #f5f8fb; }
+        .td-pill.present, .td-pill.approved { color: #285b8d; background: #eaf1f8; }
+        .td-pill.absent, .td-pill.rejected { color: #7c2d43; background: #f7eaf0; }
+        .td-pill.pending { color: #8e6d22; background: #fbf4df; }
+
+        .td-form input:focus, .td-form select:focus, .td-form textarea:focus {
+            border-color: #94b0ca;
+            box-shadow: 0 0 0 4px rgba(40,91,141,.09);
+        }
+        .td-btn-primary {
+            background: linear-gradient(115deg, #285b8d, #1e4b75);
+            box-shadow: 0 5px 13px rgba(40,91,141,.16);
+        }
+        .td-btn-primary:hover { background: linear-gradient(115deg, #214c76, #173d61); }
+        .td-qa-link { border-color: #e2e5ea; background: #f8f9fb; }
+        .td-qa-icon.blue, .td-qa-icon.green, .td-qa-icon.purple { color: #285b8d; background: #eaf1f8; }
+        .td-qa-icon.amber { color: #8e6d22; background: #fbf4df; }
+        .td-qa-icon.red { color: #7c2d43; background: #f7eaf0; }
+        .td-qa-marks { border-color: #d6e1ec; background: linear-gradient(110deg,#edf3f9,#f8fafc); }
+        .td-event-date { background: linear-gradient(145deg,#29252b,#285b8d); }
+        .td-notice-icon { color: #285b8d; background: #eaf1f8; }
+        .td-notice-body small b { color: #7c2d43 !important; }
+        .td-profile-avatar { background: linear-gradient(135deg,#29252b,#285b8d); border-color: #e9edf2; }
+        .td-profile-row strong { color: #29252b; }
+
+        /* Red notification dot stays hidden unless a genuinely new update exists. */
+        .td-notif-dot {
+            display: none;
+            width: 9px;
+            height: 9px;
+            top: 7px;
+            right: 7px;
+            border: 2px solid #fff;
+            background: #7c2d43;
+            box-shadow: 0 0 0 0 rgba(124,45,67,.48);
+        }
+        .td-notif-dot.is-active {
+            display: block;
+            animation: tdNewNotificationPulse 1.55s ease-out infinite;
+        }
+        @keyframes tdNewNotificationPulse {
+            0% { box-shadow: 0 0 0 0 rgba(124,45,67,.48); transform: scale(1); }
+            65% { box-shadow: 0 0 0 7px rgba(124,45,67,0); transform: scale(1.08); }
+            100% { box-shadow: 0 0 0 0 rgba(124,45,67,0); transform: scale(1); }
+        }
+        .td-notif-dropdown, .td-up-dropdown {
+            border-color: #dfe2e8;
+            box-shadow: 0 18px 46px rgba(31,29,34,.17);
+        }
+        .td-notif-head, .td-notif-foot { background: #f7f8fa; border-color: #e3e5ea; }
+        .td-notif-head strong, .td-notif-body strong { color: #29252b; }
+        .td-notif-icon.blue, .td-notif-icon.green { color: #285b8d; background: #eaf1f8; }
+        .td-notif-icon.red { color: #7c2d43; background: #f7eaf0; }
+        .td-notif-icon.amber { color: #8e6d22; background: #fbf4df; }
+        .td-notif-foot a { color: #7c2d43; }
+        .td-up-head { background: linear-gradient(135deg,#f4f5f7,#eaf1f8); }
+        .td-up-head-avatar { background: linear-gradient(135deg,#29252b,#285b8d); border-color: #e4c15b; }
+        .td-up-dropdown > a:hover, .td-up-dropdown > form button:hover { background: #f1f4f8; color: #29252b; }
+        .td-up-dropdown .logout-link { color: #7c2d43; }
+
+        /* Message list: five latest entries, with unread status clearly visible. */
+        .td-message-head-actions { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:8px 11px; }
+        .td-message-total { color:#737b86; font-size:10px; font-weight:700; white-space:nowrap; }
+        .td-message-new-count, .td-inline-new, .td-new-badge {
+            display:inline-flex; align-items:center; justify-content:center;
+            padding:3px 7px; border-radius:999px;
+            color:#fff; background:#7c2d43; font-size:9px; font-weight:800;
+            letter-spacing:.35px; line-height:1.2; white-space:nowrap;
+        }
+        .td-inline-new { margin-left:7px; vertical-align:middle; }
+        .td-message-item { border-radius:10px; padding-inline:9px; }
+        .td-message-item.is-unread { background:#fbf7f8; border-left:3px solid #7c2d43; padding-left:8px; }
+        .td-message-icon { color:#7c2d43 !important; background:#f7eaf0 !important; }
+        .td-message-item .td-notice-body p { font-weight:700; color:#29252b; }
+        .td-track-notice.td-is-new, .td-track-event.td-is-new { background:#fbf8ef; border-radius:10px; }
+        .td-new-badge { margin:3px 0 4px; background:#e4c15b; color:#29252b; }
+        .td-track-event .td-new-badge { margin:5px 0 0; }
+        .td-notif-count {
+            display:inline-flex; align-items:center; justify-content:center;
+            min-width:20px; height:20px; padding:0 6px; border-radius:999px;
+            color:#fff; background:#7c2d43; font-size:10px; font-weight:800;
+        }
+        .td-notif-count.is-hidden { display:none !important; }
+
+        /* Keep the profile area read-only: photo stays visible but no photo controls remain. */
+        .td-profile-actions, .td-photo-btn { display:none !important; }
+
+        @media (max-width: 700px) {
+            .td-message-head-actions { justify-content:flex-start; }
+            .td-message-head-actions .td-panel-link { margin-left:auto; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .td-notif-dot.is-active { animation:none; }
+        }
+    </style>
+
 </head>
 
 <body class="td-body">
+
+    <a class="td-skip-link" href="#dashboard">Skip to main content</a>
 
     {% set total_att = attendance|length %}
     {% set present_att = attendance|selectattr('status','equalto','present')|list|length %}
@@ -1820,6 +2322,12 @@
     {% set att_pct = ((present_att / total_att) * 100)|round|int if total_att > 0 else 0 %}
     {% set att_deg = (att_pct * 3.6)|round|int %}
     {% set pending_leaves = leaves|selectattr('status','equalto','pending')|list|length %}
+    {% set unread_message_state = namespace(count=0) %}
+    {% for message_record in messages %}
+        {% if message_record.is_read is defined and (message_record.is_read|int == 0) %}
+            {% set unread_message_state.count = unread_message_state.count + 1 %}
+        {% endif %}
+    {% endfor %}
 
     <!-- =========================================================
          SIDEBAR
@@ -1994,7 +2502,10 @@
 
                 <!-- Notifications -->
 
-                <div class="td-notif" id="tdNotif">
+                <div class="td-notif"
+                     id="tdNotif"
+                     data-user-key="{{ session.get('unique_id', user.unique_id if user else 'teacher')|e }}"
+                     data-unread-message-count="{{ unread_message_state.count }}">
 
                     <button type="button"
                             class="td-icon-btn"
@@ -2005,10 +2516,9 @@
                             aria-label="Notifications">
 
                         <i class="fa-regular fa-bell"></i>
-
-                        {% if (messages|length) > 0 or pending_leaves > 0 %}
-                        <span class="td-notif-dot"></span>
-                        {% endif %}
+                        <span class="td-notif-dot{% if unread_message_state.count > 0 %} is-active{% endif %}"
+                              id="tdNotifDot"
+                              aria-hidden="true"></span>
                     </button>
 
                     <div class="td-notif-dropdown" id="tdNotifDropdown" role="menu">
@@ -2036,27 +2546,42 @@
                                 </div>
                                 <div class="td-notif-body">
                                     <strong>Messages</strong>
-                                    <small>{{ messages|length }} message(s)</small>
+                                    <small id="tdNotifMessagesCount">{{ unread_message_state.count }} new · {{ messages|length }} total</small>
                                 </div>
+                                {% if unread_message_state.count > 0 %}
+                                <span class="td-notif-count" id="tdNotifUnreadMessages">{{ unread_message_state.count }}</span>
+                                {% endif %}
                             </a>
 
-                            <a href="#notices" class="td-notif-item" role="menuitem">
+                            <a href="#notices" class="td-notif-item" role="menuitem" data-mark-seen="notices">
                                 <div class="td-notif-icon blue">
                                     <i class="fa-regular fa-bell"></i>
                                 </div>
                                 <div class="td-notif-body">
                                     <strong>Notices</strong>
-                                    <small>{{ notices|length }} announcement(s)</small>
+                                    <small id="tdNotifNoticeCount">{{ notices|length }} announcement(s)</small>
                                 </div>
+                                <span class="td-notif-count is-hidden" id="tdNotifNewNotices" aria-hidden="true"></span>
                             </a>
 
-                            <a href="#attendance" class="td-notif-item" role="menuitem">
+                            <a href="#events" class="td-notif-item" role="menuitem" data-mark-seen="events">
+                                <div class="td-notif-icon amber">
+                                    <i class="fa-regular fa-calendar-days"></i>
+                                </div>
+                                <div class="td-notif-body">
+                                    <strong>Events</strong>
+                                    <small id="tdNotifEventCount">{{ upcoming_events|length }} upcoming event(s)</small>
+                                </div>
+                                <span class="td-notif-count is-hidden" id="tdNotifNewEvents" aria-hidden="true"></span>
+                            </a>
+
+                            <a href="#attendance" class="td-notif-item" role="menuitem" data-mark-seen="attendance">
                                 <div class="td-notif-icon green">
                                     <i class="fa-solid fa-clipboard-check"></i>
                                 </div>
                                 <div class="td-notif-body">
                                     <strong>Attendance summary</strong>
-                                    <small>{{ total_att }} records · {{ att_pct }}% present</small>
+                                    <small id="tdNotifAttendanceCount">{{ total_att }} records · {{ att_pct }}% present</small>
                                 </div>
                             </a>
 
@@ -2136,27 +2661,6 @@
                             My Profile
                         </a>
 
-                        <a href="#"
-                           role="menuitem"
-                           onclick="event.preventDefault(); closeTeacherDropdowns(); document.getElementById('tdPhotoInput').click();">
-                            <i class="fa-solid fa-camera"></i>
-                            Change Photo
-                        </a>
-
-                        {% if session.get('photo_url') %}
-                        <form method="POST"
-                              action="{{ url_for('remove_profile_photo') }}"
-                              onsubmit="return confirm('Remove your profile photo?');">
-
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-                            <button type="submit" class="remove-photo-btn">
-                                <i class="fa-solid fa-trash"></i>
-                                Remove Photo
-                            </button>
-                        </form>
-                        {% endif %}
-
                         {% if session.get('user_role') == 'admin' %}
                         <a href="{{ url_for('admin_dashboard') }}" role="menuitem">
                             <i class="fa-solid fa-user-gear"></i>
@@ -2184,21 +2688,6 @@
 
                     </div>
 
-                    <form id="tdPhotoForm"
-                          method="POST"
-                          action="{{ url_for('update_profile_photo') }}"
-                          enctype="multipart/form-data"
-                          hidden>
-
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-                        <input type="file"
-                               id="tdPhotoInput"
-                               name="photo"
-                               accept="image/*"
-                               onchange="document.getElementById('tdPhotoForm').submit();">
-                    </form>
-
                 </div>
                 {% endif %}
 
@@ -2211,20 +2700,46 @@
 
         <main class="td-content">
 
-            {% with messages_flash = get_flashed_messages(with_categories=true) %}
-            {% if messages_flash %}
-            <div class="td-flash-stack">
-
-                {% for cat, msg in messages_flash %}
-                <div class="td-flash {{ cat }}">
-                    <span>{{ msg }}</span>
-                    <button type="button" aria-label="Dismiss notification">&times;</button>
-                </div>
-                {% endfor %}
-
+            <!--
+                Flash messages are rendered in a fixed notification layer.
+                This container is intentionally outside the normal document flow,
+                so a successful attendance save never pushes dashboard content down.
+            -->
+            <div class="td-flash-stack" id="tdFlashStack" aria-label="Page notifications">
+                {% with messages_flash = get_flashed_messages(with_categories=true) %}
+                    {% for cat, msg in messages_flash %}
+                        {% set flash_category = (cat or 'info')|lower %}
+                        {% set flash_is_urgent = flash_category in ['error', 'danger'] %}
+                        <div class="td-flash {{ flash_category }}"
+                             role="{{ 'alert' if flash_is_urgent else 'status' }}"
+                             aria-live="{{ 'assertive' if flash_is_urgent else 'polite' }}"
+                             aria-atomic="true"
+                             data-toast-duration="{{ 10000 if flash_is_urgent else (8000 if flash_category == 'warning' else 5500) }}">
+                            <span class="td-flash-icon" aria-hidden="true">
+                                {% if flash_category == 'success' %}
+                                    <i class="fa-solid fa-circle-check"></i>
+                                {% elif flash_is_urgent %}
+                                    <i class="fa-solid fa-circle-exclamation"></i>
+                                {% elif flash_category == 'warning' %}
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-circle-info"></i>
+                                {% endif %}
+                            </span>
+                            <span class="td-flash-copy">
+                                <strong>
+                                    {% if flash_category == 'success' %}Success
+                                    {% elif flash_is_urgent %}Action required
+                                    {% elif flash_category == 'warning' %}Please note
+                                    {% else %}Notification{% endif %}
+                                </strong>
+                                <span>{{ msg }}</span>
+                            </span>
+                            <button type="button" class="td-flash-close" aria-label="Dismiss notification" title="Dismiss notification">&times;</button>
+                        </div>
+                    {% endfor %}
+                {% endwith %}
             </div>
-            {% endif %}
-            {% endwith %}
 
             <div class="td-grid">
 
@@ -2333,7 +2848,7 @@
 
                                     <tbody>
                                         {% for a in attendance[:10] %}
-                                        <tr>
+                                        <tr data-track-type="attendance" data-track-id="{{ a.id }}">
                                             <td><strong>{{ a.date }}</strong></td>
                                             <td>
                                                 <span class="td-pill {{ a.status }}">
@@ -2544,7 +3059,9 @@
 
                                 {% for n in notices[:4] %}
 
-                                <div class="td-notice">
+                                <div class="td-notice td-track-notice"
+                                     data-track-type="notice"
+                                     data-track-id="{{ n.id }}">
 
                                     <div class="td-notice-icon">
                                         <i class="fa-regular fa-file-lines"></i>
@@ -2579,23 +3096,30 @@
                                     Messages from principal
                                 </h2>
 
-                                <a href="{{ url_for('messages_inbox') }}" class="td-panel-link">
-                                    Open inbox <i class="fa-solid fa-arrow-right"></i>
-                                </a>
+                                <div class="td-message-head-actions">
+                                    <span class="td-message-total">{{ [messages|length, 5]|min }} latest</span>
+                                    {% if unread_message_state.count > 0 %}
+                                    <span class="td-message-new-count" aria-label="{{ unread_message_state.count }} unread messages">{{ unread_message_state.count }} new</span>
+                                    {% endif %}
+                                    <a href="{{ url_for('messages_inbox') }}" class="td-panel-link">
+                                        Open inbox <i class="fa-solid fa-arrow-right"></i>
+                                    </a>
+                                </div>
                             </div>
 
                             <div class="td-panel-body">
 
-                                {% for m in messages[:4] %}
+                                {% for m in messages[:5] %}
 
-                                <div class="td-notice">
+                                <div class="td-notice td-message-item{% if m.is_read is defined and (m.is_read|int == 0) %} is-unread{% endif %}"
+                                     data-message-id="{{ m.id }}">
 
-                                    <div class="td-notice-icon" style="background:#ffeaee;color:var(--td-red);">
+                                    <div class="td-notice-icon td-message-icon">
                                         <i class="fa-solid fa-envelope"></i>
                                     </div>
 
                                     <div class="td-notice-body">
-                                        <small>{{ m.created_at[:10] }}</small>
+                                        <small>{{ m.created_at[:10] }}{% if m.is_read is defined and (m.is_read|int == 0) %}<span class="td-inline-new">NEW</span>{% endif %}</small>
                                         <p>{{ m.subject }}</p>
                                     </div>
 
@@ -2748,6 +3272,7 @@
 
                             <a href="{{ url_for('events_page') }}"
                                class="td-panel-link"
+                               data-mark-seen="events"
                                target="_blank"
                                rel="noopener">
                                 View all <i class="fa-solid fa-arrow-right"></i>
@@ -2760,7 +3285,9 @@
 
                                 {% for e in upcoming_events %}
 
-                                <div class="td-event-item">
+                                <div class="td-event-item td-track-event"
+                                     data-track-type="event"
+                                     data-track-id="{{ e.id }}">
 
                                     <div class="td-event-date">
                                         <strong>{{ e.event_date[8:10] }}</strong>
@@ -2861,51 +3388,6 @@
                                 {% endif %}
 
                             </div>
-
-                            <div class="td-profile-actions">
-
-                                <button type="button"
-                                        class="td-photo-btn"
-                                        onclick="document.getElementById('tdProfilePhotoInput').click();">
-                                    <i class="fa-solid fa-camera"></i>
-                                    Change
-                                </button>
-
-                                {% if session.get('photo_url') %}
-                                <button type="button"
-                                        class="td-photo-btn danger"
-                                        onclick="if(confirm('Remove profile photo?')) document.getElementById('tdProfileRemoveForm').submit();">
-                                    <i class="fa-solid fa-trash"></i>
-                                    Remove
-                                </button>
-                                {% endif %}
-
-                            </div>
-
-                            <form id="tdProfilePhotoForm"
-                                  method="POST"
-                                  action="{{ url_for('update_profile_photo') }}"
-                                  enctype="multipart/form-data"
-                                  hidden>
-
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-                                <input type="file"
-                                       id="tdProfilePhotoInput"
-                                       name="photo"
-                                       accept="image/*"
-                                       onchange="document.getElementById('tdProfilePhotoForm').submit();">
-                            </form>
-
-                            {% if session.get('photo_url') %}
-                            <form id="tdProfileRemoveForm"
-                                  method="POST"
-                                  action="{{ url_for('remove_profile_photo') }}"
-                                  hidden>
-
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            </form>
-                            {% endif %}
 
                             <a href="{{ url_for('change_password') }}"
                                class="td-btn-primary"
@@ -3060,6 +3542,212 @@
                 }
             }
 
+            /* New activity indicators: unread messages are server-backed;
+               notices, events and displayed attendance rows use a per-teacher
+               browser watermark because the current template has no read-state
+               columns for those three data sets. */
+            function setupTeacherActivityIndicators() {
+                if (!notification) return;
+
+                const dot = document.getElementById('tdNotifDot');
+                const userKey = encodeURIComponent(notification.dataset.userKey || 'teacher');
+                const unreadMessages = Number(notification.dataset.unreadMessageCount || 0);
+                const noticeNodes = Array.from(document.querySelectorAll('[data-track-type="notice"]'));
+                const eventNodes = Array.from(document.querySelectorAll('[data-track-type="event"]'));
+                const attendanceNodes = Array.from(document.querySelectorAll('[data-track-type="attendance"]'));
+                const groups = {
+                    notices: { nodes: noticeNodes, type: 'notice', section: document.getElementById('notices') },
+                    events: { nodes: eventNodes, type: 'event', section: document.getElementById('events') },
+                    attendance: { nodes: attendanceNodes, type: 'attendance', section: document.getElementById('attendance') }
+                };
+                const pending = { notices: 0, events: 0, attendance: 0 };
+                const keys = {
+                    notices: 'td-teacher-seen-notices-v2:' + userKey,
+                    events: 'td-teacher-seen-events-v2:' + userKey,
+                    attendance: 'td-teacher-seen-attendance-v2:' + userKey
+                };
+                const storageAvailable = (function () {
+                    try {
+                        const probe = '__td_storage_probe__';
+                        window.localStorage.setItem(probe, '1');
+                        window.localStorage.removeItem(probe);
+                        return true;
+                    } catch (error) {
+                        return false;
+                    }
+                })();
+
+                function nodeId(node) {
+                    const value = Number(node.dataset.trackId);
+                    return Number.isFinite(value) ? value : 0;
+                }
+
+                function maximumId(nodes) {
+                    return nodes.reduce(function (max, node) {
+                        return Math.max(max, nodeId(node));
+                    }, 0);
+                }
+
+                function readWatermark(key) {
+                    if (!storageAvailable) return null;
+                    try {
+                        const raw = window.localStorage.getItem(key);
+                        return raw === null ? null : (Number(raw) || 0);
+                    } catch (error) {
+                        return null;
+                    }
+                }
+
+                function writeWatermark(key, value) {
+                    if (!storageAvailable) return;
+                    try { window.localStorage.setItem(key, String(value)); } catch (error) { /* Storage can be disabled by the browser. */ }
+                }
+
+                function addNewMarker(node, type) {
+                    node.classList.add('td-is-new');
+                    if (node.querySelector('.td-new-badge')) return;
+
+                    const badge = document.createElement('span');
+                    badge.className = 'td-new-badge';
+                    badge.textContent = 'NEW';
+                    badge.setAttribute('aria-label', 'New ' + type);
+
+                    if (type === 'notice') {
+                        const body = node.querySelector('.td-notice-body');
+                        const title = body ? body.querySelector('p') : null;
+                        if (title) title.insertAdjacentElement('beforebegin', badge);
+                        else if (body) body.appendChild(badge);
+                    } else if (type === 'event') {
+                        const info = node.querySelector('.td-event-info');
+                        const title = info ? info.querySelector('strong') : null;
+                        if (title) title.insertAdjacentElement('afterend', badge);
+                        else if (info) info.appendChild(badge);
+                    } else {
+                        const cell = node.querySelector('td');
+                        if (cell) cell.appendChild(badge);
+                    }
+                }
+
+                function removeNewMarkers(group) {
+                    group.nodes.forEach(function (node) {
+                        node.classList.remove('td-is-new');
+                        const badge = node.querySelector('.td-new-badge');
+                        if (badge) badge.remove();
+                    });
+                }
+
+                Object.keys(groups).forEach(function (name) {
+                    const group = groups[name];
+                    const currentMax = maximumId(group.nodes);
+                    const previousMax = readWatermark(keys[name]);
+
+                    /* First visit creates a baseline; historical items are not falsely called new. */
+                    if (previousMax === null) {
+                        writeWatermark(keys[name], currentMax);
+                        return;
+                    }
+
+                    group.nodes.forEach(function (node) {
+                        if (nodeId(node) > previousMax) {
+                            pending[name] += 1;
+                            addNewMarker(node, group.type);
+                        }
+                    });
+                });
+
+                function updateBell() {
+                    const hasAttendanceFlash = Array.from(document.querySelectorAll('.td-flash'))
+                        .some(function (toast) {
+                            return /attendance/i.test(toast.textContent || '');
+                        });
+                    const hasNewActivity = unreadMessages > 0 || pending.notices > 0 ||
+                        pending.events > 0 || pending.attendance > 0 || hasAttendanceFlash;
+
+                    if (dot) dot.classList.toggle('is-active', hasNewActivity);
+                    if (notificationBtn) {
+                        const total = unreadMessages + pending.notices + pending.events + pending.attendance + (hasAttendanceFlash ? 1 : 0);
+                        notificationBtn.setAttribute('aria-label', total > 0 ? 'Notifications, ' + total + ' new update(s)' : 'Notifications, no new updates');
+                    }
+
+                    const messageCount = document.getElementById('tdNotifMessagesCount');
+                    if (messageCount) messageCount.textContent = unreadMessages + ' new · ' + (document.querySelectorAll('.td-message-item').length || 0) + ' total';
+
+                    const newMessageBadge = document.getElementById('tdNotifUnreadMessages');
+                    if (newMessageBadge) {
+                        newMessageBadge.textContent = String(unreadMessages);
+                        newMessageBadge.classList.toggle('is-hidden', unreadMessages < 1);
+                    }
+
+                    const noticeCount = document.getElementById('tdNotifNoticeCount');
+                    if (noticeCount) noticeCount.textContent = pending.notices > 0
+                        ? pending.notices + ' new · ' + noticeNodes.length + ' total'
+                        : noticeNodes.length + ' announcement(s)';
+                    const newNoticeBadge = document.getElementById('tdNotifNewNotices');
+                    if (newNoticeBadge) {
+                        newNoticeBadge.textContent = pending.notices > 0 ? String(pending.notices) : '';
+                        newNoticeBadge.classList.toggle('is-hidden', pending.notices < 1);
+                    }
+
+                    const eventCount = document.getElementById('tdNotifEventCount');
+                    if (eventCount) eventCount.textContent = pending.events > 0
+                        ? pending.events + ' new · ' + eventNodes.length + ' upcoming'
+                        : eventNodes.length + ' upcoming event(s)';
+                    const newEventBadge = document.getElementById('tdNotifNewEvents');
+                    if (newEventBadge) {
+                        newEventBadge.textContent = pending.events > 0 ? String(pending.events) : '';
+                        newEventBadge.classList.toggle('is-hidden', pending.events < 1);
+                    }
+
+                    const attendanceCount = document.getElementById('tdNotifAttendanceCount');
+                    if (attendanceCount && pending.attendance > 0) {
+                        attendanceCount.textContent = pending.attendance + ' new record(s) · ' + attendanceCount.textContent;
+                    }
+                }
+
+                function markGroupSeen(name) {
+                    const group = groups[name];
+                    if (!group || pending[name] < 1) return;
+                    writeWatermark(keys[name], maximumId(group.nodes));
+                    pending[name] = 0;
+                    removeNewMarkers(group);
+                    updateBell();
+                }
+
+                document.querySelectorAll('[data-mark-seen]').forEach(function (link) {
+                    link.addEventListener('click', function () {
+                        const target = link.dataset.markSeen;
+                        if (groups[target]) markGroupSeen(target);
+                    });
+                });
+
+                /* Mark a category as seen only when its dashboard section enters view. */
+                if ('IntersectionObserver' in window) {
+                    const observer = new IntersectionObserver(function (entries) {
+                        entries.forEach(function (entry) {
+                            if (entry.isIntersecting && entry.intersectionRatio >= 0.30) {
+                                const name = entry.target.id;
+                                if (groups[name]) markGroupSeen(name);
+                            }
+                        });
+                    }, { threshold: [0.30, 0.55] });
+
+                    Object.keys(groups).forEach(function (name) {
+                        if (groups[name].section) observer.observe(groups[name].section);
+                    });
+                } else {
+                    document.querySelectorAll('.td-nav-link[href="#notices"], .td-nav-link[href="#events"], .td-nav-link[href="#attendance"]').forEach(function (link) {
+                        link.addEventListener('click', function () {
+                            const name = link.getAttribute('href').slice(1);
+                            if (groups[name]) markGroupSeen(name);
+                        });
+                    });
+                }
+
+                updateBell();
+            }
+
+            setupTeacherActivityIndicators();
+
             /* Notification dropdown */
 
             if (notificationBtn && notification) {
@@ -3126,25 +3814,123 @@
 
             });
 
-            /* Flash message dismiss */
+            /* Accessible, fixed-position toast notifications */
 
-            document.querySelectorAll('.td-flash button').forEach(function (button) {
+            const toastHost = document.getElementById('tdFlashStack');
 
-                button.addEventListener('click', function () {
+            function removeToast(toast) {
+                if (!toast || toast.dataset.closing === 'true') return;
+                toast.dataset.closing = 'true';
+                if (toast._tdToastTimer) {
+                    window.clearTimeout(toast._tdToastTimer);
+                    toast._tdToastTimer = null;
+                }
+                toast.classList.add('is-leaving');
+                window.setTimeout(function () {
+                    if (toast.isConnected) toast.remove();
+                }, 260);
+            }
 
-                    const flash = button.closest('.td-flash');
+            function bindToast(toast) {
+                if (!toast || toast.dataset.toastBound === 'true') return;
+                toast.dataset.toastBound = 'true';
 
-                    if (!flash) return;
+                let duration = Number(toast.dataset.toastDuration);
+                if (!Number.isFinite(duration) || duration < 1000) duration = 6000;
+                let remaining = duration;
+                let startedAt = 0;
 
-                    flash.style.opacity = '0';
+                function startTimer() {
+                    if (toast.dataset.closing === 'true' || toast._tdToastTimer || remaining <= 0) return;
+                    startedAt = Date.now();
+                    toast._tdToastTimer = window.setTimeout(function () {
+                        removeToast(toast);
+                    }, remaining);
+                }
 
-                    window.setTimeout(function () {
-                        flash.remove();
-                    }, 250);
+                function pauseTimer() {
+                    if (!toast._tdToastTimer) return;
+                    window.clearTimeout(toast._tdToastTimer);
+                    toast._tdToastTimer = null;
+                    remaining = Math.max(0, remaining - (Date.now() - startedAt));
+                }
 
+                const closeButton = toast.querySelector('.td-flash-close, button');
+                if (closeButton) {
+                    closeButton.addEventListener('click', function () {
+                        removeToast(toast);
+                    });
+                }
+
+                toast.addEventListener('pointerenter', pauseTimer);
+                toast.addEventListener('pointerleave', startTimer);
+                toast.addEventListener('focusin', pauseTimer);
+                toast.addEventListener('focusout', function (event) {
+                    if (!toast.contains(event.relatedTarget)) startTimer();
                 });
 
-            });
+                startTimer();
+            }
+
+            function showTeacherToast(message, category) {
+                let type = String(category || 'info').toLowerCase();
+                if (type === 'danger') type = 'error';
+                if (!['success', 'error', 'warning', 'info'].includes(type)) type = 'info';
+
+                let host = toastHost;
+                if (!host) {
+                    host = document.createElement('div');
+                    host.id = 'tdFlashStack';
+                    host.className = 'td-flash-stack';
+                    host.setAttribute('aria-label', 'Page notifications');
+                    document.body.appendChild(host);
+                }
+
+                const settings = {
+                    success: { title: 'Success', icon: 'fa-circle-check', duration: 5500, role: 'status', live: 'polite' },
+                    error: { title: 'Action required', icon: 'fa-circle-exclamation', duration: 10000, role: 'alert', live: 'assertive' },
+                    warning: { title: 'Please note', icon: 'fa-triangle-exclamation', duration: 8000, role: 'status', live: 'polite' },
+                    info: { title: 'Notification', icon: 'fa-circle-info', duration: 5500, role: 'status', live: 'polite' }
+                }[type];
+
+                const toast = document.createElement('div');
+                toast.className = 'td-flash ' + type;
+                toast.setAttribute('role', settings.role);
+                toast.setAttribute('aria-live', settings.live);
+                toast.setAttribute('aria-atomic', 'true');
+                toast.dataset.toastDuration = String(settings.duration);
+
+                const iconWrap = document.createElement('span');
+                iconWrap.className = 'td-flash-icon';
+                iconWrap.setAttribute('aria-hidden', 'true');
+                const icon = document.createElement('i');
+                icon.className = 'fa-solid ' + settings.icon;
+                iconWrap.appendChild(icon);
+
+                const copy = document.createElement('span');
+                copy.className = 'td-flash-copy';
+                const title = document.createElement('strong');
+                title.textContent = settings.title;
+                const body = document.createElement('span');
+                body.textContent = String(message || '');
+                copy.appendChild(title);
+                copy.appendChild(body);
+
+                const close = document.createElement('button');
+                close.type = 'button';
+                close.className = 'td-flash-close';
+                close.setAttribute('aria-label', 'Dismiss notification');
+                close.setAttribute('title', 'Dismiss notification');
+                close.textContent = '×';
+
+                toast.appendChild(iconWrap);
+                toast.appendChild(copy);
+                toast.appendChild(close);
+                host.appendChild(toast);
+                bindToast(toast);
+            }
+
+            document.querySelectorAll('.td-flash').forEach(bindToast);
 
             /* Dashboard section search */
 
@@ -3176,7 +3962,7 @@
 
                         searchInput.blur();
                     } else {
-                        alert('No matching dashboard section was found.');
+                        showTeacherToast('No matching dashboard section was found.', 'info');
                     }
 
                 });

@@ -2427,6 +2427,352 @@
 
     </style>
 
+    <style id="admin-maroon-professional-theme">
+        :root {
+            --sn-maroon: #7b263b;
+            --sn-maroon-deep: #571b2c;
+            --sn-charcoal: #28262c;
+            --sn-charcoal-deep: #1d1b20;
+            --sn-neutral: #69717d;
+            --sn-neutral-soft: #f1f2f5;
+            --sn-white: #ffffff;
+            --sn-blue: #2d5f91;
+            --sn-blue-deep: #21486f;
+            --sn-yellow: #e3bf5c;
+            --sn-line: #e2e4e9;
+            --admin-ink: #282a31;
+            --admin-muted: #69717d;
+            --admin-line: #e2e4e9;
+            --admin-canvas: #f3f4f6;
+            --admin-surface: #ffffff;
+            --admin-navy: #28262c;
+            --admin-navy-deep: #1d1b20;
+            --admin-blue: #2d5f91;
+            --admin-blue-soft: #eaf1f8;
+            --admin-primary: #2d5f91;
+            --admin-primary-dark: #21486f;
+            --admin-accent: #e3bf5c;
+            --admin-gold: #e3bf5c;
+            --red: #7b263b;
+            --yellow: #e3bf5c;
+            --sn-transition: .2s cubic-bezier(.2,.7,.2,1);
+        }
+
+        body.admin-body {
+            color: var(--admin-ink);
+            background:
+                radial-gradient(circle at 94% 0%, rgba(45,95,145,.07), transparent 28%),
+                var(--admin-canvas);
+            font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+        }
+
+        .admin-sidebar {
+            background: linear-gradient(180deg, var(--sn-charcoal) 0%, var(--sn-charcoal-deep) 100%);
+            border-right: 1px solid rgba(255,255,255,.07);
+            box-shadow: 9px 0 28px rgba(24,20,25,.12);
+        }
+        .admin-sidebar-head { border-bottom-color: rgba(255,255,255,.09); }
+        .admin-logo .school_logo {
+            border: 1px solid rgba(227,191,92,.48);
+            border-radius: 12px;
+            background: #fff;
+        }
+        .admin-logo .brand-text strong { color: #fff; }
+        .admin-logo .brand-text small { color: #e2c979; }
+        .admin-user-box {
+            background: linear-gradient(135deg, rgba(123,38,59,.34), rgba(255,255,255,.035));
+            border-color: rgba(227,191,92,.22);
+            box-shadow: 0 8px 20px rgba(0,0,0,.12);
+        }
+        .admin-user-box::before { background: linear-gradient(180deg, var(--sn-yellow), var(--sn-maroon)); }
+        .admin-user-avatar,
+        .admin-user-btn .admin-user-avatar {
+            color: #fff;
+            background: linear-gradient(135deg, var(--sn-maroon), var(--sn-maroon-deep));
+            border: 2px solid var(--sn-yellow);
+            box-shadow: 0 3px 11px rgba(0,0,0,.18);
+        }
+        .admin-role-badge,
+        .admin-user-role-tag {
+            color: #2c2528;
+            background: var(--sn-yellow);
+            border: 1px solid rgba(227,191,92,.55);
+            box-shadow: none;
+        }
+        .admin-sidebar-search:focus-within { border-color: rgba(227,191,92,.55); }
+        .admin-sidebar-search:focus-within i { color: var(--sn-yellow); }
+        .admin-qstat {
+            background: rgba(255,255,255,.055);
+            border-color: rgba(255,255,255,.09);
+        }
+        .admin-qstat strong { color: var(--sn-yellow); }
+        .admin-qstat:hover { border-color: rgba(227,191,92,.38); }
+        .admin-nav-group-label { color: #a6a1aa; }
+        .admin-nav-link { color: #d0cdd3; }
+        .admin-nav-link i { color: #aaa5ad; }
+        .admin-nav-link:hover {
+            background: rgba(255,255,255,.075);
+            border-color: rgba(255,255,255,.07);
+            color: #fff;
+            transform: translateX(2px);
+        }
+        .admin-nav-link.active {
+            color: #fff !important;
+            background: linear-gradient(110deg, var(--sn-maroon), #682238) !important;
+            border-color: rgba(227,191,92,.22) !important;
+            box-shadow: inset 3px 0 0 var(--sn-yellow), 0 6px 16px rgba(0,0,0,.16) !important;
+        }
+        .admin-nav-link.active i { color: #ffe29a !important; }
+        .admin-nav-link .nav-badge {
+            color: #2b2528;
+            background: var(--sn-yellow);
+        }
+        .admin-nav-link .nav-badge.danger {
+            color: #fff;
+            background: var(--sn-maroon);
+            border: 1px solid rgba(255,255,255,.2);
+            animation: none;
+        }
+        .admin-nav-link.active .nav-badge { color: #2b2528; background: var(--sn-yellow); }
+        .admin-sidebar-foot {
+            background: linear-gradient(180deg, rgba(35,32,38,.96), #18161a);
+            border-top-color: rgba(255,255,255,.09);
+        }
+        .admin-sidebar-foot-link.logout { color: #efb3c1; }
+        .admin-sidebar-foot-link.logout:hover { background: rgba(123,38,59,.32); }
+        .admin-sidebar-collapse-btn:hover {
+            color: var(--sn-yellow);
+            border-color: rgba(227,191,92,.35);
+            background: rgba(227,191,92,.12);
+        }
+
+        .admin-main { background: transparent; }
+        .admin-topbar {
+            background: rgba(255,255,255,.96);
+            border-bottom: 1px solid var(--sn-line);
+            box-shadow: 0 3px 15px rgba(35,35,42,.045);
+        }
+        .admin-page-title { color: var(--sn-charcoal); }
+        .admin-search {
+            background: #f6f7f9;
+            border-color: #e5e7eb;
+        }
+        .admin-search:focus-within {
+            border-color: rgba(45,95,145,.45);
+            box-shadow: 0 0 0 3px rgba(45,95,145,.10);
+        }
+        .admin-topbar-icon {
+            background: #fff;
+            border-color: #e4e5e9;
+            color: #4b505b;
+        }
+        .admin-topbar-icon:hover {
+            color: var(--sn-maroon);
+            background: #fbf6f7;
+            border-color: rgba(123,38,59,.25);
+        }
+        .admin-my-dash-btn {
+            background: linear-gradient(135deg, var(--sn-blue), var(--sn-blue-deep)) !important;
+            border-color: var(--sn-blue) !important;
+        }
+        .admin-user-btn:hover,
+        .admin-user-profile.dropdown-open .admin-user-btn {
+            background: #f5f6f8;
+            border-color: #e0e2e7;
+        }
+        .admin-user-btn-info strong { color: var(--sn-charcoal); }
+        .admin-user-btn-info small,
+        .admin-user-chevron { color: var(--sn-neutral); }
+        .admin-user-dropdown,
+        .admin-notif-dropdown {
+            border: 1px solid #e2e4e9;
+            background: #fff;
+            box-shadow: 0 20px 48px rgba(35,29,35,.18);
+        }
+        .admin-user-head { background: linear-gradient(135deg, #f7f0f2, #eef3f8); }
+        .admin-user-head-avatar {
+            background: linear-gradient(135deg, var(--sn-charcoal), var(--sn-maroon));
+            border-color: var(--sn-yellow);
+        }
+        .admin-user-head-text strong,
+        .notif-head strong { color: var(--sn-charcoal); }
+        .admin-user-dropdown > a { color: #454a54; }
+        .admin-user-dropdown > a:hover { background: #f5f6f8; color: var(--sn-maroon); }
+        .admin-user-dropdown > a:hover i { color: var(--sn-maroon); }
+        .admin-user-dropdown > a.admin-panel-link {
+            color: var(--sn-maroon);
+            background: #faf3f5;
+            border: 1px solid rgba(123,38,59,.13);
+        }
+        .admin-user-dropdown > a.admin-panel-link i { color: var(--sn-maroon); }
+        .admin-user-dropdown > a.admin-logout-link,
+        .admin-user-dropdown > form > button.admin-logout-link { color: var(--sn-maroon); }
+
+        .admin-content { color: var(--admin-ink); }
+        .admin-content :is(.card, .panel, .content-card, .stat-card, .table-container, .form-card) {
+            border-color: var(--sn-line);
+            border-radius: 14px;
+            box-shadow: 0 6px 22px rgba(35,35,42,.055);
+        }
+        .admin-content :is(h1, h2, h3, h4) { color: #302a30; }
+        .admin-content th {
+            color: #555d68;
+            background: #f2f3f6;
+            border-bottom-color: #e1e3e8;
+        }
+        .admin-content td { color: #444b56; }
+        .admin-content tbody tr:hover { background: #faf5f6; }
+        .admin-content :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+            border-color: #dfe2e8;
+            color: #303640;
+            border-radius: 9px;
+        }
+        .admin-content :is(input, select, textarea):focus {
+            border-color: rgba(45,95,145,.55);
+            box-shadow: 0 0 0 3px rgba(45,95,145,.10);
+        }
+        .admin-content :is(.btn-primary, .button-primary, button.primary, input[type="submit"].primary) {
+            background: linear-gradient(135deg, var(--sn-blue), var(--sn-blue-deep));
+            border-color: var(--sn-blue);
+            color: #fff;
+        }
+        .admin-content :is(.btn-danger, .button-danger) {
+            background: var(--sn-maroon);
+            border-color: var(--sn-maroon);
+            color: #fff;
+        }
+        .admin-content :is(.btn-warning, .button-warning) {
+            background: var(--sn-yellow);
+            border-color: var(--sn-yellow);
+            color: #302a30;
+        }
+        .admin-content :is(button, .btn, a.btn):focus-visible,
+        .admin-topbar :is(button, a):focus-visible,
+        .admin-sidebar :is(button, a, input):focus-visible {
+            outline: 2px solid var(--sn-yellow);
+            outline-offset: 3px;
+        }
+
+        /* Notification dot: hidden by default; JavaScript activates it only for new activity. */
+        .notif-dot-badge { display: none; }
+        .notif-dot-badge[hidden] { display: none !important; }
+        .notif-dot-badge.is-active {
+            display: block;
+            background: #c62845;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 0 rgba(198,40,69,.48);
+            animation: adminNewActivityPulse 1.8s ease-out infinite;
+        }
+        @keyframes adminNewActivityPulse {
+            0% { box-shadow: 0 0 0 0 rgba(198,40,69,.48); }
+            75% { box-shadow: 0 0 0 7px rgba(198,40,69,0); }
+            100% { box-shadow: 0 0 0 0 rgba(198,40,69,0); }
+        }
+        .notif-head { background: #f6f4f5; border-bottom-color: #e7e3e6; }
+        .notif-head-tag { background: var(--sn-yellow); color: #312b2c; }
+        .notif-item:hover { background: #f7f2f4; }
+        .notif-icon.red { background: #f8e8ec; color: var(--sn-maroon); }
+        .notif-icon.blue { background: #e8f0f7; color: var(--sn-blue); }
+        .notif-footer { background: #f7f6f7; border-top-color: #e7e3e6; }
+        .notif-footer a { color: var(--sn-maroon); }
+        .notif-section-label {
+            padding: 8px 11px 5px;
+            color: #77717a;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: .11em;
+            text-transform: uppercase;
+        }
+        .notif-message-item { min-height: 62px; }
+        .notif-new-label {
+            flex: 0 0 auto;
+            padding: 4px 7px;
+            border-radius: 5px;
+            color: #fff;
+            background: var(--sn-maroon);
+            font-size: 8px;
+            font-weight: 900;
+            letter-spacing: .06em;
+        }
+        .notif-read-label {
+            flex: 0 0 auto;
+            color: #87909b;
+            font-size: 9px;
+            font-weight: 700;
+        }
+        .notif-all-messages {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 7px;
+            padding: 7px 12px 10px;
+            color: var(--sn-blue);
+            font-size: 10px;
+            font-weight: 800;
+            text-decoration: none;
+        }
+        .notif-all-messages:hover { color: var(--sn-maroon); }
+        .notif-section-divider { height: 1px; margin: 2px 8px 7px; background: #e8e6e9; }
+        .admin-notif-dropdown { max-height: min(76vh, 620px); }
+        .notif-list { max-height: min(62vh, 460px); }
+
+        /* Fixed toast placement prevents the page content from jumping. */
+        .admin-content .flash-stack {
+            position: fixed !important;
+            top: 88px !important;
+            right: clamp(12px, 2vw, 24px) !important;
+            z-index: 1800 !important;
+            display: grid !important;
+            gap: 9px !important;
+            width: min(430px, calc(100vw - 24px)) !important;
+            margin: 0 !important;
+            pointer-events: none;
+        }
+        .admin-content .flash {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 13px 14px;
+            border: 1px solid #e2e4e9;
+            border-left: 4px solid var(--sn-blue);
+            border-radius: 11px;
+            color: #343943;
+            background: #fff;
+            box-shadow: 0 14px 34px rgba(33,31,38,.16);
+            font-size: 12px;
+            line-height: 1.5;
+            pointer-events: auto;
+            transition: opacity .25s ease, transform .25s ease;
+        }
+        .admin-content .flash.success { border-left-color: #27805b; }
+        .admin-content .flash.error,
+        .admin-content .flash.danger { border-left-color: var(--sn-maroon); }
+        .admin-content .flash.warning { border-left-color: #c08d22; }
+        .admin-content .flash-close {
+            flex: 0 0 auto;
+            padding: 0 2px;
+            border: 0;
+            color: #777e88;
+            background: transparent;
+            font-size: 19px;
+            line-height: 1;
+        }
+
+        @media (max-width: 900px) {
+            .admin-topbar { background: rgba(255,255,255,.98); }
+            .admin-sidebar { background: linear-gradient(180deg, var(--sn-charcoal), var(--sn-charcoal-deep)); }
+        }
+        @media (max-width: 560px) {
+            .admin-content .flash-stack { top: 74px !important; right: 10px !important; width: calc(100vw - 20px) !important; }
+            .admin-notif-dropdown { max-height: calc(100vh - 82px); }
+            .notif-list { max-height: calc(100vh - 170px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .notif-dot-badge.is-active { animation: none; }
+        }
+    </style>
+
 </head>
 
 <body class="admin-body">
@@ -2441,6 +2787,14 @@
     {% set is_teacher = role == 'teacher' %}
     {% set is_student = role in ['student'] %}
     {% set is_parent  = role in ['parent', 'guardian'] %}
+    {% set admin_unread_messages = namespace(count=0) %}
+    {% if messages is defined and messages %}
+        {% for inbox_message in messages %}
+            {% if inbox_message['is_read'] is defined and (inbox_message['is_read']|int == 0) %}
+                {% set admin_unread_messages.count = admin_unread_messages.count + 1 %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
 
     <!-- SIDEBAR (role-aware — sirf role ke allowed links render honge) -->
     <aside class="admin-sidebar" id="adminSidebar" aria-label="Admin sidebar">
@@ -2616,6 +2970,7 @@
             <div class="admin-nav-group-label">Communication</div>
             <a href="{{ url_for('messages_inbox') }}" class="admin-nav-link" data-label="Inbox">
                 <i class="fa-solid fa-inbox"></i><span class="nav-label">Inbox</span>
+                {% if admin_unread_messages.count > 0 %}<span class="nav-badge danger">{{ admin_unread_messages.count }}</span>{% endif %}
             </a>
             {% if is_admin %}
             <a href="{{ url_for('admin_messages') }}"
@@ -2726,19 +3081,33 @@
                         aria-haspopup="true" aria-expanded="false" aria-controls="adminNotifDropdown"
                         aria-label="Notifications" title="Notifications">
                         <i class="fa-regular fa-bell"></i>
-                        {% set total_notifs = (pending_leaves or 0) + (pending_fees or 0) + (total_homework or 0) +
-                        (pending_exam_submissions or 0) %}
-                        {% if total_notifs > 0 %}
-                        <span class="notif-dot-badge" aria-hidden="true"></span>
-                        {% endif %}
+                        <span class="notif-dot-badge" id="adminNotifDot"
+                            data-server-unread="{{ admin_unread_messages.count }}"
+                            aria-hidden="true"></span>
                     </button>
 
                     <div class="admin-notif-dropdown" id="adminNotifDropdown" role="menu">
                         <div class="notif-head">
-                            <strong>Quick notifications</strong>
+                            <strong>Activity &amp; notifications</strong>
                             <span class="notif-head-tag">Admin</span>
                         </div>
                         <div class="notif-list">
+                            {% if messages is defined and messages %}
+                            <div class="notif-section-label">Recent messages</div>
+                            {% for notif_message in messages[:5] %}
+                            {% set message_is_new = notif_message['is_read'] is defined and (notif_message['is_read']|int == 0) %}
+                            <a href="{{ url_for('messages_inbox') }}" class="notif-item notif-message-item" role="menuitem">
+                                <div class="notif-icon {% if message_is_new %}red{% else %}blue{% endif %}"><i class="fa-solid fa-envelope"></i></div>
+                                <div class="notif-body">
+                                    <strong>{{ notif_message['subject']|default('School message')|truncate(42, True, '…') }}</strong>
+                                    <small>{{ notif_message['body']|default('Open your inbox to view this message.')|striptags|truncate(66, True, '…') }}</small>
+                                </div>
+                                {% if message_is_new %}<span class="notif-new-label">NEW</span>{% else %}<span class="notif-read-label">Read</span>{% endif %}
+                            </a>
+                            {% endfor %}
+                            <a href="{{ url_for('messages_inbox') }}" class="notif-all-messages">Open message inbox <i class="fa-solid fa-arrow-right"></i></a>
+                            <div class="notif-section-divider"></div>
+                            {% endif %}
                             <!-- Exam submissions pending -->
                             <a href="{{ url_for('admin_exams_list') }}" class="notif-item" role="menuitem">
                                 <div class="notif-icon teal"><i class="fa-solid fa-file-pen"></i></div>
@@ -2881,20 +3250,6 @@
                             <i class="fa-solid fa-inbox"></i> Inbox
                         </a>
 
-                        <a href="#" role="menuitem"
-                            onclick="event.preventDefault(); document.getElementById('adminUserProfile').classList.remove('dropdown-open'); document.getElementById('adminPhotoInput').click();">
-                            <i class="fa-solid fa-camera"></i> Change Photo
-                        </a>
-
-                        {% if session.get('photo_url') %}
-                        <form method="POST" action="{{ url_for('remove_profile_photo') }}"
-                            onsubmit="return confirm('Remove your profile photo?');">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="remove-photo-btn">
-                                <i class="fa-solid fa-trash"></i> Remove Photo
-                            </button>
-                        </form>
-                        {% endif %}
 
                         <a href="{{ url_for('home') }}" target="_blank" rel="noopener" role="menuitem">
                             <i class="fa-solid fa-globe"></i> View Website
@@ -2908,12 +3263,6 @@
                                 <i class="fa-solid fa-right-from-bracket"></i> Logout
                             </button></form>
 
-                        <form id="adminPhotoForm" method="POST" action="{{ url_for('update_profile_photo') }}"
-                            enctype="multipart/form-data" style="display:none;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <input type="file" id="adminPhotoInput" name="photo" accept="image/*"
-                                onchange="document.getElementById('adminPhotoForm').submit();">
-                        </form>
                     </div>
                 </div>
             </div>
@@ -2937,9 +3286,167 @@
         </div>
     </div>
 
+    <div id="adminActivityRegistry" hidden
+        data-user-key="{{ session.get('unique_id') or session.get('user_id') or 'account' }}"
+        data-attendance-scope="{{ request.path }}|{{ request.args.get('date', '') }}|{{ request.args.get('class_filter', '') }}|{{ request.args.get('subject_filter', '') }}">
+        {% if events is defined and events %}
+            {% for activity_event in events %}
+            <span data-activity-time="event" data-created-at="{{ activity_event['created_at']|default('') }}"></span>
+            {% endfor %}
+        {% elif upcoming_events is defined and upcoming_events %}
+            {% for activity_event in upcoming_events %}
+            <span data-activity-time="event" data-created-at="{{ activity_event['created_at']|default('') }}"></span>
+            {% endfor %}
+        {% endif %}
+        {% if stats is defined and stats['total_notices'] is defined %}
+            <span data-activity-count="notice" data-count="{{ stats['total_notices'] or 0 }}"></span>
+        {% elif notices is defined %}
+            <span data-activity-count="notice" data-count="{{ notices|length }}"></span>
+        {% endif %}
+        {% if attendance_map is defined and attendance_map %}
+            {% for attendance_student_id, attendance_status in attendance_map.items() %}
+            <span data-activity-item="attendance" data-token="{{ date|default('') }}:{{ attendance_student_id }}:{{ attendance_status }}"></span>
+            {% endfor %}
+        {% elif attendance is defined and attendance %}
+            {% for attendance_record in attendance %}
+            <span data-activity-item="attendance" data-token="{{ attendance_record['id']|default(loop.index) }}:{{ attendance_record['date']|default('') }}:{{ attendance_record['status']|default('') }}"></span>
+            {% endfor %}
+        {% endif %}
+    </div>
+
     <script>
         (function () {
             'use strict';
+
+            /* ============================================================
+               ACTIVITY NOTIFICATIONS
+               - Messages: existing database is_read flag.
+               - Events/notices/attendance: per-account browser seen markers.
+               - The red dot remains active until the notification menu is opened.
+               ============================================================ */
+            const activityRegistry = document.getElementById('adminActivityRegistry');
+            const notifDot = document.getElementById('adminNotifDot');
+            const notifButton = document.getElementById('adminNotifBtn');
+            const serverUnread = Number(notifDot?.dataset.serverUnread || 0);
+            const accountKey = activityRegistry?.dataset.userKey || 'account';
+            const activityStorageKey = 'snAdminActivitySeen:v2:' + encodeURIComponent(accountKey);
+            let activitySeen = {};
+            try {
+                activitySeen = JSON.parse(localStorage.getItem(activityStorageKey) || '{}') || {};
+            } catch (error) {
+                activitySeen = {};
+            }
+
+            const activityState = {
+                events: false,
+                notices: false,
+                attendance: false,
+                attendanceFlash: false
+            };
+            let currentActivity = { eventTime: '', noticeCount: null, attendanceTokens: [], attendanceScope: '' };
+
+            function persistActivitySeen() {
+                try {
+                    localStorage.setItem(activityStorageKey, JSON.stringify(activitySeen));
+                } catch (error) {
+                    /* Storage can be unavailable in private/restricted browser modes. */
+                }
+            }
+
+            function latestActivityTime(type) {
+                if (!activityRegistry) return '';
+                const values = Array.from(activityRegistry.querySelectorAll('[data-activity-time="' + type + '"]'))
+                    .map(node => (node.dataset.createdAt || '').trim())
+                    .filter(Boolean)
+                    .sort();
+                return values.length ? values[values.length - 1] : '';
+            }
+
+            function refreshActivityState() {
+                if (activityRegistry) {
+                    currentActivity.eventTime = latestActivityTime('event');
+                    if (currentActivity.eventTime) {
+                        if (typeof activitySeen.eventTime === 'undefined') {
+                            activitySeen.eventTime = currentActivity.eventTime;
+                        } else {
+                            activityState.events = currentActivity.eventTime > activitySeen.eventTime;
+                            if (currentActivity.eventTime < activitySeen.eventTime) {
+                                activitySeen.eventTime = currentActivity.eventTime;
+                            }
+                        }
+                    }
+
+                    const noticeNode = activityRegistry.querySelector('[data-activity-count="notice"]');
+                    currentActivity.noticeCount = noticeNode ? Number(noticeNode.dataset.count || 0) : null;
+                    if (currentActivity.noticeCount !== null) {
+                        if (typeof activitySeen.noticeCount === 'undefined') {
+                            activitySeen.noticeCount = currentActivity.noticeCount;
+                        } else {
+                            activityState.notices = currentActivity.noticeCount > Number(activitySeen.noticeCount);
+                            if (currentActivity.noticeCount < Number(activitySeen.noticeCount)) {
+                                activitySeen.noticeCount = currentActivity.noticeCount;
+                            }
+                        }
+                    }
+
+                    currentActivity.attendanceScope = activityRegistry.dataset.attendanceScope || 'attendance';
+                    currentActivity.attendanceTokens = Array.from(
+                        activityRegistry.querySelectorAll('[data-activity-item="attendance"]')
+                    ).map(node => node.dataset.token || '').filter(Boolean);
+                    if (currentActivity.attendanceTokens.length) {
+                        activitySeen.attendance = activitySeen.attendance || {};
+                        const previousTokens = activitySeen.attendance[currentActivity.attendanceScope];
+                        if (!Array.isArray(previousTokens)) {
+                            activitySeen.attendance[currentActivity.attendanceScope] = currentActivity.attendanceTokens;
+                        } else {
+                            const previousSet = new Set(previousTokens);
+                            activityState.attendance = currentActivity.attendanceTokens.some(token => !previousSet.has(token));
+                        }
+                    }
+                }
+
+                activityState.attendanceFlash = Array.from(document.querySelectorAll('.flash')).some(flash => {
+                    const text = (flash.textContent || '').toLowerCase();
+                    const status = flash.classList;
+                    return text.includes('attendance') &&
+                        (status.contains('success') || status.contains('warning') || status.contains('error') || status.contains('danger'));
+                });
+
+                persistActivitySeen();
+                updateNotificationDot();
+            }
+
+            function updateNotificationDot() {
+                if (!notifDot) return;
+                const hasNewActivity = serverUnread > 0 || activityState.events || activityState.notices ||
+                    activityState.attendance || activityState.attendanceFlash;
+                notifDot.classList.toggle('is-active', hasNewActivity);
+                notifDot.hidden = !hasNewActivity;
+                if (notifButton) {
+                    const label = serverUnread > 0
+                        ? 'Notifications, ' + serverUnread + ' unread message(s)' + (hasNewActivity ? ' and new activity' : '')
+                        : (hasNewActivity ? 'Notifications, new activity' : 'Notifications, no new activity');
+                    notifButton.setAttribute('aria-label', label);
+                    notifButton.setAttribute('title', label);
+                }
+            }
+
+            function markCurrentActivitySeen() {
+                if (currentActivity.eventTime) activitySeen.eventTime = currentActivity.eventTime;
+                if (currentActivity.noticeCount !== null) activitySeen.noticeCount = currentActivity.noticeCount;
+                if (currentActivity.attendanceTokens.length) {
+                    activitySeen.attendance = activitySeen.attendance || {};
+                    activitySeen.attendance[currentActivity.attendanceScope] = currentActivity.attendanceTokens;
+                }
+                activityState.events = false;
+                activityState.notices = false;
+                activityState.attendance = false;
+                activityState.attendanceFlash = false;
+                persistActivitySeen();
+                updateNotificationDot();
+            }
+
+            refreshActivityState();
 
             /* Sidebar toggle (mobile) */
             const sidebar = document.getElementById('adminSidebar');
@@ -3100,6 +3607,7 @@
                     if (!isOpen) {
                         notifWrapper.classList.add('dropdown-open');
                         notifBtn.setAttribute('aria-expanded', 'true');
+                        markCurrentActivitySeen();
                     } else { closeNotif(); }
                 });
                 if (notifDropdown) notifDropdown.addEventListener('click', e => e.stopPropagation());

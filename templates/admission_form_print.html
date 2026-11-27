@@ -4,513 +4,1054 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
     <title>Admission Form - {{ student.name }}</title>
     <style>
-        /* ============================================================
-           ADMISSION FORM — A4 SINGLE PAGE LAYOUT
-           ============================================================ */
-
-        @page {
-            size: A4 portrait;
-            margin: 8mm;
-        }
-
+        /* =========================================================
+           ADMISSION FORM — RESPONSIVE SCREEN + A4 PRINT EDITION
+           Theme: Maroon / Charcoal / Blue / Yellow / White / Grey
+           All student data continues to come from the existing
+           Flask/Jinja student object.
+        ========================================================= */
         :root {
-            --ink: #000;
-            --line: #000;
-            --bg: #eef1f4;
-            --accent: #0f766e;
-            --row-gap: 7px;
+            --maroon: #7b263b;
+            --maroon-dark: #571b2c;
+            --charcoal: #28262c;
+            --blue: #2d5f91;
+            --blue-dark: #21486f;
+            --yellow: #e3bf5c;
+            --ink: #262830;
+            --muted: #69717d;
+            --line: #d9dde4;
+            --line-dark: #969da7;
+            --paper: #ffffff;
+            --canvas: #eef0f4;
+            --soft: #f6f7f9;
+            --radius: 14px;
         }
 
         * { box-sizing: border-box; }
-
+        html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            color: var(--ink);
             margin: 0;
-            padding: 0;
-            background: var(--bg);
+            padding: 22px 14px 34px;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 90% 0%, rgba(45,95,145,.08), transparent 30%),
+                var(--canvas);
+            font-family: Arial, Helvetica, sans-serif;
             font-size: 12px;
             line-height: 1.35;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* ---------- Print Button ---------- */
-        .print-btn {
-            display: block;
-            width: 250px;
-            margin: 20px auto;
-            padding: 12px;
-            background: var(--accent);
-            color: #fff;
-            text-align: center;
-            font-size: 16px;
-            font-weight: 700;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .print-btn:hover { background: #115e59; }
-
-        /* ---------- Page ---------- */
-        .page {
-            width: 210mm;
-            background: #fff;
-            margin: 0 auto;
-            padding: 8mm 10mm;
-        }
-
-        .form-border {
-            border: 2px solid var(--line);
-            padding: 8px 10px;
-        }
-
-        /* ---------- Header ---------- */
-        .header {
+        .screen-toolbar {
+            width: min(100%, 900px);
+            margin: 0 auto 16px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid var(--line);
-            padding-bottom: 5px;
-            margin-bottom: 8px;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 13px 16px;
+            border: 1px solid #e0e4ea;
+            border-radius: 13px;
+            background: rgba(255,255,255,.94);
+            box-shadow: 0 5px 18px rgba(35,31,36,.06);
         }
-        .header img {
+        .toolbar-copy { min-width: 0; }
+        .toolbar-copy strong {
+            display: block;
+            color: var(--charcoal);
+            font-size: 13px;
+            font-weight: 800;
+        }
+        .toolbar-copy small {
+            display: block;
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+        .print-btn {
+            display: inline-flex;
+            flex: 0 0 auto;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            min-height: 42px;
+            padding: 10px 17px;
+            border: 1px solid var(--blue);
+            border-radius: 9px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+            box-shadow: 0 5px 14px rgba(45,95,145,.18);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+        }
+        .print-btn:hover {
+            background: linear-gradient(135deg, var(--maroon), var(--maroon-dark));
+            border-color: var(--maroon);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(123,38,59,.2);
+        }
+        .print-btn:focus-visible { outline: 3px solid rgba(45,95,145,.25); outline-offset: 3px; }
+
+        .page {
+            width: min(100%, 900px);
+            margin: 0 auto;
+            padding: 16px;
+            border-radius: 16px;
+            background: var(--paper);
+            box-shadow: 0 14px 42px rgba(35,31,36,.12);
+        }
+        .form-border {
+            position: relative;
+            border: 1.5px solid var(--maroon);
+            outline: 1px solid rgba(227,191,92,.75);
+            outline-offset: -5px;
+            padding: 16px 17px 14px;
+            background: #fff;
+        }
+        .form-border::before {
+            content: "";
+            display: block;
+            height: 4px;
+            margin: -16px -17px 13px;
+            background: linear-gradient(90deg, var(--maroon) 0 38%, var(--yellow) 38% 42%, var(--blue) 42% 100%);
+        }
+
+        /* School header */
+        .header {
+            display: grid;
+            grid-template-columns: 62px minmax(0,1fr) 62px;
+            align-items: center;
+            gap: 12px;
+            padding: 2px 0 10px;
+            border-bottom: 2px solid var(--charcoal);
+        }
+        .header-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             width: 62px;
             height: 62px;
-            object-fit: contain;
+            padding: 3px;
+            border: 1px solid #e5e7eb;
+            border-radius: 50%;
+            background: #fff;
         }
-        .header-text {
-            text-align: center;
-            flex: 1;
-            padding: 0 8px;
-        }
+        .header-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
+        .header-text { min-width: 0; text-align: center; }
         .header-text h1 {
             margin: 0;
-            font-size: 21px;
+            color: var(--maroon-dark);
+            font-size: clamp(15px, 2.3vw, 21px);
             font-weight: 900;
+            line-height: 1.12;
+            letter-spacing: .35px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         .header-text h3 {
-            margin: 3px 0 0;
-            font-size: 12.5px;
-            font-weight: 700;
+            margin: 4px 0 0;
+            color: var(--charcoal);
+            font-size: 11px;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: .45px;
         }
+        .header-text h3:last-child { color: var(--muted); font-size: 10px; letter-spacing: .2px; }
 
-        /* ---------- Form Title ---------- */
         .form-title {
-            text-align: center;
-            font-size: 21px;
+            width: fit-content;
+            margin: 11px auto 12px;
+            padding: 5px 22px 6px;
+            border: 1px solid rgba(123,38,59,.22);
+            border-radius: 5px;
+            color: #fff;
+            background: linear-gradient(110deg, var(--maroon), var(--maroon-dark));
+            font-size: 15px;
             font-weight: 900;
-            text-decoration: underline;
-            text-underline-offset: 3px;
-            margin: 8px 0 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* ---------- Top Info Bar ---------- */
-        .top-info {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-        .top-info .info-group {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .top-info .box {
-            border: 1px solid var(--line);
-            height: 24px;
-            padding: 0 6px;
-            display: flex;
-            align-items: center;
-            font-weight: 400;
-        }
-        .top-info .box.w-150 { width: 150px; }
-        .top-info .box.w-180 { width: 180px; }
-
-        /* ---------- Section Title ---------- */
-        .section-title {
+            letter-spacing: 1.5px;
             text-align: center;
-            font-size: 12.5px;
-            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin: 12px 0 8px;
-            padding-bottom: 2px;
-            border-bottom: 1.5px solid var(--line);
         }
-        .section-title.first { margin-top: 4px; }
 
-        /* ---------- Student Top (Class + Photo) ---------- */
-        .student-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-            margin: 4px 0 10px;
+        /* Admission number and admission date */
+        .top-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 16px;
+            margin-bottom: 9px;
         }
-        .class-box { text-align: center; }
-        .class-label {
+        .info-group { display: grid; grid-template-columns: max-content minmax(0,1fr); align-items: center; gap: 7px; }
+        .info-group > span {
+            color: var(--charcoal);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .15px;
+            white-space: nowrap;
+        }
+        .info-value {
+            min-height: 26px;
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            padding: 4px 8px;
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            color: var(--ink);
+            background: var(--soft);
             font-size: 11px;
             font-weight: 700;
-            margin-bottom: 4px;
+            overflow-wrap: anywhere;
+        }
+
+        /* Section headings */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 11px 0 7px;
+            padding: 0 0 5px;
+            border-bottom: 1px solid var(--line);
+            color: var(--maroon-dark);
+            font-size: 10.5px;
+            font-weight: 900;
+            letter-spacing: .75px;
+            text-align: left;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
+        }
+        .section-title::before {
+            content: "";
+            width: 4px;
+            height: 13px;
+            flex: 0 0 4px;
+            border-radius: 2px;
+            background: var(--yellow);
+        }
+        .section-title.first { margin-top: 3px; }
+
+        /* Class and photograph */
+        .student-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 5px 0 9px;
+        }
+        .class-box { min-width: 0; }
+        .class-label {
+            margin-bottom: 5px;
+            color: var(--muted);
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: .55px;
+            text-transform: uppercase;
         }
         .class-value {
-            border: 1px solid var(--line);
-            min-width: 160px;
-            height: 30px;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            font-size: 13px;
-            padding: 0 8px;
+            min-width: 150px;
+            min-height: 31px;
+            padding: 5px 12px;
+            border: 1px solid rgba(45,95,145,.25);
+            border-radius: 6px;
+            color: var(--blue-dark);
+            background: #edf3f9;
+            font-size: 12px;
+            font-weight: 900;
         }
-
         .photo-container {
-            width: 100px;
-            height: 118px;
-            border: 1px solid var(--line);
-            border-radius: 8px;
             display: flex;
+            flex: 0 0 82px;
             align-items: center;
             justify-content: center;
+            width: 82px;
+            height: 96px;
+            overflow: hidden;
+            border: 1px solid var(--line-dark);
+            border-radius: 6px;
+            color: #7d8490;
+            background: #f7f8fa;
+            font-size: 9px;
+            font-weight: 800;
+            line-height: 1.25;
             text-align: center;
-            font-size: 10px;
-            font-weight: 700;
-            line-height: 1.2;
-            overflow: hidden;
-            flex: 0 0 auto;
-            background: #fafafa;
         }
-        .photo-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .photo-container img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
-        /* ---------- Rows & Fields ---------- */
-        .row {
-            display: flex;
-            gap: 12px;
-            margin-bottom: var(--row-gap);
-            align-items: center;
-        }
+        /* Information fields */
+        .row { display: flex; gap: 10px; margin-bottom: 6px; align-items: stretch; }
         .row:last-child { margin-bottom: 0; }
-
         .col { flex: 1 1 0; min-width: 0; }
-
-        .field {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            min-width: 0;
-        }
-
+        .field { display: flex; align-items: stretch; gap: 6px; min-width: 0; }
         .field-label {
-            font-weight: 700;
-            white-space: nowrap;
-            flex: 0 0 auto;
-        }
-
-        .input-box {
-            border: 1px solid var(--line);
-            min-height: 23px;
-            flex: 1 1 auto;
-            min-width: 0;
-            padding: 2px 6px;
-            font-size: 11.5px;
-            text-transform: uppercase;
             display: flex;
             align-items: center;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
+            flex: 0 0 auto;
+            min-width: 92px;
+            color: #424752;
+            font-size: 10px;
+            font-weight: 800;
+            line-height: 1.2;
         }
-
-        /* ---------- Label Width Helpers ---------- */
-        .w-50  { min-width: 50px; }
-        .w-60  { min-width: 60px; }
-        .w-90  { min-width: 90px; }
+        .input-box {
+            display: flex;
+            flex: 1 1 auto;
+            align-items: center;
+            min-width: 0;
+            min-height: 25px;
+            padding: 4px 7px;
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            color: #22252c;
+            background: #fff;
+            font-size: 10.5px;
+            font-weight: 600;
+            line-height: 1.25;
+            overflow-wrap: anywhere;
+        }
+        .w-50 { min-width: 50px; }
+        .w-60 { min-width: 60px; }
+        .w-90 { min-width: 90px; }
         .w-110 { min-width: 110px; }
         .w-120 { min-width: 120px; }
         .w-130 { min-width: 130px; }
         .w-180 { min-width: 180px; }
 
-        /* ---------- Inline Meta Row ---------- */
         .inline-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 22px;
-            font-size: 12px;
-            font-weight: 700;
-            margin: 2px 0 var(--row-gap);
+            gap: 8px 22px;
+            margin: 2px 0 6px;
+            color: #424752;
+            font-size: 10px;
+            font-weight: 800;
         }
         .inline-row .val {
-            text-decoration: underline;
-            text-underline-offset: 2px;
-            padding: 0 4px;
-            font-weight: 400;
+            display: inline-block;
+            min-width: 55px;
+            padding: 1px 5px 2px;
+            border-bottom: 1px solid var(--line-dark);
+            color: var(--ink);
+            font-weight: 600;
         }
 
-        /* ---------- Declaration ---------- */
+        /* Declaration and signatures */
         .declaration {
-            border-top: 2px solid var(--line);
+            margin-top: 10px;
+            padding-top: 7px;
+            border-top: 1.5px solid var(--charcoal);
+            font-size: 10px;
+            line-height: 1.42;
+        }
+        .declaration .section-title { margin-top: 0; }
+        .declaration p { margin: 4px 0; }
+        .signature-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 16px;
+            margin-top: 17px;
+            color: var(--charcoal);
+            font-size: 10px;
+            font-weight: 800;
+        }
+        .signature-row span { white-space: nowrap; }
+
+        /* Tablet and phone: the preview behaves like a normal document. */
+        @media (max-width: 760px) {
+            body { padding: 12px 9px 22px; }
+            .screen-toolbar { padding: 11px 12px; }
+            .page { padding: 9px; border-radius: 12px; }
+            .form-border { padding: 12px 11px 11px; outline-offset: -4px; }
+            .form-border::before { margin: -12px -11px 10px; }
+            .header { grid-template-columns: 48px minmax(0,1fr) 48px; gap: 7px; }
+            .header-logo { width: 48px; height: 48px; }
+            .header-text h1 { font-size: clamp(11px, 2.5vw, 16px); }
+            .header-text h3 { font-size: 9px; }
+            .header-text h3:last-child { font-size: 8px; }
+            .form-title { margin: 9px auto 10px; font-size: 13px; }
+            .top-info { grid-template-columns: 1fr; gap: 6px; }
+            .row { gap: 7px; }
+            .field { gap: 5px; }
+            .field-label { min-width: 82px; font-size: 9px; }
+            .input-box { font-size: 9.5px; }
+            .w-180, .w-130, .w-120, .w-110, .w-90, .w-60, .w-50 { min-width: 0; }
+        }
+        @media (max-width: 520px) {
+            body { padding: 8px 6px 16px; }
+            .screen-toolbar { align-items: stretch; flex-direction: column; gap: 9px; margin-bottom: 10px; }
+            .print-btn { width: 100%; }
+            .page { padding: 6px; border-radius: 10px; }
+            .form-border { padding: 10px 8px 9px; outline: none; }
+            .form-border::before { margin: -10px -8px 9px; height: 3px; }
+            .header { grid-template-columns: 39px minmax(0,1fr) 39px; gap: 5px; padding-bottom: 8px; }
+            .header-logo { width: 39px; height: 39px; padding: 2px; }
+            .header-text h1 { font-size: clamp(9px, 3vw, 13px); letter-spacing: 0; }
+            .header-text h3 { margin-top: 3px; font-size: 7.5px; letter-spacing: 0; }
+            .header-text h3:last-child { font-size: 7px; }
+            .form-title { margin: 8px auto; padding: 4px 14px; font-size: 11px; letter-spacing: 1px; }
+            .info-group { grid-template-columns: 115px minmax(0,1fr); gap: 5px; }
+            .info-group > span { font-size: 8.5px; }
+            .info-value { min-height: 24px; font-size: 9px; }
+            .section-title { margin: 9px 0 6px; font-size: 9px; }
+            .student-top { margin: 4px 0 7px; }
+            .class-label { font-size: 8px; }
+            .class-value { min-width: 120px; min-height: 28px; font-size: 10px; }
+            .photo-container { width: 67px; height: 79px; flex-basis: 67px; font-size: 8px; }
+            .row { flex-direction: column; gap: 5px; margin-bottom: 5px; }
+            .row:has(> .col) { flex-direction: row; }
+            .field-label { min-width: 105px; font-size: 8.5px; }
+            .input-box { min-height: 24px; padding: 3px 5px; font-size: 9px; }
+            .inline-row { gap: 6px 12px; font-size: 8.5px; }
+            .declaration { margin-top: 8px; font-size: 9px; }
+            .signature-row { gap: 8px; margin-top: 13px; font-size: 8.5px; }
+        }
+        @media (max-width: 360px) {
+            .header { grid-template-columns: 33px minmax(0,1fr) 33px; gap: 3px; }
+            .header-logo { width: 33px; height: 33px; }
+            .header-text h1 { font-size: 8.5px; }
+            .header-text h3 { font-size: 7px; }
+            .header-text h3:last-child { font-size: 6.5px; }
+            .field-label { min-width: 91px; }
+            .row:has(> .col) { flex-direction: column; }
+            .signature-row { flex-wrap: wrap; }
+        }
+
+        /* A4 output: no screen shadow, no toolbar, fixed print-safe dimensions. */
+        @page { size: A4 portrait; margin: 7mm; }
+        @media print {
+            html, body { margin: 0 !important; padding: 0 !important; width: 100% !important; background: #fff !important; }
+            body { color: #000; font-size: 9pt; line-height: 1.24; }
+            .screen-toolbar { display: none !important; }
+            .page {
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                background: #fff !important;
+            }
+            .form-border {
+                padding: 5mm 5.5mm 4mm !important;
+                border: 1.3px solid #571b2c !important;
+                outline: 1px solid #b99a43 !important;
+                outline-offset: -4px !important;
+            }
+            .form-border::before { margin: -5mm -5.5mm 3mm !important; height: 2.5px !important; }
+            .header { grid-template-columns: 53px minmax(0,1fr) 53px; gap: 8px; padding-bottom: 6px; }
+            .header-logo { width: 53px; height: 53px; border-color: #777; }
+            .header-text h1 { color: #571b2c !important; font-size: 15pt; }
+            .header-text h3 { color: #222 !important; font-size: 8.5pt; }
+            .header-text h3:last-child { color: #333 !important; font-size: 7.5pt; }
+            .form-title {
+                margin: 7px auto 8px;
+                padding: 3px 18px 4px;
+                border-color: #571b2c;
+                color: #fff !important;
+                background: #571b2c !important;
+                font-size: 11pt;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .top-info { grid-template-columns: 1fr 1fr; gap: 7px 12px; margin-bottom: 6px; }
+            .info-group > span { color: #111; font-size: 7.5pt; }
+            .info-value { min-height: 21px; padding: 2px 5px; border-color: #777; color: #000; background: #fff !important; font-size: 8pt; }
+            .section-title { margin: 7px 0 5px; padding-bottom: 3px; color: #571b2c; font-size: 8pt; }
+            .section-title::before { background: #b99a43 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .student-top { margin: 3px 0 6px; }
+            .class-label { font-size: 7pt; }
+            .class-value { min-height: 24px; border-color: #777; color: #111; background: #f3f5f7 !important; font-size: 9pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .photo-container { width: 67px; height: 80px; flex-basis: 67px; border-color: #555; }
+            .row { gap: 7px; margin-bottom: 4px; }
+            .field { gap: 4px; }
+            .field-label { min-width: 83px; color: #111; font-size: 7.2pt; }
+            .input-box { min-height: 20px; padding: 2px 5px; border-color: #888; color: #000; background: #fff !important; font-size: 7.5pt; }
+            .inline-row { gap: 6px 16px; margin-bottom: 4px; font-size: 7.5pt; }
+            .inline-row .val { color: #000; }
+            .declaration { margin-top: 7px; padding-top: 5px; border-top-color: #222; font-size: 7.5pt; line-height: 1.3; }
+            .declaration p { margin: 3px 0; }
+            .signature-row { margin-top: 13px; color: #111; font-size: 7.5pt; }
+            img { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            * { box-shadow: none !important; }
+        }
+    </style>
+
+    <style id="simple-admission-design">
+        /* Simple admission form: original structure with refined styling only. */
+        :root {
+            --maroon: #7b263b;
+            --maroon-dark: #571b2c;
+            --charcoal: #28262c;
+            --blue: #2d5f91;
+            --yellow: #e3bf5c;
+            --ink: #24262d;
+            --muted: #69717d;
+            --line: #cfd3da;
+            --bg: #eef0f3;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px 12px 30px;
+            color: var(--ink);
+            background: var(--bg);
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .print-btn {
+            display: block;
+            width: 250px;
+            max-width: 100%;
+            min-height: 42px;
+            margin: 0 auto 18px;
+            padding: 10px 15px;
+            border: 1px solid var(--blue);
+            border-radius: 7px;
+            color: #fff;
+            background: var(--blue);
+            box-shadow: 0 4px 12px rgba(45,95,145,.16);
+            text-align: center;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background .18s ease, transform .18s ease;
+        }
+        .print-btn:hover { background: var(--maroon); border-color: var(--maroon); transform: translateY(-1px); }
+        .print-btn:focus-visible { outline: 3px solid rgba(45,95,145,.25); outline-offset: 3px; }
+
+        .page {
+            width: min(210mm, 100%);
+            margin: 0 auto;
+            padding: 8mm 10mm;
+            border-radius: 0;
+            background: #fff;
+            box-shadow: 0 8px 28px rgba(33,37,45,.10);
+        }
+        .form-border {
+            padding: 8px 10px;
+            border: 2px solid var(--charcoal);
+            outline: none;
+            background: #fff;
+        }
+        .form-border::before { display: none !important; }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 0 0 6px;
+            margin-bottom: 8px;
+            border-bottom: 2px solid var(--charcoal);
+        }
+        .header > img {
+            display: block;
+            flex: 0 0 62px;
+            width: 62px;
+            height: 62px;
+            object-fit: contain;
+        }
+        .header-text { flex: 1 1 auto; min-width: 0; padding: 0 8px; text-align: center; }
+        .header-text h1 {
+            margin: 0;
+            color: var(--maroon-dark);
+            font-size: 21px;
+            font-weight: 900;
+            line-height: 1.12;
+            letter-spacing: .35px;
+            text-transform: uppercase;
+        }
+        .header-text h3 {
+            margin: 3px 0 0;
+            color: var(--charcoal);
+            font-size: 12.5px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .form-title {
+            width: auto;
+            margin: 8px 0 10px;
+            padding: 0 0 3px;
+            border: 0;
+            border-radius: 0;
+            border-bottom: 1px solid var(--charcoal);
+            color: var(--charcoal);
+            background: transparent;
+            font-size: 21px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-align: center;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            text-transform: uppercase;
+        }
+
+        .top-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .info-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            min-width: 0;
+        }
+        .info-group > span {
+            flex: 0 0 auto;
+            color: var(--charcoal);
+            font-size: 10px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .info-value {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            min-height: 24px;
+            padding: 2px 6px;
+            border: 1px solid var(--line);
+            border-radius: 2px;
+            color: #222;
+            background: #fff;
+            font-size: 11px;
+            font-weight: 500;
+            overflow-wrap: anywhere;
+        }
+        .info-group:first-child .info-value { width: 150px; }
+        .info-group:last-child .info-value { width: 180px; }
+
+        .section-title {
+            display: block;
+            margin: 12px 0 8px;
+            padding: 0 0 4px;
+            border: 0;
+            border-bottom: 1.5px solid var(--line);
+            color: var(--charcoal);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: .8px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .section-title::before { display: none !important; }
+        .section-title.first { margin-top: 4px; }
+
+        .student-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 4px 0 10px;
+        }
+        .class-box { text-align: center; }
+        .class-label {
+            margin-bottom: 4px;
+            color: var(--charcoal);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+        .class-value {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 160px;
+            min-height: 30px;
+            padding: 3px 8px;
+            border: 1px solid var(--line);
+            border-radius: 2px;
+            color: var(--ink);
+            background: #fff;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .photo-container {
+            display: flex;
+            flex: 0 0 100px;
+            align-items: center;
+            justify-content: center;
+            width: 100px;
+            height: 118px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 3px;
+            color: var(--muted);
+            background: #fafafa;
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 1.2;
+            text-align: center;
+        }
+        .photo-container img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+        .row { display: flex; align-items: center; gap: 12px; margin-bottom: 7px; }
+        .row:last-child { margin-bottom: 0; }
+        .col { flex: 1 1 0; min-width: 0; }
+        .field { display: flex; align-items: center; gap: 6px; min-width: 0; }
+        .field-label {
+            display: flex;
+            align-items: center;
+            flex: 0 0 auto;
+            min-width: 90px;
+            color: #353943;
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .w-50 { min-width: 50px; }
+        .w-60 { min-width: 60px; }
+        .w-90 { min-width: 90px; }
+        .w-110 { min-width: 110px; }
+        .w-120 { min-width: 120px; }
+        .w-130 { min-width: 130px; }
+        .w-180 { min-width: 180px; }
+        .input-box {
+            display: flex;
+            flex: 1 1 auto;
+            align-items: center;
+            min-width: 0;
+            min-height: 23px;
+            padding: 2px 6px;
+            border: 1px solid var(--line);
+            border-radius: 2px;
+            color: #222;
+            background: #fff;
+            font-size: 11px;
+            font-weight: 500;
+            line-height: 1.25;
+            overflow-wrap: anywhere;
+        }
+        .inline-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 22px;
+            margin: 2px 0 7px;
+            color: #353943;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .inline-row .val {
+            display: inline-block;
+            padding: 0 4px;
+            border-bottom: 1px solid #aeb4bd;
+            color: var(--ink);
+            font-weight: 500;
+        }
+        .declaration {
             margin-top: 12px;
             padding-top: 8px;
+            border-top: 2px solid var(--charcoal);
             font-size: 11.5px;
             line-height: 1.5;
         }
         .declaration p { margin: 5px 0; }
-
         .signature-row {
             display: flex;
+            align-items: flex-end;
             justify-content: space-between;
+            gap: 16px;
             margin-top: 20px;
-            font-weight: 700;
+            color: var(--charcoal);
             font-size: 11.5px;
+            font-weight: 700;
+        }
+        .signature-row span { white-space: nowrap; }
+
+        @media (max-width: 760px) {
+            body { padding: 12px 8px 20px; }
+            .page { width: 100%; padding: 10px; box-shadow: 0 4px 18px rgba(33,37,45,.08); }
+            .form-border { padding: 8px; }
+            .header { gap: 7px; }
+            .header > img { flex-basis: 48px; width: 48px; height: 48px; }
+            .header-text { padding: 0 4px; }
+            .header-text h1 { font-size: clamp(12px, 2.5vw, 18px); }
+            .header-text h3 { font-size: 10px; }
+            .form-title { font-size: 18px; }
+            .top-info { flex-wrap: wrap; }
+            .info-group:first-child .info-value,
+            .info-group:last-child .info-value { width: auto; min-width: 110px; }
+            .w-180, .w-130, .w-120, .w-110, .w-90, .w-60, .w-50 { min-width: 0; }
+        }
+        @media (max-width: 520px) {
+            body { padding: 8px 5px 14px; }
+            .print-btn { width: 100%; margin-bottom: 10px; }
+            .page { padding: 6px; }
+            .form-border { padding: 7px 6px; }
+            .header { gap: 4px; padding-bottom: 5px; }
+            .header > img { flex-basis: 38px; width: 38px; height: 38px; }
+            .header-text h1 { font-size: clamp(9px, 3vw, 13px); letter-spacing: 0; }
+            .header-text h3 { margin-top: 2px; font-size: 7.5px; letter-spacing: 0; }
+            .header-text h3:last-child { font-size: 7px; }
+            .form-title { margin: 7px 0 9px; font-size: 15px; }
+            .top-info { align-items: stretch; flex-direction: column; gap: 6px; }
+            .info-group { display: grid; grid-template-columns: minmax(112px, 38%) minmax(0,1fr); }
+            .info-group > span { white-space: normal; font-size: 9px; }
+            .info-group:first-child .info-value,
+            .info-group:last-child .info-value { width: 100%; min-width: 0; }
+            .section-title { margin: 9px 0 6px; font-size: 10px; }
+            .student-top { margin: 4px 0 7px; }
+            .class-label { font-size: 9px; }
+            .class-value { min-width: 120px; min-height: 27px; font-size: 11px; }
+            .photo-container { width: 76px; height: 90px; flex-basis: 76px; font-size: 8px; }
+            .row { flex-direction: column; align-items: stretch; gap: 5px; margin-bottom: 6px; }
+            .row:has(> .col) { flex-direction: row; }
+            .field { gap: 5px; }
+            .field-label { min-width: 112px; font-size: 9px; }
+            .input-box { min-height: 24px; padding: 3px 5px; font-size: 9.5px; }
+            .inline-row { gap: 6px 12px; font-size: 9px; }
+            .declaration { margin-top: 9px; font-size: 10px; }
+            .signature-row { gap: 8px; margin-top: 14px; font-size: 9px; }
+        }
+        @media (max-width: 360px) {
+            .header > img { flex-basis: 32px; width: 32px; height: 32px; }
+            .header-text h1 { font-size: 8.5px; }
+            .header-text h3 { font-size: 6.8px; }
+            .header-text h3:last-child { font-size: 6.3px; }
+            .row:has(> .col) { flex-direction: column; }
+            .field-label { min-width: 100px; }
+            .signature-row { flex-wrap: wrap; }
         }
 
-        /* ---------- Print Overrides ---------- */
+        @page { size: A4 portrait; margin: 8mm; }
         @media print {
-            body { background: #fff; }
-            .print-btn { display: none; }
-            .page { margin: 0; padding: 0; width: 100%; }
-            .form-border { border: 2px solid var(--line) !important; }
-            .input-box,
-            .top-info .box,
-            .photo-container,
-            .class-value {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
+            html, body { margin: 0 !important; padding: 0 !important; width: 100% !important; background: #fff !important; }
+            body { color: #000; font-size: 10pt; line-height: 1.3; }
+            .print-btn { display: none !important; }
+            .page { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; border-radius: 0 !important; box-shadow: none !important; }
+            .form-border { padding: 8px 10px !important; border: 2px solid #28262c !important; outline: none !important; }
+            .header { display: flex !important; grid-template-columns: none !important; gap: 8px !important; padding-bottom: 5px !important; }
+            .header > img { flex: 0 0 62px !important; width: 62px !important; height: 62px !important; }
+            .header-text h1 { color: #571b2c !important; font-size: 16pt !important; }
+            .header-text h3 { color: #222 !important; font-size: 9pt !important; }
+            .form-title { color: #28262c !important; background: transparent !important; font-size: 15pt !important; }
+            .top-info { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; }
+            .info-group { display: flex !important; grid-template-columns: none !important; }
+            .info-group:first-child .info-value { width: 150px !important; }
+            .info-group:last-child .info-value { width: 180px !important; }
+            .section-title { text-align: center !important; color: #28262c !important; }
+            .student-top { flex-direction: row !important; }
+            .photo-container { width: 100px !important; height: 118px !important; flex-basis: 100px !important; }
+            .row { flex-direction: row !important; align-items: center !important; gap: 12px !important; margin-bottom: 7px !important; }
+            .field { align-items: center !important; }
+            .field-label { color: #222 !important; }
+            .input-box, .info-value, .class-value { color: #000 !important; background: #fff !important; }
+            .declaration { font-size: 10pt !important; }
+            .signature-row { flex-wrap: nowrap !important; font-size: 10pt !important; }
+            img { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
+
 </head>
 <body>
+    <button class="print-btn" type="button" onclick="window.print()">
+        <i class="fa-solid fa-print" aria-hidden="true"></i> Print / Save as PDF
+    </button>
 
-    <button class="print-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
-
-    <div class="page">
+    <main class="page">
         <div class="form-border">
-
-            <!-- ================= HEADER ================= -->
+            <!-- School header -->
             <div class="header">
-                <img src="{{ url_for('static', filename='images/school_logo.png') }}" alt="Logo">
+                <img src="{{ url_for('static', filename='images/school_logo.png') }}" alt="School logo">
                 <div class="header-text">
                     <h1>RES. SHANTI NIKETAN SHISHU VIDYA MANDIR</h1>
                     <h3>NAVINAGAR, JAMUI-811307</h3>
                     <h3>CONTACT NO:- 99006515044</h3>
                 </div>
-                <img src="{{ url_for('static', filename='images/school_logo.png') }}" alt="Logo">
+                <img src="{{ url_for('static', filename='images/school_logo.png') }}" alt="School logo">
             </div>
 
-            <!-- ================= TITLE ================= -->
-            <div class="form-title">ADMISSION FORM</div>
+            <div class="form-title">Admission Form</div>
 
-            <!-- ================= TOP INFO ================= -->
+            <!-- Admission metadata -->
             <div class="top-info">
                 <div class="info-group">
-                    <span>ADMISSION NO.:-</span>
-                    <div class="box w-150">{{ student.admission_no or '' }}</div>
+                    <span>ADMISSION NO.:</span>
+                    <div class="info-value">{{ student.admission_no or '' }}</div>
                 </div>
                 <div class="info-group">
-                    <span>DATE OF ADMISSION:-</span>
-                    <div class="box w-180">{{ student.admission_date or '' }}</div>
+                    <span>DATE OF ADMISSION:</span>
+                    <div class="info-value">{{ student.admission_date or '' }}</div>
                 </div>
             </div>
 
-            <!-- ================= PERSONAL INFO ================= -->
-            <div class="section-title first">STUDENT PERSONAL INFORMATION</div>
+            <section aria-labelledby="student-personal-heading">
+                <div class="section-title first" id="student-personal-heading">Student Personal Information</div>
 
-            <!-- Class + Photo -->
-            <div class="student-top">
-                <div class="class-box">
-                    <div class="class-label">Admitted Into Class</div>
-                    <div class="class-value">{{ student.class_name or '' }}</div>
-                </div>
-
-                <div class="photo-container">
-                    {% if student.photo_url %}
-                        <img src="{{ student.photo_url }}" alt="Student Photo">
-                    {% else %}
-                        STUDENT<br>PHOTO
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Name Block -->
-            <div class="row">
-                <div class="field">
-                    <div class="field-label w-180">Student's Name:</div>
-                    <div class="input-box">{{ student.name }}</div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="field">
-                    <div class="field-label w-180">Father's Name:</div>
-                    <div class="input-box">{{ student.father_name }}</div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="field">
-                    <div class="field-label w-180">Mother's Name:</div>
-                    <div class="input-box">{{ student.mother_name }}</div>
-                </div>
-            </div>
-
-            <!-- DOB + Gender -->
-            <div class="row">
-                <div class="col">
-                    <div class="field">
-                        <div class="field-label w-120">Date of Birth:</div>
-                        <div class="input-box">{{ student.dob }}</div>
+                <div class="student-top">
+                    <div class="class-box">
+                        <div class="class-label">Admitted Into Class</div>
+                        <div class="class-value">{{ student.class_name or '' }}</div>
+                    </div>
+                    <div class="photo-container">
+                        {% if student.photo_url %}
+                            <img src="{{ student.photo_url }}" alt="Student Photo">
+                        {% else %}
+                            STUDENT<br>PHOTO
+                        {% endif %}
                     </div>
                 </div>
-                <div class="col">
-                    <div class="field">
-                        <div class="field-label w-90">Gender:</div>
-                        <div class="input-box">{{ student.gender }}</div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Nationality / Religion / Category -->
-            <div class="inline-row">
-                <span>Nationality: <span class="val">{{ student.nationality or 'INDIAN' }}</span></span>
-                <span>Religion: <span class="val">{{ student.religion or '' }}</span></span>
-                <span>Category: <span class="val">{{ student.category or 'GEN' }}</span></span>
-            </div>
+                <div class="row">
+                    <div class="field">
+                        <div class="field-label w-180">Student's Name:</div>
+                        <div class="input-box">{{ student.name }}</div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="field">
+                        <div class="field-label w-180">Father's Name:</div>
+                        <div class="input-box">{{ student.father_name }}</div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="field">
+                        <div class="field-label w-180">Mother's Name:</div>
+                        <div class="input-box">{{ student.mother_name }}</div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="field">
+                            <div class="field-label w-120">Date of Birth:</div>
+                            <div class="input-box">{{ student.dob }}</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="field">
+                            <div class="field-label w-90">Gender:</div>
+                            <div class="input-box">{{ student.gender }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="inline-row">
+                    <span>Nationality: <span class="val">{{ student.nationality or 'INDIAN' }}</span></span>
+                    <span>Religion: <span class="val">{{ student.religion or '' }}</span></span>
+                    <span>Category: <span class="val">{{ student.category or 'GEN' }}</span></span>
+                </div>
+                <div class="row">
+                    <div class="field">
+                        <div class="field-label w-180">Village / Address:</div>
+                        <div class="input-box">{{ student.address }}</div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="field">
+                            <div class="field-label w-120">District / City:</div>
+                            <div class="input-box">{{ student.city }}</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="field">
+                            <div class="field-label w-90">State:</div>
+                            <div class="input-box">{{ student.state }}</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="field">
+                            <div class="field-label w-90">Pin Code:</div>
+                            <div class="input-box">{{ student.pincode }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="field">
+                            <div class="field-label w-90">Contact No.:</div>
+                            <div class="input-box">{{ student.phone }}</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="field">
+                            <div class="field-label w-90">Aadhaar No.:</div>
+                            <div class="input-box">{{ student.aadhar }}</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-            <!-- Address -->
-            <div class="row">
-                <div class="field">
-                    <div class="field-label w-180">Village / Address:</div>
-                    <div class="input-box">{{ student.address }}</div>
+            <section aria-labelledby="parent-details-heading">
+                <div class="section-title" id="parent-details-heading">Parent / Guardian Information</div>
+                <div class="row">
+                    <div class="col">
+                        <div class="field">
+                            <div class="field-label w-120">Qualification: Father -</div>
+                            <div class="input-box">{{ student.father_education }}</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="field">
+                            <div class="field-label w-90">Mother -</div>
+                            <div class="input-box">{{ student.mother_education }}</div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="field">
+                            <div class="field-label w-120">Occupation: Father -</div>
+                            <div class="input-box">{{ student.father_occupation }}</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="field">
+                            <div class="field-label w-90">Mother -</div>
+                            <div class="input-box">{{ student.mother_occupation }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="field">
+                        <div class="field-label w-180">Name of Local Guardian (if any):</div>
+                        <div class="input-box">{{ student.guardian_name }}</div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="field">
+                            <div class="field-label w-120">Relation with Student:</div>
+                            <div class="input-box">{{ student.guardian_relation }}</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="field">
+                            <div class="field-label w-90">Contact No.:</div>
+                            <div class="input-box">{{ student.guardian_mobile }}</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-            <div class="row">
-                <div class="col">
-                    <div class="field">
-                        <div class="field-label w-120">District / City:</div>
-                        <div class="input-box">{{ student.city }}</div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="field">
-                        <div class="field-label w-90">State:</div>
-                        <div class="input-box">{{ student.state }}</div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="field">
-                        <div class="field-label w-90">Pin Code:</div>
-                        <div class="input-box">{{ student.pincode }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Contact + Aadhaar -->
-            <div class="row">
-                <div class="col">
-                    <div class="field">
-                        <div class="field-label w-90">Contact No.:</div>
-                        <div class="input-box">{{ student.phone }}</div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="field">
-                        <div class="field-label w-90">Aadhaar No.:</div>
-                        <div class="input-box">{{ student.aadhar }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Parent Qualification -->
-            <div class="row">
-                <div class="col">
-                    <div class="field">
-                        <div class="field-label w-120">Qualification: Father -</div>
-                        <div class="input-box">{{ student.father_education }}</div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="field">
-                        <div class="field-label w-90">Mother -</div>
-                        <div class="input-box">{{ student.mother_education }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Parent Occupation -->
-            <div class="row">
-                <div class="col">
-                    <div class="field">
-                        <div class="field-label w-120">Occupation: Father -</div>
-                        <div class="input-box">{{ student.father_occupation }}</div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="field">
-                        <div class="field-label w-90">Mother -</div>
-                        <div class="input-box">{{ student.mother_occupation }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Guardian -->
-            <div class="row">
-                <div class="field">
-                    <div class="field-label w-180">Name of Local Guardian (if any):</div>
-                    <div class="input-box">{{ student.guardian_name }}</div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col">
-                    <div class="field">
-                        <div class="field-label w-120">Relation with Student:</div>
-                        <div class="input-box">{{ student.guardian_relation }}</div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="field">
-                        <div class="field-label w-90">Contact No.:</div>
-                        <div class="input-box">{{ student.guardian_mobile }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ================= DECLARATION ================= -->
-            <div class="declaration">
-                <div class="section-title" style="margin-top: 0;">DECLARATION BY THE PARENTS</div>
+            <section class="declaration" aria-labelledby="declaration-heading">
+                <div class="section-title" id="declaration-heading">Declaration by the Parents</div>
                 <p>
-                    I, Mr./Mrs. <strong>{{ student.father_name or student.mother_name or student.guardian_name }}</strong>
-                    Father / Mother / Guardian of <strong>{{ student.name }}</strong>
+                    I, Mr./Mrs. <strong>{{ student.father_name or student.mother_name or student.guardian_name }}</strong>,
+                    Father / Mother / Guardian of <strong>{{ student.name }}</strong>,
                 </p>
                 <p>
-                    declare that the above information provided by me is correct and to the best of my knowledge and belief. I am fully ready to follow up all the rules and regulations of the school.
+                    declare that the above information provided by me is correct and to the best of my knowledge and belief.
+                    I am fully ready to follow up all the rules and regulations of the school.
                 </p>
-
                 <div class="signature-row">
-                    <span>Date: ____ / ____ / ________</span>
-                    <span>Parents Sign.: ______________________</span>
+                    <span>Date: ____ / ____ / __________</span>
+                    <span>Parents Sign.: __________________________</span>
                 </div>
-            </div>
-
+            </section>
         </div>
-    </div>
-
+    </main>
 </body>
 </html>
